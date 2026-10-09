@@ -163,13 +163,8 @@ class VideoCallback(VideoStreamTrack):
                 )
                 self.stop()
                 return None
-            if (
-                isinstance(outputs, AdditionalOutputs)
-                and self.set_additional_outputs
-                and self.channel
-            ):
+            if isinstance(outputs, AdditionalOutputs) and self.set_additional_outputs:
                 self.set_additional_outputs(outputs)
-                self.channel.send(create_message("fetch_output", []))
             if array is None and self.mode == "send":
                 return
 
@@ -244,13 +239,8 @@ class HandlerVideoTrack(VideoCallback):
                 outputs = await anyio.to_thread.run_sync(handler.video_emit)
 
             array, outputs = split_output(outputs)
-            if (
-                isinstance(outputs, AdditionalOutputs)
-                and self.set_additional_outputs
-                and self.channel
-            ):
+            if isinstance(outputs, AdditionalOutputs) and self.set_additional_outputs:
                 self.set_additional_outputs(outputs)
-                self.channel.send(create_message("fetch_output", []))
             if isinstance(outputs, CloseStream):
                 cast(DataChannel, self.channel).send(
                     create_message("end_stream", outputs.msg)
@@ -370,7 +360,6 @@ class AudioCallback(AudioStreamTrack):
                     callable,
                     self.queue,
                     self.thread_quit,
-                    lambda: self.channel,
                     self.set_additional_outputs,
                     False,
                     self.event_handler.output_sample_rate,
@@ -508,13 +497,8 @@ class ServerToClientVideo(VideoStreamTrack):
                 )
                 self.stop()
                 return
-            if (
-                isinstance(outputs, AdditionalOutputs)
-                and self.set_additional_outputs
-                and self.channel
-            ):
+            if isinstance(outputs, AdditionalOutputs) and self.set_additional_outputs:
                 self.set_additional_outputs(outputs)
-                self.channel.send(create_message("fetch_output", []))
 
             next_frame = self.array_to_frame(next_array)
             next_frame.pts = pts
@@ -587,7 +571,6 @@ class ServerToClientAudio(AudioStreamTrack):
                     callable,
                     self.queue,
                     self.thread_quit,
-                    lambda: self.channel,
                     self.set_additional_outputs,
                     True,
                 )

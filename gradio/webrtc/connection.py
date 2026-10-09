@@ -21,7 +21,8 @@ import asyncio
 import inspect
 import logging
 import time
-from collections import defaultdict
+import weakref
+from collections import defaultdict, deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -68,6 +69,16 @@ ADMISSION_WAIT = 5
 # The queue ends a stream event that is not woken up within 30 seconds
 KEEPALIVE_INTERVAL = 10
 WATCH_INTERVAL = 0.25
+MAX_PENDING_OUTPUTS = 64
+
+# The stream each queue event admitted. Weak, so that an event is forgotten
+# once the queue drops it; module-level, so that it outlives a manager that
+# a reload replaces.
+_admitted: weakref.WeakKeyDictionary[Event, str] = weakref.WeakKeyDictionary()
+
+
+def admitted_id(event: Event) -> str | None:
+    return _admitted.get(event)
 
 
 @dataclass
@@ -76,16 +87,13 @@ class Session:
 
     event: Event
     queue: Queue
-    args: list[Any]
-    # The input values the queue event last carried. Later values usually
-    # come through `set_input` instead, so the event's own values are only
-    # applied when they change.
-    event_args: list[Any] = field(default_factory=list)
     admitted_at: float = field(default_factory=time.monotonic)
     last_signal: float = field(default_factory=time.monotonic)
-    # The newest AdditionalOutputs not delivered yet. Older ones are replaced:
-    # each would overwrite the components the next one updates anyway.
-    outputs: AdditionalOutputs | None = None
+    # AdditionalOutputs not delivered yet, oldest first. A handler that emits
+    # faster than the outputs can be delivered loses the oldest ones.
+    outputs: deque[AdditionalOutputs] = field(
+        default_factory=lambda: deque(maxlen=MAX_PENDING_OUTPUTS)
+    )
     connected: bool = False
     ended: bool = False
     watcher: asyncio.Task | None = None
@@ -196,12 +204,16 @@ class ConnectionManager:
         self.data_channels: dict[str, Any] = {}
         self.handlers: dict[str, HandlerType] = {}
 
-    def admit(self, webrtc_id: str, event: Event, queue: Queue, args: list[Any]):
+    def admit(self, webrtc_id: str, event: Event, queue: Queue) -> None:
         """
         Lets a stream in. Called by the first call of the stream's queue event,
-        that is, once the stream's turn has come.
+        that is, once the stream's turn has come. An event admits one stream,
+        and a stream id is admitted once.
         """
-        session = Session(event=event, queue=queue, args=args, event_args=args)
+        _admitted[event] = webrtc_id
+        if webrtc_id in self.sessions:
+            return
+        session = Session(event=event, queue=queue)
         self.sessions[webrtc_id] = session
         session.watcher = asyncio.create_task(self._watch(webrtc_id, session))
         self.admissions[webrtc_id].set()
@@ -260,9 +272,12 @@ class ConnectionManager:
 
     def take_outputs(self, webrtc_id: str) -> AdditionalOutputs | None:
         session = self.sessions.get(webrtc_id)
-        if session is None:
+        if session is None or not session.outputs:
             return None
-        outputs, session.outputs = session.outputs, None
+        outputs = session.outputs.popleft()
+        if session.outputs:
+            # One call delivers one set of outputs; come back for the rest
+            session.wake()
         return outputs
 
     def clean_up(self, webrtc_id: str) -> list[Track]:
@@ -282,9 +297,6 @@ class ConnectionManager:
 
     def set_input(self, webrtc_id: str, *args: Any) -> None:
         """Pushes the current values of the extra inputs into a live connection."""
-        session = self.sessions.get(webrtc_id)
-        if session is not None:
-            session.args = list(args)
         for conn in self.connections.get(webrtc_id, []):
             conn.set_args(list(args))
 
@@ -292,7 +304,7 @@ class ConnectionManager:
         def set_outputs(outputs: AdditionalOutputs) -> None:
             session = self.sessions.get(webrtc_id)
             if session is not None:
-                session.outputs = outputs
+                session.outputs.append(outputs)
                 session.wake()
 
         return set_outputs
@@ -400,7 +412,6 @@ class ConnectionManager:
                 )
                 return
 
-            cb.set_args(session.args)
             self.connections[webrtc_id].append(cb)
             if webrtc_id in self.data_channels:
                 for conn in self.connections[webrtc_id]:
@@ -432,7 +443,6 @@ class ConnectionManager:
                     set_additional_outputs=set_outputs,
                     context=context,
                 )
-            cb.set_args(session.args)
             pc.addTrack(cb)
             self.connections[webrtc_id].append(cb)
             cb.on("ended", lambda: self.clean_up(webrtc_id))

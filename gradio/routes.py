@@ -1401,12 +1401,19 @@ class App(FastAPI):
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
-            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            queue = app.get_blocks()._queue
+            event = queue.event_ids_to_events.get(event_id)
             if event is None:
                 return Response(status_code=404)
             event.run_time = math.inf
             event.closed = True
             event.signal.set()
+            # A stream still waiting in line leaves it, instead of being
+            # started later only to end, and the ones behind it move up
+            line = queue.event_queue_per_concurrency_id.get(event.concurrency_id)
+            if line is not None and event in line.queue:
+                await queue.clean_events(event_id=event_id)
+                queue.broadcast_estimations(event.concurrency_id)
             return {"msg": "success"}
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")

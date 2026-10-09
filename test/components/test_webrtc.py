@@ -179,7 +179,8 @@ class TestWebRTC:
         assert stream.time_limit == 30
         assert stream.concurrency_limit is None
         assert stream.trigger_mode == "multiple"
-        assert [i._id for i in stream.inputs] == [webrtc._id, slider._id]
+        # The other inputs reach the handler through "tick" and "change"
+        assert [i._id for i in stream.inputs] == [webrtc._id]
         assert [o._id for o in stream.outputs] == [webrtc._id, number._id]
         push = triggers[(webrtc._id, "tick")]
         assert push.api_visibility == "private"
@@ -192,7 +193,7 @@ class TestWebRTC:
 
         # In mode="receive" the stream event still carries the connection id
         receive_stream = triggers[(receive._id, "stream")]
-        assert [i._id for i in receive_stream.inputs] == [receive._id, slider._id]
+        assert [i._id for i in receive_stream.inputs] == [receive._id]
         assert receive_stream.concurrency_limit == "default"
         assert (receive._id, "tick") in triggers
         assert triggers[(button._id, "click")].api_visibility == "private"
@@ -214,8 +215,16 @@ class TestWebRTC:
         assert event_queue.concurrency_limit == 3
 
     @pytest.mark.asyncio
-    async def test_run_stream_admits_then_delivers_the_newest_outputs(self):
+    async def test_run_stream_admits_then_delivers_outputs_in_order(self):
         from gradio.context import LocalContext
+
+        class FakeEvent:
+            _id = "event"
+            alive = True
+            closed = False
+
+            def __init__(self):
+                self.signal = asyncio.Event()
 
         with gr.Blocks() as demo:
             webrtc = gr.WebRTC()
@@ -223,9 +232,7 @@ class TestWebRTC:
             text = gr.Textbox()
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc, number, text])
         manager = get_manager(webrtc._id)
-        event = SimpleNamespace(
-            _id="event", signal=asyncio.Event(), alive=True, closed=False
-        )
+        event = FakeEvent()
         queue = SimpleNamespace(event_ids_to_events={"event": event})
         demo._queue = queue  # type: ignore
         blocks_token = LocalContext.blocks.set(demo)
@@ -235,14 +242,26 @@ class TestWebRTC:
             assert await webrtc._run_stream("abc") == (skip, skip, skip)
             assert manager.sessions["abc"].event is event
 
+            # Every output is delivered, oldest first, one per call; a call
+            # that leaves outputs behind wakes the event again
             set_outputs = manager._output_setter("abc")
             set_outputs(AdditionalOutputs(1, "a"))
             set_outputs(AdditionalOutputs(2, "b"))
+            event.signal.clear()
+            assert await webrtc._run_stream("abc") == (skip, 1, "a")
             assert event.signal.is_set()
+            event.signal.clear()
             assert await webrtc._run_stream("abc") == (skip, 2, "b")
+            assert not event.signal.is_set()
             assert await webrtc._run_stream("abc") == (skip, skip, skip)
 
-            set_outputs(AdditionalOutputs(3))
+            # A later call (a chunk) cannot admit another stream through the
+            # same event, and still serves the stream it admitted
+            set_outputs(AdditionalOutputs(3, "c"))
+            assert await webrtc._run_stream("other") == (skip, 3, "c")
+            assert "other" not in manager.sessions
+
+            set_outputs(AdditionalOutputs(4))
             with pytest.raises(ValueError, match="2 outputs besides"):
                 await webrtc._run_stream("abc")
         finally:
@@ -282,11 +301,11 @@ class Harness:
         )
         self.http = httpx2.AsyncClient(timeout=10)
 
-    async def join(self, webrtc_id, *args, session_hash=None):
+    async def join(self, webrtc_id, session_hash=None):
         response = await self.http.post(
             f"{self.api}/queue/join",
             json={
-                "data": [webrtc_id, *(args or [0])],
+                "data": [webrtc_id],
                 "fn_index": self.stream_fn._id,
                 "session_hash": session_hash or webrtc_id,
             },
@@ -300,8 +319,8 @@ class Harness:
                 pytest.fail("Timed out")
             await asyncio.sleep(0.02)
 
-    async def start(self, webrtc_id, *args):
-        event_id = await self.join(webrtc_id, *args)
+    async def start(self, webrtc_id):
+        event_id = await self.join(webrtc_id)
         await self.wait_until(lambda: webrtc_id in self.manager.sessions)
         return event_id
 
@@ -391,15 +410,13 @@ class TestStreams:
     @pytest.mark.asyncio
     async def test_video_offer_gets_answer_once_admitted(self, launched):
         h = launched
-        await h.start("one", 0.5)
+        await h.start("one")
         pc = await make_offer(video=True)
         answer = await h.connect(pc, "one")
         assert "m=video" in answer["sdp"]
         assert "webrtc-datachannel" in answer["sdp"]
         assert answer["time_limit"] is None
         assert "one" in h.manager.pcs
-        # The values the stream joined with reach the handler right away
-        assert h.manager.connections["one"][0].latest_args == [0.5]
         await pc.close()
 
     @pytest.mark.asyncio
@@ -486,32 +503,57 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
-    async def test_input_values_reach_the_connection(self, launched, monkeypatch):
+    async def test_input_values_come_from_the_page(self, launched, monkeypatch):
         h = launched
         monkeypatch.setattr(webrtc_connection, "KEEPALIVE_INTERVAL", 0.3)
-        event_id = await h.start("one", 0.1)
+        await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         track = h.manager.connections["one"][0]
-        assert track.latest_args == [0.1]
-
-        # A value pushed by an input's change event outlives the event's
-        # later wakes, which still carry the values it joined with
+        # Nothing from the time the user clicked: the handler asks the page
+        assert track.latest_args is None
         await h.webrtc._push_inputs("one", 0.2)
         await asyncio.sleep(1)
         assert track.latest_args == [0.2]
+        await pc.close()
 
-        # New values sent as a chunk of the stream's event are applied
+    @pytest.mark.asyncio
+    async def test_a_chunk_cannot_admit_another_stream(self, launched, monkeypatch):
+        h = launched
+        monkeypatch.setattr(webrtc_connection, "KEEPALIVE_INTERVAL", 0.3)
+        event_id = await h.start("one")
+        # A client that sends its event's own id with a new stream id, to get a
+        # second stream through one place in the concurrency limit
         await h.http.post(
             f"{h.api}/stream/{event_id}",
             json={
-                "data": ["one", 0.3],
+                "data": ["two"],
                 "fn_index": h.stream_fn._id,
                 "session_hash": "one",
+                "event_id": event_id,
             },
         )
-        await h.wait_until(lambda: track.latest_args == [0.3])
+        await asyncio.sleep(1)
+        assert "two" not in h.manager.sessions
+        pc = await make_offer(video=True)
+        assert (await h.offer(pc, "two"))["meta"]["error"] == "not_admitted"
         await pc.close()
+
+    @pytest.mark.asyncio
+    async def test_leaving_the_line_makes_room(self, launched):
+        h = launched
+        await h.start("one")
+        second = await h.join("two")
+        third = await h.join("three")
+        line = h.demo._queue.event_queue_per_concurrency_id[
+            h.stream_fn.concurrency_id
+        ].queue
+        await h.wait_until(lambda: [e._id for e in line] == [second, third])
+        # The second user stops while waiting: their event leaves the line
+        # instead of being admitted later only to end
+        await h.http.post(f"{h.api}/stream/{second}/close")
+        assert [e._id for e in line] == [third]
+        assert not h.event_running(second)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -521,9 +563,10 @@ class TestStreams:
     )
     async def test_additional_outputs_reach_the_other_outputs(self, launched):
         h = launched
-        await h.start("one", 21)
+        await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
+        await h.webrtc._push_inputs("one", 21)
 
         def got_output(ms):
             return any(
@@ -642,13 +685,16 @@ class TestStreams:
     )
     async def test_receive_mode_adds_server_track(self, launched):
         h = launched
-        await h.start("one", 3)
+        await h.start("one")
         pc = await make_offer(receive="video")
         answer = await h.offer(pc, "one")
         assert answer["type"] == "answer"
         assert "a=sendonly" in answer["sdp"]
         track = h.manager.connections["one"][0]
         assert track.fps == 5
+        # The generator starts with the values the page sends when asked
+        assert not track.args_set.is_set()
+        await h.webrtc._push_inputs("one", 3)
         assert track.latest_args == [3]
         await pc.close()
 

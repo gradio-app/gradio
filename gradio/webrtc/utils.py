@@ -67,7 +67,6 @@ class DataChannel(Protocol):
 
 MessageType = Literal[
     "send_input",
-    "fetch_output",
     "end_stream",
     "stopword",
     "error",
@@ -219,7 +218,6 @@ async def player_worker_decode(
     next_frame: Callable,
     queue: asyncio.Queue,
     thread_quit: asyncio.Event,
-    channel: Callable[[], DataChannel | None] | None,
     set_additional_outputs: Callable | None,
     quit_on_none: bool = False,
     sample_rate: int = 48000,
@@ -258,14 +256,8 @@ async def player_worker_decode(
             frame, outputs = split_output(
                 await asyncio.wait_for(next_frame(), timeout=60)
             )
-            if (
-                isinstance(outputs, AdditionalOutputs)
-                and set_additional_outputs
-                and channel
-                and channel()
-            ):
+            if isinstance(outputs, AdditionalOutputs) and set_additional_outputs:
                 set_additional_outputs(outputs)
-                cast(DataChannel, channel()).send(create_message("fetch_output", []))
 
             if frame is None:
                 if isinstance(outputs, CloseStream):

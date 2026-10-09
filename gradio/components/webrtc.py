@@ -242,6 +242,7 @@ class WebRTC(Component):
         config["time_limit"] = manager.time_limit if manager else self.time_limit
         config["track_constraints"] = self._track_constraints()
         config["mirror_webcam"] = self.webcam_options.mirror
+        config["has_stream"] = manager is not None
         return config
 
     def preprocess(self, payload: WebRTCModel | None) -> str | None:
@@ -347,11 +348,13 @@ class WebRTC(Component):
 
         # Each stream is one queue event: the frontend fires "stream" when the
         # user starts it, waits for its turn, and only then connects. The event
-        # then delivers AdditionalOutputs until the stream ends.
+        # then delivers AdditionalOutputs until the stream ends. It takes only
+        # the stream's id: the other inputs reach the handler through the
+        # events below, so the event's wakes do not preprocess them again.
         root_block.set_event_trigger(
             [EventListenerMethod(self, "stream")],
             self._run_stream,
-            inputs=cast(list, [self, *extra_inputs]),
+            inputs=[self],
             outputs=cast(list, [self, *extra_outputs]),
             show_progress="minimal",
             show_progress_on=self,
@@ -460,31 +463,31 @@ class WebRTC(Component):
         if manager is not None and webrtc_id:
             manager.set_input(webrtc_id, *args)
 
-    async def _run_stream(self, webrtc_id: str | None, *args: Any) -> Any:
+    async def _run_stream(self, webrtc_id: str | None) -> Any:
         """
         The queue event of one stream. Its first call admits the stream, and
-        each later call delivers the newest AdditionalOutputs. The value of
-        this component itself is never changed.
+        each later call delivers the next AdditionalOutputs. The value of this
+        component itself is never changed.
         """
+        from gradio.webrtc.connection import admitted_id
+
         nothing = [skip()] * (1 + self._num_extra_outputs)
         manager = self._manager()
-        if manager is not None and webrtc_id:
-            session = manager.sessions.get(webrtc_id)
-            if session is not None and list(args) != session.event_args:
-                # New input values sent as a chunk of the stream's event
-                session.event_args = list(args)
-                manager.set_input(webrtc_id, *args)
-            if session is None:
-                blocks = LocalContext.blocks.get(None)
-                queue = blocks._queue if blocks is not None else None
-                event = (
-                    queue.event_ids_to_events.get(LocalContext.event_id.get(None) or "")
-                    if queue is not None
-                    else None
-                )
-                if queue is not None and event is not None:
-                    manager.admit(webrtc_id, event, queue, list(args))
-            elif (outputs := manager.take_outputs(webrtc_id)) is not None:
+        blocks = LocalContext.blocks.get(None)
+        queue = blocks._queue if blocks is not None else None
+        event = (
+            queue.event_ids_to_events.get(LocalContext.event_id.get(None) or "")
+            if queue is not None
+            else None
+        )
+        if manager is not None and queue is not None and event is not None:
+            # A later call carries whatever id a chunk sent, so it only
+            # serves the stream that the first call admitted
+            stream_id = admitted_id(event)
+            if stream_id is None:
+                if webrtc_id:
+                    manager.admit(webrtc_id, event, queue)
+            elif (outputs := manager.take_outputs(stream_id)) is not None:
                 if len(outputs.args) != self._num_extra_outputs:
                     raise ValueError(
                         f"AdditionalOutputs has {len(outputs.args)} values, but "
