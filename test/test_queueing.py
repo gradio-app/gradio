@@ -597,6 +597,59 @@ def test_resuming_one_event_keeps_messages_waiting_for_another():
         demo.close()
 
 
+def test_an_acknowledged_stream_does_not_cut_off_the_open_message_stream():
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(lambda x: "chunk", audio, heard)
+        gr.Button().click(lambda: "clicked", None, heard)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    messages = []
+
+    def read_messages():
+        with httpx2.Client(timeout=30) as http:
+            with http.stream(
+                "GET",
+                f"{api}/queue/data",
+                params={"session_hash": "s", "acknowledgements": "true"},
+            ) as response:
+                for line in response.iter_lines():
+                    if line.startswith("data:"):
+                        messages.append(json.loads(line[5:]))
+
+    try:
+        with httpx2.Client(timeout=10) as http:
+            stream_event = _join(http, api, "s")
+            reader = threading.Thread(target=read_messages, daemon=True)
+            reader.start()
+            _wait_for(
+                lambda: any(m.get("msg") == "process_streaming" for m in messages)
+            )
+            # The page stops the stream while its message stream stays open, as
+            # when a gr.Audio stream is stopped: the acknowledgement goes out
+            # before the close request
+            http.post(f"{api}/reset", json={"event_id": stream_event})
+            http.post(f"{api}/stream/{stream_event}/close")
+            time.sleep(0.5)
+            click_event = http.post(
+                f"{api}/queue/join",
+                json={"data": [], "fn_index": 1, "session_hash": "s"},
+            ).json()["event_id"]
+            # The next event's result arrives on the same open stream
+            _wait_for(
+                lambda: any(
+                    m.get("msg") == "process_completed"
+                    and m.get("event_id") == click_event
+                    for m in messages
+                ),
+                timeout=3,
+                message="The open message stream missed the next event",
+            )
+    finally:
+        demo.close()
+
+
 def test_history_is_only_kept_for_clients_that_may_resume():
     with gr.Blocks() as demo:
         name = gr.Textbox()

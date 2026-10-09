@@ -361,7 +361,14 @@ class Queue:
         has_unacknowledged_history = resumable and any(
             message.event_id for message in resumable.history
         )
-        if not pending_ids and not has_unacknowledged_history:
+        if (
+            not pending_ids
+            and not has_unacknowledged_history
+            # An open message stream keeps reading this session's queue; the
+            # session is deleted when the stream closes instead. Deleting it
+            # now would leave the stream waiting on a queue nothing writes to.
+            and not (resumable and resumable.active_streams)
+        ):
             self.pending_event_ids_session.pop(session_hash, None)
             await self.delete_session(session_hash)
         else:
