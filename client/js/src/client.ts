@@ -43,7 +43,10 @@ import {
 	parse_and_set_cookies
 } from "./helpers/init_helpers";
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
-import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
+import {
+	get_zerogpu_headers,
+	initialize_zerogpu_handshake
+} from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { clear_run_history, load_run_history } from "./utils/run_history";
 import { SessionStore } from "./utils/session_store";
@@ -692,10 +695,12 @@ export class Client {
 			throw new Error(CONFIG_ERROR_MSG);
 		}
 
-		const headers: {
-			Authorization?: string;
-			"Content-Type"?: "application/json";
-		} = {};
+		// A server function can lead to ZeroGPU work (gr.WebRTC's offer starts
+		// the stream's handler), which is attributed to the visitor like the
+		// work of a queued event
+		const headers: Record<string, string> = {
+			...((await get_zerogpu_headers()) ?? {})
+		};
 
 		const { token } = this.options;
 		const { session_hash } = this;

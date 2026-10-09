@@ -10,13 +10,8 @@ import type {
 	SubmitIterable
 } from "../types";
 
-import {
-	skip_queue,
-	post_message,
-	handle_payload,
-	sign_file_urls
-} from "../helpers/data";
-import { get_zerogpu_origin } from "../helpers/zerogpu";
+import { skip_queue, handle_payload, sign_file_urls } from "../helpers/data";
+import { get_zerogpu_headers } from "../helpers/zerogpu";
 import {
 	handle_message,
 	map_data_to_params,
@@ -748,23 +743,7 @@ export function submit(
 					fn_index,
 					time: new Date()
 				});
-				let hostname = "";
-				if (typeof window !== "undefined" && typeof document !== "undefined") {
-					hostname = window?.location?.hostname;
-				}
-
-				const origin = get_zerogpu_origin(hostname);
-
-				const is_zerogpu_iframe =
-					typeof window !== "undefined" &&
-					typeof document !== "undefined" &&
-					window.parent != window &&
-					!!origin &&
-					window.supports_zerogpu_headers;
-				const zerogpu_auth_promise = is_zerogpu_iframe
-					? post_message<Map<string, string>>("zerogpu-headers", origin)
-					: Promise.resolve(null);
-				const post_data_promise = zerogpu_auth_promise.then((headers) => {
+				const post_data_promise = get_zerogpu_headers().then((headers) => {
 					const combined_headers = { ...addt_headers, ...(headers || {}) };
 					return post_with_state(
 						`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`,
