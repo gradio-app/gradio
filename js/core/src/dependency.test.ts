@@ -298,6 +298,34 @@ describe("DependencyManager.dispatch", () => {
 		);
 	});
 
+	test("an event that is not a stream does not close its inputs' stream", async () => {
+		// e.g. a change handler that takes a streaming gr.Audio as an input
+		const handler = dependency(0, "handler", [10]);
+		handler.inputs = [11];
+		const client = {
+			submit: () =>
+				submission(
+					(async function* () {
+						yield { type: "status", stage: "pending", queue: true };
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				)
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager([handler], client, update_state);
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+
+		const input_states = update_state.mock.calls
+			.filter(([id]) => id === 11)
+			.map(([, state]) => state.loading_status?.stream_state);
+		expect(input_states).not.toContain("closed");
+	});
+
 	test("settles the input components of a rejected stream event", async () => {
 		const validated = dependency(0, "validated", [10]);
 		validated.inputs = [11];
@@ -493,6 +521,33 @@ describe("DependencyManager.resume", () => {
 		// The next "stream" event from the component starts a new stream
 		// instead of sending a chunk to this one
 		expect((dependency_manager as any).submissions.has(0)).toBe(false);
+	});
+
+	test("runs the events chained to a stream it ends after a reload", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "status", stage: "streaming", fn_index: 0, queue: true };
+		}
+		const [run, then, on_success, on_failure] = chain();
+		run.connection = "stream";
+		const resumed = Object.assign(submission(events()), {
+			close_stream: vi.fn()
+		});
+		const client = {
+			resume_jobs: vi.fn(() => [resumed])
+		} as unknown as Client;
+		const dependency_manager = manager(
+			[run, then, on_success, on_failure],
+			client
+		);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		// As when a stream is stopped: .then() and .success() follow it
+		expect(
+			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
+		).toEqual([1, 2]);
 	});
 
 	test("builds the block of a resumed render function", async () => {

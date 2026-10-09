@@ -544,7 +544,12 @@ export class DependencyManager {
 
 								// handle status updates here
 								if (result.stage === "complete") {
-									stream_state = "closed";
+									// Only a stream closes: for any other event, a "closed"
+									// stream_state would reach its input components and end
+									// a stream one of them is running
+									if (dep.connection_type === "stream") {
+										stream_state = "closed";
+									}
 									success.forEach((dep_id) => {
 										this.dispatch({
 											type: "fn",
@@ -786,6 +791,12 @@ export class DependencyManager {
 					// component to start a new stream.
 					submission.close_stream();
 					await submission.acknowledge();
+					// As when the user stops a stream: `.then()` and `.success()`
+					// follow it
+					const { success, all } = dep.get_triggers();
+					for (const dep_id of [...success, ...all]) {
+						this.dispatch({ type: "fn", fn_index: dep_id, event_data: null });
+					}
 					return;
 				}
 				this.submissions.set(fn_index, submission);
