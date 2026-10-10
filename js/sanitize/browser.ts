@@ -14,10 +14,13 @@ configuration.allowElements = (configuration.allowElements ?? []).filter(
 );
 const amuchina = new Amuchina(configuration);
 
-export function sanitize(source: string): string {
-	const node = new DOMParser().parseFromString(source, "text/html");
-	const sanitized_node = amuchina.sanitize(node);
-	walk_nodes(sanitized_node.body, "A", (node) => {
+// Parsing into a <template> is inert like DOMParser, but reuses the template
+// contents document instead of creating a new one per call.
+export function sanitize_fragment(source: string): DocumentFragment {
+	const template = document.createElement("template");
+	template.innerHTML = source;
+	const fragment = amuchina.sanitize(template.content);
+	walk_nodes(fragment, "A", (node) => {
 		if (node instanceof HTMLElement && "target" in node) {
 			if (should_open_link_in_new_tab(node.getAttribute("href"))) {
 				node.setAttribute("target", "_blank");
@@ -26,7 +29,13 @@ export function sanitize(source: string): string {
 		}
 	});
 
-	return sanitized_node.body.innerHTML;
+	return fragment;
+}
+
+export function sanitize(source: string): string {
+	const template = document.createElement("template");
+	template.content.append(sanitize_fragment(source));
+	return template.innerHTML;
 }
 
 function walk_nodes(
