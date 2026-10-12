@@ -70,13 +70,28 @@
 	async function render_latest(): Promise<void> {
 		rendering = true;
 		try {
-			let value: string;
-			let settings: string;
+			let value = "";
+			let settings = "";
+			const is_latest = (): boolean =>
+				value === latest_message && settings === latest_settings;
 			do {
-				value = latest_message;
-				settings = latest_settings;
-				await render(value, settings);
-			} while (value !== latest_message || settings !== latest_settings);
+				do {
+					value = latest_message;
+					settings = latest_settings;
+					try {
+						await render(value, settings);
+					} catch (error) {
+						console.error(error);
+					}
+				} while (!is_latest());
+				// Mermaid is slow to load and to run, so diagrams are drawn once
+				// the text has caught up instead of holding back every update.
+				try {
+					await render_mermaid();
+				} catch (error) {
+					console.error(error);
+				}
+			} while (!is_latest());
 		} finally {
 			rendering = false;
 		}
@@ -129,8 +144,6 @@
 		const anchor = kept_after.find((block) => block.nodes.length)?.nodes[0];
 		el.insertBefore(fragment, anchor ?? null);
 		blocks = [...blocks.slice(0, start), ...added, ...kept_after];
-
-		await render_mermaid(added.flatMap((block) => block.nodes));
 	}
 
 	function split_blocks(
@@ -259,15 +272,11 @@
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 	}
 
-	async function render_mermaid(nodes: Node[]): Promise<void> {
-		const mermaidDivs = nodes.flatMap((node) =>
-			node instanceof Element
-				? [
-						...(node.matches(".mermaid") ? [node] : []),
-						...node.querySelectorAll(".mermaid")
-					]
-				: []
-		);
+	async function render_mermaid(): Promise<void> {
+		// Mermaid marks each diagram it has tried, so only new ones are drawn.
+		const mermaidDivs = el
+			? Array.from(el.querySelectorAll(".mermaid:not([data-processed])"))
+			: [];
 		if (mermaidDivs.length > 0) {
 			await tick();
 			const { default: mermaid } = await import("mermaid");

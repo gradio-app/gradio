@@ -458,6 +458,26 @@ describe("Streaming updates", () => {
 		);
 	});
 
+	test("keeps rendering updates after an invalid mermaid diagram", async () => {
+		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+		try {
+			const diagram = "```mermaid\ngraph TD\n  A -->\n```";
+			const { set_data, container } = await render(Markdown, {
+				...default_props,
+				value: diagram
+			});
+			await set_data({ value: `${diagram}\n\nAfter the diagram.` });
+
+			await waitFor(() =>
+				expect(container.querySelector(".md > p")?.textContent).toBe(
+					"After the diagram."
+				)
+			);
+		} finally {
+			error.mockRestore();
+		}
+	});
+
 	test("does not parse a new document for every update", async () => {
 		const spy = vi.spyOn(DOMParser.prototype, "parseFromString");
 		try {
