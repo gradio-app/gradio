@@ -105,16 +105,24 @@
 		nodes: ChildNode[];
 	}
 
-	// The rendered top-level blocks, in order. Only the blocks that differ from
-	// the previous render are rebuilt, so the work per streamed update stays
-	// proportional to the change rather than to the whole message.
+	// The rendered top-level blocks, in order. The whole message is lexed on
+	// every update, but only the blocks that differ from the previous render
+	// are rebuilt, so the DOM work per streamed update stays proportional to
+	// the change rather than to the whole message.
 	let blocks: Block[] = [];
+	// What every block depends on: the settings and the reference links.
+	let blocks_context = "";
 
 	async function render(value: string, settings: string): Promise<void> {
-		const next = value && value.trim() ? split_blocks(value, settings) : [];
+		const { context, blocks: next } =
+			value && value.trim()
+				? split_blocks(value, settings)
+				: { context: settings, blocks: [] };
+		const reuse = context === blocks_context;
 
 		let start = 0;
 		while (
+			reuse &&
 			start < blocks.length &&
 			start < next.length &&
 			blocks[start].key === next[start].key
@@ -123,6 +131,7 @@
 		}
 		let end = 0;
 		while (
+			reuse &&
 			end < blocks.length - start &&
 			end < next.length - start &&
 			blocks[blocks.length - 1 - end].key === next[next.length - 1 - end].key
@@ -149,19 +158,21 @@
 		const anchor = kept_after.find((block) => block.nodes.length)?.nodes[0];
 		el.insertBefore(fragment, anchor ?? null);
 		blocks = [...blocks.slice(0, start), ...added, ...kept_after];
+		blocks_context = context;
 	}
 
 	function split_blocks(
 		value: string,
 		settings: string
-	): { key: string; render: () => Promise<DocumentFragment> }[] {
+	): {
+		context: string;
+		blocks: { key: string; render: () => Promise<DocumentFragment> }[];
+	} {
 		if (!render_markdown) {
-			return [
-				{
-					key: [settings, value].join("\0"),
-					render: async () => to_fragment(value, value)
-				}
-			];
+			return {
+				context: settings,
+				blocks: [{ key: value, render: async () => to_fragment(value, value) }]
+			};
 		}
 
 		const latexBlocks: string[] = [];
@@ -189,7 +200,7 @@
 		const tokens = marked.lexer(parsedValue);
 		const top_level = tokens.filter((token) => token.type !== "space");
 		// A reference definition can change how an earlier block renders.
-		const links = JSON.stringify(tokens.links);
+		const context = [settings, JSON.stringify(tokens.links)].join("\0");
 		const heading_ids = use_header_links
 			? assign_heading_ids(marked, top_level)
 			: [];
@@ -208,14 +219,14 @@
 			track_open_elements(marked, token, open_elements);
 		});
 
-		return groups.map((group) => {
+		const next = groups.map((group) => {
 			const group_tokens = group.map((i) => top_level[i]);
 			const source = restore_latex(
 				group_tokens.map((token) => token.raw).join("")
 			);
 			const ids = group.map((i) => heading_ids[i]?.join(" ")).join(" ");
 			return {
-				key: [settings, links, ids, source].join("\0"),
+				key: [ids, source].join("\0"),
 				render: async () => {
 					// marked.parse() would run walkTokens itself; it does the
 					// async syntax highlighting of code blocks.
@@ -229,6 +240,7 @@
 				}
 			};
 		});
+		return { context, blocks: next };
 	}
 
 	async function to_fragment(
