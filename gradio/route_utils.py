@@ -1411,6 +1411,7 @@ _FILE_STREAM_MAX_REDIRECTS = 20
 _FILE_STREAM_PASSTHROUGH_HEADERS = (
     "content-length",
     "content-range",
+    "content-encoding",
     "accept-ranges",
     "last-modified",
     "etag",
@@ -1429,9 +1430,9 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
     private / loopback / link-local / reserved address are rejected. See #13593.
     """
     forward_headers = {"Accept-Encoding": "identity"}
-    range_header = request.headers.get("Range")
-    if range_header:
-        forward_headers["Range"] = range_header
+    for header in ("Range", "If-Range"):
+        if value := request.headers.get(header):
+            forward_headers[header] = value
 
     current_url = url
     redirects = 0

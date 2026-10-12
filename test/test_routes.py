@@ -1486,17 +1486,21 @@ class TestRoutes:
 
     def test_file_endpoint_url_is_not_served_compressed(self, monkeypatch):
         body = b'{"hello": "world"}'
+        upstream_headers = {}
 
         async def stream(data: bytes):
             yield data
 
         def compressing_host(request: httpx.Request) -> httpx.Response:
-            headers = {"content-type": "application/json"}
-            data = body
-            if "gzip" in request.headers.get("accept-encoding", ""):
-                headers["content-encoding"] = "gzip"
-                data = gzip.compress(body)
-            return httpx.Response(200, headers=headers, content=stream(data))
+            upstream_headers.update(request.headers)
+            return httpx.Response(
+                200,
+                headers={
+                    "content-type": "application/json",
+                    "content-encoding": "gzip",
+                },
+                content=stream(gzip.compress(body)),
+            )
 
         async def resolve(host):
             return "93.184.216.34"
@@ -1510,9 +1514,15 @@ class TestRoutes:
         io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
         client = TestClient(routes.App.create_app(io))
 
-        resp = client.get(f"{API_PREFIX}/file=https://example.com/data.json")
+        resp = client.get(
+            f"{API_PREFIX}/file=https://example.com/data.json",
+            headers={"Range": "bytes=0-", "If-Range": '"v1"'},
+        )
         assert resp.status_code == 200
         assert resp.content == body
+        assert upstream_headers["accept-encoding"] == "identity"
+        assert upstream_headers["range"] == "bytes=0-"
+        assert upstream_headers["if-range"] == '"v1"'
 
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):
