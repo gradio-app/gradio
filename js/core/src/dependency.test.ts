@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { settled } from "svelte";
 import type { Client } from "@gradio/client";
 import { DependencyManager, process_frontend_fn } from "./dependency";
 import type { Dependency as DependencyConfig } from "./types";
@@ -429,5 +430,53 @@ describe("DependencyManager.dispatch", () => {
 		// which starts without one, so the next push includes it
 		await dependency_manager.update_loading_stati_state();
 		expect(update_state.mock.calls.map(([id]) => id)).toContain(10);
+	});
+	test("preserves another event's pending status when clearing input validation errors", async () => {
+		// Stub the transport so the second event remains pending during the check.
+		const client = {
+			submit: () =>
+				(async function* () {
+					yield { type: "status", stage: "pending", queue: true };
+				})()
+		} as unknown as Client;
+		const second = dependency(1, "second", [20]);
+		second.inputs = [10, 11];
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[dependency(0, "first", [10]), second],
+			client,
+			update_state
+		);
+		await settled();
+		dependency_manager.update_loading_status({
+			fn_index: 0,
+			status: "pending",
+			stream_state: null
+		});
+		await dependency_manager.update_loading_stati_state();
+		update_state.mockClear();
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 1,
+			event_data: null
+		});
+		await settled();
+
+		const input_statuses = update_state.mock.calls
+			.filter(([id, state]) => id === 10 && "loading_status" in state)
+			.map(([, state]) => state.loading_status);
+		expect(input_statuses.length).toBeGreaterThan(0);
+		for (const status of input_statuses) {
+			expect(status).toMatchObject({ status: "pending", fn_index: 0 });
+		}
+		expect(input_statuses.at(-1)).toMatchObject({ validation_error: null });
+		expect(update_state).toHaveBeenCalledWith(
+			11,
+			{
+				loading_status: { validation_error: null }
+			},
+			false
+		);
 	});
 });

@@ -531,6 +531,7 @@ export class DependencyManager {
 										input_id,
 										{
 											loading_status: {
+												...this.loading_stati.current[input_id],
 												validation_error: null
 											}
 										},
