@@ -1,7 +1,7 @@
 ---
-"@gradio/core": minor
-"@gradio/statustracker": minor
-"gradio": minor
+"@gradio/core": patch
+"@gradio/statustracker": patch
+"gradio": patch
 ---
 
-feat:Speed up frontend updates in apps with many components
+fix:Speed up frontend updates in apps with many components
