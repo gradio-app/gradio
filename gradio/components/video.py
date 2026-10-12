@@ -491,17 +491,21 @@ class Video(StreamingOutput, Component):
                 output_stem += "_watermarked"
             cache_root = Path(self.GRADIO_CACHE)
             cache_root.mkdir(parents=True, exist_ok=True)
-            output_file_name = str(
-                Path(tempfile.mkdtemp(dir=cache_root))
-                / f"{output_stem}.{self.format or returned_format}"
-            )
-            ff = FFmpeg(  # type: ignore
-                inputs=inputs_dict,
-                outputs={output_file_name: None},
-                global_options=global_option_list,
-            )
-            ff.run()
-            video = output_file_name
+            # Stage each encode separately, then deduplicate by its content hash.
+            # The staging directory is removed even if encoding or caching fails.
+            with tempfile.TemporaryDirectory(dir=cache_root) as output_dir:
+                output_file_name = str(
+                    Path(output_dir) / f"{output_stem}.{self.format or returned_format}"
+                )
+                ff = FFmpeg(  # type: ignore
+                    inputs=inputs_dict,
+                    outputs={output_file_name: None},
+                    global_options=global_option_list,
+                )
+                ff.run()
+                video = processing_utils.save_file_to_cache(
+                    output_file_name, cache_dir=self.GRADIO_CACHE
+                )
 
         return FileData(path=video, orig_name=Path(video).name)
 

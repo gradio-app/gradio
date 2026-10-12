@@ -460,6 +460,60 @@ class TestVideo:
         assert Path(result.path).parent.parent == Path(video.GRADIO_CACHE)
 
     @pytest.mark.requires_ffmpeg
+    @pytest.mark.parametrize("watermark", [False, True])
+    def test_converted_videos_are_deduplicated(self, tmp_path, watermark):
+        video = gr.Video(
+            format="avi",
+            watermark="test/test_files/bus.png" if watermark else None,
+        )
+        cache = tmp_path / "cache"
+        video.GRADIO_CACHE = str(cache)
+
+        results = [
+            video.postprocess("test/test_files/video_sample.mp4") for _ in range(3)
+        ]
+
+        assert all(result is not None for result in results)
+        paths = {result.path for result in results if result is not None}
+        assert len(paths) == 1
+        output = Path(paths.pop())
+        assert output.parent.name == processing_utils.hash_file(output)
+        assert output.name == (
+            "video_sample_watermarked.avi" if watermark else "video_sample.avi"
+        )
+        assert list(cache.iterdir()) == [output.parent]
+        assert list(output.parent.iterdir()) == [output]
+
+    @pytest.mark.parametrize("failure_stage", ["encode", "cache"])
+    def test_failed_video_conversion_removes_staging(
+        self, tmp_path, monkeypatch, failure_stage
+    ):
+        video = gr.Video(format="avi")
+        cache = tmp_path / "cache"
+        video.GRADIO_CACHE = str(cache)
+        monkeypatch.setattr(processing_utils, "video_is_playable", lambda _: True)
+
+        def encode(*, inputs, outputs, global_options):
+            def run():
+                Path(next(iter(outputs))).write_bytes(b"encoded video")
+                if failure_stage == "encode":
+                    raise RuntimeError("conversion failed")
+
+            return SimpleNamespace(run=run)
+
+        def fail_cache(*args, **kwargs):
+            raise RuntimeError("caching failed")
+
+        monkeypatch.setattr(video_module, "FFmpeg", encode)
+        if failure_stage == "cache":
+            monkeypatch.setattr(processing_utils, "save_file_to_cache", fail_cache)
+
+        with pytest.raises(RuntimeError, match="failed"):
+            video.postprocess("test/test_files/video_sample.mp4")
+
+        assert list(cache.iterdir()) == []
+
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_stream_output_returns_a_flat_payload_and_chunk(self, tmp_path):
         component = gr.Video(streaming=True)
