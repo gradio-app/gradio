@@ -35,6 +35,7 @@ from gradio.workflow import (
     get_token,
     has_write_access,
 )
+from gradio.workflow_api import WorkflowGraph
 from gradio.workflow_provider_shims import call_with_recovery
 
 
@@ -483,17 +484,17 @@ class TestSaveWorkflowGating:
 class TestWorkflowFromBind:
     def test_generates_nodes_for_each_bound_fn(self):
         result = json.loads(_workflow_from_bind({"shout": _shout, "add": _add}))
-        fns = {n["fn"] for n in result["nodes"]}
+        fns = {n["fn"] for n in result["operators"]}
         assert fns == {"shout", "add"}
 
     def test_port_type_from_annotation(self):
         result = json.loads(_workflow_from_bind({"add": _add}))
-        node = result["nodes"][0]
+        node = result["operators"][0]
         assert all(p["type"] == "number" for p in node["inputs"])
 
     def test_bool_annotation_maps_to_boolean(self):
         result = json.loads(_workflow_from_bind({"flag": _flag}))
-        node = result["nodes"][0]
+        node = result["operators"][0]
         assert node["inputs"][0]["type"] == "boolean"
 
     def test_unannotated_param_defaults_to_text(self):
@@ -501,7 +502,7 @@ class TestWorkflowFromBind:
             return x
 
         result = json.loads(_workflow_from_bind({"plain": plain}))
-        node = result["nodes"][0]
+        node = result["operators"][0]
         assert node["inputs"][0]["type"] == "text"
 
     def test_edges_resolve_by_function_name(self):
@@ -511,10 +512,9 @@ class TestWorkflowFromBind:
                 edges=[("shout", "add")],
             )
         )
-        assert len(result["edges"]) == 1
-        edge = result["edges"][0]
-        assert edge["from_node_id"] == "fn_shout"
-        assert edge["to_node_id"] == "fn_add"
+        # plus the edges that wrap the pipeline in reference/subject tiles
+        wired = [e for e in result["edges"] if e["from_node_id"] == "fn_shout"]
+        assert [e["to_node_id"] for e in wired] == ["fn_add"]
 
     def test_edges_resolve_by_port_label(self):
         result = json.loads(
@@ -523,7 +523,7 @@ class TestWorkflowFromBind:
                 edges=[("add.output", "shout.text")],
             )
         )
-        edge = result["edges"][0]
+        edge = next(e for e in result["edges"] if e["from_node_id"] == "fn_add")
         assert edge["from_port_id"] == "out_0"
         assert edge["to_port_id"] == "in_text"
 
@@ -542,8 +542,160 @@ class TestWorkflowFromBind:
             return ""
 
         result = json.loads(_workflow_from_bind({"noargs": noargs}))
-        node = result["nodes"][0]
+        node = result["operators"][0]
         assert node["inputs"] == [{"id": "in_0", "label": "input", "type": "text"}]
+
+
+def _graph_of(workflow: gr.Workflow) -> dict:
+    """The graph a constructor built, before any canvas save replaces it."""
+    assert workflow._initial_graph is not None
+    return json.loads(workflow._initial_graph)
+
+
+class TestWorkflowGraphShapes:
+    """`_workflow_from_bind`, `compare` and `chain` all go through `_v2_graph`,
+    whose job is to turn operators into something launchable."""
+
+    def test_bind_emits_schema_v2_that_the_server_accepts(self):
+        # v1 was generated here and rejected by from_json, so a bound workflow
+        # started with no endpoints at all.
+        raw = _workflow_from_bind({"shout": _shout})
+        assert json.loads(raw)["schema_version"] == "2"
+        assert WorkflowGraph.from_json(raw) is not None
+
+    def test_pipeline_is_wrapped_in_reference_and_subject(self):
+        result = json.loads(
+            _workflow_from_bind(
+                {"shout": _shout, "add": _add}, edges=[("shout", "add")]
+            )
+        )
+        # endpoints are derived per subject, so without the wrapping there are none
+        assert [n["label"] for n in result["subjects"]] == ["add"]
+        # one reference per input port no edge feeds: shout's `text`, and add's
+        # `b` — the edge supplies only its first parameter
+        assert {n["id"] for n in result["references"]} == {
+            "ref_fn_shout_in_text",
+            "ref_fn_add_in_b",
+        }
+
+    def test_compare_fans_one_reference_out_to_every_model(self):
+        graph = _graph_of(
+            gr.Workflow.compare(
+                ["krea/Krea-2-Turbo", "black-forest-labs/FLUX.1-dev"],
+                task="text-to-image",
+            )
+        )
+        assert len(graph["references"]) == 1
+        assert len(graph["operators"]) == len(graph["subjects"]) == 2
+        # ports come from the endpoint schema, never hand-written
+        assert all(o["endpoint"] == "text_to_image" for o in graph["operators"])
+        assert all(
+            [p["id"] for p in o["inputs"]] == ["prompt"] for o in graph["operators"]
+        )
+        assert [n["id"] for n in graph["references"]] == ["ref_prompt"]
+        fed = {
+            e["to_node_id"] for e in graph["edges"] if e["from_node_id"] == "ref_prompt"
+        }
+        assert fed == {o["id"] for o in graph["operators"]}
+
+    def test_chain_connects_each_step_to_the_next(self):
+        graph = _graph_of(
+            gr.Workflow.chain(
+                [
+                    ("openai/whisper-large-v3-turbo", "automatic-speech-recognition"),
+                    ("facebook/bart-large-cnn", "summarization"),
+                ]
+            )
+        )
+        first, second = graph["operators"]
+        assert any(
+            e["from_node_id"] == first["id"] and e["to_node_id"] == second["id"]
+            for e in graph["edges"]
+        )
+        assert len(graph["subjects"]) == 1
+
+    def test_endpoint_name_accepted_in_place_of_pipeline_tag(self):
+        graph = _graph_of(
+            gr.Workflow.compare(["krea/Krea-2-Turbo"], task="text_to_image")
+        )
+        assert graph["operators"][0]["endpoint"] == "text_to_image"
+
+    def test_unknown_task_raises(self):
+        with pytest.raises(ValueError, match="Unknown task"):
+            gr.Workflow.compare(["owner/name"], task="telepathy")
+
+    def test_model_id_must_be_owner_slash_name(self):
+        with pytest.raises(ValueError, match="Invalid model id"):
+            gr.Workflow.compare(["gpt2"], task="text-to-image")
+
+    def test_chain_rejects_steps_whose_types_do_not_connect(self):
+        with pytest.raises(ValueError, match="do not connect"):
+            gr.Workflow.chain(
+                [
+                    ("black-forest-labs/FLUX.1-dev", "text-to-image"),
+                    ("facebook/bart-large-cnn", "summarization"),
+                ]
+            )
+
+    def test_markdown_connects_to_text(self):
+        # chat_completion returns markdown; summarization takes text
+        gr.Workflow.chain(
+            [
+                ("Qwen/Qwen2.5-VL-7B-Instruct", "image-text-to-text"),
+                ("facebook/bart-large-cnn", "summarization"),
+            ]
+        )
+
+    def test_compare_shares_every_input_not_just_the_first(self):
+        # comparing two translation models must not ask for the source and
+        # target language once per model
+        graph = _graph_of(gr.Workflow.compare(["o/a", "o/b"], task="translation"))
+        assert len(graph["references"]) == 3
+        for reference in graph["references"]:
+            fed = {
+                e["to_node_id"]
+                for e in graph["edges"]
+                if e["from_node_id"] == reference["id"]
+            }
+            assert fed == {o["id"] for o in graph["operators"]}
+
+    def test_models_sharing_a_name_are_labelled_by_full_id(self):
+        # subject labels become the API's return names
+        graph = _graph_of(
+            gr.Workflow.compare(
+                ["alice/FLUX.1-dev", "bob/FLUX.1-dev"], task="text-to-image"
+            )
+        )
+        assert [n["label"] for n in graph["subjects"]] == [
+            "alice/FLUX.1-dev",
+            "bob/FLUX.1-dev",
+        ]
+
+    def test_colliding_node_ids_are_made_unique(self):
+        graph = _graph_of(
+            gr.Workflow.compare(["a/m", "a/m", "a/m"], task="text-to-image")
+        )
+        ids = [n["id"] for n in graph["operators"]]
+        assert len(set(ids)) == len(ids)
+
+    def test_a_bare_string_is_not_a_list_of_models(self):
+        # a string is iterable, so without a guard this walks its characters
+        with pytest.raises(ValueError, match="not a single string"):
+            gr.Workflow.compare("owner/name", task="text-to-image")  # type: ignore[arg-type]
+
+    def test_non_string_model_id_raises(self):
+        with pytest.raises(ValueError, match="is not a model id"):
+            gr.Workflow.compare([123], task="text-to-image")  # type: ignore[list-item]
+
+    def test_chain_step_must_be_a_pair(self):
+        with pytest.raises(ValueError, match="is not a \\(model_id, task\\) pair"):
+            gr.Workflow.chain(["owner/name"])  # type: ignore[list-item]
+
+    def test_empty_input_raises(self):
+        with pytest.raises(ValueError, match="at least one model"):
+            gr.Workflow.compare([], task="text-to-image")
+        with pytest.raises(ValueError, match="at least one step"):
+            gr.Workflow.chain([])
 
 
 class TestDispatchModelEndpoint:
