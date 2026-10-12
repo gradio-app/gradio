@@ -1428,7 +1428,9 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
     re-validating every redirect hop. Hosts that are unresolvable or resolve to a
     private / loopback / link-local / reserved address are rejected. See #13593.
     """
-    forward_headers = {}
+    # The body is streamed back raw and `Content-Encoding` is not passed through,
+    # so ask the host for an uncompressed body.
+    forward_headers = {"Accept-Encoding": "identity"}
     range_header = request.headers.get("Range")
     if range_header:
         forward_headers["Range"] = range_header

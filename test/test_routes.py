@@ -2,6 +2,7 @@
 
 import asyncio
 import functools
+import gzip
 import inspect
 import io
 import json
@@ -1482,6 +1483,37 @@ class TestRoutes:
         else:
             assert resp.status_code == 403
             assert "location" not in resp.headers
+
+    def test_file_endpoint_url_is_not_served_compressed(self, monkeypatch):
+        body = b'{"hello": "world"}'
+
+        async def stream(data: bytes):
+            yield data
+
+        def compressing_host(request: httpx.Request) -> httpx.Response:
+            # Like most CDNs, gzip the body whenever the client accepts it
+            headers = {"content-type": "application/json"}
+            data = body
+            if "gzip" in request.headers.get("accept-encoding", ""):
+                headers["content-encoding"] = "gzip"
+                data = gzip.compress(body)
+            return httpx.Response(200, headers=headers, content=stream(data))
+
+        async def resolve(host):
+            return "93.184.216.34"
+
+        monkeypatch.setattr(route_utils.safehttpx, "async_validate_url", resolve)
+        monkeypatch.setattr(
+            route_utils.safehttpx,
+            "AsyncSecureTransport",
+            lambda ip: httpx.MockTransport(compressing_host),
+        )
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        client = TestClient(routes.App.create_app(io))
+
+        resp = client.get(f"{API_PREFIX}/file=https://example.com/data.json")
+        assert resp.status_code == 200
+        assert resp.content == body
 
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):
