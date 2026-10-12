@@ -311,8 +311,6 @@ def test_cancel_removes_pending_event_from_queue():
 
 
 def test_cancel_completes_every_job_it_cancels():
-    """The frontend cancels every running job of a function in the session, so
-    each of them needs a completion message, not only the one in the request."""
     with gr.Blocks() as demo:
         start = gr.Button()
         output = gr.Textbox()
@@ -323,8 +321,6 @@ def test_cancel_completes_every_job_it_cancels():
 
         start.click(slow, None, output, concurrency_limit=2)
 
-    # A real server rather than `TestClient`, whose requests run on an event loop
-    # of their own, where `/cancel` cannot see the queue's tasks
     _, local_url, _ = demo.launch(prevent_thread_lock=True)
     client = httpx.Client(base_url=f"{local_url.rstrip('/')}{API_PREFIX}")
     join_payload = {

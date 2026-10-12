@@ -1724,8 +1724,7 @@ class App(FastAPI):
                 body.session_hash in blocks._queue.pending_messages_per_session
             )
             await blocks._queue.remove_from_queue(body.event_id)
-            # Every cancelled job, not only the one in the request, needs to be
-            # completed so that its client disconnects
+            # Need to complete the job so that the client disconnects
             for event_id in {body.event_id, *cancelled_event_ids}:
                 event_running = event_id in blocks._queue.pending_event_ids_session.get(
                     body.session_hash, {}
