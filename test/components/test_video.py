@@ -425,6 +425,41 @@ class TestVideo:
         assert processed_video == postprocessed_video
 
     @pytest.mark.requires_ffmpeg
+    def test_format_conversion_leaves_files_next_to_the_source_alone(self, tmp_path):
+        source = tmp_path / "clip.mp4"
+        shutil.copy("test/test_files/video_sample.mp4", source)
+        sibling = tmp_path / "clip.avi"
+        sibling.write_bytes(b"not a video")
+
+        video = gr.Video(format="avi")
+        result = video.postprocess(str(source))
+
+        assert result
+        assert sibling.read_bytes() == b"not a video"
+        assert Path(result.path).name == "clip.avi"
+        assert Path(result.path).parent.parent == Path(video.GRADIO_CACHE)
+
+    @pytest.mark.requires_ffmpeg
+    def test_watermarked_video_is_written_to_the_cache(self, tmp_path, monkeypatch):
+        source = tmp_path / "clip.mp4"
+        shutil.copy("test/test_files/video_sample.mp4", source)
+        workdir = tmp_path / "workdir"
+        workdir.mkdir()
+        monkeypatch.chdir(workdir)
+
+        video = gr.Video(
+            watermark=gr.WatermarkOptions(
+                watermark=str(Path(__file__).parents[1] / "test_files" / "bus.png")
+            )
+        )
+        result = video.postprocess(str(source))
+
+        assert result
+        assert list(workdir.iterdir()) == []
+        assert Path(result.path).name == "clip_watermarked.mp4"
+        assert Path(result.path).parent.parent == Path(video.GRADIO_CACHE)
+
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_stream_output_returns_a_flat_payload_and_chunk(self, tmp_path):
         component = gr.Video(streaming=True)

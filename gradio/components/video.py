@@ -467,11 +467,7 @@ class Video(StreamingOutput, Component):
         ) or self.watermark.watermark:
             global_option_list = ["-y"]
             inputs_dict = {video: None}
-            output_file_name = video[0 : video.rindex(".") + 1]
-            if self.format is not None:
-                output_file_name += self.format
-            else:
-                output_file_name += returned_format
+            output_stem = Path(video).stem
             if self.watermark.watermark:
                 inputs_dict[str(self.watermark.watermark)] = None
                 pos = self.watermark.position
@@ -492,11 +488,16 @@ class Video(StreamingOutput, Component):
                     watermark_cmd = "overlay=W-w-5:H-h-5"
 
                 global_option_list += ["-filter_complex", watermark_cmd]
-                output_file_name = (
-                    Path(output_file_name).stem
-                    + "_watermarked"
-                    + Path(output_file_name).suffix
-                )
+                output_stem += "_watermarked"
+            # Write into a fresh directory in the cache: next to the source, `-y`
+            # would overwrite an unrelated file of the same name, and a bare file
+            # name would land in the current working directory.
+            cache_root = Path(self.GRADIO_CACHE)
+            cache_root.mkdir(parents=True, exist_ok=True)
+            output_file_name = str(
+                Path(tempfile.mkdtemp(dir=cache_root))
+                / f"{output_stem}.{self.format or returned_format}"
+            )
             ff = FFmpeg(  # type: ignore
                 inputs=inputs_dict,
                 outputs={output_file_name: None},
