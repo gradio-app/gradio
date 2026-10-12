@@ -340,11 +340,9 @@ describe("DependencyManager.dispatch", () => {
 	test("pushes loading status only to the components whose status changed", async () => {
 		const client = {
 			submit: () =>
-				submission(
-					(async function* () {
-						yield { type: "status", stage: "complete", queue: true };
-					})()
-				)
+				(async function* () {
+					yield { type: "status", stage: "complete", queue: true };
+				})()
 		} as unknown as Client;
 		const update_state = vi.fn().mockResolvedValue(undefined);
 		const dependency_manager = manager(
@@ -378,5 +376,58 @@ describe("DependencyManager.dispatch", () => {
 		expect(update_state.mock.calls.map(([id]) => id).sort()).toEqual([
 			10, 11, 20
 		]);
+	});
+
+	test("pushes loading status again to the components a gr.render rebuilt", async () => {
+		const messages: Record<number, unknown> = {
+			0: { type: "status", stage: "complete", queue: true },
+			1: {
+				type: "render",
+				data: {
+					layout: { id: 99, children: [{ id: 10 }] },
+					components: [{ id: 10, type: "textbox", props: {} }],
+					render_id: 99,
+					dependencies: []
+				}
+			}
+		};
+		const client = {
+			submit: (fn_index: number) =>
+				(async function* () {
+					yield messages[fn_index];
+				})()
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const rerender = vi.fn();
+		const dependency_manager = new DependencyManager(
+			[dependency(0, "output", [10]), dependency(1, "render", [])],
+			client,
+			update_state,
+			vi.fn().mockResolvedValue(null),
+			rerender,
+			vi.fn(),
+			vi.fn(),
+			vi.fn(),
+			vi.fn()
+		);
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 1,
+			event_data: null
+		});
+
+		expect(rerender).toHaveBeenCalledOnce();
+		update_state.mockClear();
+
+		// 10's status did not change, but the render replaced its component,
+		// which starts without one, so the next push includes it
+		await dependency_manager.update_loading_stati_state();
+		expect(update_state.mock.calls.map(([id]) => id)).toContain(10);
 	});
 });
