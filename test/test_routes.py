@@ -1491,7 +1491,6 @@ class TestRoutes:
             yield data
 
         def compressing_host(request: httpx.Request) -> httpx.Response:
-            # Like most CDNs, gzip the body whenever the client accepts it
             headers = {"content-type": "application/json"}
             data = body
             if "gzip" in request.headers.get("accept-encoding", ""):
