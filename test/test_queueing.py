@@ -5,6 +5,7 @@ import time
 from unittest.mock import patch
 
 import gradio_client as grc
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -306,6 +307,65 @@ def test_cancel_removes_pending_event_from_queue():
         assert second_event_id not in demo._queue.pending_event_ids_session["sess1"]
         assert second_event_id not in demo._queue.event_ids_to_events
     finally:
+        demo.close()
+
+
+def test_cancel_completes_every_job_it_cancels():
+    """The frontend cancels every running job of a function in the session, so
+    each of them needs a completion message, not only the one in the request."""
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+
+        async def slow():
+            await asyncio.sleep(30)
+            return "done"
+
+        start.click(slow, None, output, concurrency_limit=2)
+
+    # A real server rather than `TestClient`, whose requests run on an event loop
+    # of their own, where `/cancel` cannot see the queue's tasks
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    client = httpx.Client(base_url=f"{local_url.rstrip('/')}{API_PREFIX}")
+    join_payload = {
+        "data": [],
+        "fn_index": 0,
+        "event_data": None,
+        "session_hash": "sess1",
+        "trigger_id": None,
+    }
+
+    try:
+        event_ids = [
+            client.post("/queue/join", json=join_payload).json()["event_id"]
+            for _ in range(2)
+        ]
+        for _ in range(50):
+            if sum(j is not None for j in demo._queue.active_jobs) == 2:
+                break
+            time.sleep(0.1)
+
+        resp = client.post(
+            "/cancel",
+            json={"session_hash": "sess1", "fn_index": 0, "event_id": event_ids[0]},
+        )
+        assert resp.status_code == 200
+
+        completed = set()
+        deadline = time.time() + 5
+        with client.stream("GET", "/queue/data?session_hash=sess1") as r:
+            for line in r.iter_lines():
+                if line.startswith("data:"):
+                    data = json.loads(line[5:])
+                    if data["msg"] == "process_completed":
+                        completed.add(data["event_id"])
+                    elif data["msg"] == "close_stream":
+                        break
+                if time.time() > deadline:
+                    break
+        assert completed == set(event_ids)
+    finally:
+        client.close()
         demo.close()
 
 

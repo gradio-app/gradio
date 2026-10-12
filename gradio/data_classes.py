@@ -51,6 +51,9 @@ class CancelBody(BaseModel):
     session_hash: str
     fn_index: int
     event_id: str
+    # By default every running job of `fn_index` in the session is cancelled,
+    # since the frontend only tracks the latest submission of each function
+    only_event: bool = False
 
 
 class SimplePredictBody(BaseModel):

@@ -1715,32 +1715,36 @@ class App(FastAPI):
 
         @router.post("/cancel")
         async def cancel_event(body: CancelBody):
-            await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
+            task_id = f"{body.session_hash}_{body.fn_index}"
+            if body.only_event:
+                task_id += f"<gradio-sep>{body.event_id}"
+            cancelled_event_ids = await cancel_tasks({task_id})
             blocks = app.get_blocks()
-            # Need to complete the job so that the client disconnects
             session_open = (
                 body.session_hash in blocks._queue.pending_messages_per_session
             )
-            event_running = (
-                body.event_id
-                in blocks._queue.pending_event_ids_session.get(body.session_hash, {})
-            )
             await blocks._queue.remove_from_queue(body.event_id)
-            if session_open and event_running:
-                message = ProcessCompletedMessage(
-                    output={}, success=True, event_id=body.event_id
+            # Every cancelled job, not only the one in the request, needs to be
+            # completed so that its client disconnects
+            for event_id in {body.event_id, *cancelled_event_ids}:
+                event_running = event_id in blocks._queue.pending_event_ids_session.get(
+                    body.session_hash, {}
                 )
-                blocks._queue.pending_messages_per_session[
-                    body.session_hash
-                ].put_nowait(message)
-            if body.event_id in app.iterators:
-                async with app.lock:
-                    try:
-                        await safe_aclose_iterator(app.iterators[body.event_id])
-                    except Exception:
-                        pass
-                    del app.iterators[body.event_id]
-                    app.iterators_to_reset.add(body.event_id)
+                if session_open and event_running:
+                    message = ProcessCompletedMessage(
+                        output={}, success=True, event_id=event_id
+                    )
+                    blocks._queue.pending_messages_per_session[
+                        body.session_hash
+                    ].put_nowait(message)
+                if event_id in app.iterators:
+                    async with app.lock:
+                        try:
+                            await safe_aclose_iterator(app.iterators[event_id])
+                        except Exception:
+                            pass
+                        del app.iterators[event_id]
+                        app.iterators_to_reset.add(event_id)
             return {"success": True}
 
         @router.get(

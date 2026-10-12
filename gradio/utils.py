@@ -1162,7 +1162,7 @@ async def cancel_tasks(task_ids: set[str]) -> list[str]:
         if "<gradio-sep>" not in name:
             continue
         task_id, event_id = name.split("<gradio-sep>")
-        if task_id in task_ids:
+        if task_id in task_ids or name in task_ids:
             matching_tasks.append(task)
             event_ids.append(event_id)
             task.cancel()

@@ -1260,6 +1260,7 @@ class Endpoint:
                     "fn_index": self.fn_index,
                     "session_hash": client.session_hash,
                     "event_id": helper.event_id,
+                    "only_event": True,
                 }
 
             cancel_msg = None

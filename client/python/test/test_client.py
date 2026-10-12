@@ -446,6 +446,24 @@ class TestClientPredictions:
 
         assert current_step < 19
 
+    def test_job_cancel_leaves_other_jobs_of_the_same_function_running(self):
+        def slow(x):
+            time.sleep(2)
+            return x
+
+        with gr.Blocks() as demo:
+            inp = gr.Textbox()
+            out = gr.Textbox()
+            inp.submit(slow, inp, out, api_name="slow", concurrency_limit=2)
+
+        with connect(demo) as client:
+            job_one = client.submit("one", api_name="/slow")
+            job_two = client.submit("two", api_name="/slow")
+            while sum(j is not None for j in demo._queue.active_jobs) < 2:
+                time.sleep(0.05)
+            job_one.cancel()
+            assert job_two.result(timeout=10) == "two"
+
     def test_cancel_subsequent_jobs_state_reset(self, yield_demo):
         with connect(yield_demo) as client:
             job1 = client.submit("abcdefefadsadfs", api_name="/predict")
