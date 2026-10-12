@@ -727,10 +727,17 @@ export class DependencyManager {
 									new Set(Array.from(by_id.keys()))
 								);
 								this.rerender_cb(components, layout);
-								// The rendered components are new, so their status is pushed again
+								// The rendered components are new, so their status is pushed
+								// again once they are mounted (e.g. an event still running
+								// for them keeps its progress indicator)
 								for (const component of components) {
 									this.#pushed_loading_stati.delete(String(component.id));
 								}
+								void settled()
+									.then(() => this.update_loading_stati_state())
+									.catch(() => {
+										// fire-and-forget: components may unmount mid-update
+									});
 								this.dispatch_load_events(by_id);
 								break submit_loop;
 							}

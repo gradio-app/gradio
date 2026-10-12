@@ -424,12 +424,19 @@ describe("DependencyManager.dispatch", () => {
 		});
 
 		expect(rerender).toHaveBeenCalledOnce();
-		update_state.mockClear();
 
 		// 10's status did not change, but the render replaced its component,
-		// which starts without one, so the next push includes it
-		await dependency_manager.update_loading_stati_state();
-		expect(update_state.mock.calls.map(([id]) => id)).toContain(10);
+		// which starts without one, so it is pushed again once rendered
+		const rendered_at = rerender.mock.invocationCallOrder[0];
+		await vi.waitFor(() => {
+			const pushed_after_render = update_state.mock.calls.filter(
+				([id, state], i) =>
+					id === 10 &&
+					"loading_status" in state &&
+					update_state.mock.invocationCallOrder[i] > rendered_at
+			);
+			expect(pushed_after_render.length).toBeGreaterThan(0);
+		});
 	});
 	test("preserves another event's pending status when clearing input validation errors", async () => {
 		// Stub the transport so the second event remains pending during the check.
