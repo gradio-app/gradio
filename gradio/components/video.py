@@ -489,9 +489,6 @@ class Video(StreamingOutput, Component):
 
                 global_option_list += ["-filter_complex", watermark_cmd]
                 output_stem += "_watermarked"
-            # Write into a fresh directory in the cache: next to the source, `-y`
-            # would overwrite an unrelated file of the same name, and a bare file
-            # name would land in the current working directory.
             cache_root = Path(self.GRADIO_CACHE)
             cache_root.mkdir(parents=True, exist_ok=True)
             output_file_name = str(
