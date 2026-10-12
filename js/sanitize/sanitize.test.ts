@@ -52,6 +52,20 @@ describe("sanitize", () => {
 		expect(result).toBe("<p>hello</p>");
 	});
 
+	test.each([
+		[
+			"at the start",
+			'<meta http-equiv="refresh" content="0;url=/x"><p>hello</p>'
+		],
+		[
+			"after other content",
+			'<p>hello</p><meta http-equiv="refresh" content="0;url=/x">'
+		]
+	])("removes meta elements %s", (_, source) => {
+		expect(sanitize(source)).toBe("<p>hello</p>");
+		expect(sanitize_fragment(source).querySelector("meta")).toBeNull();
+	});
+
 	test("keeps style attributes", () => {
 		const node = new DOMParser().parseFromString(
 			sanitize('<p style="color: red;">hello</p>'),
