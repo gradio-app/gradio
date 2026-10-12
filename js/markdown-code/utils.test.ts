@@ -1,5 +1,5 @@
 import { test, describe, expect } from "vitest";
-import { escapeTags } from "./utils";
+import { create_marked, escapeTags, track_open_elements } from "./utils";
 
 describe("escapeTags", () => {
 	test.each([
@@ -96,5 +96,36 @@ describe("escapeTags", () => {
 	test("allow_tags=false leaves content unchanged", () => {
 		const input = "<p><tool_call>x</tool_call></p>";
 		expect(escapeTags(input, false)).toBe(input);
+	});
+});
+
+describe("track_open_elements", () => {
+	const marked = create_marked({
+		header_links: false,
+		line_breaks: false,
+		latex_delimiters: []
+	});
+	const open_after = (markdown: string): string[] => {
+		const open: string[] = [];
+		for (const token of marked.lexer(markdown)) {
+			track_open_elements(marked, token, open);
+		}
+		return open;
+	};
+
+	test.each([
+		[
+			"raw html block",
+			"<details>\n<summary>More</summary>\n\nInside",
+			["details"]
+		],
+		["closed raw html block", "<div>\n\nInside\n\n</div>", []],
+		["unknown inline tag in prose", "Use List<T> here.", []],
+		["inline span", "Some <span>text", []],
+		["inline formatting element", "Some <b>bold", ["b"]],
+		["inline element that closes the paragraph", "Some <div>text", ["div"]],
+		["inline tag in a list item", "- returns Promise<void>", []]
+	])("%s", (_, markdown, expected) => {
+		expect(open_after(markdown)).toEqual(expected);
 	});
 });

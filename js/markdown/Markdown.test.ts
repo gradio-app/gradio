@@ -347,6 +347,29 @@ describe("Streaming updates", () => {
 		expect(container.querySelector(".md p")).toBe(first);
 	});
 
+	test("keeps finished blocks after an inline tag in prose", async () => {
+		const { set_data, container } = await render(Markdown, {
+			...default_props,
+			value: "Use List<T> here.\n\nNext.\n\nSecond"
+		});
+
+		const next = await waitFor(() => {
+			const p = container.querySelectorAll(".md p")[1];
+			expect(p?.textContent).toBe("Next.");
+			return p;
+		});
+
+		await set_data({
+			value: "Use List<T> here.\n\nNext.\n\nSecond paragraph."
+		});
+
+		await waitFor(() => {
+			const paragraphs = container.querySelectorAll(".md p");
+			expect(paragraphs[2]?.textContent).toBe("Second paragraph.");
+		});
+		expect(container.querySelectorAll(".md p")[1]).toBe(next);
+	});
+
 	test("streaming the value in chunks renders the same as setting it at once", async () => {
 		const value = [
 			"# Title",

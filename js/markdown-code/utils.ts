@@ -264,15 +264,81 @@ const VOID_ELEMENTS = new Set([
 	"wbr"
 ]);
 
+// Elements the HTML parser reopens after the element around them closes.
+const FORMATTING_ELEMENTS = new Set([
+	"a",
+	"b",
+	"big",
+	"code",
+	"em",
+	"font",
+	"i",
+	"nobr",
+	"s",
+	"small",
+	"strike",
+	"strong",
+	"tt",
+	"u"
+]);
+
+// Elements whose start tag closes an open <p>, so they are not contained by
+// the paragraph they are written in.
+const P_CLOSING_ELEMENTS = new Set([
+	"address",
+	"article",
+	"aside",
+	"blockquote",
+	"center",
+	"dd",
+	"details",
+	"dialog",
+	"dir",
+	"div",
+	"dl",
+	"dt",
+	"fieldset",
+	"figcaption",
+	"figure",
+	"footer",
+	"form",
+	"h1",
+	"h2",
+	"h3",
+	"h4",
+	"h5",
+	"h6",
+	"header",
+	"hgroup",
+	"li",
+	"listing",
+	"main",
+	"menu",
+	"nav",
+	"ol",
+	"p",
+	"plaintext",
+	"pre",
+	"search",
+	"section",
+	"summary",
+	"table",
+	"ul",
+	"xmp"
+]);
+
 // Updates `open`, the stack of element names left open by raw HTML, with the
 // raw HTML in `token`. A closing tag only closes a matching open element, as
-// in the HTML parser. Overcounting only makes the caller group more blocks
-// together, which is safe.
+// in the HTML parser. Other elements opened by inline HTML end with the block
+// that contains them (e.g. `List<T>` in a paragraph), unless they are
+// formatting elements or close the paragraph themselves. Overcounting only
+// makes the caller group more blocks together, which is safe.
 export function track_open_elements(
 	marked: Marked,
 	token: Token,
 	open: string[]
 ): void {
+	const contained = new Set<number>();
 	marked.walkTokens([token], (child) => {
 		if (child.type !== "html") return;
 		const html = child.raw.replace(/<!--[\s\S]*?(?:-->|$)/g, "");
@@ -282,12 +348,27 @@ export function track_open_elements(
 			const tag = name.toLowerCase();
 			if (self_closing || VOID_ELEMENTS.has(tag)) continue;
 			if (!close) {
+				if (
+					child !== token &&
+					!FORMATTING_ELEMENTS.has(tag) &&
+					!P_CLOSING_ELEMENTS.has(tag)
+				) {
+					contained.add(open.length);
+				}
 				open.push(tag);
 			} else if (open.includes(tag)) {
 				open.length = open.lastIndexOf(tag);
+				for (const i of contained) {
+					if (i >= open.length) contained.delete(i);
+				}
 			}
 		}
 	});
+	if (contained.size > 0) {
+		const remaining = open.filter((_, i) => !contained.has(i));
+		open.length = 0;
+		open.push(...remaining);
+	}
 }
 
 export function create_marked({
