@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import inspect
 import multiprocessing
 import os
@@ -68,12 +69,14 @@ class Event:
         self,
         session_hash: str | None,
         fn: BlockFunction,
+        context: contextvars.Context,
         request: fastapi.Request,
         username: str | None,
     ):
         self._id = uuid.uuid4().hex
         self.session_hash: str = session_hash or self._id
         self.fn = fn
+        self.context = context
         self.request = request
         self.username = username
         self.concurrency_id = fn.concurrency_id
@@ -591,6 +594,7 @@ class Queue:
             )
 
         fn = route_utils.get_fn(self.blocks, None, body)
+        context = contextvars.copy_context()
         self.create_event_queue_for_fn(fn)
         if fn.validator is not None:
             gr_request = route_utils.compile_gr_request(
@@ -607,12 +611,21 @@ class Queue:
                 root_path=self.blocks.app.root_path,
             )
             validator_fn = create_validator_fn(fn)
+
+            event = Event(
+                body.session_hash,
+                validator_fn,
+                context,
+                request,
+                username,
+            )
             try:
                 response = await route_utils.call_process_api(
                     app=self.blocks.app,
                     body=body,
                     gr_request=gr_request,
                     fn=validator_fn,
+                    context=context,
                     root_path=root_path,
                 )
 
@@ -637,6 +650,7 @@ class Queue:
         event = Event(
             body.session_hash,
             fn,
+            context,
             request,
             username,
         )
@@ -674,6 +688,7 @@ class Queue:
                         body=body,
                         gr_request=gr_request,
                         fn=fn,
+                        context=context,
                         root_path=root_path,
                     )
                     while response and response.get("is_generating", False):
@@ -689,6 +704,7 @@ class Queue:
                             body=body,
                             gr_request=gr_request,
                             fn=fn,
+                            context=context,
                             root_path=root_path,
                         )
                 cache_duration = time.time() - cache_start
@@ -1083,6 +1099,7 @@ class Queue:
         fn: BlockFunction,
     ) -> None:
         awake_events: list[Event] = []
+        context = events[0].context
         success = False
         try:
             for event in events:
@@ -1157,6 +1174,7 @@ class Queue:
                     body=body,
                     gr_request=gr_request,
                     fn=fn,
+                    context=context,
                     root_path=root_path,
                 )
                 end = time.monotonic()
@@ -1253,6 +1271,7 @@ class Queue:
                             body=body,
                             gr_request=gr_request,
                             fn=fn,
+                            context=context,
                             root_path=root_path,
                         )
                         end = time.monotonic()
