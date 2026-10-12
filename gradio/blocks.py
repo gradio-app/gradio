@@ -83,7 +83,11 @@ from gradio.exceptions import (
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
 from gradio.node_server import start_node_server
-from gradio.route_utils import API_PREFIX, MediaStream, slugify
+from gradio.route_utils import (
+    API_PREFIX,
+    MediaStream,
+    slugify,
+)
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import ThemeClass as Theme
@@ -103,12 +107,7 @@ from gradio.utils import (
     get_package_version,
     get_upload_folder,
 )
-
-try:
-    import spaces  # type: ignore
-except Exception:
-    spaces = None  # type: ignore[assignment]
-
+from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
@@ -3001,8 +3000,6 @@ Received inputs:
         """
         if api_open is not None:
             self.api_open = api_open
-        if utils.is_zero_gpu_space():
-            max_size = 1 if max_size is None else max_size
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=self.max_threads,
@@ -3440,6 +3437,9 @@ Received inputs:
             mcp_server=mcp_server,
             debug=debug,
         )
+
+        maybe_setup_zerogpu_middleware(self.app)
+
         if self.mcp_error and not quiet:
             print(self.mcp_error)
 

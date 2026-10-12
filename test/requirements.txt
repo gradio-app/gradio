@@ -99,6 +99,8 @@ httpx==0.28.1
     #   diffusers
     #   huggingface-hub
     #   openai
+    #   respx
+    #   spaces
 httpx2==2.13.0
     # via -r test/requirements.in
 huggingface-hub==1.32.0
@@ -193,6 +195,7 @@ packaging==26.3
     #   pytest
     #   pytest-rerunfailures
     #   scikit-image
+    #   spaces
     #   transformers
 pandas==2.3.3
     # via vega-datasets
@@ -225,6 +228,7 @@ pydantic==2.13.4
     #   -r test/requirements.in
     #   fastapi
     #   openai
+    #   spaces
 pydantic-core==2.46.4
     # via pydantic
 pygments==2.20.0
@@ -300,6 +304,8 @@ sniffio==1.3.1
     # via openai
 sortedcontainers==2.4.0
     # via hypothesis
+spaces==0.50.dev3
+    # via -r test/requirements.in
 stack-data==0.6.3
     # via ipython
 starlette==1.6.0
@@ -354,6 +360,7 @@ typing-extensions==4.16.0
     #   pydantic-core
     #   pytest-asyncio
     #   referencing
+    #   spaces
     #   starlette
     #   torch
     #   typing-inspection
