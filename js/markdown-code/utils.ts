@@ -341,7 +341,13 @@ export function track_open_elements(
 	const contained = new Set<number>();
 	marked.walkTokens([token], (child) => {
 		if (child.type !== "html") return;
-		const html = child.raw.replace(/<!--[\s\S]*?(?:-->|$)/g, "");
+		const html = child.raw
+			.replace(/<!--[\s\S]*?(?:-->|$)/g, "")
+			// The contents of these elements are text, even if they look like tags.
+			.replace(
+				/(<(script|style|textarea|title|xmp|iframe|noembed|noframes|noscript)\b[^>]*>)[\s\S]*?(?=<\/\2\s*>|$)/gi,
+				"$1"
+			);
 		for (const [, close, name, self_closing] of html.matchAll(
 			/<(\/?)([a-zA-Z][\w:-]*)\b[^>]*?(\/?)>/g
 		)) {

@@ -124,7 +124,12 @@ describe("track_open_elements", () => {
 		["inline span", "Some <span>text", []],
 		["inline formatting element", "Some <b>bold", ["b"]],
 		["inline element that closes the paragraph", "Some <div>text", ["div"]],
-		["inline tag in a list item", "- returns Promise<void>", []]
+		["inline tag in a list item", "- returns Promise<void>", []],
+		[
+			"tag-like text inside a script",
+			'<div>\n<script>const x = "</div>";</script>\n\nInside',
+			["div"]
+		]
 	])("%s", (_, markdown, expected) => {
 		expect(open_after(markdown)).toEqual(expected);
 	});
