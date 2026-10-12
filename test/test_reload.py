@@ -1,3 +1,4 @@
+import contextvars
 import dataclasses
 import subprocess
 from pathlib import Path
@@ -160,9 +161,21 @@ def test_reassign_pending_event_fns():
         blocks=demo1,
     )
     request = Request({"type": "http", "headers": [], "path": "/"})
-    running_event = Event(session_hash="abc", fn=old_fn, request=request, username=None)
+    running_event = Event(
+        session_hash="abc",
+        fn=old_fn,
+        context=contextvars.copy_context(),
+        request=request,
+        username=None,
+    )
     queue.active_jobs = [[running_event]]
-    pending_event = Event(session_hash="abc", fn=old_fn, request=request, username=None)
+    pending_event = Event(
+        session_hash="abc",
+        fn=old_fn,
+        context=contextvars.copy_context(),
+        request=request,
+        username=None,
+    )
     event_queue = EventQueue(old_fn.concurrency_id, None)
     event_queue.queue.append(pending_event)
     queue.event_queue_per_concurrency_id[old_fn.concurrency_id] = event_queue
