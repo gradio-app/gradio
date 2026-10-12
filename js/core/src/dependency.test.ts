@@ -336,4 +336,47 @@ describe("DependencyManager.dispatch", () => {
 			"waiting"
 		);
 	});
+
+	test("pushes loading status only to the components whose status changed", async () => {
+		const client = {
+			submit: () =>
+				submission(
+					(async function* () {
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				)
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[dependency(0, "first", [10, 11]), dependency(1, "second", [20])],
+			client,
+			update_state
+		);
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+		update_state.mockClear();
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 1,
+			event_data: null
+		});
+
+		const painted_ids = update_state.mock.calls
+			.filter(([, state]) => "loading_status" in state)
+			.map(([id]) => id);
+		expect(painted_ids).toContain(20);
+		expect(painted_ids).not.toContain(10);
+		expect(painted_ids).not.toContain(11);
+
+		// After a reload every component is remounted, so all are pushed again
+		update_state.mockClear();
+		await dependency_manager.update_loading_stati_state(true);
+		expect(update_state.mock.calls.map(([id]) => id).sort()).toEqual([
+			10, 11, 20
+		]);
+	});
 });

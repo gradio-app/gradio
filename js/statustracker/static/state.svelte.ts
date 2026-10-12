@@ -72,7 +72,15 @@ export class LoadingStatus {
 
 	update(args: LoadingStatusArgs): void {
 		for (const [id, current] of Object.entries(this.current)) {
-			if (current.fn_index !== args.fn_index) {
+			// Only replace entries that have something to reset, so that the
+			// other entries keep their identity and are not pushed again.
+			if (
+				current.fn_index !== args.fn_index &&
+				(current.used_cache != null ||
+					current.cache_duration != null ||
+					current.avg_time != null ||
+					current.cache_event_id != null)
+			) {
 				this.current[id] = {
 					...current,
 					used_cache: null,
