@@ -130,13 +130,16 @@
 			end++;
 		}
 
-		const added: Block[] = [];
+		// All awaits happen before the DOM changes, so a failed render leaves
+		// the blocks as they were.
+		const changed = next.slice(start, next.length - end);
+		const rendered = await Promise.all(changed.map((block) => block.render()));
+		const added: Block[] = changed.map((block, i) => ({
+			key: block.key,
+			nodes: Array.from(rendered[i].childNodes)
+		}));
 		const fragment = document.createDocumentFragment();
-		for (const block of next.slice(start, next.length - end)) {
-			const rendered = await block.render();
-			added.push({ key: block.key, nodes: Array.from(rendered.childNodes) });
-			fragment.append(rendered);
-		}
+		fragment.append(...rendered);
 		if (!el) return;
 
 		const kept_after = blocks.slice(blocks.length - end);
