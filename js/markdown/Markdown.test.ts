@@ -424,6 +424,22 @@ describe("Streaming updates", () => {
 		});
 	});
 
+	test("keeps heading ids when header_links is turned off later", async () => {
+		const { set_data, container } = await render(Markdown, {
+			...default_props,
+			header_links: true,
+			value: "## A"
+		});
+		await waitFor(() => expect(container.querySelector("h2")?.id).toBe("h-a"));
+
+		await set_data({ header_links: false, value: "## A\n\ntext" });
+
+		await waitFor(() =>
+			expect(container.querySelector(".md p")?.textContent).toBe("text")
+		);
+		expect(container.querySelector("h2")?.id).toBe("h-a");
+	});
+
 	test("keeps markdown inside a raw html element that spans several blocks", async () => {
 		const { container } = await render(Markdown, {
 			...default_props,

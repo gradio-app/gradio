@@ -46,6 +46,8 @@
 		line_breaks,
 		latex_delimiters: latex_delimiters || []
 	});
+	// marked only renders header links if they were on when it was created.
+	const use_header_links = header_links;
 
 	let latest_message = "";
 	let latest_settings = "";
@@ -185,7 +187,7 @@
 		const top_level = tokens.filter((token) => token.type !== "space");
 		// A reference definition can change how an earlier block renders.
 		const links = JSON.stringify(tokens.links);
-		const heading_ids = header_links
+		const heading_ids = use_header_links
 			? assign_heading_ids(marked, top_level)
 			: [];
 
