@@ -1491,9 +1491,9 @@ class TestRoutes:
         async def stream(data: bytes):
             yield data
 
-        def compressing_host(request: httpx.Request) -> httpx.Response:
+        def compressing_host(request: httpx2.Request) -> httpx2.Response:
             upstream_headers.update(request.headers)
-            return httpx.Response(
+            return httpx2.Response(
                 200,
                 headers={
                     "content-type": "application/json",
@@ -1509,7 +1509,7 @@ class TestRoutes:
         monkeypatch.setattr(
             route_utils.safehttpx,
             "AsyncSecureTransport",
-            lambda ip: httpx.MockTransport(compressing_host),
+            lambda ip: httpx2.MockTransport(compressing_host),
         )
         io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
         client = TestClient(routes.App.create_app(io))
