@@ -220,7 +220,7 @@ class WebRTC(Component):
         if microphone_options is None:
             self.microphone_options = MicrophoneOptions()
         elif isinstance(microphone_options, dict):
-            self.microphone_options = MicrophoneOptions(**microphone_options)
+            self.microphone_options = MicrophoneOptions(**microphone_options)  # type: ignore
         else:
             self.microphone_options = microphone_options
         self.rtp_params = rtp_params or {}
@@ -230,7 +230,7 @@ class WebRTC(Component):
         if stream_options is None:
             self.stream_options = StreamOptions()
         elif isinstance(stream_options, dict):
-            self.stream_options = StreamOptions(**stream_options)
+            self.stream_options = StreamOptions(**stream_options)  # type: ignore
         else:
             self.stream_options = stream_options
         self.height = height

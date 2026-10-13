@@ -2,8 +2,10 @@ import asyncio
 import json
 import pickle
 import time
+from collections.abc import Callable
 from contextlib import closing
 from types import SimpleNamespace
+from typing import cast
 
 import httpx2
 import pytest
@@ -69,7 +71,7 @@ class EchoHandler(AsyncStreamHandler):
 
 
 class StartsWithRequest(EchoHandler):
-    async def start_up(self, request: gr.Request):
+    async def start_up(self, request: gr.Request):  # type: ignore
         seen_requests.append(request)
 
 
@@ -154,7 +156,7 @@ class TestWebRTC:
         assert config["mirror_webcam"] == "auto"
         assert config["time_limit"] is None
         assert set(config["server_fns"]) == {"get_rtc_configuration", "offer"}
-        assert webrtc.preprocess(webrtc.data_model(root="abc")) == "abc"
+        assert webrtc.preprocess(gr.WebRTC.data_model(root="abc")) == "abc"
         assert webrtc.preprocess(None) is None
         assert webrtc.postprocess("abc") == "abc"
         assert webrtc.api_info()["type"] == "string"
@@ -1484,7 +1486,7 @@ class TestVideoTracks:
         from gradio.webrtc.tracks import HandlerVideoTrack
         from gradio.webrtc.utils import Context
 
-        class OneFrame:
+        class OneFrame(VideoStreamTrack):
             frames = [left_column_frame()]
 
             async def recv(self):
@@ -1508,7 +1510,10 @@ class TestVideoTracks:
                 pass
 
         track = HandlerVideoTrack(
-            OneFrame(), event_handler=Handler(), context=Context("id"), mirror=mirror
+            OneFrame(),
+            event_handler=cast(Callable, Handler()),
+            context=Context("id"),
+            mirror=mirror,
         )
         track.channel_set.set()
         await track.process_frames()
@@ -1604,7 +1609,7 @@ class TestAudioArrays:
         incoming.sample_rate = 48000
         incoming.pts, incoming.time_base = 0, fractions.Fraction(1, 48000)
 
-        class OneFrame:
+        class OneFrame(AudioStreamTrack):
             frames = [incoming]
 
             async def recv(self):

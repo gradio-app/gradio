@@ -26,6 +26,7 @@ from aiortc.mediastreams import VIDEO_CLOCK_RATE, VIDEO_TIME_BASE, MediaStreamEr
 
 from gradio.context import LocalContext
 from gradio.webrtc.handlers import (
+    AsyncAudioVideoStreamHandler,
     AsyncHandler,
     AudioEmitType,
     AudioVideoStreamHandlerImpl,
@@ -244,7 +245,7 @@ class HandlerVideoTrack(VideoCallback):
                 frame = cast(VideoFrame, await self.track.recv())
                 frame_array = self.frame_to_array(frame)
                 handler = cast(AudioVideoStreamHandlerImpl, self.event_handler)
-                if inspect.iscoroutinefunction(handler.video_receive):
+                if isinstance(handler, AsyncAudioVideoStreamHandler):
                     await handler.video_receive(frame_array)
                 else:
                     await anyio.to_thread.run_sync(handler.video_receive, frame_array)
@@ -260,7 +261,7 @@ class HandlerVideoTrack(VideoCallback):
         await self.start()
         try:
             handler = cast(AudioVideoStreamHandlerImpl, self.event_handler)
-            if inspect.iscoroutinefunction(handler.video_emit):
+            if isinstance(handler, AsyncAudioVideoStreamHandler):
                 outputs = await handler.video_emit()
             else:
                 outputs = await anyio.to_thread.run_sync(handler.video_emit)
