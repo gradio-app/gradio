@@ -478,6 +478,25 @@ describe("Streaming updates", () => {
 		expect(container.querySelector(".md > p")?.textContent).toBe("After.");
 	});
 
+	test("re-renders a raw html element when its text moves between blocks", async () => {
+		const { set_data, container } = await render(Markdown, {
+			...default_props,
+			value: "<details>\n<summary>S</summary>\n\na\n\nbc\n\n</details>"
+		});
+		await waitFor(() =>
+			expect(container.querySelectorAll(".md details p")).toHaveLength(2)
+		);
+
+		await set_data({
+			value: "<details>\n<summary>S</summary>\n\nab\n\nc\n\n</details>"
+		});
+
+		await waitFor(() => {
+			const paragraphs = container.querySelectorAll(".md details p");
+			expect(Array.from(paragraphs, (p) => p.textContent)).toEqual(["ab", "c"]);
+		});
+	});
+
 	test("re-renders unchanged text when the latex delimiters change", async () => {
 		const { set_data, container } = await render(Markdown, {
 			...default_props,

@@ -221,12 +221,13 @@
 
 		const next = groups.map((group) => {
 			const group_tokens = group.map((i) => top_level[i]);
-			const source = restore_latex(
-				group_tokens.map((token) => token.raw).join("")
-			);
-			const ids = group.map((i) => heading_ids[i]?.join(" ")).join(" ");
+			const raws = group_tokens.map((token) => restore_latex(token.raw));
+			const source = raws.join("");
+			const ids = group.map((i) => heading_ids[i] ?? []);
 			return {
-				key: [ids, source].join("\0"),
+				// Per token, so that text moving between the blocks of a group
+				// changes the key.
+				key: JSON.stringify([ids, raws]),
 				render: async () => {
 					// marked.parse() would run walkTokens itself; it does the
 					// async syntax highlighting of code blocks.
