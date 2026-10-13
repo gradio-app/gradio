@@ -82,7 +82,7 @@ jobs:
         # the optimizer without actually running tests, so the populated
         # cache is in place before the real test step starts.
         timeout-minutes: 5
-        run: pnpm exec vitest list --config .config/vitest.config.ts || true
+        run: pnpm exec vitest list --config .config/vitest.config.ts > /dev/null 2>&1 || true
       - name: unit tests
         timeout-minutes: 10
         run: pnpm test:run
