@@ -261,15 +261,21 @@
 		}
 
 		if (has_math_syntax(source)) {
-			const [, { default: render_math_in_element }] = await Promise.all([
-				import("katex/dist/katex.min.css"),
-				import("katex/contrib/auto-render")
-			]);
-			// auto-render only walks child nodes, so a fragment works here.
-			render_math_in_element(fragment as unknown as HTMLElement, {
-				delimiters: latex_delimiters,
-				throwOnError: false
-			});
+			// If KaTeX fails (e.g. its chunk does not load), show the text
+			// without math rather than nothing.
+			try {
+				const [, { default: render_math_in_element }] = await Promise.all([
+					import("katex/dist/katex.min.css"),
+					import("katex/contrib/auto-render")
+				]);
+				// auto-render only walks child nodes, so a fragment works here.
+				render_math_in_element(fragment as unknown as HTMLElement, {
+					delimiters: latex_delimiters,
+					throwOnError: false
+				});
+			} catch (error) {
+				console.error(error);
+			}
 		}
 		return fragment;
 	}
