@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { tick } from "svelte";
 	import {
 		assign_heading_ids,
 		create_marked,
@@ -339,7 +338,6 @@
 			? Array.from(el.querySelectorAll(".mermaid:not([data-processed])"))
 			: [];
 		if (mermaidDivs.length > 0) {
-			await tick();
 			const { default: mermaid } = await import("mermaid");
 
 			mermaid.initialize({
