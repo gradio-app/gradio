@@ -114,6 +114,8 @@
 				try {
 					drawn = (await render_mermaid()) || drawn;
 				} catch (error) {
+					// mermaid still draws the other diagrams before it rejects.
+					drawn = true;
 					console.error(error);
 				}
 			} while (draw_again);

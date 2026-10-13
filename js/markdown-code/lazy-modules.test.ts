@@ -3,9 +3,11 @@
 // js/markdown/Markdown.test.ts, and here so that the mocked modules resolve
 // as they do for MarkdownCode.svelte.
 import { test, describe, afterEach, expect, vi } from "vitest";
+import { mount, unmount } from "svelte";
 import { cleanup, render, waitFor } from "@self/tootils/render";
 
 import Markdown from "../markdown/Index.svelte";
+import MarkdownCode from "./MarkdownCode.svelte";
 
 vi.mock("katex/contrib/auto-render", () => ({
 	default: () => {
@@ -77,5 +79,28 @@ describe("Lazily imported modules", () => {
 				"After the diagram."
 			)
 		);
+	});
+
+	test("calls onload when a mermaid diagram fails to draw", async () => {
+		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+		mermaid_run.mockClear();
+		mermaid_run.mockRejectedValueOnce(new Error("Parse error"));
+		const onload = vi.fn();
+		const target = document.body.appendChild(document.createElement("div"));
+		const component = mount(MarkdownCode, {
+			target,
+			props: {
+				message: "```mermaid\ngraph TD\n  A --> B\n```",
+				onload
+			}
+		});
+		try {
+			await waitFor(() => expect(mermaid_run).toHaveBeenCalled());
+			await waitFor(() => expect(onload).toHaveBeenCalledTimes(2));
+		} finally {
+			unmount(component);
+			target.remove();
+			error.mockRestore();
+		}
 	});
 });
