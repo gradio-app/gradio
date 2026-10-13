@@ -105,10 +105,13 @@ describe("track_open_elements", () => {
 		line_breaks: false,
 		latex_delimiters: []
 	});
-	const open_after = (markdown: string): string[] => {
+	const open_after = (
+		markdown: string,
+		allow_tags: string[] | boolean = false
+	): string[] => {
 		const open: string[] = [];
 		for (const token of marked.lexer(markdown)) {
-			track_open_elements(marked, token, open);
+			track_open_elements(marked, token, open, allow_tags);
 		}
 		return open;
 	};
@@ -132,5 +135,14 @@ describe("track_open_elements", () => {
 		]
 	])("%s", (_, markdown, expected) => {
 		expect(open_after(markdown)).toEqual(expected);
+	});
+
+	test.each([
+		["all custom tags", "<think>\nOkay\n\nMore", true, []],
+		["listed custom tag", "<think>\nOkay\n\nMore", ["think"], []],
+		["unlisted custom tag", "<think>\nOkay\n\nMore", ["answer"], ["think"]],
+		["standard tag", "<details>\nOkay\n\nMore", true, ["details"]]
+	])("tags escaped by allow_tags: %s", (_, markdown, allow_tags, expected) => {
+		expect(open_after(markdown, allow_tags)).toEqual(expected);
 	});
 });

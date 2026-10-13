@@ -216,7 +216,7 @@
 			} else {
 				groups.push([i]);
 			}
-			track_open_elements(marked, token, open_elements);
+			track_open_elements(marked, token, open_elements, allow_tags || false);
 		});
 
 		const next = groups.map((group) => {

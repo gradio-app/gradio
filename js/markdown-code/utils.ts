@@ -331,17 +331,19 @@ const P_CLOSING_ELEMENTS = new Set([
 // raw HTML in `token`. A closing tag only closes a matching open element, as
 // in the HTML parser. Other elements opened by inline HTML end with the block
 // that contains them (e.g. `List<T>` in a paragraph), unless they are
-// formatting elements or close the paragraph themselves. Overcounting only
-// makes the caller group more blocks together, which is safe.
+// formatting elements or close the paragraph themselves. Tags that
+// `allow_tags` escapes to text are skipped. Overcounting only makes the
+// caller group more blocks together, which is safe.
 export function track_open_elements(
 	marked: Marked,
 	token: Token,
-	open: string[]
+	open: string[],
+	allow_tags: string[] | boolean = false
 ): void {
 	const contained = new Set<number>();
 	marked.walkTokens([token], (child) => {
 		if (child.type !== "html") return;
-		const html = child.raw
+		const html = escapeTags(child.raw, allow_tags)
 			.replace(/<!--[\s\S]*?(?:-->|$)/g, "")
 			// The contents of these elements are text, even if they look like tags.
 			.replace(
