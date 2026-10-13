@@ -530,10 +530,14 @@ def _classify_error(e: Exception) -> dict:
     message = getattr(e, "message", None) or str(e)
     full = f"{title} {message}".lower()
 
-    if "zerogpu" in full or ("gpu" in full and "worker" in full):
+    # ZeroGPU titles a queue timeout "quota exceeded" too, so that message is
+    # matched first; any other quota error can mean hours, not a minute.
+    if "no gpu was available" in full:
         return {"error_type": "gpu"}
     if "quota" in full or "rate limit" in full or "rate_limit" in full:
         return {"error_type": "quota"}
+    if "zerogpu" in full or ("gpu" in full and "worker" in full):
+        return {"error_type": "gpu"}
     if "sleeping" in full or "paused" in full:
         return {
             "error_type": "sleeping",
@@ -709,7 +713,15 @@ def call_space(
                     "suggestion": "Space ID must be in owner/repo format",
                 }
             )
-        client = Client(space_id, token=hf_token)
+        # ZeroGPU ranks callers by the visitor's X-IP-Token, which the Hub only
+        # adds to the browser's request. Without it the Space sees an anonymous
+        # caller: lowest queue priority, so it gives up after 60s.
+        ip_token = request.headers.get("x-ip-token") if request else None
+        client = Client(
+            space_id,
+            token=hf_token,
+            headers={"x-ip-token": ip_token} if ip_token else None,
+        )
         args = json.loads(args_json)
         if not endpoint or endpoint == "/predict":
             api_info = client.view_api(return_format="dict")

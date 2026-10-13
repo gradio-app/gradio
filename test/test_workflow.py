@@ -18,6 +18,7 @@ from gradio.workflow import (
     WRITE_TOKEN,
     Workflow,
     _chat_image_url,
+    _classify_error,
     _dispatch_model_endpoint,
     _get_locally_saved_hf_token,
     _partition_params,
@@ -1130,3 +1131,34 @@ class TestNoDoubleInference:
         assert result == b"video-bytes"
         assert call_count["n"] == 1  # no second POST
         fetch.assert_called_once_with("https://example.com/out.mp4")
+
+
+def test_call_space_forwards_zerogpu_ip_token():
+    client = MagicMock()
+    client.predict.return_value = "ok"
+    request = MagicMock()
+    request.headers = {"x-ip-token": "jwt"}
+
+    with patch("gradio.workflow.Client", return_value=client) as make_client:
+        call_space(["o/r", "/run", "[]", "hf_x"], request=request)
+
+    assert make_client.call_args.kwargs["headers"] == {"x-ip-token": "jwt"}
+
+
+@pytest.mark.parametrize(
+    "title, message, expected",
+    [
+        ("ZeroGPU quota exceeded", "No GPU was available after 60s", "gpu"),
+        (
+            "ZeroGPU quota exceeded",
+            "You have exceeded your free ZeroGPU quota",
+            "quota",
+        ),
+        ("ZeroGPU quota exceeded", "Space app has reached its GPU limit.", "quota"),
+        ("", "ZeroGPU worker error", "gpu"),
+    ],
+)
+def test_classify_zerogpu_errors(title, message, expected):
+    e = Exception(message)
+    e.title = title  # type: ignore[attr-defined]
+    assert _classify_error(e)["error_type"] == expected
