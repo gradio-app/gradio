@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Gradio } from "@gradio/utils";
+	import { Loader } from "@gradio/statustracker";
 	import { get } from "svelte/store";
 	import WorkflowCanvas from "./workflow/WorkflowCanvas.svelte";
 	import AppIcon from "./workflow/icons/AppIcon.svelte";
@@ -48,8 +49,8 @@
 	// already knows: locally the write token is in the URL or a cookie. On a
 	// Space there's nothing to go on (sign-in lives in an HttpOnly session
 	// cookie), and either guess makes someone watch the page switch views, so
-	// show neither until the server answers. That answer is quick for anyone
-	// not signed in, and is given up on after a few seconds.
+	// show the loading indicator until the server answers. That answer is
+	// quick for anyone not signed in, and is given up on after a few seconds.
 	const on_space =
 		typeof window !== "undefined" &&
 		window.location.hostname.endsWith(".hf.space");
@@ -243,6 +244,15 @@
 	</div>
 {/if}
 
+{#if app_view_id && !view}
+	<!-- The page's own loading indicator, held while the server says which
+	     view this visitor gets. -->
+	<div class="view-pending" role="status">
+		<Loader />
+		<p>{gradio.i18n("common.loading")}...</p>
+	</div>
+{/if}
+
 {#if app_view_id && view}
 	<div
 		class="view-toggle"
@@ -283,6 +293,18 @@
 
 	.workflow-fullscreen.hidden {
 		display: none;
+	}
+
+	.view-pending {
+		position: fixed;
+		inset: 0;
+		z-index: 100;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		background: var(--body-background-fill);
+		color: var(--body-text-color);
 	}
 
 	/* Bottom-left in both views, above the canvas overlay. The theme variables
