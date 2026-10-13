@@ -497,6 +497,22 @@ describe("Streaming updates", () => {
 		});
 	});
 
+	test("rebuilds the blocks when a rendered node was removed from outside", async () => {
+		const { set_data, container } = await render(Markdown, {
+			...default_props,
+			value: "A\n\nB\n\nC"
+		});
+		const paragraph_texts = (): (string | null)[] =>
+			Array.from(container.querySelectorAll(".md p"), (p) => p.textContent);
+		await waitFor(() => expect(paragraph_texts()).toEqual(["A", "B", "C"]));
+
+		// e.g. a page translation extension replacing a node
+		container.querySelectorAll(".md p")[2].remove();
+		await set_data({ value: "A\n\nB2\n\nC" });
+
+		await waitFor(() => expect(paragraph_texts()).toEqual(["A", "B2", "C"]));
+	});
+
 	test("re-renders unchanged text when the latex delimiters change", async () => {
 		const { set_data, container } = await render(Markdown, {
 			...default_props,

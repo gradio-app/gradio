@@ -118,7 +118,12 @@
 			value && value.trim()
 				? split_blocks(value, settings)
 				: { context: settings, blocks: [] };
-		const reuse = context === blocks_context;
+		// Rendered nodes can be removed or replaced from outside (e.g. by a
+		// page translation extension). The blocks cannot be reused then.
+		const intact = blocks.every((block) =>
+			block.nodes.every((node) => node.parentNode === el)
+		);
+		const reuse = intact && context === blocks_context;
 
 		let start = 0;
 		while (
@@ -152,11 +157,15 @@
 		if (!el) return;
 
 		const kept_after = blocks.slice(blocks.length - end);
-		for (const block of blocks.slice(start, blocks.length - end)) {
-			for (const node of block.nodes) node.remove();
+		if (reuse) {
+			for (const block of blocks.slice(start, blocks.length - end)) {
+				for (const node of block.nodes) node.remove();
+			}
+			const anchor = kept_after.find((block) => block.nodes.length)?.nodes[0];
+			el.insertBefore(fragment, anchor ?? null);
+		} else {
+			el.replaceChildren(fragment);
 		}
-		const anchor = kept_after.find((block) => block.nodes.length)?.nodes[0];
-		el.insertBefore(fragment, anchor ?? null);
 		blocks = [...blocks.slice(0, start), ...added, ...kept_after];
 		blocks_context = context;
 	}
