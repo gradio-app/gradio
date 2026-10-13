@@ -3167,6 +3167,7 @@ def test_own_file_url_input_is_read_locally_not_downloaded():
     try:
         client = grc.Client(url, auth=("u", "p"), verbose=False)
         endpoint = client.view_api(return_format="dict", print_info=False)
+        assert isinstance(endpoint, dict)
         default_url = endpoint["named_endpoints"]["/name"]["parameters"][0][
             "parameter_default"
         ]["url"]
