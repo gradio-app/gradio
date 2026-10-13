@@ -894,12 +894,10 @@ class App(FastAPI):
             if all_endpoints:
                 if not app.all_app_info:
                     app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
-                return cast(dict[str, Any], app.all_app_info)
+                return prepare_api_info(request, app.all_app_info, route_path)
             if not app.api_info:
-                app.api_info = prepare_api_info(
-                    request, app.get_blocks().get_api_info(), route_path
-                )
-            return app.api_info
+                app.api_info = app.get_blocks().get_api_info()
+            return prepare_api_info(request, app.api_info, route_path)
 
         def get_page_api_info(page: str, all_endpoints: bool) -> APIInfo:
             blocks = app.get_blocks()
@@ -947,7 +945,9 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request,
                 route_path=route_path,
-                root_path=app.root_path,
+                root_path=app.root_path
+                or request.scope.get("root_path")
+                or app.get_blocks().custom_mount_path,
             )
             prepared_info = route_utils.update_example_values_to_use_public_url(
                 prepared_info, str(root)

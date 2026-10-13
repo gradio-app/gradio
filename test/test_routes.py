@@ -394,6 +394,30 @@ class TestRoutes:
             in snippets["bash"]
         )
 
+    @pytest.mark.parametrize("query", ["", "?all_endpoints=true"])
+    def test_api_info_file_defaults_use_each_request_root(self, query):
+        with Blocks() as demo:
+            image = gr.Image("test/test_files/cheetah1.jpg")
+            gallery = gr.Gallery(["test/test_files/cheetah1.jpg"])
+            text = Textbox()
+            gr.Button().click(lambda a, b: "", [image, gallery], text, api_name="go")
+
+        client = TestClient(routes.App.create_app(demo))
+        client.get(f"{API_PREFIX}/info{query}", headers={"x-forwarded-host": "evil"})
+        endpoint = client.get(f"{API_PREFIX}/info{query}").json()["named_endpoints"][
+            "/go"
+        ]
+        image_default, gallery_default = (
+            p["parameter_default"] for p in endpoint["parameters"]
+        )
+        prefix = f"http://testserver{API_PREFIX}/file="
+        assert image_default["url"].startswith(prefix)
+        assert gallery_default[0]["image"]["url"].startswith(prefix)
+        assert (
+            f'handle_file("{image_default["url"]}")'
+            in (endpoint["code_snippets"]["javascript"])
+        )
+
     def test_page_api_info_is_cached(self):
         with Blocks() as demo:
             Textbox()
@@ -3129,6 +3153,31 @@ def test_bash_api_uses_session_hash_for_stateful_calls():
                 assert response.status_code == 200
                 assert "event: complete\ndata:" in response.text
                 assert json.dumps([expected, None]) in response.text
+    finally:
+        demo.close()
+
+
+def test_own_file_url_input_is_read_locally_not_downloaded():
+    with gr.Blocks() as demo:
+        image = gr.Image("test/test_files/cheetah1.jpg", type="filepath")
+        text = gr.Textbox()
+        image.change(lambda p: Path(p).name, image, text, api_name="name")
+
+    _, url, _ = demo.launch(prevent_thread_lock=True, auth=("u", "p"), quiet=True)
+    try:
+        client = grc.Client(url, auth=("u", "p"), verbose=False)
+        endpoint = client.view_api(return_format="dict", print_info=False)
+        default_url = endpoint["named_endpoints"]["/name"]["parameters"][0][
+            "parameter_default"
+        ]["url"]
+        assert client.predict(grc.handle_file(default_url), api_name="/name") == (
+            "cheetah1.jpg"
+        )
+        with pytest.raises(Exception):  # noqa: B017
+            client.predict(
+                grc.handle_file(f"{url}gradio_api/file={Path(__file__).resolve()}"),
+                api_name="/name",
+            )
     finally:
         demo.close()
 

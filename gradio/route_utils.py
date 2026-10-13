@@ -919,27 +919,16 @@ def update_root_in_config(config: BlocksConfigDict, root: str) -> BlocksConfigDi
 
 
 def update_example_values_to_use_public_url(
-    api_info: dict[str, Any], root_url: str | None = None
+    api_info: dict[str, Any], root_url: str
 ) -> dict[str, Any]:
     """
     Updates the example values in the api_info dictionary to use a public url
     """
 
     def _add_root_url(file_dict: dict):
-        default_value = file_dict.get("parameter_default")
-        if default_value is not None and client_utils.is_file_obj_with_url(
-            default_value
-        ):
-            url = default_value["url"]
-            if client_utils.is_http_url_like(url):
-                return file_dict
-            if root_url and url:
-                default_value["url"] = f"{root_url.rstrip('/')}/{url.lstrip('/')}"
-                return file_dict
-            # Nothing to absolutize; the example url at least passes SSRF checks.
-            example_input = file_dict.get("example_input")
-            if isinstance(example_input, dict) and "url" in example_input:
-                default_value["url"] = example_input["url"]
+        file_dict["parameter_default"] = processing_utils.add_root_url(
+            file_dict["parameter_default"], root_url, None
+        )
         return file_dict
 
     return client_utils.traverse(

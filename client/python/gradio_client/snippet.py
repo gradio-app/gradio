@@ -125,6 +125,11 @@ def _get_param_value(param: dict) -> Any:
     return param.get("example_input")
 
 
+def _default_url(param: dict) -> str | None:
+    value = _get_param_value(param)
+    return value.get("url") if isinstance(value, dict) else None
+
+
 OAUTH_TOKEN_PLACEHOLDER = "hf_..."
 
 
@@ -175,14 +180,15 @@ def generate_js_snippet(
     imports = "Client, handle_file" if blob_params else "Client"
     lines = [f'import {{ {imports} }} from "@gradio/client";', ""]
 
-    for i, bp in enumerate(blob_params):
+    fetched = [p for p in blob_params if not _default_url(p)]
+    for i, bp in enumerate(fetched):
         example = bp.get("example_input", {})
         url = example.get("url", "") if isinstance(example, dict) else ""
         component = bp.get("component", "")
         lines.append(f'const response_{i} = await fetch("{url}");')
         lines.append(f"const example{component} = await response_{i}.blob();")
 
-    if blob_params:
+    if fetched:
         lines.append("")
 
     if oauth_token:
@@ -199,7 +205,9 @@ def generate_js_snippet(
         name = p.get("parameter_name") or p.get("label", "input")
         component = p.get("component", "")
         if component in blob_component_names:
-            predict_args.append(f"\t\t{name}: handle_file(example{component}),")
+            url = _default_url(p)
+            arg = f'"{url}"' if url else f"example{component}"
+            predict_args.append(f"\t\t{name}: handle_file({arg}),")
         else:
             value = _get_param_value(p)
             ptype = p.get("python_type", {}).get("type")

@@ -509,6 +509,8 @@ def move_files_to_cache(
         elif utils.is_static_file(payload):
             pass
         elif not block.proxy_url:
+            if check_in_upload_folder and (own_path := _own_file_path(payload.path)):
+                payload.path = own_path
             # If the file is on a remote server, do not move it to cache.
             if not client_utils.is_http_url_like(payload.path):
                 _check_allowed(payload.path, check_in_upload_folder)
@@ -599,6 +601,29 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
         )
 
 
+def _own_file_path(url: str) -> str | None:
+    """Local path for a url to this app's own /file= route, if it is an uploaded file."""
+    blocks = LocalContext.blocks.get(None)
+    if (
+        blocks is None
+        or not blocks.has_launched
+        or not client_utils.is_http_url_like(url)
+    ):
+        return None
+    marker = f"{API_PREFIX}/file="
+    path = httpx.URL(url).path
+    if marker not in path:
+        return None
+    abs_path = utils.abspath(path.split(marker, 1)[1])
+    allowed, _ = utils.is_allowed_file(
+        abs_path,
+        blocked_paths=blocks.blocked_paths,
+        allowed_paths=[],
+        created_paths=[utils.get_upload_folder()],
+    )
+    return str(abs_path) if allowed and abs_path.is_file() else None
+
+
 async def async_move_files_to_cache(
     data: Any,
     block: Block,
@@ -649,6 +674,8 @@ async def async_move_files_to_cache(
         elif utils.is_static_file(payload):
             pass
         elif not block.proxy_url:
+            if check_in_upload_folder and (own_path := _own_file_path(payload.path)):
+                payload.path = own_path
             # If the file is on a remote server, do not move it to cache.
             if not client_utils.is_http_url_like(payload.path):
                 _check_allowed(payload.path, check_in_upload_folder)
