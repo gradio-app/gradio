@@ -52,6 +52,9 @@ def maybe_setup_zerogpu_middleware(app: fastapi.FastAPI):
     except ImportError:
         return
 
+    if any(m.cls is ZeroGPUMiddleware for m in app.user_middleware):
+        return
+
     app.add_middleware(
         ZeroGPUMiddleware,  # ty: ignore[invalid-argument-type]
         exception_mapper=exception_mapper,
