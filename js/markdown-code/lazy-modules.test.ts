@@ -1,13 +1,26 @@
 // Tests where the lazily imported KaTeX and mermaid modules fail or hang.
-// vi.mock applies to the whole file, so they live apart from Markdown.test.ts.
+// vi.mock applies to the whole file, so they live apart from
+// js/markdown/Markdown.test.ts, and here so that the mocked modules resolve
+// as they do for MarkdownCode.svelte.
 import { test, describe, afterEach, expect, vi } from "vitest";
 import { cleanup, render, waitFor } from "@self/tootils/render";
 
-import Markdown from "./Index.svelte";
+import Markdown from "../markdown/Index.svelte";
 
 vi.mock("katex/contrib/auto-render", () => ({
 	default: () => {
 		throw new Error("KaTeX failed");
+	}
+}));
+
+// A diagram that never finishes drawing, like mermaid loading slowly.
+const { mermaid_run } = vi.hoisted(() => ({
+	mermaid_run: vi.fn(() => new Promise<void>(() => {}))
+}));
+vi.mock("mermaid", () => ({
+	default: {
+		initialize: () => {},
+		run: mermaid_run
 	}
 }));
 
@@ -47,5 +60,22 @@ describe("Lazily imported modules", () => {
 		} finally {
 			error.mockRestore();
 		}
+	});
+
+	test("keeps rendering text while a mermaid diagram is drawn", async () => {
+		const diagram = "```mermaid\ngraph TD\n  A --> B\n```";
+		const { set_data, container } = await render(Markdown, {
+			...default_props,
+			value: diagram
+		});
+		await waitFor(() => expect(mermaid_run).toHaveBeenCalled());
+
+		await set_data({ value: `${diagram}\n\nAfter the diagram.` });
+
+		await waitFor(() =>
+			expect(container.querySelector(".md > p")?.textContent).toBe(
+				"After the diagram."
+			)
+		);
 	});
 });

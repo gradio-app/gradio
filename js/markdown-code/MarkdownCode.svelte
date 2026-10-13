@@ -74,30 +74,47 @@
 		try {
 			let value = "";
 			let settings = "";
-			const is_latest = (): boolean =>
-				value === latest_message && settings === latest_settings;
 			do {
-				do {
-					value = latest_message;
-					settings = latest_settings;
-					try {
-						await render(value, settings);
-					} catch (error) {
-						console.error(error);
-					}
-				} while (!is_latest());
-				// Mermaid is slow to load and to run, so diagrams are drawn once
-				// the text has caught up instead of holding back every update.
+				value = latest_message;
+				settings = latest_settings;
 				try {
-					await render_mermaid();
+					await render(value, settings);
 				} catch (error) {
 					console.error(error);
 				}
-			} while (!is_latest());
+			} while (value !== latest_message || settings !== latest_settings);
 		} finally {
 			rendering = false;
 		}
 		onload?.();
+		draw_diagrams();
+	}
+
+	let drawing = false;
+	let draw_again = false;
+
+	// Mermaid is slow to load and to run, so diagrams are drawn apart from
+	// the text, once it has caught up, and updates keep rendering meanwhile.
+	async function draw_diagrams(): Promise<void> {
+		if (drawing) {
+			draw_again = true;
+			return;
+		}
+		drawing = true;
+		let drawn = false;
+		try {
+			do {
+				draw_again = false;
+				try {
+					drawn = (await render_mermaid()) || drawn;
+				} catch (error) {
+					console.error(error);
+				}
+			} while (draw_again);
+		} finally {
+			drawing = false;
+		}
+		if (drawn) onload?.();
 	}
 
 	interface Block {
@@ -305,7 +322,7 @@
 		return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 	}
 
-	async function render_mermaid(): Promise<void> {
+	async function render_mermaid(): Promise<boolean> {
 		// Mermaid marks each diagram it has tried, so only new ones are drawn.
 		const mermaidDivs = el
 			? Array.from(el.querySelectorAll(".mermaid:not([data-processed])"))
@@ -322,7 +339,9 @@
 			await mermaid.run({
 				nodes: mermaidDivs.map((node) => node as HTMLElement)
 			});
+			return true;
 		}
+		return false;
 	}
 </script>
 
