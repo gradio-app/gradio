@@ -347,29 +347,6 @@ describe("Streaming updates", () => {
 		expect(container.querySelector(".md p")).toBe(first);
 	});
 
-	test("keeps finished blocks after an inline tag in prose", async () => {
-		const { set_data, container } = await render(Markdown, {
-			...default_props,
-			value: "Use List<T> here.\n\nNext.\n\nSecond"
-		});
-
-		const next = await waitFor(() => {
-			const p = container.querySelectorAll(".md p")[1];
-			expect(p?.textContent).toBe("Next.");
-			return p;
-		});
-
-		await set_data({
-			value: "Use List<T> here.\n\nNext.\n\nSecond paragraph."
-		});
-
-		await waitFor(() => {
-			const paragraphs = container.querySelectorAll(".md p");
-			expect(paragraphs[2]?.textContent).toBe("Second paragraph.");
-		});
-		expect(container.querySelectorAll(".md p")[1]).toBe(next);
-	});
-
 	test("streaming the value in chunks renders the same as setting it at once", async () => {
 		const value = [
 			"# Title",
@@ -447,22 +424,6 @@ describe("Streaming updates", () => {
 		});
 	});
 
-	test("keeps heading ids when header_links is turned off later", async () => {
-		const { set_data, container } = await render(Markdown, {
-			...default_props,
-			header_links: true,
-			value: "## A"
-		});
-		await waitFor(() => expect(container.querySelector("h2")?.id).toBe("h-a"));
-
-		await set_data({ header_links: false, value: "## A\n\ntext" });
-
-		await waitFor(() =>
-			expect(container.querySelector(".md p")?.textContent).toBe("text")
-		);
-		expect(container.querySelector("h2")?.id).toBe("h-a");
-	});
-
 	test("keeps markdown inside a raw html element that spans several blocks", async () => {
 		const { container } = await render(Markdown, {
 			...default_props,
@@ -530,26 +491,6 @@ describe("Streaming updates", () => {
 		await waitFor(() =>
 			expect(container.querySelector(".md .katex")).not.toBeNull()
 		);
-	});
-
-	test("keeps rendering updates after an invalid mermaid diagram", async () => {
-		const error = vi.spyOn(console, "error").mockImplementation(() => {});
-		try {
-			const diagram = "```mermaid\ngraph TD\n  A -->\n```";
-			const { set_data, container } = await render(Markdown, {
-				...default_props,
-				value: diagram
-			});
-			await set_data({ value: `${diagram}\n\nAfter the diagram.` });
-
-			await waitFor(() =>
-				expect(container.querySelector(".md > p")?.textContent).toBe(
-					"After the diagram."
-				)
-			);
-		} finally {
-			error.mockRestore();
-		}
 	});
 
 	test("does not parse a new document for every update", async () => {

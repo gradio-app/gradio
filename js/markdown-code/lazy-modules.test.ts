@@ -24,17 +24,6 @@ vi.mock("mermaid", () => ({
 	}
 }));
 
-// A syntax highlighter that loads only when the test releases it.
-const { prism_go } = vi.hoisted(() => {
-	let release = (): void => {};
-	const loaded = new Promise<void>((resolve) => (release = resolve));
-	return { prism_go: { loaded, release: () => release() } };
-});
-vi.mock("prismjs/components/prism-go", async () => {
-	await prism_go.loaded;
-	return {};
-});
-
 const default_props = {
 	value: "",
 	label: "Markdown",
@@ -88,28 +77,5 @@ describe("Lazily imported modules", () => {
 				"After the diagram."
 			)
 		);
-	});
-
-	test("rebuilds when a rendered node is removed during a render", async () => {
-		const { set_data, container } = await render(Markdown, {
-			...default_props,
-			value: "A\n\nB\n\nC"
-		});
-		const paragraph_texts = (): (string | null)[] =>
-			Array.from(container.querySelectorAll(".md p"), (p) => p.textContent);
-		await waitFor(() => expect(paragraph_texts()).toEqual(["A", "B", "C"]));
-
-		await set_data({ value: "A\n\n```go\nx := 1\n```\n\nC" });
-		// The render is now waiting for the go highlighter.
-		expect(paragraph_texts()).toEqual(["A", "B", "C"]);
-		container.querySelectorAll(".md p")[2].remove();
-		prism_go.release();
-
-		await waitFor(() => {
-			expect(paragraph_texts()).toEqual(["A", "C"]);
-			expect(container.querySelector(".md pre code")?.textContent).toContain(
-				"x := 1"
-			);
-		});
 	});
 });

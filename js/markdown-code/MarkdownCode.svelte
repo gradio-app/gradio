@@ -128,10 +128,8 @@
 		nodes: ChildNode[];
 	}
 
-	// The rendered top-level blocks, in order. The whole message is lexed on
-	// every update, but only the blocks that differ from the previous render
-	// are rebuilt, so the DOM work per streamed update stays proportional to
-	// the change rather than to the whole message.
+	// The rendered top-level blocks. Only the blocks that differ from the
+	// previous render are rebuilt on each update.
 	let blocks: Block[] = [];
 	// What every block depends on: the settings and the reference links.
 	let blocks_context = "";
@@ -144,7 +142,6 @@
 		);
 	}
 
-	// Returns false if the render has to be repeated.
 	async function render(value: string, settings: string): Promise<boolean> {
 		const { context, blocks: next } =
 			value && value.trim()
@@ -302,8 +299,6 @@
 		}
 
 		if (has_math_syntax(source)) {
-			// If KaTeX fails (e.g. its chunk does not load), show the text
-			// without math rather than nothing.
 			try {
 				const [, { default: render_math_in_element }] = await Promise.all([
 					import("katex/dist/katex.min.css"),
