@@ -45,17 +45,28 @@
 	// An explicit choice (the `?ui=` param, or a toggle) wins over the default.
 	let chosen = $state<View | null>(read_view_param());
 	// Until the server confirms write access, guess from what this browser
-	// already knows, so neither view flashes for the common case: locally the
-	// write token is in the URL or a cookie; on a Space most visitors aren't
-	// the owner, so an owner sees the app for a moment before the canvas.
-	const predicted: View =
+	// already knows: locally the write token is in the URL or a cookie. On a
+	// Space there's nothing to go on (sign-in lives in an HttpOnly session
+	// cookie), and either guess makes someone watch the page switch views, so
+	// show neither until the server answers. That answer is quick for anyone
+	// not signed in, and is given up on after a few seconds.
+	const on_space =
 		typeof window !== "undefined" &&
-		!window.location.hostname.endsWith(".hf.space") &&
-		has_write_token_hint()
+		window.location.hostname.endsWith(".hf.space");
+	const predicted: View | null = on_space
+		? null
+		: has_write_token_hint()
 			? "canvas"
 			: "app";
+	const ACCESS_WAIT_MS = 3000;
+	let access_wait_over = $state(false);
+	$effect(() => {
+		const timer = setTimeout(() => (access_wait_over = true), ACCESS_WAIT_MS);
+		return () => clearTimeout(timer);
+	});
 
-	const view: View = $derived(
+	// `null` while waiting on the server, before either view is shown.
+	const view: View | null = $derived(
 		!app_view_id
 			? "canvas"
 			: (chosen ??
@@ -63,7 +74,7 @@
 						? auth.canWrite
 							? "canvas"
 							: "app"
-						: predicted))
+						: (predicted ?? (access_wait_over ? "app" : null))))
 	);
 
 	// Mount the canvas the first time it's shown and keep it mounted after, so
@@ -153,6 +164,8 @@
 
 	// While the canvas covers the page, keep the app underneath out of the tab
 	// order / accessibility tree and stop the page behind it from scrolling.
+	// `data-view` reveals the app: the stylesheet `gr.Workflow` launches with
+	// keeps it hidden until then, so it can't paint before a view is chosen.
 	$effect(() => {
 		if (!app_view_id) return;
 		const covered = view === "canvas";
@@ -163,7 +176,8 @@
 				frame = requestAnimationFrame(apply);
 				return;
 			}
-			el.toggleAttribute("inert", covered);
+			el.toggleAttribute("inert", view !== "app");
+			if (view) el.dataset.view = view;
 		};
 		apply();
 		document.documentElement.style.overflow = covered ? "hidden" : "";
@@ -229,7 +243,7 @@
 	</div>
 {/if}
 
-{#if app_view_id}
+{#if app_view_id && view}
 	<div
 		class="view-toggle"
 		class:on-canvas={view === "canvas"}

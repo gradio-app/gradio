@@ -1723,9 +1723,13 @@ def get_dataset_schema(
 _APP_ELEM_ID = "workflow-app"
 # The row gives each child a 0% flex-basis, which overrides the scale=0
 # button's `width: fit-content` and squeezes it down to its padding.
+#
+# The app stays hidden until the canvas component has picked which view to show
+# (it sets `data-view`), so a viewer who gets the canvas never sees it first.
 _APP_CSS = f"""
 #{_APP_ELEM_ID}-header {{ justify-content: flex-end; }}
 #{_APP_ELEM_ID}-header > button {{ flex: none; }}
+#{_APP_ELEM_ID}:not([data-view="app"]) {{ visibility: hidden; }}
 """
 
 
