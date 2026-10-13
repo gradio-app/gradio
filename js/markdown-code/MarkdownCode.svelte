@@ -74,15 +74,21 @@
 		try {
 			let value = "";
 			let settings = "";
+			let done = true;
 			do {
 				value = latest_message;
 				settings = latest_settings;
 				try {
-					await render(value, settings);
+					done = await render(value, settings);
 				} catch (error) {
 					console.error(error);
+					done = true;
 				}
-			} while (value !== latest_message || settings !== latest_settings);
+			} while (
+				!done ||
+				value !== latest_message ||
+				settings !== latest_settings
+			);
 		} finally {
 			rendering = false;
 		}
@@ -130,17 +136,21 @@
 	// What every block depends on: the settings and the reference links.
 	let blocks_context = "";
 
-	async function render(value: string, settings: string): Promise<void> {
+	// Rendered nodes can be removed or replaced from outside (e.g. by a page
+	// translation extension). The blocks cannot be reused then.
+	function blocks_intact(): boolean {
+		return blocks.every((block) =>
+			block.nodes.every((node) => node.parentNode === el)
+		);
+	}
+
+	// Returns false if the render has to be repeated.
+	async function render(value: string, settings: string): Promise<boolean> {
 		const { context, blocks: next } =
 			value && value.trim()
 				? split_blocks(value, settings)
 				: { context: settings, blocks: [] };
-		// Rendered nodes can be removed or replaced from outside (e.g. by a
-		// page translation extension). The blocks cannot be reused then.
-		const intact = blocks.every((block) =>
-			block.nodes.every((node) => node.parentNode === el)
-		);
-		const reuse = intact && context === blocks_context;
+		const reuse = blocks_intact() && context === blocks_context;
 
 		let start = 0;
 		while (
@@ -171,7 +181,10 @@
 		}));
 		const fragment = document.createDocumentFragment();
 		fragment.append(...rendered);
-		if (!el) return;
+		if (!el) return true;
+		// Nodes can also be removed while the blocks render. The next
+		// attempt then rebuilds everything.
+		if (reuse && !blocks_intact()) return false;
 
 		const kept_after = blocks.slice(blocks.length - end);
 		if (reuse) {
@@ -185,6 +198,7 @@
 		}
 		blocks = [...blocks.slice(0, start), ...added, ...kept_after];
 		blocks_context = context;
+		return true;
 	}
 
 	function split_blocks(
