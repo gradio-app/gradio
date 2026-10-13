@@ -115,7 +115,9 @@ export function strip_session_media(
 }
 
 function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
-	const cleaned = strip_session_media(node.data);
+	const cleaned = (node as { secret?: boolean }).secret
+		? {}
+		: strip_session_media(node.data);
 	const {
 		x: _x,
 		y: _y,
@@ -270,7 +272,15 @@ export function addNode(
 			template.outputs?.[0]?.type ??
 			template.inputs?.[0]?.type ??
 			"any";
-		return addReference({ ...baseFields, asset_type }, x, y);
+		return addReference(
+			{
+				...baseFields,
+				asset_type,
+				...(template.secret ? { secret: true as const } : {})
+			},
+			x,
+			y
+		);
 	}
 
 	if (role === "operator") {

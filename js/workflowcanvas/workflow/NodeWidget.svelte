@@ -356,6 +356,20 @@
 		{:else}
 			{@render placeholder()}
 		{/if}
+	{:else if node.secret}
+		<div class="widget-secret-wrap">
+			<input
+				class="widget-secret"
+				type="password"
+				value={getTextValue()}
+				placeholder="Paste your key"
+				autocomplete="off"
+				spellcheck="false"
+				disabled={isReadonly}
+				oninput={(e) =>
+					ondatachange(node.id, widgetPortId, e.currentTarget.value)}
+			/>
+		</div>
 	{:else if effectiveWidgetType === "text" || effectiveWidgetType === "json" || effectiveWidgetType === "markdown"}
 		<div class="widget-text-wrap">
 			<div class="widget-gradio-wrap">
@@ -611,6 +625,7 @@
 	/* ─── Gradio Component Wrapper ─── */
 	.widget-text-wrap,
 	.widget-number-wrap,
+	.widget-secret-wrap,
 	.widget-bool-wrap {
 		padding: 6px 12px 8px;
 	}
@@ -780,7 +795,8 @@
 		word-break: break-word;
 	}
 
-	.widget-number {
+	.widget-number,
+	.widget-secret {
 		width: 100%;
 		font-family: "JetBrains Mono", monospace;
 		font-size: 12px;
@@ -794,7 +810,8 @@
 		transition: border-color 0.15s;
 	}
 
-	.widget-number:focus {
+	.widget-number:focus,
+	.widget-secret:focus {
 		border-color: var(--accent);
 		box-shadow: 0 0 0 2px var(--accent-dim);
 	}
@@ -1104,7 +1121,8 @@
 		color: #6b6e78;
 	}
 
-	:global(body:not(.dark)) .widget-number {
+	:global(body:not(.dark)) .widget-number,
+	:global(body:not(.dark)) .widget-secret {
 		background: #f8f9fb;
 		border-color: #e2e4ea;
 		color: #1a1b25;

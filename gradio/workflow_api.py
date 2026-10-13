@@ -688,12 +688,19 @@ def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
 
 
 def port_to_component(
-    port_type: str, label: str, value: Any = None, *, output: bool = False
+    port_type: str,
+    label: str,
+    value: Any = None,
+    *,
+    output: bool = False,
+    secret: bool = False,
 ):
     """Map a workflow port type to a Gradio component for the API schema. Real
     components are used (not `gr.api` type hints) so multimodal I/O round-trips
     via their proven `api_info` / `FileData` handling. Created unrendered; the
     caller renders them into the app view so they reach `/info`.
+
+    `secret` is an API-key reference: a masked textbox, never pre-filled.
 
     `value` pre-fills the component (the reference node's current value in the
     graph). `output` picks a display-oriented component where one exists
@@ -702,6 +709,8 @@ def port_to_component(
     import gradio as gr
 
     label = label or port_type
+    if secret:
+        return gr.Textbox(label=label, type="password", render=False)
     if port_type == "image":
         cls, kwargs = gr.Image, {"type": "filepath"}
     elif port_type == "audio":
@@ -983,7 +992,10 @@ class WorkflowEndpointManager:
             frees = group_free_inputs(graph, group)
             for component, free in zip(components, frees):
                 shaped = port_to_component(
-                    free["type"], free["label"], value=_reference_default(free)
+                    free["type"],
+                    free["label"],
+                    value=_reference_default(free),
+                    secret=bool(free["node"].get("secret")),
                 )
                 component.value = shaped.value
 
@@ -1042,7 +1054,10 @@ class WorkflowEndpointManager:
             comps = []
             for f in frees:
                 c = port_to_component(
-                    f["type"], f["label"], value=_reference_default(f)
+                    f["type"],
+                    f["label"],
+                    value=_reference_default(f),
+                    secret=bool(f["node"].get("secret")),
                 )
                 c.render()
                 comps.append(c)

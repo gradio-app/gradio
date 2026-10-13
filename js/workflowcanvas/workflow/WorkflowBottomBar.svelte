@@ -85,7 +85,8 @@
 		{ key: "audio", label: "Audio" },
 		{ key: "video", label: "Video" },
 		{ key: "number", label: "Number" },
-		{ key: "file", label: "File" }
+		{ key: "file", label: "File" },
+		{ key: "api_key", label: "API Key" }
 	];
 
 	let showComponentMenu = $state(false);

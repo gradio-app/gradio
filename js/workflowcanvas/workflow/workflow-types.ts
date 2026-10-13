@@ -64,6 +64,7 @@ export type NodeStatus = "idle" | "running" | "done" | "error";
 
 export interface WFNode {
 	id: string;
+	secret?: boolean;
 	kind: "input" | "transform" | "output" | "component";
 	label: string;
 	source: "local" | "space" | "model" | "dataset" | "fn";
@@ -150,6 +151,7 @@ export interface BaseNode {
 export interface ReferenceNode extends BaseNode {
 	role: "reference";
 	asset_type: PortType;
+	secret?: boolean;
 	/** Inline literal value, or in a later iteration an `hf://...` URI. */
 	value?: NodeDataValue;
 }
