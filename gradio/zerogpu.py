@@ -21,6 +21,7 @@ def exception_mapper(err: ZeroGPUErrorResponse, exc: Exception | None):
     return Error(
         title=detail["title"],
         message=detail["message"],
+        print_exception=False,
     )
 
 
