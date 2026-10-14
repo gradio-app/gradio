@@ -24,6 +24,10 @@ export function new_webrtc_id(): string {
 	return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// How long after the user stops a stream the same button ignores clicks, so
+// that a double click on stop does not start a new stream (and take a turn)
+export const RESTART_GUARD_MS = 500;
+
 // How long a connection may stay "disconnected" before its stream ends. The
 // state is often brief (a network switch, a short Wi-Fi drop) and goes back to
 // "connected" by itself.

@@ -7,6 +7,7 @@ import WebRTC from "./Index.svelte";
 import { START_STREAM } from "./types";
 import {
 	DISCONNECT_GRACE_MS,
+	RESTART_GUARD_MS,
 	new_webrtc_id,
 	on_connection_state
 } from "./shared/webrtc";
@@ -393,6 +394,38 @@ describe("WebRTC send-receive video", () => {
 				"audio.record"
 			);
 		});
+	});
+
+	test("a double click on stop does not start a new stream", async () => {
+		const server = make_server();
+		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
+			...base_props,
+			server
+		});
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+		const stream = listen("stream");
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(FakePeerConnection.instances).toHaveLength(1));
+		FakePeerConnection.instances[0].set_state("connected");
+		await waitFor(() => {
+			expect(getByRole("button", { name: "stop stream" })).toBeVisible();
+		});
+		expect(stream).toHaveBeenCalledTimes(1);
+
+		// The second click of a double click lands on the start button
+		await fireEvent.click(getByRole("button", { name: "stop stream" }));
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		expect(stream).toHaveBeenCalledTimes(1);
+
+		// A start a moment later is the user's own
+		await new Promise((resolve) => setTimeout(resolve, RESTART_GUARD_MS));
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await waitFor(() => expect(stream).toHaveBeenCalledTimes(2));
 	});
 
 	test("stopping while waiting in line leaves the queue without connecting", async () => {
@@ -1029,6 +1062,7 @@ describe("WebRTC audio", () => {
 					true
 				);
 			});
+			await new Promise((resolve) => setTimeout(resolve, RESTART_GUARD_MS));
 			await stream_once(2);
 			await waitFor(() => expect(analysed).toHaveLength(2 * per_stream));
 		} finally {

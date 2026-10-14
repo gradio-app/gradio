@@ -19,7 +19,8 @@
 		stop,
 		new_webrtc_id,
 		close_on_pagehide,
-		on_connection_state
+		on_connection_state,
+		RESTART_GUARD_MS
 	} from "./webrtc";
 	import { StreamAttempts } from "./attempts.svelte";
 	import {
@@ -214,11 +215,16 @@
 		if (connection) await access_webcam(selected_device?.deviceId);
 	}
 
+	// When the user last stopped (or left the line), see RESTART_GUARD_MS
+	let stopped_at = -Infinity;
+
 	async function toggle_stream(): Promise<void> {
 		if (stream_state !== "closed") {
+			stopped_at = performance.now();
 			await close_stream();
 			return;
 		}
+		if (performance.now() - stopped_at < RESTART_GUARD_MS) return;
 		if (!stream) return;
 		const token = attempts.begin();
 		onstart_recording?.();
