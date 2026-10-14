@@ -3,6 +3,7 @@ import json
 import sys
 import threading
 import time
+from typing import Any, cast
 from unittest.mock import patch
 
 import fastapi
@@ -665,6 +666,58 @@ def test_history_is_only_kept_for_clients_that_may_resume():
         assert not any(
             resumable.history for resumable in demo._queue.resumable_sessions.values()
         )
+    finally:
+        demo.close()
+
+
+@pytest.mark.parametrize("generator", [False, True])
+def test_history_keeps_only_the_latest_output_of_a_stream(generator):
+    from types import SimpleNamespace
+
+    from gradio.server_messages import ProcessGeneratingMessage, ServerMessage
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue = demo._queue
+        queue.pending_messages_per_session["s"] = asyncio.Queue()
+        resumable = queue.resumable_sessions.setdefault(
+            "s", queueing.ResumableSession(acknowledges=True)
+        )
+
+        def event(event_id, types_generator):
+            return SimpleNamespace(
+                _id=event_id,
+                alive=True,
+                session_hash="s",
+                fn=SimpleNamespace(types_generator=types_generator),
+            )
+
+        stream = event("stream", generator)
+        generating = event("generating", True)
+        for i in range(3):
+            for e, msg in (
+                (stream, ServerMessage.process_streaming),
+                (generating, ServerMessage.process_generating),
+            ):
+                queue.send_message(
+                    cast(queueing.Event, e),
+                    ProcessGeneratingMessage(msg=msg, output={"i": i}, success=True),
+                )
+        kept = [(m.event_id, cast(Any, m).output["i"]) for m in resumable.history]
+        if generator:
+            # A generator's outputs are diffs, each needed to rebuild the value
+            assert len(kept) == 6
+        else:
+            # Each call of a stream sends whole values; a stream that runs for
+            # hours must not fill the history
+            assert kept == [
+                ("generating", 0),
+                ("generating", 1),
+                ("stream", 2),
+                ("generating", 2),
+            ]
     finally:
         demo.close()
 

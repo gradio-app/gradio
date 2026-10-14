@@ -286,7 +286,22 @@ class Queue:
         # with such a client: the history would otherwise grow without bound
         resumable = self.resumable_sessions.get(event.session_hash)
         if resumable is not None and resumable.acknowledges:
-            resumable.history.append(event_message)
+            history = resumable.history
+            # Each call of a stream event sends whole output values, unless its
+            # function is a generator (whose outputs are diffs), so only the
+            # latest is worth replaying. A stream can run for hours.
+            if (
+                event_message.msg == ServerMessage.process_streaming
+                and not event.fn.types_generator
+            ):
+                for i in range(len(history) - 1, -1, -1):
+                    if (
+                        history[i].event_id == event_message.event_id
+                        and history[i].msg == ServerMessage.process_streaming
+                    ):
+                        del history[i]
+                        break
+            history.append(event_message)
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
 
