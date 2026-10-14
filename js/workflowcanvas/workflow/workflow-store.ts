@@ -287,11 +287,7 @@ export function addNode(
 			template.inputs?.[0]?.type ??
 			"any";
 		return addReference(
-			{
-				...baseFields,
-				asset_type,
-				...(template.type ? { type: template.type } : {})
-			},
+			{ ...baseFields, asset_type, type: template.type },
 			x,
 			y
 		);

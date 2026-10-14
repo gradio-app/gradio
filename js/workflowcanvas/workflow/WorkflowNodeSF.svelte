@@ -16,6 +16,7 @@
 	import {
 		is_secret,
 		is_secret_port,
+		is_textual,
 		PORT_COLOR,
 		PORT_COLOR_DIM,
 		ports_compatible
@@ -303,9 +304,7 @@
 
 	const masked = $derived(is_secret(node));
 	const canMask = $derived(
-		!readOnly &&
-			mode === "input" &&
-			(widgetType === "text" || widgetType === "markdown")
+		!readOnly && mode === "input" && !!widgetType && is_textual(widgetType)
 	);
 
 	// ── Header meta ──
@@ -343,7 +342,7 @@
 	});
 
 	const metaLabel = $derived(
-		hasWidget && !is_secret(node)
+		hasWidget && !masked
 			? nodeMetaLabel(widgetType, widgetValue, measuredSize)
 			: null
 	);
@@ -1191,8 +1190,6 @@
 		);
 	}
 
-	/* Sits between the title and the header buttons. `flex: 0 0 auto` keeps it
-	   whole while the title takes the squeeze. */
 	.node-title-wrap {
 		display: flex;
 		align-items: center;
@@ -1211,7 +1208,6 @@
 	.node-mask {
 		display: inline-flex;
 		align-items: center;
-		margin-left: 4px;
 		padding: 2px;
 		border: none;
 		background: none;
@@ -1230,6 +1226,8 @@
 		color: var(--accent);
 	}
 
+	/* Sits between the title and the header buttons. `flex: 0 0 auto` keeps it
+	   whole while the title takes the squeeze. */
 	.node-meta {
 		flex: 0 0 auto;
 		font-family: "JetBrains Mono", monospace;
