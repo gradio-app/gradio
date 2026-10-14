@@ -89,7 +89,10 @@
 	} = $props();
 
 	let video_source = $state<HTMLVideoElement>();
+	// The camera, for the preview and the stream
 	let stream: MediaStream | null = null;
+	// For "audio-video", the microphone, held only while a stream runs
+	let mic_stream: MediaStream | null = null;
 	let pc: RTCPeerConnection | null = null;
 	let stream_state = $state<StreamState>("closed");
 	let webcam_accessed = $state(false);
@@ -146,7 +149,39 @@
 	// while a request is pending (e.g. the reopen after a stream) wins
 	let camera_request = 0;
 
-	async function access_webcam(device_id?: string | null): Promise<void> {
+	function stop_tracks(media: MediaStream | null): void {
+		media?.getTracks().forEach((track) => track.stop());
+	}
+
+	function release_mic(): void {
+		stop_tracks(mic_stream);
+		mic_stream = null;
+	}
+
+	// For "audio-video", opens the microphone once a stream's turn comes; the
+	// preview does not need it, and holding it would keep it from other apps
+	async function open_mic(): Promise<MediaStream | null> {
+		try {
+			return await navigator.mediaDevices.getUserMedia({
+				audio: audio_constraints
+			});
+		} catch (err) {
+			if (err instanceof DOMException && err.name == "NotAllowedError") {
+				onerror?.(i18n("audio.allow_recording_access"));
+			} else {
+				console.debug("getUserMedia failed", err);
+				onerror?.(i18n("audio.recording_error"));
+			}
+			return null;
+		}
+	}
+
+	// `ask_mic`: for "audio-video", also ask for the microphone, so that one
+	// prompt covers both; it is let go again right away
+	async function access_webcam(
+		device_id?: string | null,
+		ask_mic = false
+	): Promise<void> {
 		if (!navigator.mediaDevices?.getUserMedia) {
 			onerror?.(i18n("image.no_webcam_support"));
 			return;
@@ -155,11 +190,15 @@
 		try {
 			const local_stream = await navigator.mediaDevices.getUserMedia({
 				video: with_device(video_constraints, device_id),
-				audio: audio_constraints
+				audio: ask_mic ? audio_constraints : false
 			});
 			if (request !== camera_request) {
-				local_stream.getTracks().forEach((track) => track.stop());
+				stop_tracks(local_stream);
 				return;
+			}
+			for (const track of local_stream.getAudioTracks()) {
+				track.stop();
+				local_stream.removeTrack(track);
 			}
 			set_stream(local_stream);
 			webcam_accessed = true;
@@ -174,11 +213,11 @@
 		}
 	}
 
-	// Releases the camera (and, for audio-video, the microphone) that the
-	// preview holds; the access button brings it back.
+	// Releases the camera that the preview holds; the access button brings it
+	// back.
 	function turn_off_camera(): void {
 		camera_request++;
-		stream?.getTracks().forEach((track) => track.stop());
+		stop_tracks(stream);
 		stream = null;
 		if (video_source) video_source.srcObject = null;
 		webcam_accessed = false;
@@ -204,6 +243,7 @@
 		const connection = pc;
 		pc = null;
 		stop(connection);
+		release_mic();
 		if (stream_state !== "closed") {
 			onstop_recording?.();
 		}
@@ -240,19 +280,29 @@
 			return;
 		}
 
-		let rtc_configuration: Record<string, any> = {};
-		try {
-			rtc_configuration = (await server.get_rtc_configuration()) ?? {};
-		} catch (e) {
-			rtc_configuration = { error: String(e) };
+		const [mic, rtc_configuration] = await Promise.all([
+			include_audio ? open_mic() : Promise.resolve(null),
+			server
+				.get_rtc_configuration()
+				.then((config) => config ?? {})
+				.catch((e): Record<string, any> => ({ error: String(e) }))
+		]);
+		// Stopped (or unmounted) while the microphone or the configuration
+		// was loading
+		if (!attempts.is_current(token)) {
+			stop_tracks(mic);
+			return;
 		}
-		// Stopped (or unmounted) while the configuration was loading
-		if (!attempts.is_current(token)) return;
-		if (rtc_configuration.error) {
-			onerror?.(rtc_configuration.error);
+		if ((include_audio && !mic) || rtc_configuration.error || !stream) {
+			stop_tracks(mic);
+			if (rtc_configuration.error) onerror?.(rtc_configuration.error);
 			await close_stream();
 			return;
 		}
+		mic_stream = mic;
+		const local_stream = mic
+			? new MediaStream([...stream.getVideoTracks(), ...mic.getAudioTracks()])
+			: stream;
 
 		const connection = new RTCPeerConnection(rtc_configuration);
 		pc = connection;
@@ -278,7 +328,7 @@
 		negotiated_time_limit = null;
 		try {
 			const response = await start({
-				stream,
+				stream: local_stream,
 				pc: connection,
 				node: mode === "send" ? null : (video_source ?? null),
 				offer: server.offer,
@@ -306,7 +356,8 @@
 	onDestroy(() => {
 		attempts.destroy();
 		stop(pc);
-		stream?.getTracks().forEach((track) => track.stop());
+		stop_tracks(stream);
+		release_mic();
 	});
 </script>
 
@@ -316,7 +367,7 @@
 		<div class="audio-indicator">
 			<PulsingIcon
 				stream_state="open"
-				audio_source={() => stream}
+				audio_source={() => mic_stream}
 				icon={icon || Mic}
 				{pulse_color}
 				{icon_radius}
@@ -338,7 +389,10 @@
 			title="grant webcam access"
 			style="height: 100%"
 		>
-			<Permissions kind="webcam" onclick={() => access_webcam()} />
+			<Permissions
+				kind="webcam"
+				onclick={() => access_webcam(undefined, include_audio)}
+			/>
 		</div>
 	{:else}
 		{#if stream_state === "closed"}

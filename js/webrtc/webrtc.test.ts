@@ -968,6 +968,62 @@ describe("WebRTC audio", () => {
 		expect(opened).toHaveLength(2);
 	});
 
+	test("an audio-video preview holds only the camera", async () => {
+		const opened: MediaStream[] = [];
+		const get_user_media = vi.mocked(navigator.mediaDevices.getUserMedia);
+		get_user_media.mockImplementation(async (constraints) => {
+			const tracks = [
+				...(constraints?.video ? fake_stream("video").getTracks() : []),
+				...(constraints?.audio ? fake_stream("audio").getTracks() : [])
+			];
+			const stream = new MediaStream(tracks);
+			opened.push(stream);
+			return stream;
+		});
+		const live = (kind: string): MediaStreamTrack[] =>
+			opened
+				.flatMap((stream) => stream.getTracks())
+				.filter((track) => track.kind === kind && track.readyState === "live");
+
+		const { getByRole, getByText, set_data } = await render(WebRTC, {
+			...base_props,
+			modality: "audio-video",
+			server: make_server()
+		});
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+		// One prompt asks for both, but the preview only keeps the camera
+		expect(get_user_media.mock.calls[0][0]!.audio).toBeTruthy();
+		expect(live("video")).toHaveLength(1);
+		expect(live("audio")).toHaveLength(0);
+
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(FakePeerConnection.instances).toHaveLength(1));
+		const pc = FakePeerConnection.instances[0];
+		await waitFor(() => {
+			expect(pc.tracks.map((track) => track.kind).sort()).toEqual([
+				"audio",
+				"video"
+			]);
+		});
+		pc.set_state("connected");
+		await waitFor(() => {
+			expect(getByRole("button", { name: "stop stream" })).toBeVisible();
+		});
+		expect(live("audio")).toHaveLength(1);
+
+		await fireEvent.click(getByRole("button", { name: "stop stream" }));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+		// The camera comes back for the preview, the microphone does not
+		await waitFor(() => expect(live("video")).toHaveLength(1));
+		expect(live("audio")).toHaveLength(0);
+	});
+
 	test("stopping while the microphone is opening releases it", async () => {
 		const { getByRole, getByText, set_data } = await render(WebRTC, {
 			...base_props,
