@@ -724,7 +724,6 @@ def call_space(
         client = Client(
             space_id,
             verbose=False,
-            space_id,
             token=hf_token,
             headers={"x-ip-token": ip_token} if ip_token else None,
         )
