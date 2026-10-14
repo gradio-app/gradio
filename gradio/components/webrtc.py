@@ -408,7 +408,7 @@ class WebRTC(Component):
 
         self.time_limit = time_limit
         self._num_extra_outputs = len(extra_outputs)
-        webrtc_connection.register_manager(
+        manager = webrtc_connection.register_manager(
             self._id,
             handler=fn,
             mode=self.mode,
@@ -424,7 +424,7 @@ class WebRTC(Component):
         # then delivers AdditionalOutputs until the stream ends. It takes only
         # the stream's id: the other inputs reach the handler through the
         # events below, so the event's wakes do not preprocess them again.
-        root_block.set_event_trigger(
+        stream_fn, _ = root_block.set_event_trigger(
             [EventListenerMethod(self, "stream")],
             self._run_stream,
             inputs=[self],
@@ -437,6 +437,10 @@ class WebRTC(Component):
             connection="stream",
             time_limit=time_limit,
         )
+        # The registry holds managers weakly; the stream event keeps its own
+        # alive for as long as the app (or the render that created it) has it.
+        # BlockFunction declares no field for it, hence the ignore.
+        stream_fn.webrtc_manager = manager  # type: ignore
         # The frontend fires "tick" when the handler asks for the inputs, and
         # every extra input pushes its new value as soon as it changes.
         push_inputs = cast(list, [self, *extra_inputs])
@@ -534,7 +538,8 @@ class WebRTC(Component):
     async def _push_inputs(self, webrtc_id: str | None, *args: Any) -> None:
         manager = self._manager()
         if manager is not None and webrtc_id:
-            manager.set_input(webrtc_id, *args)
+            request = LocalContext.request.get(None)
+            manager.set_input(webrtc_id, getattr(request, "session_hash", None), *args)
 
     async def _run_stream(self, webrtc_id: str | None) -> Any:
         """
@@ -558,9 +563,10 @@ class WebRTC(Component):
             # serves the stream that the first call admitted
             stream_id = admitted_id(event)
             if stream_id is None:
-                if webrtc_id and not manager.admit(webrtc_id, event, queue):
-                    # The id belongs to another event's stream: end this event
-                    # instead of letting it hold a place it cannot use
+                if not webrtc_id or not manager.admit(webrtc_id, event, queue):
+                    # No id, or one that belongs to another event's stream: end
+                    # this event instead of letting it hold a place it cannot
+                    # use. Nothing would wake it before its time limit.
                     event.closed = True
             else:
                 outputs = manager.take_outputs(stream_id)
@@ -606,7 +612,8 @@ class WebRTC(Component):
             payload = utils.error_payload(e, bool(blocks and blocks.show_error))
             return {"error": payload["error"] or "An error occurred."}
 
-    @server
+    # The offer starts the stream's handler, whose GPU work is the visitor's
+    @server(zerogpu_headers=True)
     async def offer(
         self, body: dict[str, Any], request: Request | None = None
     ) -> dict[str, Any]:

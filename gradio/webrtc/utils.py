@@ -33,13 +33,6 @@ WEBRTC_EXTRA_HINT = (
 )
 
 
-def require_aiortc() -> None:
-    try:
-        import aiortc  # noqa: F401
-    except ImportError as e:
-        raise ImportError(WEBRTC_EXTRA_HINT) from e
-
-
 class AdditionalOutputs:
     """
     Wraps values that a stream handler wants to send to the extra output
@@ -316,7 +309,10 @@ def audio_to_int16(
     if audio.dtype == np.int16:
         return cast(NDArray[np.int16], audio)
     if np.issubdtype(audio.dtype, np.floating):
-        return (audio.astype(np.float32, copy=False) * 32767.0).astype(np.int16)
+        # Values just past full scale would otherwise wrap around to the
+        # opposite sign, and NaN has no int16 value
+        clipped = np.clip(np.nan_to_num(audio.astype(np.float32)), -1.0, 1.0)
+        return (clipped * 32767.0).astype(np.int16)
     if audio.dtype in _SCALED_INTEGER_TYPES:
         return _scaled_integer_to_int16(audio)
     raise TypeError(f"Unsupported audio data type: {audio.dtype}")

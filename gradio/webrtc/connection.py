@@ -220,8 +220,11 @@ class ConnectionManager:
         self.data_channels: dict[str, Any] = {}
         self.handlers: dict[str, HandlerType] = {}
         # ICE candidates that arrive before their peer connection exists: the
-        # browser trickles them while its offer waits for the stream's turn
-        self.pending_candidates: OrderedDict[str, list[RTCIceCandidate]] = OrderedDict()
+        # browser trickles them while its offer waits for the stream's turn.
+        # Each is kept with the session that sent it.
+        self.pending_candidates: OrderedDict[
+            str, list[tuple[str | None, RTCIceCandidate]]
+        ] = OrderedDict()
         self.tasks: set[asyncio.Task] = set()
 
     def admit(self, webrtc_id: str, event: Event, queue: Queue) -> bool:
@@ -294,8 +297,7 @@ class ConnectionManager:
             pc = self.pcs.get(webrtc_id)
             if pc is not None:
                 await pc.close()
-            for conn in self.clean_up(webrtc_id):
-                conn.stop()
+            self.clean_up(webrtc_id)
             if self.sessions.get(webrtc_id) is session:
                 del self.sessions[webrtc_id]
             self.admissions.pop(webrtc_id, None)
@@ -339,7 +341,12 @@ class ConnectionManager:
         if session is not None and session.ended and not session.outputs:
             session.event.closed = True
 
-    def clean_up(self, webrtc_id: str) -> list[Track]:
+    def clean_up(self, webrtc_id: str) -> None:
+        """
+        Releases everything a connection holds: stops its tracks, shuts its
+        handler down and ends the stream. Whichever path notices the end first
+        does the work; later calls find nothing left.
+        """
         self.handlers.pop(webrtc_id, None)
         # Close before letting go: a track that ended (a receive-mode
         # generator ran out) leaves the connection open otherwise
@@ -350,23 +357,44 @@ class ConnectionManager:
         self.pending_candidates.pop(webrtc_id, None)
         try:
             for conn in connection:
+                # Stopping a track ends its loops; its "ended" event calls
+                # this again, which then finds the id already released
+                conn.stop()
+            for conn in connection:
                 if not isinstance(conn, AudioCallback):
                     continue
+                handler = conn.event_handler
+                # A handler blocked in wait_for_args() would wait forever
+                handler.args_set.set()
                 # The handler's own clean-up must not keep the stream going
                 try:
-                    if inspect.iscoroutinefunction(conn.event_handler.shutdown):
-                        self._spawn(conn.event_handler.shutdown())
+                    if inspect.iscoroutinefunction(handler.shutdown):
+                        self._spawn(handler.shutdown())
                     else:
-                        conn.event_handler.shutdown()
+                        handler.shutdown()
                 except Exception:
                     logger.exception("Stream handler shutdown() failed")
-                conn.event_handler.reset()
+                handler.reset()
         finally:
             self.end(webrtc_id)
-        return connection
 
-    def set_input(self, webrtc_id: str, *args: Any) -> None:
+    def owns(self, webrtc_id: str, session_hash: str | None) -> bool:
+        """
+        Whether the stream was admitted for this browser session. A stream id
+        travels in signalling and input messages, so only the session whose
+        queue event admitted it may connect to it or feed it.
+        """
+        session = self.sessions.get(webrtc_id)
+        return (
+            session is not None
+            and session_hash is not None
+            and session.event.session_hash == session_hash
+        )
+
+    def set_input(self, webrtc_id: str, session_hash: str | None, *args: Any) -> None:
         """Pushes the current values of the extra inputs into a live connection."""
+        if not self.owns(webrtc_id, session_hash):
+            return
         for conn in self.connections.get(webrtc_id, []):
             conn.set_args(list(args))
 
@@ -400,8 +428,9 @@ class ConnectionManager:
         candidate for an existing connection. `request` is the visitor's
         `gr.Request`, for the handler's special parameters.
         """
+        session_hash = getattr(request, "session_hash", None)
         if body.get("type") == "ice-candidate" and "candidate" in body:
-            return await self._add_ice_candidate(body)
+            return await self._add_ice_candidate(body, session_hash)
 
         webrtc_id = body.get("webrtc_id")
         if not webrtc_id or "sdp" not in body:
@@ -409,7 +438,7 @@ class ConnectionManager:
         if webrtc_id in self.pcs:
             return _failed("connection_already_exists")
         session = await self._wait_for_admission(webrtc_id)
-        if session is None or session.ended:
+        if session is None or session.ended or not self.owns(webrtc_id, session_hash):
             return _failed("not_admitted")
         # Another offer for the same id may have waited for the admission too.
         # Nothing awaits between this check and claiming the id below.
@@ -441,17 +470,14 @@ class ConnectionManager:
             logger.debug("ICE connection state change %s", pc.iceConnectionState)
             if pc.iceConnectionState == "failed":
                 await pc.close()
-                self.connections.pop(webrtc_id, None)
-                self.pcs.pop(webrtc_id, None)
+                self.clean_up(webrtc_id)
 
         @pc.on("connectionstatechange")
         async def on_connectionstatechange():
             logger.debug("pc.connectionState %s", pc.connectionState)
             if pc.connectionState in ["failed", "closed"]:
                 await pc.close()
-                for conn in self.clean_up(webrtc_id):
-                    conn.stop()
-                self.pcs.pop(webrtc_id, None)
+                self.clean_up(webrtc_id)
             if pc.connectionState == "connected" and self.sessions.get(webrtc_id) is (
                 session
             ):
@@ -564,7 +590,9 @@ class ConnectionManager:
             await pc.close()
             self.clean_up(webrtc_id)
             return _failed("unsupported_track", message=rejected[0])
-        for candidate in self.pending_candidates.pop(webrtc_id, []):
+        for sender, candidate in self.pending_candidates.pop(webrtc_id, []):
+            if sender != session_hash:
+                continue
             try:
                 await pc.addIceCandidate(candidate)
             except Exception as e:
@@ -584,11 +612,15 @@ class ConnectionManager:
             "time_limit": session.remaining_time(self.time_limit),
         }
 
-    async def _add_ice_candidate(self, body: dict[str, Any]) -> dict[str, Any]:
+    async def _add_ice_candidate(
+        self, body: dict[str, Any], session_hash: str | None
+    ) -> dict[str, Any]:
         webrtc_id = body.get("webrtc_id")
         if not webrtc_id:
             return _failed("unknown_connection")
         pc = self.pcs.get(webrtc_id)
+        if pc is not None and not self.owns(webrtc_id, session_hash):
+            return _failed("unknown_connection")
         if pc is not None and pc.connectionState == "closed":
             return _failed("connection_closed")
         try:
@@ -601,7 +633,7 @@ class ConnectionManager:
                 # an id that never makes an offer is evicted eventually
                 pending = self.pending_candidates.setdefault(webrtc_id, [])
                 if len(pending) < MAX_PENDING_CANDIDATES:
-                    pending.append(candidate)
+                    pending.append((session_hash, candidate))
                 while len(self.pending_candidates) > MAX_PENDING_CANDIDATE_IDS:
                     self.pending_candidates.popitem(last=False)
                 return {"status": "success"}
@@ -612,7 +644,12 @@ class ConnectionManager:
             return _failed(str(e))
 
 
-_managers: dict[int, ConnectionManager] = {}
+# Weak, so that a manager goes away with the event that streams through it: the
+# event's function holds it (see `WebRTC.stream()`). A component created by
+# @gr.render or replaced by a reload thus does not keep its handler alive.
+_managers: weakref.WeakValueDictionary[int, ConnectionManager] = (
+    weakref.WeakValueDictionary()
+)
 
 
 def register_manager(component_id: int, **kwargs: Any) -> ConnectionManager:

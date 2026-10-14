@@ -18,6 +18,7 @@ from aiortc import (
 )
 
 import gradio as gr
+from gradio.context import LocalContext
 from gradio.route_utils import API_PREFIX
 from gradio.webrtc import (
     AdditionalOutputs,
@@ -156,6 +157,10 @@ class TestWebRTC:
         assert config["mirror_webcam"] == "auto"
         assert config["time_limit"] is None
         assert set(config["server_fns"]) == {"get_rtc_configuration", "offer"}
+        # Only the offer starts GPU work, so only its calls wait for the
+        # visitor's ZeroGPU headers
+        assert config["zerogpu_server_fns"] == ["offer"]
+        assert "zerogpu_server_fns" not in gr.FileExplorer().get_config()
         assert webrtc.preprocess(gr.WebRTC.data_model(root="abc")) == "abc"
         assert webrtc.preprocess(None) is None
         assert webrtc.postprocess("abc") == "abc"
@@ -507,24 +512,47 @@ class Harness:
         self.demo = demo
         self.api = f"{local_url.rstrip('/')}{API_PREFIX}"
         self.webrtc = webrtc
-        self.manager = get_manager(webrtc._id)
+        manager = get_manager(webrtc._id)
+        assert manager is not None
+        self.manager = manager
         self.stream_fn = next(
             fn
             for fn in demo.fns.values()
             if (webrtc._id, "stream") in [tuple(t) for t in fn.targets]
         )
         self.http = httpx2.AsyncClient(timeout=10)
+        # The browser session each stream joined from, which the stream's
+        # signalling and inputs then come from too
+        self.sessions = {}
 
     async def join(self, webrtc_id, session_hash=None):
+        session_hash = session_hash or webrtc_id
+        self.sessions[webrtc_id] = session_hash
         response = await self.http.post(
             f"{self.api}/queue/join",
             json={
                 "data": [webrtc_id],
                 "fn_index": self.stream_fn._id,
-                "session_hash": session_hash or webrtc_id,
+                "session_hash": session_hash,
             },
         )
         return response.json()["event_id"]
+
+    async def push_inputs(self, webrtc_id, *args, session_hash=None):
+        """
+        Runs the input event that the page fires, from the stream's session.
+        It runs on the test's event loop rather than the server's, which is
+        fine for reading `latest_args` but cannot wake a track that awaits its
+        inputs on an asyncio.Event (receive-mode audio).
+        """
+        session_hash = session_hash or self.sessions.get(webrtc_id, webrtc_id)
+        token = LocalContext.request.set(
+            cast(gr.Request, SimpleNamespace(session_hash=session_hash))
+        )
+        try:
+            await self.webrtc._push_inputs(webrtc_id, *args)
+        finally:
+            LocalContext.request.reset(token)
 
     async def wait_until(self, condition, timeout=5.0):
         deadline = time.monotonic() + timeout
@@ -538,7 +566,7 @@ class Harness:
         await self.wait_until(lambda: webrtc_id in self.manager.sessions)
         return event_id
 
-    async def offer(self, pc, webrtc_id, component=None, **extra):
+    async def offer(self, pc, webrtc_id, component=None, session_hash=None, **extra):
         body = {
             "sdp": pc.localDescription.sdp,
             "type": pc.localDescription.type,
@@ -546,13 +574,14 @@ class Harness:
         }
         if webrtc_id is not None:
             body["webrtc_id"] = webrtc_id
-        return await self.server_fn("offer", body, component)
+        session_hash = session_hash or self.sessions.get(webrtc_id, "session")
+        return await self.server_fn("offer", body, component, session_hash)
 
-    async def server_fn(self, fn_name, data, component=None):
+    async def server_fn(self, fn_name, data, component=None, session_hash="session"):
         response = await self.http.post(
             f"{self.api}/component_server/",
             json={
-                "session_hash": "session",
+                "session_hash": session_hash,
                 "component_id": (component or self.webrtc)._id,
                 "fn_name": fn_name,
                 "data": data,
@@ -628,6 +657,19 @@ class TestStreams:
                 yield harness
             finally:
                 await harness.http.aclose()
+                # Let the server finish closing the test's connections before
+                # it stops, so that no close is left halfway. Watchers run for
+                # as long as their stream's event, which a test may leave open.
+                manager = harness.manager
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline:
+                    watchers = {s.watcher for s in list(manager.sessions.values())}
+                    if not any(
+                        not task.done() and task not in watchers
+                        for task in list(manager.tasks)
+                    ):
+                        break
+                    await asyncio.sleep(0.02)
 
     @pytest.mark.asyncio
     async def test_video_offer_gets_answer_once_admitted(self, launched):
@@ -646,7 +688,7 @@ class TestStreams:
         await h.connect(pc, "one")
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
         # The handler runs once the page has sent the input values
-        await h.webrtc._push_inputs("one", 0.2)
+        await h.push_inputs("one", 0.2)
         await h.wait_until(lambda: any(m["type"] == type_ for m in pc.messages))
         return next(m for m in pc.messages if m["type"] == type_)
 
@@ -764,7 +806,7 @@ class TestStreams:
         pc = await make_offer(**tracks)
         await h.connect(pc, "one")
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
-        await h.webrtc._push_inputs("one", 0.2)
+        await h.push_inputs("one", 0.2)
         await h.wait_until(lambda: bool(seen_requests))
         assert isinstance(seen_requests[0], gr.Request)
         assert seen_requests[0].headers["host"]
@@ -911,7 +953,7 @@ class TestStreams:
         track = h.manager.connections["one"][0]
         # Nothing from the time the user clicked: the handler asks the page
         assert track.latest_args is None
-        await h.webrtc._push_inputs("one", 0.2)
+        await h.push_inputs("one", 0.2)
         await asyncio.sleep(1)
         assert track.latest_args == [0.2]
         await pc.close()
@@ -965,7 +1007,7 @@ class TestStreams:
         await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        await h.webrtc._push_inputs("one", 21)
+        await h.push_inputs("one", 21)
 
         def got_output(ms):
             return any(
@@ -1030,13 +1072,56 @@ class TestStreams:
             await pc.close()
 
     @pytest.mark.asyncio
+    async def test_only_the_admitted_session_can_use_a_stream(self, launched):
+        h = launched
+        await h.start("one")
+        # Another page that knows the id can neither take the stream over...
+        intruder = await make_offer(video=True)
+        rejected = await h.offer(intruder, "one", session_hash="intruder")
+        assert rejected["meta"]["error"] == "not_admitted"
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        # ...nor add candidates to its connection...
+        candidate = await h.server_fn(
+            "offer",
+            {
+                "type": "ice-candidate",
+                "webrtc_id": "one",
+                "candidate": {
+                    "candidate": "candidate:1 1 udp 1 127.0.0.1 9 typ host",
+                    "sdpMid": "0",
+                    "sdpMLineIndex": 0,
+                },
+            },
+            session_hash="intruder",
+        )
+        assert candidate["meta"]["error"] == "unknown_connection"
+        # ...nor feed its handler
+        await h.push_inputs("one", 0.2)
+        await h.push_inputs("one", 0.9, session_hash="intruder")
+        assert h.manager.connections["one"][0].latest_args == [0.2]
+        for connection in (intruder, pc):
+            await connection.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"stream_kwargs": {"time_limit": 600}}], indirect=True
+    )
+    async def test_a_stream_event_without_an_id_does_not_hold_the_slot(self, launched):
+        h = launched
+        await h.join(None, session_hash="no-id")
+        # Nothing would wake it before its time limit if it stayed
+        await h.messages("no-id", completed, timeout=5)
+        await h.start("one")
+
+    @pytest.mark.asyncio
     async def test_inputs_reach_connection_made_through_session_copy(self, launched):
         h = launched
         # A gr.update() on the component gives the session a new instance with
         # its own id, stored under the original id, and the component_server
         # route then resolves that instance (see Blocks.postprocess_data).
         webrtc = h.webrtc
-        session = h.demo.server_app.state_holder["session"]
+        session = h.demo.server_app.state_holder["one"]
         session[webrtc._id] = webrtc.__class__(
             **{**webrtc.constructor_args, "render": False}
         )
@@ -1046,7 +1131,7 @@ class TestStreams:
         await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        await webrtc._push_inputs("one", 0.5)
+        await h.push_inputs("one", 0.5)
         track = h.manager.connections["one"][0]
         assert track.latest_args == [0.5]
         await pc.close()
@@ -1093,7 +1178,7 @@ class TestStreams:
         assert track.fps == 5
         # The generator starts with the values the page sends when asked
         assert not track.args_set.is_set()
-        await h.webrtc._push_inputs("one", 3)
+        await h.push_inputs("one", 3)
         assert track.latest_args == [3]
         await pc.close()
 
@@ -1109,7 +1194,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         server_pc = h.manager.pcs["one"]
-        await h.webrtc._push_inputs("one", 0)
+        await h.push_inputs("one", 0)
         # The handler ends the stream: the server closes its side and the
         # event, whether or not the browser reacts to "end_stream"
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
@@ -1165,6 +1250,7 @@ class TestStreams:
                     "sdpMLineIndex": 0,
                 },
             },
+            session_hash="one",
         )
         assert candidate.get("status") == "success"
         await h.http.post(f"{h.api}/stream/{first_event}/close")
@@ -1207,7 +1293,7 @@ class TestStreams:
         pc = await make_offer(receive="video")
         await h.connect(pc, "one")
         server_pc = h.manager.pcs["one"]
-        await h.webrtc._push_inputs("one", 0)
+        await h.push_inputs("one", 0)
         # The generator runs out: the server closes its side of the connection
         # instead of leaving it to the client
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
@@ -1371,7 +1457,7 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         server_pc = h.manager.pcs["one"]
-        await h.webrtc._push_inputs("one")
+        await h.push_inputs("one")
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
         # A long job takes the only worker slot while the stream waits
         await h.http.post(
@@ -1518,6 +1604,50 @@ class TestVideoTracks:
         track.channel_set.set()
         await track.process_frames()
         assert Handler.received[0][0, -1 if mirror else 0, 0] == 255
+
+    @pytest.mark.asyncio
+    async def test_video_methods_of_audio_video_handlers_see_the_context(self):
+        import numpy as np
+        from aiortc.mediastreams import MediaStreamError
+
+        from gradio.webrtc import AudioVideoStreamHandler, get_current_context
+        from gradio.webrtc.tracks import HandlerVideoTrack
+        from gradio.webrtc.utils import Context
+
+        class OneFrame(VideoStreamTrack):
+            frames = [video_frame(0)]
+
+            async def recv(self):
+                if self.frames:
+                    return self.frames.pop()
+                raise MediaStreamError
+
+        class Handler(AudioVideoStreamHandler):
+            seen = []
+
+            def receive(self, frame):
+                pass
+
+            def emit(self):
+                pass
+
+            def video_receive(self, frame):
+                self.seen.append(("receive", get_current_context().webrtc_id))
+
+            def video_emit(self):
+                self.seen.append(("emit", get_current_context().webrtc_id))
+                return np.zeros((16, 16, 3), dtype=np.uint8)
+
+        track = HandlerVideoTrack(
+            OneFrame(), event_handler=cast(Callable, Handler()), context=Context("id")
+        )
+        track.channel_set.set()
+        assert await track.recv() is not None
+        deadline = time.monotonic() + 2
+        while len(Handler.seen) < 2 and time.monotonic() < deadline:
+            await asyncio.sleep(0.01)
+        track.stop()
+        assert sorted(Handler.seen) == [("emit", "id"), ("receive", "id")]
 
     @pytest.mark.asyncio
     async def test_frames_are_rgb_both_ways(self):
@@ -1722,6 +1852,15 @@ class TestAudioArrays:
         quiet = np.full(4, 0.1, dtype=np.float32)
         assert audio_to_int16(quiet)[0] == 3276
 
+    def test_float_values_past_full_scale_are_clipped(self):
+        import numpy as np
+
+        from gradio.webrtc import audio_to_int16
+
+        # Without clipping, 1.02 would wrap around to a large negative value
+        audio = np.array([1.02, -1.5, np.nan], dtype=np.float32)
+        np.testing.assert_array_equal(audio_to_int16(audio), [32767, -32767, 0])
+
     @pytest.mark.parametrize("dtype", ["float64", "float16"])
     def test_audio_helpers_take_other_float_arrays(self, dtype):
         import numpy as np
@@ -1754,3 +1893,87 @@ class TestAudioArrays:
             item = (sample_rate, np.zeros((2, 480), dtype=np.float32), "stereo")
         with pytest.raises(HandlerFailedError):
             await self.decode(item)
+
+
+class TestCleanUp:
+    @staticmethod
+    def manager():
+        return webrtc_connection.ConnectionManager(
+            handler=flip,
+            mode="send-receive",
+            modality="video",
+            time_limit=None,
+            allow_extra_tracks=False,
+            server_rtc_configuration=None,
+        )
+
+    @pytest.mark.asyncio
+    async def test_clean_up_stops_every_track(self):
+        # Whichever path notices the end first (ICE failure, a closed
+        # connection, an ended track) stops all tracks of the connection
+        manager = self.manager()
+        tracks = [TestVideoTracks.callback(flip) for _ in range(2)]
+        manager.connections["one"].extend(tracks)
+        manager.clean_up("one")
+        assert [track.readyState for track in tracks] == ["ended", "ended"]
+        assert "one" not in manager.connections
+
+    @pytest.mark.asyncio
+    async def test_clean_up_releases_a_handler_waiting_for_its_inputs(self):
+        from gradio.webrtc.tracks import AudioCallback
+        from gradio.webrtc.utils import Context
+
+        handler = EchoHandler()
+        handler._loop = asyncio.get_running_loop()
+        manager = self.manager()
+        manager.connections["one"].append(
+            AudioCallback(
+                AudioStreamTrack(), event_handler=handler, context=Context("one")
+            )
+        )
+        waiting = asyncio.create_task(handler.wait_for_args())
+        await asyncio.sleep(0.05)
+        assert not waiting.done()
+        manager.clean_up("one")
+        await asyncio.wait_for(waiting, 1)
+
+    @pytest.mark.asyncio
+    async def test_receive_audio_waits_for_its_inputs_outside_a_thread(self):
+        import numpy as np
+
+        from gradio.webrtc.tracks import ServerToClientAudio
+        from gradio.webrtc.utils import Context
+
+        def generate():
+            yield (24000, np.zeros(480, dtype=np.int16))
+
+        track = ServerToClientAudio(generate, context=Context("id"))
+        waiting = asyncio.create_task(track.next_in_thread())
+        await asyncio.sleep(0.05)
+        assert not waiting.done()
+        # A wait in a worker thread could not be called off, and the thread
+        # would stay blocked if the inputs never came
+        waiting.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await waiting
+        track.set_args([])
+        chunk = await asyncio.wait_for(track.next_in_thread(), 1)
+        assert chunk is not None
+        assert chunk[0] == 24000
+
+    def test_a_manager_goes_away_with_its_stream_event(self):
+        import gc
+
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC()
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        assert get_manager(webrtc._id) is not None
+        # As when @gr.render replaces the components and events it created
+        stream_fn_id = next(
+            fn_id
+            for fn_id, fn in demo.fns.items()
+            if (webrtc._id, "stream") in [tuple(t) for t in fn.targets]
+        )
+        del demo.fns[stream_fn_id]
+        gc.collect()
+        assert get_manager(webrtc._id) is None

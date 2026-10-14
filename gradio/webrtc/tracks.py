@@ -11,7 +11,6 @@ import fractions
 import functools
 import inspect
 import logging
-import threading
 import time
 import traceback
 from collections.abc import Callable, Generator
@@ -241,7 +240,8 @@ class HandlerVideoTrack(VideoCallback):
     async def process_frames(self):
         while not self.thread_quit.is_set():
             try:
-                await self.channel_set.wait()
+                # Also sets the context that get_current_context() reads
+                await self.wait_for_channel()
                 frame = cast(VideoFrame, await self.track.recv())
                 frame_array = self.frame_to_array(frame)
                 handler = cast(AudioVideoStreamHandlerImpl, self.event_handler)
@@ -260,6 +260,7 @@ class HandlerVideoTrack(VideoCallback):
     async def recv(self):
         await self.start()
         try:
+            await self.wait_for_channel()
             handler = cast(AudioVideoStreamHandlerImpl, self.event_handler)
             if isinstance(handler, AsyncAudioVideoStreamHandler):
                 outputs = await handler.video_emit()
@@ -565,7 +566,7 @@ class ServerToClientAudio(AudioStreamTrack):
         self.event_handler = event_handler
         self.current_timestamp = 0
         self.latest_args: list[Any] = []
-        self.args_set = threading.Event()
+        self.args_set = asyncio.Event()
         self.queue: asyncio.Queue = asyncio.Queue()
         self.thread_quit = asyncio.Event()
         self.channel = channel
@@ -589,10 +590,16 @@ class ServerToClientAudio(AudioStreamTrack):
         self.latest_args = list(args)
         self.args_set.set()
 
+    async def next_in_thread(self) -> tuple[int, np.ndarray] | None:
+        # The inputs are awaited here rather than in the thread: a wait that
+        # never ends (the client left before sending them) then holds no
+        # thread, and the decode loop's timeout can cancel it
+        await self.args_set.wait()
+        return await asyncio.get_running_loop().run_in_executor(None, self.next)
+
     def next(self) -> tuple[int, np.ndarray] | None:
         current_context.set(self.context)
         LocalContext.stream_notifier.set(self.notifier)
-        self.args_set.wait()
         current_channel.set(self.channel)
         if self.generator is None:
             self.generator = self.event_handler(*self.latest_args)
@@ -605,11 +612,9 @@ class ServerToClientAudio(AudioStreamTrack):
 
     async def start(self):
         if not self.has_started:
-            loop = asyncio.get_running_loop()
-            callable = functools.partial(loop.run_in_executor, None, self.next)
             asyncio.create_task(
                 player_worker_decode(
-                    callable,
+                    self.next_in_thread,
                     self.queue,
                     self.thread_quit,
                     self.set_additional_outputs,
