@@ -512,7 +512,7 @@ def move_files_to_cache(
             if check_in_upload_folder and (own_path := _own_file_path(payload.path)):
                 payload.path = own_path
             # If the file is on a remote server, do not move it to cache.
-            if not client_utils.is_http_url_like(payload.path):
+            elif not client_utils.is_http_url_like(payload.path):
                 _check_allowed(payload.path, check_in_upload_folder)
             if not payload.is_stream:
                 temp_file_path = block.move_resource_to_block_cache(payload.path)
@@ -602,11 +602,13 @@ def _check_allowed(path: str | Path, check_in_upload_folder: bool):
 
 
 def _own_file_path(url: str) -> str | None:
-    """Local path for a url to this app's own /file= route, if it is an uploaded file."""
+    """Local path for a url to this app's own /file= route, if that route would serve it."""
+    from gradio.data_classes import _StaticFiles
+
     blocks = LocalContext.blocks.get(None)
     if (
         blocks is None
-        or not blocks.has_launched
+        or not blocks.is_running
         or not client_utils.is_http_url_like(url)
     ):
         return None
@@ -618,8 +620,8 @@ def _own_file_path(url: str) -> str | None:
     allowed, _ = utils.is_allowed_file(
         abs_path,
         blocked_paths=blocks.blocked_paths,
-        allowed_paths=[],
-        created_paths=[utils.get_upload_folder()],
+        allowed_paths=blocks.allowed_paths + _StaticFiles.all_paths,
+        created_paths=[utils.get_upload_folder(), str(utils.get_cache_folder())],
     )
     return str(abs_path) if allowed and abs_path.is_file() else None
 
@@ -677,7 +679,7 @@ async def async_move_files_to_cache(
             if check_in_upload_folder and (own_path := _own_file_path(payload.path)):
                 payload.path = own_path
             # If the file is on a remote server, do not move it to cache.
-            if not client_utils.is_http_url_like(payload.path):
+            elif not client_utils.is_http_url_like(payload.path):
                 _check_allowed(payload.path, check_in_upload_folder)
             if not payload.is_stream:
                 temp_file_path = await block.async_move_resource_to_block_cache(

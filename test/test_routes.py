@@ -3183,6 +3183,23 @@ def test_own_file_url_input_is_read_locally_not_downloaded():
         demo.close()
 
 
+def test_own_file_url_input_is_read_locally_when_mounted():
+    gr.set_static_paths(paths=["test/test_files/cheetah1.jpg"])
+    with gr.Blocks() as demo:
+        image = gr.Image("test/test_files/cheetah1.jpg", type="filepath")
+        image.change(lambda p: Path(p).name, image, gr.Textbox(), api_name="name")
+
+    app = gr.mount_gradio_app(FastAPI(), demo, path="/gradio")
+    with TestClient(app, base_url="http://127.0.0.1") as client:
+        info = client.get(f"/gradio{API_PREFIX}/info").json()
+        default = info["named_endpoints"]["/name"]["parameters"][0]["parameter_default"]
+        response = client.post(
+            f"/gradio{API_PREFIX}/api/name/",
+            json={"data": [{**default, "path": default["url"]}]},
+        )
+    assert response.json()["data"] == ["cheetah1.jpg"]
+
+
 def test_attacker_cannot_change_root_in_config(
     attacker_threads=1, victim_threads=10, max_attempts=30
 ):
