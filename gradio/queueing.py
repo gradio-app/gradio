@@ -1398,7 +1398,9 @@ class Queue:
                 if not start_times:
                     del event_queue.start_times_per_fn[fn]
             try:
-                self.active_jobs[self.active_jobs.index(events)] = None
+                # The slot holds the list the job started with; `events` may
+                # since have dropped events that were already gone
+                self.active_jobs[self.active_jobs.index(job)] = None
             except ValueError:
                 # `events` can be absent from `self.active_jobs`
                 # when this coroutine is called from the `join_queue` endpoint handler in `routes.py`
