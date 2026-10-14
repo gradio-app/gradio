@@ -3,7 +3,13 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import { Empty } from "@gradio/atoms";
 	import { Video } from "@gradio/icons";
-	import { start, stop, new_webrtc_id, close_on_pagehide } from "./webrtc";
+	import {
+		start,
+		stop,
+		new_webrtc_id,
+		close_on_pagehide,
+		on_connection_state
+	} from "./webrtc";
 	import { StreamAttempts } from "./attempts.svelte";
 	import {
 		START_STREAM,
@@ -101,20 +107,17 @@
 
 		const connection = new RTCPeerConnection(rtc_configuration);
 		pc = connection;
-		connection.addEventListener("connectionstatechange", () => {
-			switch (connection.connectionState) {
-				case "connected":
-					stream_state = "open";
-					ontick?.();
-					break;
-				case "disconnected":
-				case "closed":
-					if (pc === connection) close_stream();
-					break;
-				case "failed":
-					onerror?.("Connection failed!");
-					if (pc === connection) close_stream();
-					break;
+		on_connection_state(connection, {
+			connected: () => {
+				stream_state = "open";
+				ontick?.();
+			},
+			ended: () => {
+				if (pc === connection) close_stream();
+			},
+			failed: () => {
+				onerror?.("Connection failed!");
+				if (pc === connection) close_stream();
 			}
 		});
 

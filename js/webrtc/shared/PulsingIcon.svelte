@@ -20,19 +20,28 @@
 	let audio_context: AudioContext | null = null;
 	let analyser: AnalyserNode;
 	let data: Uint8Array<ArrayBuffer>;
-	let animation_id: number;
+	let animation_id: number | null = null;
 	let pulse_scale = $state(1);
 	let pulse_intensity = $state(0);
 	let max_pulse_scale = $derived(1 + pulse_intensity * 10);
 
+	// Each stream has its own media stream, so the next one needs a new
+	// analyser
 	$effect(() => {
 		if (stream_state === "open") setup_audio_context();
+		else teardown_audio_context();
 	});
 
-	onDestroy(() => {
+	onDestroy(teardown_audio_context);
+
+	function teardown_audio_context(): void {
 		if (animation_id) cancelAnimationFrame(animation_id);
+		animation_id = null;
 		audio_context?.close();
-	});
+		audio_context = null;
+		pulse_scale = 1;
+		pulse_intensity = 0;
+	}
 
 	function setup_audio_context(): void {
 		const source_stream = audio_source();

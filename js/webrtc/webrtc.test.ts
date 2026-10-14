@@ -1,9 +1,15 @@
 import { test, describe, afterEach, beforeEach, expect, vi } from "vitest";
+import type { Mock } from "vitest";
 import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import WebRTC from "./Index.svelte";
 import { START_STREAM } from "./types";
+import {
+	DISCONNECT_GRACE_MS,
+	new_webrtc_id,
+	on_connection_state
+} from "./shared/webrtc";
 
 type Listener = (event?: any) => void;
 
@@ -904,5 +910,125 @@ describe("WebRTC audio", () => {
 			).toBe(true);
 		});
 		expect(FakePeerConnection.instances).toHaveLength(0);
+	});
+
+	test("the icon pulses with each new stream", async () => {
+		const analysed: AudioContext[] = [];
+		const create_analyser = AudioContext.prototype.createAnalyser;
+		const spy = vi
+			.spyOn(AudioContext.prototype, "createAnalyser")
+			.mockImplementation(function (this: AudioContext) {
+				analysed.push(this);
+				return create_analyser.call(this);
+			});
+		try {
+			// The microphone keeps its icon on screen between streams
+			const { getByRole, getByText, set_data } = await render(WebRTC, {
+				...base_props,
+				mode: "send-receive",
+				modality: "audio",
+				stream_options: {
+					...base_props.stream_options,
+					icon: "https://example.com/icon.png"
+				},
+				server: make_server()
+			});
+			await fireEvent.click(getByText("Click to Access Microphone"));
+
+			async function stream_once(n: number): Promise<void> {
+				await waitFor(() => {
+					expect(getByRole("button", { name: "start stream" })).toBeVisible();
+				});
+				await fireEvent.click(getByRole("button", { name: "start stream" }));
+				await admit(set_data);
+				await waitFor(() =>
+					expect(FakePeerConnection.instances).toHaveLength(n)
+				);
+				const pc = FakePeerConnection.instances[n - 1];
+				// The server's audio, which the icon pulses with
+				const remote = fake_stream("audio");
+				pc.dispatchEvent(
+					Object.assign(new Event("track"), {
+						streams: [remote],
+						track: remote.getAudioTracks()[0]
+					})
+				);
+				pc.set_state("connected");
+				await waitFor(() => {
+					expect(getByRole("button", { name: "stop stream" })).toBeVisible();
+				});
+			}
+
+			await stream_once(1);
+			const per_stream = analysed.length;
+			expect(per_stream).toBeGreaterThan(0);
+			await fireEvent.click(getByRole("button", { name: "stop stream" }));
+			await queue_reports(set_data, "closed");
+			// Nothing keeps analysing the stream that ended
+			await waitFor(() => {
+				expect(analysed.every((context) => context.state === "closed")).toBe(
+					true
+				);
+			});
+			await stream_once(2);
+			await waitFor(() => expect(analysed).toHaveLength(2 * per_stream));
+		} finally {
+			spy.mockRestore();
+		}
+	});
+});
+
+describe("WebRTC connection", () => {
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
+	function watch(): {
+		pc: FakePeerConnection;
+		handlers: Record<"connected" | "ended" | "failed", Mock>;
+	} {
+		const pc = new FakePeerConnection({});
+		const handlers = { connected: vi.fn(), ended: vi.fn(), failed: vi.fn() };
+		on_connection_state(pc as unknown as RTCPeerConnection, handlers);
+		return { pc, handlers };
+	}
+
+	test("a brief disconnection does not end the stream", () => {
+		vi.useFakeTimers();
+		const { pc, handlers } = watch();
+		pc.set_state("connected");
+		// e.g. a phone switching from Wi-Fi to cellular
+		pc.set_state("disconnected");
+		vi.advanceTimersByTime(DISCONNECT_GRACE_MS - 100);
+		pc.set_state("connected");
+		vi.advanceTimersByTime(DISCONNECT_GRACE_MS);
+		expect(handlers.ended).not.toHaveBeenCalled();
+		// The stream carries on as it was
+		expect(handlers.connected).toHaveBeenCalledTimes(1);
+	});
+
+	test("a connection that stays disconnected ends the stream", () => {
+		vi.useFakeTimers();
+		const { pc, handlers } = watch();
+		pc.set_state("connected");
+		pc.set_state("disconnected");
+		vi.advanceTimersByTime(DISCONNECT_GRACE_MS);
+		expect(handlers.ended).toHaveBeenCalledTimes(1);
+	});
+
+	test("a closed or failed connection ends the stream at once", () => {
+		const closed = watch();
+		closed.pc.set_state("closed");
+		expect(closed.handlers.ended).toHaveBeenCalledTimes(1);
+		const failed = watch();
+		failed.pc.set_state("failed");
+		expect(failed.handlers.failed).toHaveBeenCalledTimes(1);
+	});
+
+	test("stream ids are hard to guess", () => {
+		// The id names the stream to the server in signalling
+		const id = new_webrtc_id();
+		expect(id).toMatch(/^[0-9a-f]{32}$/);
+		expect(new_webrtc_id()).not.toBe(id);
 	});
 });

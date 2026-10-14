@@ -18,7 +18,58 @@ export interface StartOptions {
 }
 
 export function new_webrtc_id(): string {
-	return Math.random().toString(36).substring(2);
+	// Hard to guess, as it names the stream in signalling. Unlike
+	// crypto.randomUUID(), getRandomValues() also works without HTTPS.
+	const bytes = crypto.getRandomValues(new Uint8Array(16));
+	return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// How long a connection may stay "disconnected" before its stream ends. The
+// state is often brief (a network switch, a short Wi-Fi drop) and goes back to
+// "connected" by itself.
+export const DISCONNECT_GRACE_MS = 5000;
+
+export function on_connection_state(
+	pc: RTCPeerConnection,
+	{
+		connected,
+		ended,
+		failed
+	}: { connected: () => void; ended: () => void; failed: () => void }
+): void {
+	let grace: ReturnType<typeof setTimeout> | null = null;
+	let was_connected = false;
+	const clear_grace = (): void => {
+		if (grace !== null) clearTimeout(grace);
+		grace = null;
+	};
+	pc.addEventListener("connectionstatechange", () => {
+		switch (pc.connectionState) {
+			case "connected":
+				clear_grace();
+				// A connection that comes back carries on with its stream
+				if (!was_connected) {
+					was_connected = true;
+					connected();
+				}
+				break;
+			case "disconnected":
+				clear_grace();
+				grace = setTimeout(() => {
+					grace = null;
+					if (pc.connectionState === "disconnected") ended();
+				}, DISCONNECT_GRACE_MS);
+				break;
+			case "closed":
+				clear_grace();
+				ended();
+				break;
+			case "failed":
+				clear_grace();
+				failed();
+				break;
+		}
+	});
 }
 
 export function attach_remote_media(
