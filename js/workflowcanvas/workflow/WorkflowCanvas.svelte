@@ -54,7 +54,7 @@
 		migrateToV2,
 		toLegacyShape
 	} from "./workflow-migration";
-	import { PORT_COLOR, ports_compatible } from "./workflow-types";
+	import { is_secret, PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
 		Port,
@@ -2315,7 +2315,7 @@
 					const node = legacyView.nodes.find((n) => n.id === ref.id);
 					const outPort = node?.outputs?.[0];
 					if (!node || !outPort) continue;
-					if (ref.secret) continue; // never upload a key to the bucket
+					if (is_secret(ref)) continue; // never upload a key to the bucket
 					// User-supplied media lives in a `blob:` object URL that dies
 					// with the tab, and the server can only store a file it can
 					// reach. Upload it first so the record stays loadable.

@@ -42,7 +42,7 @@ function reference(id: string, value: string, secret?: boolean): ReferenceNode {
 		role: "reference",
 		label: secret ? "API Key" : "Text",
 		asset_type: "text",
-		...(secret ? { secret: true } : {}),
+		...(secret ? { type: "password" as const } : {}),
 		inputs: [],
 		outputs: [{ id: "out", label: "Text", type: "text" }],
 		data: { out: value },
@@ -76,7 +76,7 @@ describe("secrets never reach workflow.json", () => {
 		expect(saved.references[0].data).toEqual({});
 		expect(saved.references[1].data).toEqual({ out: "a cat" });
 		// structural, so the node still opens masked
-		expect(saved.references[0].secret).toBe(true);
+		expect(saved.references[0].type).toBe("password");
 	});
 });
 

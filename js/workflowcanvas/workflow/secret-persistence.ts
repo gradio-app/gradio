@@ -5,6 +5,7 @@
  * the same scheme `layout-persistence.ts` uses for geometry.
  */
 
+import { is_secret } from "./workflow-types";
 import type { ReferenceNode, Workflow } from "./workflow-types";
 
 export type WorkflowSecrets = Record<string, string>;
@@ -18,7 +19,7 @@ function default_storage(): Storage | undefined {
 }
 
 function secret_nodes(wf: Workflow): ReferenceNode[] {
-	return wf.references.filter((n) => n.secret);
+	return wf.references.filter(is_secret);
 }
 
 function value_port(node: ReferenceNode): string | undefined {
@@ -74,7 +75,7 @@ export function apply_secrets(
 	return {
 		...wf,
 		references: wf.references.map((node) => {
-			const port = node.secret ? value_port(node) : undefined;
+			const port = is_secret(node) ? value_port(node) : undefined;
 			const stored = secrets[node.id];
 			if (!port || typeof stored !== "string") return node;
 			return { ...node, data: { ...node.data, [port]: stored } };

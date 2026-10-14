@@ -1,4 +1,4 @@
-import type { PortType } from "./workflow-types";
+import type { PortType, TextInputType } from "./workflow-types";
 import { PORT_REGISTRY } from "./workflow-modalities";
 import type { PortMeta } from "./workflow-modalities";
 
@@ -14,7 +14,7 @@ export interface NodeTemplate {
 	pipeline_tag?: string;
 	endpoint?: string;
 	category?: string;
-	secret?: boolean;
+	type?: TextInputType;
 	inputs: { id: string; label: string; type: PortType }[];
 	outputs: { id: string; label: string; type: PortType }[];
 	width: number;
@@ -210,13 +210,8 @@ function componentTemplate(meta: PortMeta): NodeTemplate {
 }
 export const API_KEY_TYPE = "api_key";
 export const API_KEY_TEMPLATE: NodeTemplate = {
-	label: "API Key",
-	kind: "component",
-	source: "local",
-	secret: true,
-	inputs: [],
-	outputs: [{ id: "out", label: "API Key", type: "text" }],
-	width: 220,
+	...componentTemplate({ port_type: "text", label: "API Key" }),
+	type: "password",
 	height: 130
 };
 

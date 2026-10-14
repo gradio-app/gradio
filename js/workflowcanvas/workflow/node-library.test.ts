@@ -50,15 +50,15 @@ describe("LIBRARY.components", () => {
 });
 
 describe("API_KEY_TEMPLATE", () => {
-	test("is a secret text reference with no input port", () => {
-		expect(API_KEY_TEMPLATE.secret).toBe(true);
-		expect(API_KEY_TEMPLATE.inputs).toHaveLength(0);
+	test("is a plain text component with gr.Textbox's password type", () => {
+		expect(API_KEY_TEMPLATE.type).toBe("password");
 		expect(API_KEY_TEMPLATE.outputs[0]?.type).toBe("text");
+		expect(API_KEY_TEMPLATE.inputs[0]?.type).toBe("text");
 	});
 
 	test("is not in LIBRARY.components, so text ports keep the Text node", () => {
 		expect(LIBRARY.components).not.toContain(API_KEY_TEMPLATE);
-		expect(getComponentForPortType("text")?.secret).toBeUndefined();
+		expect(getComponentForPortType("text")?.type).toBeUndefined();
 	});
 });
 

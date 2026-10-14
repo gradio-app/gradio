@@ -693,14 +693,15 @@ def port_to_component(
     value: Any = None,
     *,
     output: bool = False,
-    secret: bool = False,
+    text_type: str = "text",
 ):
     """Map a workflow port type to a Gradio component for the API schema. Real
     components are used (not `gr.api` type hints) so multimodal I/O round-trips
     via their proven `api_info` / `FileData` handling. Created unrendered; the
     caller renders them into the app view so they reach `/info`.
 
-    `secret` is an API-key reference: a masked textbox, never pre-filled.
+    `text_type` is the node's own `type`, passed through to `gr.Textbox`
+    (text / password / email). A password is never pre-filled.
 
     `value` pre-fills the component (the reference node's current value in the
     graph). `output` picks a display-oriented component where one exists
@@ -709,8 +710,6 @@ def port_to_component(
     import gradio as gr
 
     label = label or port_type
-    if secret:
-        return gr.Textbox(label=label, type="password", render=False)
     if port_type == "image":
         cls, kwargs = gr.Image, {"type": "filepath"}
     elif port_type == "audio":
@@ -743,6 +742,10 @@ def port_to_component(
         cls, kwargs = gr.Textbox, {"lines": 3}
     else:
         cls, kwargs = gr.Textbox, {}
+    if cls is gr.Textbox and text_type != "text":
+        kwargs["type"] = text_type
+        if text_type == "password":
+            value = None
     if value is not None:
         try:
             return cls(label=label, value=value, render=False, **kwargs)
@@ -995,7 +998,7 @@ class WorkflowEndpointManager:
                     free["type"],
                     free["label"],
                     value=_reference_default(free),
-                    secret=bool(free["node"].get("secret")),
+                    text_type=free["node"].get("type") or "text",
                 )
                 component.value = shaped.value
 
@@ -1057,7 +1060,7 @@ class WorkflowEndpointManager:
                     f["type"],
                     f["label"],
                     value=_reference_default(f),
-                    secret=bool(f["node"].get("secret")),
+                    text_type=f["node"].get("type") or "text",
                 )
                 c.render()
                 comps.append(c)

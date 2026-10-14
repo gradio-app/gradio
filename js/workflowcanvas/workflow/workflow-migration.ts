@@ -220,7 +220,7 @@ export function toLegacyShape(wf: Workflow): {
 			kind: "component",
 			label: n.label,
 			source: "local",
-			secret: n.secret,
+			type: n.type,
 			inputs: n.inputs,
 			outputs: n.outputs,
 			x: n.x,

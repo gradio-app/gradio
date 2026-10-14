@@ -15,7 +15,7 @@ import type {
 	WFEdge,
 	Workflow
 } from "./workflow-types";
-import { ports_compatible } from "./workflow-types";
+import { is_secret, ports_compatible } from "./workflow-types";
 import { allNodes, findNode, isV2, migrateToV2 } from "./workflow-migration";
 
 function uuid(): string {
@@ -115,9 +115,7 @@ export function strip_session_media(
 }
 
 function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
-	const cleaned = (node as { secret?: boolean }).secret
-		? {}
-		: strip_session_media(node.data);
+	const cleaned = is_secret(node) ? {} : strip_session_media(node.data);
 	const {
 		x: _x,
 		y: _y,
@@ -276,7 +274,7 @@ export function addNode(
 			{
 				...baseFields,
 				asset_type,
-				...(template.secret ? { secret: true as const } : {})
+				...(template.type ? { type: template.type } : {})
 			},
 			x,
 			y

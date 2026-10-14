@@ -356,20 +356,6 @@
 		{:else}
 			{@render placeholder()}
 		{/if}
-	{:else if node.secret}
-		<div class="widget-secret-wrap">
-			<input
-				class="widget-secret"
-				type="password"
-				value={getTextValue()}
-				placeholder="Paste your key"
-				autocomplete="off"
-				spellcheck="false"
-				disabled={isReadonly}
-				oninput={(e) =>
-					ondatachange(node.id, widgetPortId, e.currentTarget.value)}
-			/>
-		</div>
 	{:else if effectiveWidgetType === "text" || effectiveWidgetType === "json" || effectiveWidgetType === "markdown"}
 		<div class="widget-text-wrap">
 			<div class="widget-gradio-wrap">
@@ -377,15 +363,18 @@
 					value={getTextValue()}
 					label="text"
 					show_label={false}
+					type={node.type ?? "text"}
 					lines={effectiveWidgetType === "json" ? 4 : 3}
 					max_lines={8}
 					placeholder={isReadonly
 						? "Waiting for output..."
-						: effectiveWidgetType === "json"
-							? '{"key": "value"}'
-							: effectiveWidgetType === "markdown"
-								? "Enter markdown..."
-								: "Enter text..."}
+						: node.type === "password"
+							? "Paste your key"
+							: effectiveWidgetType === "json"
+								? '{"key": "value"}'
+								: effectiveWidgetType === "markdown"
+									? "Enter markdown..."
+									: "Enter text..."}
 					disabled={isReadonly}
 					onchange={(val) => {
 						if (node.data?.[widgetPortId] !== val)
@@ -625,7 +614,6 @@
 	/* ─── Gradio Component Wrapper ─── */
 	.widget-text-wrap,
 	.widget-number-wrap,
-	.widget-secret-wrap,
 	.widget-bool-wrap {
 		padding: 6px 12px 8px;
 	}
@@ -795,8 +783,7 @@
 		word-break: break-word;
 	}
 
-	.widget-number,
-	.widget-secret {
+	.widget-number {
 		width: 100%;
 		font-family: "JetBrains Mono", monospace;
 		font-size: 12px;
@@ -810,8 +797,7 @@
 		transition: border-color 0.15s;
 	}
 
-	.widget-number:focus,
-	.widget-secret:focus {
+	.widget-number:focus {
 		border-color: var(--accent);
 		box-shadow: 0 0 0 2px var(--accent-dim);
 	}
@@ -1121,8 +1107,7 @@
 		color: #6b6e78;
 	}
 
-	:global(body:not(.dark)) .widget-number,
-	:global(body:not(.dark)) .widget-secret {
+	:global(body:not(.dark)) .widget-number {
 		background: #f8f9fb;
 		border-color: #e2e4ea;
 		color: #1a1b25;
