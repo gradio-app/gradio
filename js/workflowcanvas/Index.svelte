@@ -83,9 +83,15 @@
 	// it don't pay for it at all.
 	let canvas_mounted = $state(false);
 	let canvas_dirty = $state(false);
+	let canvas_ready = $state(false);
 	$effect.pre(() => {
 		if (view === "canvas") canvas_mounted = true;
 	});
+	// The canvas starts on a placeholder workflow and swaps in the real one once
+	// it knows where this viewer's layout is stored, so keep it covered until then.
+	const loading = $derived(
+		!!app_view_id && (!view || (view === "canvas" && !canvas_ready))
+	);
 
 	function set_view(next: View): void {
 		chosen = next;
@@ -254,6 +260,7 @@
 			{auth}
 			active={view === "canvas"}
 			bind:dirty={canvas_dirty}
+			bind:ready={canvas_ready}
 		/>
 	</div>
 {/if}
@@ -265,16 +272,16 @@
 	</div>
 {/if}
 
-{#if app_view_id && !view}
+{#if loading}
 	<!-- The page's own loading indicator, held while the server says which
-	     view this visitor gets. -->
+	     view this visitor gets, and then until the canvas has the workflow. -->
 	<div class="view-pending" role="status">
 		<Loader />
 		<p>{gradio.i18n("common.loading")}...</p>
 	</div>
 {/if}
 
-{#if app_view_id && view}
+{#if app_view_id && view && !loading}
 	<div
 		class="view-toggle"
 		class:on-canvas={view === "canvas"}
@@ -320,7 +327,8 @@
 	.view-pending {
 		position: fixed;
 		inset: 0;
-		z-index: 100;
+		/* Over the canvas (100), which mounts underneath while it loads. */
+		z-index: 102;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
