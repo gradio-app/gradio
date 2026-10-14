@@ -723,6 +723,8 @@ def call_space(
         ip_token = request.headers.get("x-ip-token") if request else None
         client = Client(
             space_id,
+            verbose=False,
+            space_id,
             token=hf_token,
             headers={"x-ip-token": ip_token} if ip_token else None,
         )
