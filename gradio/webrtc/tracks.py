@@ -206,7 +206,8 @@ class VideoCallback(VideoStreamTrack):
                 new_frame.pts = pts
                 new_frame.time_base = time_base
             return new_frame
-        except HandlerFailedError:
+        except (HandlerFailedError, MediaStreamError):
+            # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
             # e.g. what the handler returned is not a video frame
@@ -284,7 +285,8 @@ class HandlerVideoTrack(VideoCallback):
             new_frame.pts = pts
             new_frame.time_base = time_base
             return new_frame
-        except HandlerFailedError:
+        except (HandlerFailedError, MediaStreamError):
+            # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
             raise handler_failed(e) from e
@@ -544,7 +546,8 @@ class ServerToClientVideo(VideoStreamTrack):
             next_frame.pts = pts
             next_frame.time_base = time_base
             return next_frame
-        except HandlerFailedError:
+        except (HandlerFailedError, MediaStreamError):
+            # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
             raise handler_failed(e) from e
@@ -651,7 +654,8 @@ class ServerToClientAudio(AudioStreamTrack):
                     await asyncio.sleep(wait)
 
             return data
-        except HandlerFailedError:
+        except (HandlerFailedError, MediaStreamError):
+            # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
             raise handler_failed(e) from e

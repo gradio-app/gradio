@@ -1720,6 +1720,55 @@ class TestVideoTracks:
         assert await track.recv() is None
         assert track.readyState == "ended"
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("kind", ["audio-video", "receive-video", "receive-audio"])
+    async def test_a_stopped_track_ends_without_a_handler_error(self, kind, caplog):
+        import numpy as np
+        from aiortc.mediastreams import MediaStreamError
+
+        from gradio.webrtc import AudioVideoStreamHandler
+        from gradio.webrtc.tracks import (
+            HandlerVideoTrack,
+            ServerToClientAudio,
+            ServerToClientVideo,
+        )
+        from gradio.webrtc.utils import Context
+
+        class Handler(AudioVideoStreamHandler):
+            def receive(self, frame):
+                pass
+
+            def emit(self):
+                pass
+
+            def video_receive(self, frame):
+                pass
+
+            def video_emit(self):
+                return np.zeros((16, 16, 3), dtype=np.uint8)
+
+        def generate():
+            yield np.zeros((16, 16, 3), dtype=np.uint8)
+
+        if kind == "audio-video":
+            track = HandlerVideoTrack(
+                VideoStreamTrack(),
+                event_handler=cast(Callable, Handler()),
+                context=Context("id"),
+            )
+            track.channel_set.set()
+        elif kind == "receive-video":
+            track = ServerToClientVideo(generate, context=Context("id"))
+            track.set_args([])
+        else:
+            track = ServerToClientAudio(generate, context=Context("id"))
+        # aiortc asks for one more frame after the track has ended (e.g. at the
+        # time limit); MediaStreamError is how a track says it is over
+        track.stop()
+        with pytest.raises(MediaStreamError):
+            await track.recv()
+        assert "Error in the stream handler" not in caplog.text
+
 
 class TestAudioArrays:
     """Audio goes in and out as (sample_rate, array), like gr.Audio's numpy values."""
