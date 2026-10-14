@@ -82,10 +82,14 @@
 	const COMPONENT_TYPES = [
 		{ key: "image", label: "Image" },
 		{ key: "text", label: "Text" },
+		{ key: "markdown", label: "Markdown" },
 		{ key: "audio", label: "Audio" },
 		{ key: "video", label: "Video" },
 		{ key: "number", label: "Number" },
-		{ key: "file", label: "File" }
+		{ key: "boolean", label: "Toggle" },
+		{ key: "json", label: "JSON" },
+		{ key: "file", label: "File" },
+		{ key: "html", label: "HTML" }
 	];
 
 	let showComponentMenu = $state(false);
