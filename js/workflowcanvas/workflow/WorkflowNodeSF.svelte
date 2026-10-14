@@ -4,14 +4,18 @@
 		add_custom_port,
 		remove_custom_port,
 		resizeNode,
+		set_masked,
 		setNodeSize,
 		workflow
 	} from "./workflow-store";
+	import MaskIcon from "./icons/MaskIcon.svelte";
 	import { portRequirement } from "./workflow-graph";
 	import NodeWidget from "./NodeWidget.svelte";
 	import PlayIcon from "./icons/PlayIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
 	import {
+		is_secret,
+		is_secret_port,
 		PORT_COLOR,
 		PORT_COLOR_DIM,
 		ports_compatible
@@ -297,6 +301,13 @@
 	);
 	const isReadonly = $derived(mode === "output");
 
+	const masked = $derived(is_secret(node));
+	const canMask = $derived(
+		!readOnly &&
+			mode === "input" &&
+			(widgetType === "text" || widgetType === "markdown")
+	);
+
 	// ── Header meta ──
 	// How much the card is holding, in the top-right of the header: a character
 	// count for text-ish widgets, a file size for media. Media that arrived as a
@@ -332,7 +343,9 @@
 	});
 
 	const metaLabel = $derived(
-		hasWidget ? nodeMetaLabel(widgetType, widgetValue, measuredSize) : null
+		hasWidget && !is_secret(node)
+			? nodeMetaLabel(widgetType, widgetValue, measuredSize)
+			: null
 	);
 
 	const requirement = $derived(
@@ -405,30 +418,47 @@
 			{#if status === "running" && !canRunSolo}
 				<span class="node-status-spinner"></span>
 			{/if}
-			{#if editingLabel}
-				<input
-					bind:this={labelInput}
-					class="node-label-input"
-					value={node.label}
-					onblur={(e) => renameNode(e.currentTarget.value)}
-					onkeydown={(e) => {
-						if (e.key === "Enter") renameNode(e.currentTarget.value);
-						if (e.key === "Escape") editingLabel = false;
-						e.stopPropagation();
-					}}
-					onmousedown={(e) => e.stopPropagation()}
-				/>
-			{:else}
-				<span
-					class="node-label"
-					ondblclick={(e) => {
-						e.stopPropagation();
-						if (readOnly) return;
-						editingLabel = true;
-						requestAnimationFrame(() => labelInput?.select());
-					}}>{node.label}</span
-				>
-			{/if}
+			<div class="node-title-wrap">
+				{#if editingLabel}
+					<input
+						bind:this={labelInput}
+						class="node-label-input"
+						value={node.label}
+						onblur={(e) => renameNode(e.currentTarget.value)}
+						onkeydown={(e) => {
+							if (e.key === "Enter") renameNode(e.currentTarget.value);
+							if (e.key === "Escape") editingLabel = false;
+							e.stopPropagation();
+						}}
+						onmousedown={(e) => e.stopPropagation()}
+					/>
+				{:else}
+					<span
+						class="node-label"
+						ondblclick={(e) => {
+							e.stopPropagation();
+							if (readOnly) return;
+							editingLabel = true;
+							requestAnimationFrame(() => labelInput?.select());
+						}}>{node.label}</span
+					>
+				{/if}
+				{#if canMask}
+					<button
+						class="node-mask"
+						class:node-mask-on={masked}
+						onpointerdown={(e) => e.stopPropagation()}
+						onmousedown={(e) => e.stopPropagation()}
+						onclick={(e) => {
+							e.stopPropagation();
+							set_masked(node.id, !masked);
+						}}
+						title={masked ? "Masked — never saved to the file" : "Mask value"}
+					>
+						<MaskIcon {masked} />
+					</button>
+				{/if}
+			</div>
 			{#if requirement}
 				<span
 					class="node-requirement"
@@ -798,7 +828,7 @@
 							{:else}
 								<input
 									class="inline-input"
-									type="text"
+									type={is_secret_port(port) ? "password" : "text"}
 									placeholder={port.default_value != null
 										? String(port.default_value)
 										: port.label}
@@ -1163,6 +1193,43 @@
 
 	/* Sits between the title and the header buttons. `flex: 0 0 auto` keeps it
 	   whole while the title takes the squeeze. */
+	.node-title-wrap {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.node-title-wrap .node-label {
+		flex: 0 1 auto;
+		text-overflow: ellipsis;
+		mask-image: none;
+		-webkit-mask-image: none;
+	}
+
+	.node-mask {
+		display: inline-flex;
+		align-items: center;
+		margin-left: 4px;
+		padding: 2px;
+		border: none;
+		background: none;
+		color: #6b6e78;
+		cursor: pointer;
+		opacity: 0;
+	}
+
+	.wf-node.node-selected .node-mask {
+		opacity: 0.6;
+	}
+
+	.node-mask.node-mask-on,
+	.wf-node.node-selected .node-mask:hover {
+		opacity: 1;
+		color: var(--accent);
+	}
+
 	.node-meta {
 		flex: 0 0 auto;
 		font-family: "JetBrains Mono", monospace;

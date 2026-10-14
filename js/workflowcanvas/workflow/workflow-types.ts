@@ -25,6 +25,10 @@ export type PortType =
  * tile and a markdown reference can prompt a text input. */
 const TEXTUAL = new Set<PortType>(["text", "markdown"]);
 
+export function is_textual(type: PortType): boolean {
+	return TEXTUAL.has(type);
+}
+
 export function ports_compatible(a: PortType, b: PortType): boolean {
 	if (a === "any" || b === "any" || a === b) return true;
 	return TEXTUAL.has(a) && TEXTUAL.has(b);
@@ -36,6 +40,13 @@ export type TextInputType = "text" | "password" | "email";
 /** A password textbox's value never leaves the viewer's browser. */
 export function is_secret(node: unknown): boolean {
 	return (node as { type?: string } | null)?.type === "password";
+}
+
+const SECRET_PORT = /\b(api[_-]?key|token|secret|password|passwd)\b/i;
+
+/** An operator input asking for a credential. Its name is the only signal. */
+export function is_secret_port(port: { id?: string; label?: string }): boolean {
+	return SECRET_PORT.test(`${port.label ?? ""} ${port.id ?? ""}`);
 }
 
 export interface Port {
@@ -210,6 +221,10 @@ export interface Workflow {
 	parent?: string;
 	runtime?: {
 		default: Runtime;
+	};
+	defaults?: {
+		/** Mask new text references; each then carries its own `type`. */
+		mask_text?: boolean;
 	};
 	references: ReferenceNode[];
 	operators: OperatorNode[];

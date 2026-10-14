@@ -15,7 +15,12 @@ import type {
 	WFEdge,
 	Workflow
 } from "./workflow-types";
-import { is_secret, ports_compatible } from "./workflow-types";
+import {
+	is_secret,
+	is_secret_port,
+	is_textual,
+	ports_compatible
+} from "./workflow-types";
 import { allNodes, findNode, isV2, migrateToV2 } from "./workflow-migration";
 
 function uuid(): string {
@@ -116,6 +121,9 @@ export function strip_session_media(
 
 function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
 	const cleaned = is_secret(node) ? {} : strip_session_media(node.data);
+	for (const port of node.inputs) {
+		if (is_secret_port(port)) delete cleaned[port.id];
+	}
 	const {
 		x: _x,
 		y: _y,
@@ -197,15 +205,23 @@ function addReference(
 ): string {
 	const id = uuid();
 	const data = seed_reference_data([...template.inputs, ...template.outputs]);
-	const node: ReferenceNode = {
-		...template,
-		role: "reference",
-		id,
-		x,
-		y,
-		data
-	};
-	workflow.update((wf) => ({ ...wf, references: [...wf.references, node] }));
+	workflow.update((wf) => {
+		const type: ReferenceNode["type"] =
+			template.type ??
+			(wf.defaults?.mask_text && is_textual(template.asset_type)
+				? "password"
+				: undefined);
+		const node: ReferenceNode = {
+			...template,
+			type,
+			role: "reference",
+			id,
+			x,
+			y,
+			data
+		};
+		return { ...wf, references: [...wf.references, node] };
+	});
 	return id;
 }
 
@@ -449,6 +465,16 @@ export function updateNodeData(
 	workflow.update((wf) =>
 		mapAllRoles(wf, (n) =>
 			n.id === nodeId ? { ...n, data: { ...n.data, [portId]: value } } : n
+		)
+	);
+}
+
+export function set_masked(nodeId: string, masked: boolean): void {
+	workflow.update((wf) =>
+		mapAllRoles(wf, (n) =>
+			n.id === nodeId
+				? ({ ...n, type: masked ? "password" : undefined } as AnyNode)
+				: n
 		)
 	);
 }

@@ -5,7 +5,13 @@ import {
 	load_secrets,
 	save_secrets
 } from "./secret-persistence";
-import { sanitize_for_save } from "./workflow-store";
+import {
+	addNode,
+	sanitize_for_save,
+	set_masked,
+	workflow
+} from "./workflow-store";
+import { get } from "svelte/store";
 import type { ReferenceNode, Workflow } from "./workflow-types";
 
 class MemoryStorage implements Storage {
@@ -104,5 +110,64 @@ describe("per-viewer mirror", () => {
 		save_secrets("Test", {}, storage);
 		expect(storage.length).toBe(0);
 		expect(load_secrets("Test", storage)).toEqual({});
+	});
+});
+
+describe("credential-named operator ports", () => {
+	test("are masked out of the saved file", () => {
+		const wf = workflowWith();
+		wf.operators = [
+			{
+				id: "op",
+				role: "operator",
+				kind: "fn",
+				label: "argon",
+				inputs: [
+					{ id: "in_api_key", label: "api_key", type: "text" },
+					{ id: "in_prompt", label: "prompt", type: "text" }
+				],
+				outputs: [{ id: "out_0", label: "Answer", type: "text" }],
+				data: { in_api_key: "sk-live-123", in_prompt: "hello" },
+				x: 0,
+				y: 0,
+				width: 220,
+				height: 120
+			}
+		];
+		expect(sanitize_for_save(wf).operators[0].data).toEqual({
+			in_prompt: "hello"
+		});
+	});
+});
+
+describe("defaults.mask_text", () => {
+	test("masks new text references, leaving other types alone", () => {
+		workflow.set({ ...workflowWith(), defaults: { mask_text: true } });
+		addNode("reference", { label: "Prompt", asset_type: "text" }, 0, 0);
+		addNode("reference", { label: "Photo", asset_type: "image" }, 0, 0);
+		const refs = get(workflow).references;
+		expect(refs.map((r) => r.type)).toEqual(["password", undefined]);
+	});
+
+	test("is off unless the file asks for it", () => {
+		workflow.set(workflowWith());
+		addNode("reference", { label: "Prompt", asset_type: "text" }, 0, 0);
+		expect(get(workflow).references[0].type).toBeUndefined();
+	});
+});
+
+describe("set_masked", () => {
+	test("masks, then unmasks, leaving no trace of the flag", () => {
+		const wf = workflowWith(reference("ref", "a cat", false));
+		workflow.set(wf);
+		set_masked("ref", true);
+		expect(sanitize_for_save(get(workflow)).references[0].data).toEqual({});
+
+		set_masked("ref", false);
+		const saved = sanitize_for_save(get(workflow));
+		expect(saved.references[0].data).toEqual({ out: "a cat" });
+		expect(
+			JSON.parse(JSON.stringify(saved.references[0])).type
+		).toBeUndefined();
 	});
 });

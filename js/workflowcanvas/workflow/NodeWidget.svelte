@@ -6,6 +6,7 @@
 		FileValue
 	} from "./workflow-types";
 	import { getContext } from "svelte";
+	import { is_secret } from "./workflow-types";
 	import { BaseTextbox } from "@gradio/textbox";
 	import { BaseStaticImage } from "@gradio/image";
 	import { BaseMarkdown } from "@gradio/markdown";
@@ -96,6 +97,8 @@
 		})()
 	);
 	const multiselect = $derived(!!widgetPort?.multiselect);
+
+	const masked = $derived(is_secret(node));
 
 	let fileInputEl: HTMLInputElement | undefined = $state();
 	let dragActive = $state(false);
@@ -357,18 +360,17 @@
 			{@render placeholder()}
 		{/if}
 	{:else if effectiveWidgetType === "text" || effectiveWidgetType === "json" || effectiveWidgetType === "markdown"}
-		<div class="widget-text-wrap">
+		<div class="widget-text-wrap" class:masked>
 			<div class="widget-gradio-wrap">
 				<BaseTextbox
 					value={getTextValue()}
 					label="text"
 					show_label={false}
-					type={node.type ?? "text"}
 					lines={effectiveWidgetType === "json" ? 4 : 3}
 					max_lines={8}
 					placeholder={isReadonly
 						? "Waiting for output..."
-						: node.type === "password"
+						: masked
 							? "Paste your key"
 							: effectiveWidgetType === "json"
 								? '{"key": "value"}'
@@ -736,6 +738,12 @@
 		 * text inside textboxes / display zones. */
 		user-select: text;
 		-webkit-user-select: text;
+	}
+
+	/* A textarea can't be type=password, so mask the glyphs. */
+	.widget-text-wrap.masked :global(textarea) {
+		-webkit-text-security: disc;
+		text-security: disc;
 	}
 
 	.widget-zone.text-full {
