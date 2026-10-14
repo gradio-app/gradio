@@ -222,10 +222,6 @@ export interface Workflow {
 	runtime?: {
 		default: Runtime;
 	};
-	defaults?: {
-		/** Mask new text references; each then carries its own `type`. */
-		mask_text?: boolean;
-	};
 	references: ReferenceNode[];
 	operators: OperatorNode[];
 	subjects: SubjectNode[];

@@ -15,12 +15,7 @@ import type {
 	WFEdge,
 	Workflow
 } from "./workflow-types";
-import {
-	is_secret,
-	is_secret_port,
-	is_textual,
-	ports_compatible
-} from "./workflow-types";
+import { is_secret, is_secret_port, ports_compatible } from "./workflow-types";
 import { allNodes, findNode, isV2, migrateToV2 } from "./workflow-migration";
 
 function uuid(): string {
@@ -205,23 +200,15 @@ function addReference(
 ): string {
 	const id = uuid();
 	const data = seed_reference_data([...template.inputs, ...template.outputs]);
-	workflow.update((wf) => {
-		const type: ReferenceNode["type"] =
-			template.type ??
-			(wf.defaults?.mask_text && is_textual(template.asset_type)
-				? "password"
-				: undefined);
-		const node: ReferenceNode = {
-			...template,
-			type,
-			role: "reference",
-			id,
-			x,
-			y,
-			data
-		};
-		return { ...wf, references: [...wf.references, node] };
-	});
+	const node: ReferenceNode = {
+		...template,
+		role: "reference",
+		id,
+		x,
+		y,
+		data
+	};
+	workflow.update((wf) => ({ ...wf, references: [...wf.references, node] }));
 	return id;
 }
 

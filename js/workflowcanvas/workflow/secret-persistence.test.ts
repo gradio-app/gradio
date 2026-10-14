@@ -7,7 +7,6 @@ import {
 } from "./secret-persistence";
 import {
 	addEdge,
-	addNode,
 	sanitize_for_save,
 	set_masked,
 	workflow
@@ -138,22 +137,6 @@ describe("credential-named operator ports", () => {
 		expect(sanitize_for_save(wf).operators[0].data).toEqual({
 			in_prompt: "hello"
 		});
-	});
-});
-
-describe("defaults.mask_text", () => {
-	test("masks new text references, leaving other types alone", () => {
-		workflow.set({ ...workflowWith(), defaults: { mask_text: true } });
-		addNode("reference", { label: "Prompt", asset_type: "text" }, 0, 0);
-		addNode("reference", { label: "Photo", asset_type: "image" }, 0, 0);
-		const refs = get(workflow).references;
-		expect(refs.map((r) => r.type)).toEqual(["password", undefined]);
-	});
-
-	test("is off unless the file asks for it", () => {
-		workflow.set(workflowWith());
-		addNode("reference", { label: "Prompt", asset_type: "text" }, 0, 0);
-		expect(get(workflow).references[0].type).toBeUndefined();
 	});
 });
 
