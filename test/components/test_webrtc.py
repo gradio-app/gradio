@@ -1718,7 +1718,10 @@ class TestVideoTracks:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("mirror", [True, False])
-    async def test_mirrored_webcam_gives_video_receive_mirrored_frames(self, mirror):
+    @pytest.mark.parametrize("video_only", [False, True])
+    async def test_mirrored_webcam_gives_video_receive_mirrored_frames(
+        self, mirror, video_only
+    ):
         from aiortc.mediastreams import MediaStreamError
 
         from gradio.webrtc import AudioVideoStreamHandler
@@ -1733,9 +1736,9 @@ class TestVideoTracks:
                     return self.frames.pop()
                 raise MediaStreamError
 
-        class Handler(AudioVideoStreamHandler):
-            received = []
+        received = []
 
+        class Recorder:
             def receive(self, frame):
                 pass
 
@@ -1743,20 +1746,27 @@ class TestVideoTracks:
                 pass
 
             def video_receive(self, frame):
-                self.received.append(frame)
+                received.append(frame)
 
             def video_emit(self):
                 pass
 
+        class AudioVideo(Recorder, AudioVideoStreamHandler):
+            pass
+
+        class VideoOnly(Recorder, VideoStreamHandler):
+            pass
+
+        handler = VideoOnly() if video_only else AudioVideo()
         track = HandlerVideoTrack(
             OneFrame(),
-            event_handler=cast(Callable, Handler()),
+            event_handler=cast(Callable, handler),
             context=Context("id"),
             mirror=mirror,
         )
         track.channel_set.set()
         await track.process_frames()
-        assert Handler.received[0][0, -1 if mirror else 0, 0] == 255
+        assert received[0][0, -1 if mirror else 0, 0] == 255
 
     @pytest.mark.asyncio
     async def test_video_methods_of_audio_video_handlers_see_the_context(self):

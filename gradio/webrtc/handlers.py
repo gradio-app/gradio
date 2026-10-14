@@ -296,8 +296,8 @@ class VideoStreamHandler(StreamHandlerBase, ABC):
     or resources for the whole stream, for example one GPU allocation per
     stream on ZeroGPU. `video_receive()` is called with every incoming frame
     and `video_emit()` is polled for the next outgoing frame; `start_up()` is
-    called once when the connection is established and `shutdown()` when it
-    closes. Works in mode="send-receive". For a function called once per frame,
+    called once when the connection is established (frames may already arrive
+    while it runs) and `shutdown()` when it closes. Works in mode="send-receive". For a function called once per frame,
     pass the function (or a `VideoOptions`) to `WebRTC.stream()` instead.
 
     Parameters:
