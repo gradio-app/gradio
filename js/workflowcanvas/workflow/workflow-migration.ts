@@ -70,6 +70,28 @@ export function hasMissingNodeGeometry(raw: unknown): boolean {
 	);
 }
 
+/**
+ * Whether any two cards cover each other. A file's coordinates can be complete
+ * and still unreadable: an agent writing `workflow.json` can't know how tall a
+ * card renders, so its guessed positions stack cards on top of one another.
+ */
+// ponytail: O(n²) pair scan, fine for hand-sized graphs.
+export function nodesOverlap(
+	nodes: { x: number; y: number; width: number; height: number }[]
+): boolean {
+	return nodes.some((a, i) =>
+		nodes
+			.slice(i + 1)
+			.some(
+				(b) =>
+					a.x < b.x + b.width &&
+					b.x < a.x + a.width &&
+					a.y < b.y + b.height &&
+					b.y < a.y + a.height
+			)
+	);
+}
+
 function normalizeNodeGeometry<T extends AnyNode>(node: T): T {
 	return {
 		...node,

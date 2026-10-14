@@ -444,8 +444,29 @@
 		return bottom;
 	}
 
+	// A full-page overlay (the workflow canvas) sets this on <html>. The content
+	// under it is hidden, so size the frame to fit the parent's viewport instead
+	// of that content: otherwise the overlay outgrows the screen and, since it
+	// takes wheel events, the page around the frame can't be scrolled back to.
+	let sizing_to_viewport = false;
+
 	function handle_resize(): void {
 		if (!("parentIFrame" in window)) return;
+		const covered = "gradioCover" in document.documentElement.dataset;
+		if (covered !== sizing_to_viewport) {
+			sizing_to_viewport = covered;
+			// Called with every parent scroll / resize until passed `false`.
+			window.parentIFrame?.getPageInfo(
+				covered
+					? (info) =>
+							window.parentIFrame?.size(
+								Math.max(info.clientHeight - info.offsetTop, 320)
+							)
+					: false
+			);
+			if (!covered) reset_resize_growth(resize_state);
+		}
+		if (covered) return;
 		const el = root_container.children[0] as HTMLElement | undefined;
 		if (!el) return;
 
@@ -484,6 +505,9 @@
 			childList: true,
 			subtree: true,
 			attributes: true
+		});
+		mutation_observer.observe(document.documentElement, {
+			attributeFilter: ["data-gradio-cover"]
 		});
 		res.observe(root_container.parentElement ?? root_container);
 		const disconnect_iframe_resizer = setup_iframe_resizer(

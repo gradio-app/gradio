@@ -151,6 +151,14 @@
 		};
 	});
 
+	$effect(() => {
+		// Tells Blocks to fit an embedding iframe (Spaces) to the screen.
+		document.documentElement.toggleAttribute(
+			"data-gradio-cover",
+			view === "canvas"
+		);
+	});
+
 	// While the canvas covers the page, keep the app underneath out of the tab
 	// order / accessibility tree and stop the page behind it from scrolling.
 	$effect(() => {
