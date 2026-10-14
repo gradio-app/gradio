@@ -40,10 +40,12 @@ from aiortc.mediastreams import MediaStreamError
 from gradio.context import LocalContext
 from gradio.webrtc.bitrate import add_bitrate_hints, limit_video_encoders
 from gradio.webrtc.handlers import (
+    AsyncVideoStreamHandler,
     AudioVideoStreamHandlerImpl,
     HandlerType,
     StreamHandlerBase,
     StreamHandlerImpl,
+    VideoOptions,
     VideoStreamHandler,
 )
 from gradio.webrtc.tracks import (
@@ -150,8 +152,8 @@ def instantiate_handler(handler: HandlerType, request: Any = None) -> HandlerTyp
         instance = cast(StreamHandlerImpl, handler())
     elif isinstance(handler, StreamHandlerBase):
         instance = cast(StreamHandlerImpl, handler).copy()
-    elif isinstance(handler, VideoStreamHandler):
-        return VideoStreamHandler(
+    elif isinstance(handler, VideoOptions):
+        return VideoOptions(
             callable=webrtc_error_handler(bind_special_args(handler.callable, request)),
             fps=handler.fps,
             skip_frames=handler.skip_frames,
@@ -360,10 +362,15 @@ class ConnectionManager:
                 # Stopping a track ends its loops; its "ended" event calls
                 # this again, which then finds the id already released
                 conn.stop()
-            for conn in connection:
-                if not isinstance(conn, AudioCallback):
-                    continue
-                handler = conn.event_handler
+            # Handler classes, once each: both tracks of an audio-video
+            # connection share one handler
+            handlers = {
+                id(conn.event_handler): conn.event_handler
+                for conn in connection
+                if isinstance(conn, AudioCallback | HandlerVideoTrack)
+                and isinstance(conn.event_handler, StreamHandlerBase)
+            }
+            for handler in handlers.values():
                 # A handler blocked in wait_for_args() would wait forever
                 handler.args_set.set()
                 # The handler's own clean-up must not keep the stream going
@@ -487,10 +494,24 @@ class ConnectionManager:
         def on_track(track):
             relay = MediaRelay()
             cb: Track
-            if self.modality == "video" and track.kind == "video":
+            if (
+                self.modality == "video"
+                and track.kind == "video"
+                and isinstance(handler, VideoStreamHandler | AsyncVideoStreamHandler)
+            ):
+                handler._loop = asyncio.get_running_loop()
+                cb = HandlerVideoTrack(
+                    relay.subscribe(track),
+                    event_handler=cast(Callable, handler),
+                    set_additional_outputs=set_outputs,
+                    fps=handler.fps,
+                    context=context,
+                    mirror=mirror,
+                )
+            elif self.modality == "video" and track.kind == "video":
                 callback = handler
                 extra: dict[str, Any] = {}
-                if isinstance(handler, VideoStreamHandler):
+                if isinstance(handler, VideoOptions):
                     callback = handler.callable
                     extra = {"fps": handler.fps, "skip_frames": handler.skip_frames}
                 cb = VideoCallback(
@@ -546,7 +567,7 @@ class ConnectionManager:
         if self.mode == "receive":
             cb: Track
             if self.modality == "video":
-                if isinstance(handler, VideoStreamHandler):
+                if isinstance(handler, VideoOptions):
                     cb = ServerToClientVideo(
                         cast(Callable, handler.callable),
                         set_additional_outputs=set_outputs,

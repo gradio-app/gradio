@@ -25,10 +25,12 @@ from gradio.route_utils import Request
 from gradio.webrtc.handlers import (
     AsyncAudioVideoStreamHandler,
     AsyncStreamHandler,
+    AsyncVideoStreamHandler,
     AudioVideoStreamHandler,
     HandlerType,
     StreamHandler,
     StreamHandlerBase,
+    VideoOptions,
     VideoStreamHandler,
 )
 from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
@@ -347,7 +349,7 @@ class WebRTC(Component):
         trigger: Callable | None = None,
     ) -> None:
         """
-        Attaches the function or handler that processes the media of this component. For video streams, `fn` is called with each frame as an RGB numpy array of shape (height, width, 3), like the numpy value of `gr.Image`, followed by the values of the other inputs, and returns the frame to show in the same format. For audio streams, `fn` is a `StreamHandler` or `AsyncStreamHandler` subclass (or instance) from `gradio.webrtc`. In mode="receive", `fn` is a generator that yields frames and takes the values of `inputs` as arguments. A handler can return `(frame, AdditionalOutputs(...))` or yield `AdditionalOutputs(...)` to update the other components in `outputs`, and `CloseStream()` to end the connection.
+        Attaches the function or handler that processes the media of this component. For video streams, `fn` is called with each frame as an RGB numpy array of shape (height, width, 3), like the numpy value of `gr.Image`, followed by the values of the other inputs, and returns the frame to show in the same format. For audio streams, `fn` is a `StreamHandler` or `AsyncStreamHandler` subclass (or instance) from `gradio.webrtc`. A video stream that needs state or resources for its whole duration, for example one GPU allocation per stream on ZeroGPU, can instead use a `VideoStreamHandler` or `AsyncVideoStreamHandler` subclass in mode="send-receive". In mode="receive", `fn` is a generator that yields frames and takes the values of `inputs` as arguments. A handler can return `(frame, AdditionalOutputs(...))` or yield `AdditionalOutputs(...)` to update the other components in `outputs`, and `CloseStream()` to end the connection.
         Parameters:
             fn: the function or handler that processes the stream. One handler serves one connection: pass a handler class to create a new instance per connection, or an instance that implements `copy()`. Like an event listener, a function (and the `start_up` method of a handler class) can take `gr.Request`, `gr.OAuthProfile` or `gr.OAuthToken` parameters, which receive the values of the visitor who started the stream.
             inputs: the components whose values are passed to the handler. In mode="send" and mode="send-receive", the first element must be this component. The values of the other inputs are passed to video functions after the frame, to receive-mode generators as arguments, and to stream handlers through `latest_args` after `wait_for_args()`.
@@ -478,12 +480,15 @@ class WebRTC(Component):
             )
 
     def _check_handler(self, fn: HandlerType) -> None:
-        is_handler_class = inspect.isclass(fn) and issubclass(fn, StreamHandlerBase)
-        is_handler = is_handler_class or isinstance(fn, StreamHandlerBase)
-        av_classes = (AudioVideoStreamHandler, AsyncAudioVideoStreamHandler)
-        is_av_handler = (
-            is_handler_class and issubclass(cast(type, fn), av_classes)
-        ) or isinstance(fn, av_classes)
+        def is_a(classes: tuple[type, ...]) -> bool:
+            return (inspect.isclass(fn) and issubclass(fn, classes)) or isinstance(
+                fn, classes
+            )
+
+        is_handler = is_a((StreamHandlerBase,))
+        is_audio_handler = is_a((StreamHandler, AsyncStreamHandler))
+        is_av_handler = is_a((AudioVideoStreamHandler, AsyncAudioVideoStreamHandler))
+        is_video_handler = is_a((VideoStreamHandler, AsyncVideoStreamHandler))
 
         if self.modality == "audio-video":
             if not is_av_handler:
@@ -493,22 +498,33 @@ class WebRTC(Component):
                     "subclass or instance."
                 )
         elif self.modality == "audio" and self.mode in ("send", "send-receive"):
-            if not is_handler:
+            if not is_audio_handler:
                 raise ValueError(
                     f'For modality="audio" in mode="{self.mode}", `fn` must be a '
                     "StreamHandler or AsyncStreamHandler subclass or instance."
                 )
+        elif self.modality == "video" and is_video_handler:
+            if self.mode != "send-receive":
+                raise ValueError(
+                    "A VideoStreamHandler or AsyncVideoStreamHandler works in "
+                    f'mode="send-receive" only; in mode="{self.mode}", pass a '
+                    "function (or a VideoOptions)."
+                )
         elif is_handler:
             raise ValueError(
                 f'For modality="{self.modality}" in mode="{self.mode}", `fn` must '
-                "be a function (or a VideoStreamHandler), not a stream handler class."
+                'be a function, a VideoOptions or, in mode="send-receive", a '
+                "VideoStreamHandler or AsyncVideoStreamHandler subclass or "
+                "instance."
             )
-        elif not callable(fn) and not isinstance(fn, VideoStreamHandler):
-            raise ValueError("`fn` must be a callable or a VideoStreamHandler.")
+        elif not callable(fn) and not isinstance(fn, VideoOptions):
+            raise ValueError("`fn` must be a callable or a VideoOptions.")
 
         if isinstance(fn, StreamHandlerBase) and getattr(type(fn), "copy", None) in (
             StreamHandler.copy,
             AsyncStreamHandler.copy,
+            VideoStreamHandler.copy,
+            AsyncVideoStreamHandler.copy,
         ):
             raise ValueError(
                 f"{type(fn).__name__} does not implement copy(), which is needed "

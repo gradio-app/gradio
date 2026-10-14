@@ -7,10 +7,12 @@ needed once a stream handler is attached with `WebRTC.stream()`.
 from gradio.webrtc.handlers import (
     AsyncAudioVideoStreamHandler,
     AsyncStreamHandler,
+    AsyncVideoStreamHandler,
     AudioEmitType,
     AudioVideoStreamHandler,
     StreamHandler,
     VideoEmitType,
+    VideoOptions,
     VideoStreamHandler,
 )
 from gradio.webrtc.utils import (
@@ -26,11 +28,13 @@ __all__ = [
     "AdditionalOutputs",
     "AsyncAudioVideoStreamHandler",
     "AsyncStreamHandler",
+    "AsyncVideoStreamHandler",
     "AudioEmitType",
     "AudioVideoStreamHandler",
     "CloseStream",
     "StreamHandler",
     "VideoEmitType",
+    "VideoOptions",
     "VideoStreamHandler",
     "audio_to_float32",
     "audio_to_int16",

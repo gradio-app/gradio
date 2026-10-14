@@ -1,4 +1,4 @@
-"""Handler classes for gr.WebRTC audio and audio-video streams.
+"""Handler classes for gr.WebRTC audio, video and audio-video streams.
 
 This module must import without aiortc or av installed, so av is imported
 inside `StreamHandlerBase.resample()`.
@@ -54,7 +54,7 @@ AudioEmitType: TypeAlias = (
 
 
 @dataclass
-class VideoStreamHandler:
+class VideoOptions:
     """
     Wraps a video handler function to control how frames are processed.
 
@@ -71,7 +71,7 @@ class VideoStreamHandler:
 
 class StreamHandlerBase:
     """
-    Common state for audio stream handlers: the data channel to the client, the
+    Common state for stream handlers: the data channel to the client, the
     latest values of the extra input components, and audio format settings.
 
     Parameters:
@@ -290,13 +290,87 @@ class AsyncAudioVideoStreamHandler(AsyncStreamHandler):
         pass
 
 
+class VideoStreamHandler(StreamHandlerBase, ABC):
+    """
+    Base class for synchronous handlers of video-only streams that need state
+    or resources for the whole stream, for example one GPU allocation per
+    stream on ZeroGPU. `video_receive()` is called with every incoming frame
+    and `video_emit()` is polled for the next outgoing frame; `start_up()` is
+    called once when the connection is established and `shutdown()` when it
+    closes. Works in mode="send-receive". For a function called once per frame,
+    pass the function (or a `VideoOptions`) to `WebRTC.stream()` instead.
+
+    Parameters:
+        fps: the frame rate at which frames are sent to the client.
+    """
+
+    def __init__(self, fps: int = 30) -> None:
+        super().__init__(fps=fps)
+
+    @abstractmethod
+    def video_receive(self, frame: npt.NDArray[np.uint8]) -> None:
+        """Called with each incoming video frame as an RGB uint8 array."""
+        pass
+
+    @abstractmethod
+    def video_emit(self) -> VideoEmitType:
+        """Returns the next video frame to send, as an RGB uint8 array."""
+        pass
+
+    def copy(self) -> VideoStreamHandler:
+        """Returns a new handler for a new connection."""
+        raise NotImplementedError(
+            f"{type(self).__name__} must implement copy() when an instance is "
+            "passed to WebRTC.stream(). Pass the class instead to create a new "
+            "handler per connection."
+        )
+
+    def start_up(self) -> None:
+        """Called once when the connection is established."""
+        pass
+
+
+class AsyncVideoStreamHandler(StreamHandlerBase, ABC):
+    """
+    Asynchronous version of `VideoStreamHandler`, with `video_receive()`,
+    `video_emit()` and `start_up()` as coroutines.
+    """
+
+    def __init__(self, fps: int = 30) -> None:
+        super().__init__(fps=fps)
+
+    @abstractmethod
+    async def video_receive(self, frame: npt.NDArray[np.uint8]) -> None:
+        pass
+
+    @abstractmethod
+    async def video_emit(self) -> VideoEmitType:
+        pass
+
+    def copy(self) -> AsyncVideoStreamHandler:
+        """Returns a new handler for a new connection."""
+        raise NotImplementedError(
+            f"{type(self).__name__} must implement copy() when an instance is "
+            "passed to WebRTC.stream(). Pass the class instead to create a new "
+            "handler per connection."
+        )
+
+    async def start_up(self) -> None:
+        """Called once when the connection is established."""
+        pass
+
+
 AudioVideoStreamHandlerImpl = AudioVideoStreamHandler | AsyncAudioVideoStreamHandler
+VideoStreamHandlerImpl = VideoStreamHandler | AsyncVideoStreamHandler
+# Handlers whose video_receive() and video_emit() serve a video track
+VideoTrackHandler = AudioVideoStreamHandlerImpl | VideoStreamHandlerImpl
 AsyncHandler = AsyncStreamHandler | AsyncAudioVideoStreamHandler
 
 HandlerType = (
     StreamHandlerImpl
     | AudioVideoStreamHandlerImpl
+    | VideoStreamHandlerImpl
     | type[StreamHandlerBase]
-    | VideoStreamHandler
+    | VideoOptions
     | Callable
 )

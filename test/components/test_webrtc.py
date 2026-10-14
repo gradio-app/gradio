@@ -22,9 +22,12 @@ from gradio.context import LocalContext
 from gradio.route_utils import API_PREFIX
 from gradio.webrtc import (
     AdditionalOutputs,
+    AsyncAudioVideoStreamHandler,
     AsyncStreamHandler,
+    AsyncVideoStreamHandler,
     CloseStream,
     StreamHandler,
+    VideoOptions,
     VideoStreamHandler,
 )
 from gradio.webrtc import connection as webrtc_connection
@@ -138,6 +141,82 @@ class CloseOnEmit(AsyncStreamHandler):
     async def emit(self):
         await asyncio.sleep(0.2)
         return CloseStream("done")
+
+
+class RecordingVideo(VideoStreamHandler):
+    """A video-only handler that records what it is told during a stream."""
+
+    def __init__(self):
+        super().__init__(fps=10)
+        self.events = []
+        self.frames = 0
+
+    def start_up(self):
+        self.events.append("start_up")
+
+    def video_receive(self, frame):
+        self.frames += 1
+
+    def video_emit(self):
+        import numpy as np
+
+        time.sleep(0.02)
+        frame = np.zeros((16, 16, 3), dtype=np.uint8)
+        if not self.latest_args:
+            return frame
+        return frame, AdditionalOutputs(self.latest_args[0] * 2)
+
+    def shutdown(self):
+        self.events.append("shutdown")
+
+
+class AsyncRecordingVideo(AsyncVideoStreamHandler):
+    def __init__(self):
+        super().__init__(fps=10)
+        self.events = []
+        self.frames = 0
+
+    async def start_up(self):
+        self.events.append("start_up")
+
+    async def video_receive(self, frame):
+        self.frames += 1
+
+    async def video_emit(self):
+        import numpy as np
+
+        await asyncio.sleep(0.02)
+        frame = np.zeros((16, 16, 3), dtype=np.uint8)
+        if not self.latest_args:
+            return frame
+        return frame, AdditionalOutputs(self.latest_args[0] * 2)
+
+    def shutdown(self):
+        self.events.append("shutdown")
+
+
+class RecordingAudioVideo(AsyncAudioVideoStreamHandler):
+    def __init__(self):
+        super().__init__()
+        self.events = []
+
+    async def receive(self, frame):
+        pass
+
+    async def emit(self):
+        await asyncio.sleep(0.02)
+
+    async def video_receive(self, frame):
+        pass
+
+    async def video_emit(self):
+        import numpy as np
+
+        await asyncio.sleep(0.02)
+        return np.zeros((16, 16, 3), dtype=np.uint8)
+
+    def shutdown(self):
+        self.events.append("shutdown")
 
 
 class TestWebRTC:
@@ -319,8 +398,15 @@ class TestWebRTC:
             video = gr.WebRTC()
             with pytest.raises(ValueError, match="first element"):
                 video.stream(flip, inputs=[slider], outputs=[video])
-            with pytest.raises(ValueError, match="must be a function"):
+            with pytest.raises(ValueError, match="VideoStreamHandler"):
                 video.stream(EchoHandler, inputs=[video], outputs=[video])
+            with pytest.raises(ValueError, match="StreamHandler or AsyncStreamHandler"):
+                audio.stream(RecordingVideo, inputs=[audio], outputs=[audio])
+            with pytest.raises(ValueError, match="copy"):
+                video.stream(RecordingVideo(), inputs=[video], outputs=[video])
+            send = gr.WebRTC(mode="send")
+            with pytest.raises(ValueError, match="send-receive"):
+                send.stream(RecordingVideo, inputs=[send], outputs=[send])
             receive = gr.WebRTC(mode="receive")
             with pytest.raises(ValueError, match="trigger"):
                 receive.stream(flip, inputs=[slider], outputs=[receive])
@@ -328,6 +414,16 @@ class TestWebRTC:
                 receive.stream(flip, inputs=[receive], outputs=[receive])
         with pytest.raises(AttributeError, match="Blocks context"):
             gr.WebRTC().stream(flip, inputs=[], outputs=[])
+
+    @pytest.mark.parametrize("handler", [RecordingVideo, AsyncRecordingVideo])
+    def test_video_streams_take_a_video_handler_class(self, handler):
+        with gr.Blocks():
+            video = gr.WebRTC()
+            video.stream(handler, inputs=[video], outputs=[video])
+            options = gr.WebRTC()
+            options.stream(
+                VideoOptions(flip, fps=5), inputs=[options], outputs=[options]
+            )
 
     def test_stream_requires_turn_on_spaces(self, monkeypatch):
         monkeypatch.setenv("SYSTEM", "spaces")
@@ -354,7 +450,7 @@ class TestWebRTC:
             button = gr.Button()
             receive = gr.WebRTC(mode="receive")
             receive.stream(
-                VideoStreamHandler(flip, fps=10),
+                VideoOptions(flip, fps=10),
                 inputs=[slider],
                 outputs=[receive],
                 trigger=button.click,
@@ -1167,7 +1263,7 @@ class TestStreams:
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched",
-        [{"mode": "receive", "handler": VideoStreamHandler(flip, fps=5)}],
+        [{"mode": "receive", "handler": VideoOptions(flip, fps=5)}],
         indirect=True,
     )
     async def test_receive_mode_adds_server_track(self, launched):
@@ -1217,6 +1313,60 @@ class TestStreams:
         # The browser leaves; the handler's shutdown() raises while cleaning up
         await pc.close()
         await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched",
+        [{"handler": RecordingVideo}, {"handler": AsyncRecordingVideo}],
+        indirect=True,
+    )
+    async def test_a_video_handler_class_lives_as_long_as_the_stream(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(video=True)
+        answer = await h.connect(pc, "one")
+        # Video only: the page does not have to send (or ask for) a microphone
+        assert "m=audio" not in answer["sdp"]
+        handler = h.manager.handlers["one"]
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: handler.events == ["start_up"])
+        await h.wait_until(lambda: handler.frames > 0)
+        assert handler.channel is not None
+        # The other inputs reach the handler, and its AdditionalOutputs the page
+        await h.push_inputs("one", 21)
+        assert handler.latest_args == [21]
+
+        def got_output(ms):
+            return any(
+                m.get("msg") == "process_streaming" and m["output"]["data"][1] == 42
+                for m in ms
+            )
+
+        await h.messages("one", got_output, timeout=15)
+        await pc.close()
+        await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
+        await h.wait_until(lambda: "shutdown" in handler.events)
+        assert handler.events == ["start_up", "shutdown"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched",
+        [{"modality": "audio-video", "handler": RecordingAudioVideo}],
+        indirect=True,
+    )
+    async def test_an_audio_video_handler_is_shut_down_once(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(audio=True, video=True)
+        await h.connect(pc, "one")
+        handler = h.manager.handlers["one"]
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        # Both tracks share the handler; closing must not shut it down twice
+        await pc.close()
+        await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
+        await h.wait_until(lambda: "shutdown" in handler.events)
+        await asyncio.sleep(0.2)
+        assert handler.events == ["shutdown"]
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -1534,7 +1684,7 @@ class TestVideoTracks:
         return cb
 
     def test_skip_frames_is_the_default(self):
-        assert VideoStreamHandler(flip).skip_frames
+        assert VideoOptions(flip).skip_frames
         assert self.callback(flip).skip_frames
 
     @pytest.mark.asyncio

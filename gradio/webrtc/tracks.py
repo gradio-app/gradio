@@ -27,11 +27,13 @@ from gradio.context import LocalContext
 from gradio.webrtc.handlers import (
     AsyncAudioVideoStreamHandler,
     AsyncHandler,
+    AsyncVideoStreamHandler,
     AudioEmitType,
-    AudioVideoStreamHandlerImpl,
     StreamHandlerBase,
     StreamHandlerImpl,
     VideoEventHandler,
+    VideoStreamHandler,
+    VideoTrackHandler,
 )
 from gradio.webrtc.utils import (
     AdditionalOutputs,
@@ -234,9 +236,23 @@ class VideoCallback(VideoStreamTrack):
 
 class HandlerVideoTrack(VideoCallback):
     """
-    Video track of an audio-video connection. Incoming frames go to the
+    Video track of a handler class: of an audio-video connection, or of a
+    video-only one with a `VideoStreamHandler`. Incoming frames go to the
     handler's `video_receive()`; outgoing frames come from `video_emit()`.
     """
+
+    @property
+    def handler(self) -> VideoTrackHandler:
+        return cast(VideoTrackHandler, self.event_handler)
+
+    def set_channel(self, channel: DataChannel):
+        super().set_channel(channel)
+        # Without an audio track, nothing else gives the handler its channel
+        self.handler.set_channel(channel)
+
+    def set_args(self, args: list[Any]):
+        super().set_args(args)
+        self.handler.set_args(args)
 
     async def process_frames(self):
         while not self.thread_quit.is_set():
@@ -245,25 +261,50 @@ class HandlerVideoTrack(VideoCallback):
                 await self.wait_for_channel()
                 frame = cast(VideoFrame, await self.track.recv())
                 frame_array = self.frame_to_array(frame)
-                handler = cast(AudioVideoStreamHandlerImpl, self.event_handler)
-                if isinstance(handler, AsyncAudioVideoStreamHandler):
+                handler = self.handler
+                if isinstance(
+                    handler, AsyncAudioVideoStreamHandler | AsyncVideoStreamHandler
+                ):
                     await handler.video_receive(frame_array)
                 else:
                     await anyio.to_thread.run_sync(handler.video_receive, frame_array)
             except (MediaStreamError, HandlerFailedError):
                 self.stop()
 
+    async def start_up(self):
+        """Runs `start_up()` of a video-only handler; for audio-video, the audio track does."""
+        handler = self.handler
+        try:
+            await self.wait_for_channel()
+            if isinstance(handler, AsyncVideoStreamHandler):
+                start_up = handler.start_up()
+                if not inspect.isawaitable(start_up):
+                    raise handler_failed(
+                        TypeError(
+                            "In AsyncVideoStreamHandler, start_up must be a "
+                            "coroutine (async def)"
+                        )
+                    )
+                await start_up
+            elif isinstance(handler, VideoStreamHandler):
+                await anyio.to_thread.run_sync(handler.start_up)
+        except HandlerFailedError:
+            self.stop()
+
     async def start(self):
         if not self.has_started:
-            asyncio.create_task(self.process_frames())
             self.has_started = True
+            self.process_task = asyncio.create_task(self.process_frames())
+            self.start_up_task = asyncio.create_task(self.start_up())
 
     async def recv(self):
         await self.start()
         try:
             await self.wait_for_channel()
-            handler = cast(AudioVideoStreamHandlerImpl, self.event_handler)
-            if isinstance(handler, AsyncAudioVideoStreamHandler):
+            handler = self.handler
+            if isinstance(
+                handler, AsyncAudioVideoStreamHandler | AsyncVideoStreamHandler
+            ):
                 outputs = await handler.video_emit()
             else:
                 outputs = await anyio.to_thread.run_sync(handler.video_emit)
