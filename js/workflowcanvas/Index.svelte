@@ -185,6 +185,27 @@
 		return () => cancelAnimationFrame(frame);
 	});
 
+	let frame_lift = $state(0);
+	$effect(() => {
+		if (!app_view_id || !("parentIFrame" in window)) return;
+		// Bottom of the parent's viewport in iframe coordinates. The parent only
+		// reports on its own scroll/resize, so also recompute when the iframe
+		// itself grows.
+		let visible_bottom = Infinity;
+		const update = (): void => {
+			frame_lift = Math.max(0, window.innerHeight - visible_bottom);
+		};
+		window.parentIFrame?.getPageInfo((page) => {
+			visible_bottom = page.scrollTop + page.clientHeight - page.offsetTop;
+			update();
+		});
+		window.addEventListener("resize", update);
+		return () => {
+			window.removeEventListener("resize", update);
+			window.parentIFrame?.getPageInfo(false);
+		};
+	});
+
 	$effect(() => {
 		if (!serverObj?.save_workflow || !canvas_mounted) return;
 
@@ -238,7 +259,7 @@
 {/if}
 
 {#if app_outdated && view === "app"}
-	<div class="app-outdated" role="status">
+	<div class="app-outdated" role="status" style:--frame-lift="{frame_lift}px">
 		This app has been updated.
 		<button onclick={() => window.location.reload()}>Reload</button>
 	</div>
@@ -257,6 +278,7 @@
 	<div
 		class="view-toggle"
 		class:on-canvas={view === "canvas"}
+		style:--frame-lift="{frame_lift}px"
 		role="group"
 		aria-label="Switch between the app and the workflow behind it"
 	>
@@ -312,7 +334,7 @@
 	.view-toggle {
 		position: fixed;
 		left: 16px;
-		bottom: calc(16px + env(safe-area-inset-bottom));
+		bottom: calc(16px + env(safe-area-inset-bottom) + var(--frame-lift, 0px));
 		z-index: 101;
 		/* The surrounding column stretches its children to full width. */
 		width: auto;
@@ -358,7 +380,7 @@
 	.app-outdated {
 		position: fixed;
 		left: 16px;
-		bottom: calc(64px + env(safe-area-inset-bottom));
+		bottom: calc(64px + env(safe-area-inset-bottom) + var(--frame-lift, 0px));
 		z-index: 101;
 		width: auto;
 		display: flex;
@@ -388,12 +410,12 @@
 	   would run into the toggle on narrower windows, so sit above it there. */
 	@media (max-width: 1100px) {
 		.view-toggle.on-canvas {
-			bottom: 72px;
+			bottom: calc(72px + var(--frame-lift, 0px));
 		}
 	}
 	@media (max-width: 640px), (pointer: coarse) {
 		.view-toggle.on-canvas {
-			bottom: calc(64px + env(safe-area-inset-bottom));
+			bottom: calc(64px + env(safe-area-inset-bottom) + var(--frame-lift, 0px));
 		}
 	}
 </style>
