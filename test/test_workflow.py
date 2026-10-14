@@ -18,6 +18,7 @@ from gradio.workflow import (
     WRITE_TOKEN,
     Workflow,
     _chat_image_url,
+    _classify_error,
     _dispatch_model_endpoint,
     _get_locally_saved_hf_token,
     _partition_params,
@@ -871,12 +872,12 @@ class TestCallSpaceFileArgs:
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         owned = _save_tmp(b"operator-output", "png")["path"]
         client = MagicMock()
-        client.predict.return_value = "ok"
+        client.submit.return_value.result.return_value = "ok"
 
         with patch("gradio.workflow.Client", return_value=client):
             call_space(["o/r", "/run", json.dumps([{"path": owned}])])
 
-        assert client.predict.call_args.args[0]["path"] == owned
+        assert client.submit.call_args.args[0]["path"] == owned
 
     def test_sends_an_operator_output_by_its_path(self, tmp_path, monkeypatch):
         # An operator output carries both keys; the local path is the one the
@@ -884,12 +885,12 @@ class TestCallSpaceFileArgs:
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         saved = _save_tmp(b"operator-output", "png")
         client = MagicMock()
-        client.predict.return_value = "ok"
+        client.submit.return_value.result.return_value = "ok"
 
         with patch("gradio.workflow.Client", return_value=client):
             call_space(["o/r", "/run", json.dumps([saved])])
 
-        assert client.predict.call_args.args[0]["path"] == saved["path"]
+        assert client.submit.call_args.args[0]["path"] == saved["path"]
 
     def test_does_not_send_files_the_app_does_not_own(self, tmp_path, monkeypatch):
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
@@ -897,12 +898,12 @@ class TestCallSpaceFileArgs:
         outside = tmp_path / "private.pem"
         outside.write_text("must-not-be-uploaded")
         client = MagicMock()
-        client.predict.return_value = "ok"
+        client.submit.return_value.result.return_value = "ok"
 
         with patch("gradio.workflow.Client", return_value=client):
             call_space(["o/r", "/run", json.dumps([{"path": str(outside)}, "keep"])])
 
-        assert client.predict.call_args.args[0] is None
+        assert client.submit.call_args.args[0] is None
 
     def test_does_not_send_nested_files_the_app_does_not_own(
         self, tmp_path, monkeypatch
@@ -915,24 +916,24 @@ class TestCallSpaceFileArgs:
         outside.write_text("must-not-be-uploaded")
         nested = [[{"path": str(outside), "meta": {"_type": "gradio.FileData"}}]]
         client = MagicMock()
-        client.predict.return_value = "ok"
+        client.submit.return_value.result.return_value = "ok"
 
         with patch("gradio.workflow.Client", return_value=client):
             call_space(["o/r", "/run", json.dumps([nested, "keep"])])
 
-        assert client.predict.call_args.args[0] == [[None]]
+        assert client.submit.call_args.args[0] == [[None]]
 
     def test_sends_nested_files_the_app_owns(self, tmp_path, monkeypatch):
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         owned = _save_tmp(b"operator-output", "png")["path"]
         nested = [[{"path": owned, "meta": {"_type": "gradio.FileData"}}]]
         client = MagicMock()
-        client.predict.return_value = "ok"
+        client.submit.return_value.result.return_value = "ok"
 
         with patch("gradio.workflow.Client", return_value=client):
             call_space(["o/r", "/run", json.dumps([nested])])
 
-        assert client.predict.call_args.args[0] == nested
+        assert client.submit.call_args.args[0] == nested
 
     def test_sends_a_canvas_file_value_carrying_only_a_url(self, tmp_path, monkeypatch):
         # The canvas chains files as `{name, url, mime}` with no `path`, so the
@@ -940,12 +941,12 @@ class TestCallSpaceFileArgs:
         monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path / "cache"))
         saved = _save_tmp(b"operator-output", "png")
         client = MagicMock()
-        client.predict.return_value = "ok"
+        client.submit.return_value.result.return_value = "ok"
 
         with patch("gradio.workflow.Client", return_value=client):
             call_space(["o/r", "/run", json.dumps([{"url": saved["url"]}])])
 
-        assert client.predict.call_args.args[0]["path"] == saved["path"]
+        assert client.submit.call_args.args[0]["path"] == saved["path"]
 
     def test_sends_a_canvas_url_whose_filename_needed_encoding(
         self, tmp_path, monkeypatch
@@ -961,12 +962,12 @@ class TestCallSpaceFileArgs:
             f.write(b"operator-output")
         url = f"/gradio_api/file={client_utils.encode_file_path(owned)}"
         client = MagicMock()
-        client.predict.return_value = "ok"
+        client.submit.return_value.result.return_value = "ok"
 
         with patch("gradio.workflow.Client", return_value=client):
             call_space(["o/r", "/run", json.dumps([{"url": url}])])
 
-        assert client.predict.call_args.args[0]["path"] == owned
+        assert client.submit.call_args.args[0]["path"] == owned
 
 
 class TestSendableRef:
@@ -1130,3 +1131,51 @@ class TestNoDoubleInference:
         assert result == b"video-bytes"
         assert call_count["n"] == 1  # no second POST
         fetch.assert_called_once_with("https://example.com/out.mp4")
+
+
+def test_call_space_forwards_zerogpu_ip_token():
+    client = MagicMock()
+    client.submit.return_value.result.return_value = "ok"
+    request = MagicMock()
+    request.headers = {"x-ip-token": "jwt"}
+
+    with patch("gradio.workflow.Client", return_value=client) as make_client:
+        call_space(["o/r", "/run", "[]", "hf_x"], request=request)
+
+    assert make_client.call_args.kwargs["headers"] == {"x-ip-token": "jwt"}
+
+
+@pytest.mark.parametrize(
+    "title, message, expected",
+    [
+        ("ZeroGPU quota exceeded", "No GPU was available after 60s", "gpu"),
+        (
+            "ZeroGPU quota exceeded",
+            "You have exceeded your free ZeroGPU quota",
+            "quota",
+        ),
+        ("ZeroGPU quota exceeded", "Space app has reached its GPU limit.", "quota"),
+        ("", "ZeroGPU worker error", "gpu"),
+    ],
+)
+def test_classify_zerogpu_errors(title, message, expected):
+    e = Exception(message)
+    e.title = title  # type: ignore[attr-defined]
+    assert _classify_error(e)["error_type"] == expected
+
+
+def test_call_space_relays_the_spaces_queue_messages():
+    client = MagicMock()
+    job = client.submit.return_value
+    job.done.side_effect = [False, False, True]
+    job.status.return_value.log = ("Waiting for a GPU to become available", "info")
+    job.result.return_value = "ok"
+    logs = []
+
+    with patch("gradio.workflow.Client", return_value=client), patch("time.sleep"):
+        out = call_space(
+            ["o/r", "/run", "[]", "hf_x"], on_log=lambda *a: logs.append(a)
+        )
+
+    assert logs == [("Waiting for a GPU to become available", "info")]
+    assert json.loads(out) == ["ok"]

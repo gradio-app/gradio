@@ -125,7 +125,8 @@
 		gradio_shared = undefined,
 		auth: shared_auth = undefined,
 		active = true,
-		dirty = $bindable(false)
+		dirty = $bindable(false),
+		ready = $bindable(false)
 	}: {
 		server?: Record<string, any>;
 		initialValue?: string | null;
@@ -137,6 +138,9 @@
 		/** Whether the canvas holds edits the server doesn't have yet. False
 		 * until `initialValue` is loaded, so the store's placeholder never counts. */
 		dirty?: boolean;
+		/** Set once `initialValue` is on screen. Before that the store holds a
+		 * placeholder workflow, which the parent keeps covered. */
+		ready?: boolean;
 	} = $props();
 
 	const gradio_client = $derived(gradio_shared?.client);
@@ -364,6 +368,7 @@
 		lastSavedSignature = structural_signature(loaded);
 		history.reset(loaded);
 		layoutReady = true;
+		ready = true;
 		if (autoArrange) {
 			requestAnimationFrame(() => {
 				autoLayout();
@@ -2157,10 +2162,47 @@
 			);
 		}
 
-		const callSpaceWithToken = server?.call_space
-			? async (spaceId: string, endpoint: string, argsJson: string) =>
-					server.call_space([spaceId, endpoint, argsJson, auth.token])
-			: undefined;
+		// Through the queue, not the server function, so the Space's own toasts
+		// ("Waiting for a GPU to become available") reach the canvas.
+		const callSpaceWithToken = gradio_client
+			? async (spaceId: string, endpoint: string, argsJson: string) => {
+					const job = gradio_client.submit("/call_space", [
+						JSON.stringify([spaceId, endpoint, argsJson, auth.token])
+					]);
+					abortController?.signal.addEventListener(
+						"abort",
+						() => job.cancel(),
+						{ once: true }
+					);
+					for await (const msg of job) {
+						if (msg.type === "log") {
+							const type =
+								msg.level === "warning" || msg.level === "success"
+									? msg.level
+									: "info";
+							showToast(`${spaceId}: ${msg.log}`, 4000, type);
+						}
+						if (msg.type === "data") {
+							return (msg.data as unknown[])[0] as string;
+						}
+						if (msg.type === "status" && msg.stage === "error") {
+							return JSON.stringify({
+								error: msg.message ?? "Space call failed",
+								error_type: "unknown",
+								suggestion: ""
+							});
+						}
+					}
+					return JSON.stringify({
+						error: "No data received from Space",
+						error_type: "unknown",
+						suggestion: ""
+					});
+				}
+			: server?.call_space
+				? async (spaceId: string, endpoint: string, argsJson: string) =>
+						server.call_space([spaceId, endpoint, argsJson, auth.token])
+				: undefined;
 
 		const callModelWithToken = server?.call_model
 			? async (
@@ -2260,7 +2302,9 @@
 							errorType === "quota"
 								? "GPU quota exceeded"
 								: "GPU unavailable — try again in a minute";
-						nodeErrors = { ...nodeErrors, [nodeId]: headline };
+						// Keep the Space's own message: it says whose quota ran
+						// out and how long until it resets.
+						nodeErrors = { ...nodeErrors, [nodeId]: `${headline}\n${error}` };
 						const cta = auth.getQuotaCTA();
 						showToast(
 							`${label}: ${headline}. ${cta.suffix}`,

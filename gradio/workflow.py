@@ -15,6 +15,7 @@ import secrets
 import sys
 import tempfile
 import threading
+import time
 import types
 import urllib.parse
 import warnings
@@ -530,10 +531,14 @@ def _classify_error(e: Exception) -> dict:
     message = getattr(e, "message", None) or str(e)
     full = f"{title} {message}".lower()
 
-    if "zerogpu" in full or ("gpu" in full and "worker" in full):
+    # ZeroGPU titles a queue timeout "quota exceeded" too, so that message is
+    # matched first; any other quota error can mean hours, not a minute.
+    if "no gpu was available" in full:
         return {"error_type": "gpu"}
     if "quota" in full or "rate limit" in full or "rate_limit" in full:
         return {"error_type": "quota"}
+    if "zerogpu" in full or ("gpu" in full and "worker" in full):
+        return {"error_type": "gpu"}
     if "sleeping" in full or "paused" in full:
         return {
             "error_type": "sleeping",
@@ -694,7 +699,10 @@ def get_oauth_scopes(_data=None) -> str:
 
 
 def call_space(
-    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+    data,
+    request: Optional[Request] = None,
+    token: Optional[OAuthToken] = None,
+    on_log: Callable[[str, str], None] | None = None,
 ) -> str:
     space_id = data[0] if data else ""
     try:
@@ -709,7 +717,16 @@ def call_space(
                     "suggestion": "Space ID must be in owner/repo format",
                 }
             )
-        client = Client(space_id, token=hf_token)
+        # ZeroGPU ranks callers by the visitor's X-IP-Token, which the Hub only
+        # adds to the browser's request. Without it the Space sees an anonymous
+        # caller: lowest queue priority, so it gives up after 60s.
+        ip_token = request.headers.get("x-ip-token") if request else None
+        client = Client(
+            space_id,
+            verbose=False,
+            token=hf_token,
+            headers={"x-ip-token": ip_token} if ip_token else None,
+        )
         args = json.loads(args_json)
         if not endpoint or endpoint == "/predict":
             api_info = client.view_api(return_format="dict")
@@ -742,7 +759,20 @@ def call_space(
         )
         while processed and processed[-1] is None:
             processed.pop()
-        result = client.predict(*processed, api_name=endpoint)
+        job = client.submit(*processed, api_name=endpoint)
+        if on_log:
+            # Relay the Space's own queue messages ("Waiting for a GPU to
+            # become available") so a ZeroGPU wait doesn't look like a hang.
+            # ponytail: polls the latest status, so a message replaced within
+            # 0.2s is dropped; read `job.communicator.updates` if that matters.
+            last = None
+            while not job.done():
+                log = job.status().log
+                if log and log != last:
+                    on_log(*log)
+                    last = log
+                time.sleep(0.2)
+        result = job.result()
         result = list(result) if isinstance(result, (list, tuple)) else [result]
 
         _tmpdir = os.path.realpath(tempfile.gettempdir())
@@ -1723,9 +1753,13 @@ def get_dataset_schema(
 _APP_ELEM_ID = "workflow-app"
 # The row gives each child a 0% flex-basis, which overrides the scale=0
 # button's `width: fit-content` and squeezes it down to its padding.
+#
+# The app stays hidden until the canvas component has picked which view to show
+# (it sets `data-view`), so a viewer who gets the canvas never sees it first.
 _APP_CSS = f"""
 #{_APP_ELEM_ID}-header {{ justify-content: flex-end; }}
 #{_APP_ELEM_ID}-header > button {{ flex: none; }}
+#{_APP_ELEM_ID}:not([data-view="app"]) {{ visibility: hidden; }}
 """
 
 
@@ -2176,9 +2210,32 @@ class Workflow(Blocks):
 
             return wrapper
 
-        if bound:
-            from gradio.workflow_api import _active_blocks
+        def call_space_queued(
+            data_json: str,
+            _request: Optional[Request] = None,
+            _token: Optional[OAuthToken] = None,
+        ) -> str:
+            """`call_space` behind the queue rather than as a server function,
+            so the canvas sees the Space's toasts while it waits for a GPU."""
+            toasts = {"warning": gr.Warning, "success": gr.Success}
+            return call_space(
+                json.loads(data_json),
+                _request,
+                _token,
+                on_log=lambda msg, level: toasts.get(level, gr.Info)(msg),
+            )
 
+        from gradio.workflow_api import _active_blocks
+
+        with _active_blocks(self):
+            gr.api(
+                call_space_queued,
+                api_name="call_space",
+                concurrency_limit=None,
+                api_visibility="undocumented",
+            )
+
+        if bound:
             if len(bound) != len({_SANITIZE_RE.sub("_", n) for n in bound}):
                 sanitized = [_SANITIZE_RE.sub("_", n) for n in bound]
                 dupes = {s for s in sanitized if sanitized.count(s) > 1}
