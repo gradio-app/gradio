@@ -178,6 +178,8 @@ describe("submit iterator", () => {
 
 		expect(app.unclosed_events.has(event_id)).toBe(false);
 		expect(app.event_callbacks[event_id]).toBeUndefined();
+		// Its messages still on the way are dropped, not kept for good
+		expect(app.acknowledged_events.has(event_id)).toBe(true);
 	});
 
 	test("for-await loop terminates when data and complete arrive in the same SSE callback", async () => {

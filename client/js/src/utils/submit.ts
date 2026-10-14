@@ -38,6 +38,10 @@ import {
 	update_run_inputs
 } from "./run_history";
 
+// Acknowledged events remembered so that their late messages can be dropped;
+// such messages come within moments, so the oldest can be forgotten
+const MAX_ACKNOWLEDGED_EVENTS = 1000;
+
 export function submit(
 	this: Client,
 	endpoint: string | number,
@@ -260,6 +264,13 @@ export function submit(
 			// reopen it.
 			unclosed_events.delete(event_id_final);
 			delete event_callbacks[event_id_final];
+			// Its late messages would otherwise wait for this callback forever
+			const acknowledged = that.acknowledged_events;
+			acknowledged.add(event_id_final);
+			delete pending_stream_messages[event_id_final];
+			if (acknowledged.size > MAX_ACKNOWLEDGED_EVENTS) {
+				acknowledged.delete(acknowledged.values().next().value as string);
+			}
 			const response = await that
 				.fetch(`${config!.root}${api_prefix}/${RESET_URL}`, {
 					headers: { "Content-Type": "application/json" },

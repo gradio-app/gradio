@@ -103,6 +103,9 @@ export class Client {
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
+	// Events this page acknowledged; messages that still arrive for them
+	// (e.g. the completion of a stopped stream) are dropped
+	acknowledged_events: Set<string> = new Set();
 	events_to_resume: Set<string> = new Set();
 	stream_reconnect_attempts = 0;
 	stream_reconnect_timer: ReturnType<typeof setTimeout> | null = null;
