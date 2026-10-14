@@ -208,8 +208,9 @@ describe("WebRTC send-receive video", () => {
 		await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
 		await queue_reports(set_data, "waiting");
 		expect(server.offer).not.toHaveBeenCalled();
-		expect(getByRole("button", { name: "start stream" })).toHaveTextContent(
-			"audio.waiting"
+		expect(getByRole("status")).toHaveTextContent("audio.waiting");
+		expect(getByRole("button", { name: "cancel waiting" })).toHaveTextContent(
+			"chatbot.cancel"
 		);
 		await queue_reports(set_data, "open");
 
@@ -292,7 +293,7 @@ describe("WebRTC send-receive video", () => {
 		await admit(set_data);
 		await waitFor(() => expect(server.offer).toHaveBeenCalled());
 		expect(queryByRole("button", { name: "Turn off the camera" })).toBeNull();
-		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
 		await waitFor(() => {
 			expect(getByRole("button", { name: "start stream" })).toHaveTextContent(
 				"audio.record"
@@ -407,7 +408,7 @@ describe("WebRTC send-receive video", () => {
 		const close_stream = listen("close_stream");
 		await fireEvent.click(getByRole("button", { name: "start stream" }));
 		await queue_reports(set_data, "waiting");
-		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
 		expect(close_stream).toHaveBeenCalledTimes(1);
 		await queue_reports(set_data, "closed");
 		await new Promise((resolve) => setTimeout(resolve, 50));
@@ -624,23 +625,66 @@ describe("WebRTC queue turn", () => {
 		return { server, ...result };
 	}
 
-	test("the waiting button shows the place in the queue and the wait", async () => {
+	test("while waiting, the place in the queue and the wait count down", async () => {
+		const { getByRole, set_data } = await ready_webcam();
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		const waiting = {
+			...loading_status,
+			stream_state: "waiting" as const,
+			queue_position: 1,
+			queue_size: 3,
+			eta: 24.6
+		};
+		await set_data({ loading_status: waiting });
+		await waitFor(() => {
+			expect(getByRole("status")).toHaveTextContent(
+				"audio.waiting · 2/3 · ~25s"
+			);
+		});
+		expect(getByRole("button", { name: "cancel waiting" })).toBeVisible();
+		// Between the queue's estimates the wait counts down...
+		await waitFor(
+			() => {
+				expect(getByRole("status")).toHaveTextContent(
+					"audio.waiting · 2/3 · ~24s"
+				);
+			},
+			{ timeout: 2000 }
+		);
+		// ...and the same status delivered again does not restart it
+		await set_data({ loading_status: { ...waiting } });
+		expect(getByRole("status")).toHaveTextContent("audio.waiting · 2/3 · ~24s");
+		// A new estimate (someone ahead left) replaces it
+		await set_data({
+			loading_status: { ...waiting, queue_position: 0, queue_size: 2, eta: 4.2 }
+		});
+		await waitFor(() => {
+			expect(getByRole("status")).toHaveTextContent(
+				"audio.waiting · 1/2 · ~4s"
+			);
+		});
+	});
+
+	test("once the estimate runs out, only the place is shown", async () => {
 		const { getByRole, set_data } = await ready_webcam();
 		await fireEvent.click(getByRole("button", { name: "start stream" }));
 		await set_data({
 			loading_status: {
 				...loading_status,
 				stream_state: "waiting",
-				queue_position: 1,
-				queue_size: 3,
-				eta: 24.6
+				queue_position: 0,
+				queue_size: 1,
+				eta: 0.4
 			}
 		});
-		await waitFor(() => {
-			expect(getByRole("button", { name: "start stream" })).toHaveTextContent(
-				"audio.waiting · 2/3 · ~25s"
-			);
-		});
+		await waitFor(
+			() => {
+				expect(getByRole("status")).toHaveTextContent(
+					/^audio\.waiting · 1\/1$/
+				);
+			},
+			{ timeout: 2000 }
+		);
 	});
 
 	test("a receive player shows the place in the queue while waiting", async () => {
@@ -662,6 +706,21 @@ describe("WebRTC queue turn", () => {
 		await waitFor(() =>
 			expect(getByText("audio.waiting · 1/2 · ~10s")).toBeVisible()
 		);
+	});
+
+	test("a receive player can leave the queue while waiting", async () => {
+		const { getByRole, listen, set_data } = await render(WebRTC, {
+			...base_props,
+			mode: "receive",
+			server: make_server()
+		});
+		const close_stream = listen("close_stream");
+		await set_data({ value: START_STREAM });
+		await queue_reports(set_data, "waiting");
+		await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
+		await waitFor(() => expect(close_stream).toHaveBeenCalled());
+		await queue_reports(set_data, "closed");
+		expect(FakePeerConnection.instances).toHaveLength(0);
 	});
 
 	test("without a stream handler, starting reports an error at once", async () => {
@@ -689,7 +748,7 @@ describe("WebRTC queue turn", () => {
 		const { getByRole, listen, set_data } = await ready_webcam();
 		await fireEvent.click(getByRole("button", { name: "start stream" }));
 		// Stopped before the join went out
-		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
 		const close_stream = listen("close_stream");
 		// The join still reaches the queue
 		await queue_reports(set_data, "waiting");
@@ -702,7 +761,7 @@ describe("WebRTC queue turn", () => {
 		const opened = get_user_media.mock.calls.length;
 		await fireEvent.click(getByRole("button", { name: "start stream" }));
 		await queue_reports(set_data, "waiting");
-		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
 		await queue_reports(set_data, "closed");
 		await new Promise((resolve) => setTimeout(resolve, 50));
 		// The preview was never stopped, so nothing reopens the camera
@@ -721,7 +780,7 @@ describe("WebRTC queue turn", () => {
 			expect(server.get_rtc_configuration).toHaveBeenCalled()
 		);
 		// Stop while the configuration is still on its way
-		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
 		resolve_config({ iceServers: [] });
 		await new Promise((resolve) => setTimeout(resolve, 50));
 		expect(FakePeerConnection.instances).toHaveLength(0);
@@ -900,7 +959,7 @@ describe("WebRTC audio", () => {
 			expect(get_user_media.mock.calls.length).toBe(accessed + 1)
 		);
 		// Still waiting for the microphone: this click stops the attempt
-		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
 		const late_stream = fake_stream("audio");
 		resolve_mic(late_stream);
 

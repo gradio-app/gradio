@@ -2,7 +2,7 @@
 	import { onDestroy, untrack } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { Empty } from "@gradio/atoms";
-	import { Video } from "@gradio/icons";
+	import { Clear, Video } from "@gradio/icons";
 	import {
 		start,
 		stop,
@@ -157,7 +157,17 @@
 		<Empty unpadded_box={true} size="large"><Video /></Empty>
 	{:else if stream_state === "waiting"}
 		<div class="waiting">
-			{i18n("audio.waiting")}{queue_detail ? ` · ${queue_detail}` : ""}
+			<span role="status">
+				{i18n("audio.waiting")}{queue_detail ? ` · ${queue_detail}` : ""}
+			</span>
+			<button
+				class="cancel-waiting"
+				onclick={close_stream}
+				aria-label="cancel waiting"
+			>
+				<span class="cancel-icon"><Clear /></span>
+				{i18n("chatbot.cancel")}
+			</button>
 		</div>
 	{/if}
 	<!-- svelte-ignore a11y_media_has_caption -->
@@ -193,6 +203,32 @@
 		background: var(--background-fill-primary);
 		color: var(--body-text-color);
 		font-size: var(--text-md);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--size-2);
+	}
+
+	.cancel-waiting {
+		display: flex;
+		align-items: center;
+		gap: var(--size-1);
+		padding: var(--size-1) var(--size-3);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-md);
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
+		font-size: var(--text-sm);
+	}
+
+	.cancel-waiting:hover {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.cancel-icon {
+		display: flex;
+		width: var(--size-4);
+		height: var(--size-4);
 	}
 
 	video {

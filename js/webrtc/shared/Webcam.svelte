@@ -345,36 +345,52 @@
 			</IconButtonWrapper>
 		{/if}
 		<div class="button-wrap">
-			<button
-				class="stream-button"
-				onclick={toggle_stream}
-				aria-label={stream_state === "open" ? "stop stream" : "start stream"}
-			>
-				{#if stream_state === "waiting"}
-					<div class="icon-with-text">
-						<div class="icon color-primary" title="spinner">
-							<Spinner />
-						</div>
-						{button_labels.waiting || i18n("audio.waiting")}{queue_detail
-							? ` · ${queue_detail}`
-							: ""}
+			{#if stream_state === "waiting"}
+				<!-- Waiting in line: the place and the expected wait, and a way out
+				that does not look like the start button -->
+				<div class="icon-with-text queue-status" role="status">
+					<div class="icon color-primary" title="spinner">
+						<Spinner />
 					</div>
-				{:else if stream_state === "open"}
+					{button_labels.waiting || i18n("audio.waiting")}{queue_detail
+						? ` · ${queue_detail}`
+						: ""}
+				</div>
+				<button
+					class="stream-button"
+					onclick={toggle_stream}
+					aria-label="cancel waiting"
+				>
 					<div class="icon-with-text">
-						<div class="icon color-primary" title="stop stream">
-							<Square />
+						<div class="icon color-primary" title="cancel waiting">
+							<Clear />
 						</div>
-						{button_labels.stop || i18n("audio.stop")}
+						{i18n("chatbot.cancel")}
 					</div>
-				{:else}
-					<div class="icon-with-text">
-						<div class="icon color-primary" title="start stream">
-							<Circle />
+				</button>
+			{:else}
+				<button
+					class="stream-button"
+					onclick={toggle_stream}
+					aria-label={stream_state === "open" ? "stop stream" : "start stream"}
+				>
+					{#if stream_state === "open"}
+						<div class="icon-with-text">
+							<div class="icon color-primary" title="stop stream">
+								<Square />
+							</div>
+							{button_labels.stop || i18n("audio.stop")}
 						</div>
-						{button_labels.start || i18n("audio.record")}
-					</div>
-				{/if}
-			</button>
+					{:else}
+						<div class="icon-with-text">
+							<div class="icon color-primary" title="start stream">
+								<Circle />
+							</div>
+							{button_labels.start || i18n("audio.record")}
+						</div>
+					{/if}
+				</button>
+			{/if}
 			{#if stream_state === "closed" && devices.length > 1}
 				<button
 					class="device-select-button"

@@ -2,6 +2,7 @@
 	import { onDestroy, untrack } from "svelte";
 	import {
 		Circle,
+		Clear,
 		Spinner,
 		DropdownArrow,
 		VolumeMuted,
@@ -334,50 +335,62 @@
 		/>
 		<StreamingBar time_limit={active_time_limit} />
 		<div class="button-wrap">
-			<button
-				onclick={toggle_stream}
-				aria-label={stream_state === "open" ? "stop stream" : "start stream"}
-			>
-				{#if stream_state === "waiting"}
-					<div class="icon-with-text">
-						<div class="icon color-primary" title="spinner">
-							<Spinner />
-						</div>
-						{button_labels.waiting || i18n("audio.waiting")}{queue_detail
-							? ` · ${queue_detail}`
-							: ""}
+			{#if stream_state === "waiting"}
+				<!-- Waiting in line: the place and the expected wait, and a way out
+				that does not look like the start button -->
+				<div class="icon-with-text queue-status" role="status">
+					<div class="icon color-primary" title="spinner">
+						<Spinner />
 					</div>
-				{:else if stream_state === "open"}
+					{button_labels.waiting || i18n("audio.waiting")}{queue_detail
+						? ` · ${queue_detail}`
+						: ""}
+				</div>
+				<button onclick={toggle_stream} aria-label="cancel waiting">
 					<div class="icon-with-text">
-						{#if mode === "send-receive"}
-							<div
-								class="icon"
-								title="stop stream"
-								style={`fill: ${icon_button_color}; stroke: ${icon_button_color}; color: ${icon_button_color};`}
-							>
-								<PulsingIcon
-									audio_source={input_audio_source}
-									stream_state="open"
-									icon={Circle}
-									{pulse_color}
-								/>
-							</div>
-						{:else}
-							<div class="icon color-primary" title="stop stream">
+						<div class="icon color-primary" title="cancel waiting">
+							<Clear />
+						</div>
+						{i18n("chatbot.cancel")}
+					</div>
+				</button>
+			{:else}
+				<button
+					onclick={toggle_stream}
+					aria-label={stream_state === "open" ? "stop stream" : "start stream"}
+				>
+					{#if stream_state === "open"}
+						<div class="icon-with-text">
+							{#if mode === "send-receive"}
+								<div
+									class="icon"
+									title="stop stream"
+									style={`fill: ${icon_button_color}; stroke: ${icon_button_color}; color: ${icon_button_color};`}
+								>
+									<PulsingIcon
+										audio_source={input_audio_source}
+										stream_state="open"
+										icon={Circle}
+										{pulse_color}
+									/>
+								</div>
+							{:else}
+								<div class="icon color-primary" title="stop stream">
+									<Circle />
+								</div>
+							{/if}
+							{button_labels.stop || i18n("audio.stop")}
+						</div>
+					{:else}
+						<div class="icon-with-text">
+							<div class="icon color-primary" title="start stream">
 								<Circle />
 							</div>
-						{/if}
-						{button_labels.stop || i18n("audio.stop")}
-					</div>
-				{:else}
-					<div class="icon-with-text">
-						<div class="icon color-primary" title="start stream">
-							<Circle />
+							{button_labels.start || i18n("audio.record")}
 						</div>
-						{button_labels.start || i18n("audio.record")}
-					</div>
-				{/if}
-			</button>
+					{/if}
+				</button>
+			{/if}
 			{#if stream_state === "closed" && devices.length > 1}
 				<button
 					class="icon-button"

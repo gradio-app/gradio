@@ -429,7 +429,9 @@ class WebRTC(Component):
             self._run_stream,
             inputs=[self],
             outputs=cast(list, [self, *extra_outputs]),
-            show_progress="minimal",
+            # The component shows the place in line and the wait itself,
+            # next to the button that cancels it
+            show_progress="hidden",
             show_progress_on=self,
             api_visibility="private",
             concurrency_limit=concurrency_limit,

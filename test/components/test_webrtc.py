@@ -371,6 +371,9 @@ class TestWebRTC:
         assert stream.time_limit == 30
         assert stream.concurrency_limit is None
         assert stream.trigger_mode == "multiple"
+        # The component shows the place in line itself, next to its cancel
+        # button, rather than a second status in the corner
+        assert stream.show_progress == "hidden"
         # The other inputs reach the handler through "tick" and "change"
         assert [i._id for i in stream.inputs] == [webrtc._id]
         assert [o._id for o in stream.outputs] == [webrtc._id, number._id]

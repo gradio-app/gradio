@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from "svelte";
 	import { Gradio } from "@gradio/utils";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Music, Video } from "@gradio/icons";
@@ -66,9 +67,35 @@
 	// The state of the stream's queue event: "waiting" in line, "open" once its
 	// turn has come, "closed" when it has ended
 	let queue_state = $state<StreamState | null>(null);
-	// The place in the queue and the expected wait, e.g. "2/3 · ~25s", shown
-	// next to "Waiting"
-	let queue_detail = $state<string | null>(null);
+	// The place in the queue and the expected wait from the queue's latest
+	// estimate, and when that estimate arrived
+	let queue_place = $state<{
+		position: string | null;
+		eta: number | null;
+		received_at: number;
+	} | null>(null);
+	// Ticks while waiting, so that the expected wait counts down between the
+	// queue's estimates
+	let now = $state(Date.now());
+	$effect(() => {
+		if (!queue_place) return;
+		const timer = setInterval(() => (now = Date.now()), 1000);
+		return () => clearInterval(timer);
+	});
+	// e.g. "2/3 · ~25s", shown next to "Waiting". Once the estimate has run
+	// out, only the place is shown.
+	let queue_detail = $derived.by(() => {
+		if (!queue_place) return null;
+		const parts: string[] = [];
+		if (queue_place.position) parts.push(queue_place.position);
+		if (queue_place.eta != null) {
+			const left = Math.round(
+				queue_place.eta - (now - queue_place.received_at) / 1000
+			);
+			if (left > 0) parts.push(`~${left}s`);
+		}
+		return parts.length ? parts.join(" · ") : null;
+	});
 	// The loading status also reports the events that only take this
 	// component as an input, such as the one that pushes the input values, and
 	// those report a "closed" stream_state when they complete. Only the status
@@ -118,7 +145,7 @@
 		if (state === "waiting") stream_fn_index = status.fn_index;
 		if (status?.fn_index !== stream_fn_index) return;
 		queue_state = state;
-		queue_detail = state === "waiting" ? describe_place(status) : null;
+		update_place(state === "waiting" ? status : null);
 		if (!wants_stream && (state === "waiting" || state === "open")) {
 			// A stream event the page no longer wants, e.g. one whose join was
 			// still on its way when the user pressed stop: end it before it
@@ -136,19 +163,28 @@
 		}
 	});
 
-	function describe_place(status: {
-		queue_position?: number | null;
-		queue_size?: number;
-		eta?: number | null;
-	}): string | null {
-		const parts: string[] = [];
-		if (status.queue_position != null && status.queue_size != null) {
-			parts.push(`${status.queue_position + 1}/${status.queue_size}`);
+	function update_place(
+		status: {
+			queue_position?: number | null;
+			queue_size?: number;
+			eta?: number | null;
+		} | null
+	): void {
+		if (!status) {
+			queue_place = null;
+			return;
 		}
-		if (status.eta != null && status.eta > 0) {
-			parts.push(`~${Math.round(status.eta)}s`);
-		}
-		return parts.length ? parts.join(" · ") : null;
+		const position =
+			status.queue_position != null && status.queue_size != null
+				? `${status.queue_position + 1}/${status.queue_size}`
+				: null;
+		const eta = status.eta != null && status.eta > 0 ? status.eta : null;
+		// The same status can be delivered again; only a new estimate (each
+		// one is computed afresh, so its eta differs) restarts the countdown
+		const current = untrack(() => queue_place);
+		if (current?.position === position && current?.eta === eta) return;
+		queue_place = { position, eta, received_at: Date.now() };
+		now = Date.now();
 	}
 
 	function handle_message(msg: ControlMessage): void {
