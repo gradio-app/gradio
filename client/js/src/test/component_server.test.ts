@@ -19,6 +19,9 @@ vi.mock("../helpers/zerogpu", async (importOriginal) => ({
 
 import { Client } from "../client";
 
+// What the frontend passes for a server function that starts GPU work
+const GPU = { zerogpu_headers: true };
+
 function fake_client(token?: `hf_${string}`): {
 	client: Client;
 	requests: RequestInit[];
@@ -55,7 +58,13 @@ describe("component_server", () => {
 		zerogpu_headers.no_reply = true;
 		const { client, requests } = fake_client();
 
-		const call = Client.prototype.component_server.call(client, 1, "ls", {});
+		const call = Client.prototype.component_server.call(
+			client,
+			1,
+			"offer",
+			{},
+			GPU
+		);
 		await vi.advanceTimersByTimeAsync(10_000);
 		await call;
 
@@ -68,14 +77,20 @@ describe("component_server", () => {
 		vi.useFakeTimers();
 		zerogpu_headers.no_reply = true;
 		const { client, requests } = fake_client();
-		const first = Client.prototype.component_server.call(client, 1, "ls", {});
+		const first = Client.prototype.component_server.call(
+			client,
+			1,
+			"offer",
+			{},
+			GPU
+		);
 		await vi.advanceTimersByTimeAsync(10_000);
 		await first;
 
 		// The embedding page answers again
 		zerogpu_headers.no_reply = false;
 		zerogpu_headers.value = { "X-ZeroGPU-Token": "jwt" };
-		await Client.prototype.component_server.call(client, 1, "ls", {});
+		await Client.prototype.component_server.call(client, 1, "offer", {}, GPU);
 
 		expect(
 			(requests[1].headers as Record<string, string>)["X-ZeroGPU-Token"]
@@ -91,7 +106,7 @@ describe("component_server", () => {
 		// e.g. the ICE candidates of a gr.WebRTC connection
 		await Promise.all(
 			[1, 2, 3].map(() =>
-				Client.prototype.component_server.call(client, 1, "candidate", {})
+				Client.prototype.component_server.call(client, 1, "offer", {}, GPU)
 			)
 		);
 
@@ -106,9 +121,13 @@ describe("component_server", () => {
 		};
 		const { client, requests } = fake_client();
 
-		await Client.prototype.component_server.call(client, 1, "offer", {
-			sdp: "v=0"
-		});
+		await Client.prototype.component_server.call(
+			client,
+			1,
+			"offer",
+			{ sdp: "v=0" },
+			GPU
+		);
 
 		const headers = requests[0].headers as Record<string, string>;
 		expect(headers["X-ZeroGPU-Token"]).toBe("jwt");
@@ -119,10 +138,25 @@ describe("component_server", () => {
 	it("sends no ZeroGPU headers outside a ZeroGPU iframe", async () => {
 		const { client, requests } = fake_client("hf_token");
 
-		await Client.prototype.component_server.call(client, 1, "offer", {});
+		await Client.prototype.component_server.call(client, 1, "offer", {}, GPU);
 
 		expect(requests[0].headers).toEqual({
 			Authorization: "Bearer hf_token",
+			"Content-Type": "application/json"
+		});
+	});
+
+	it("does not wait for ZeroGPU headers in server functions that do not ask for them", async () => {
+		const asked = vi.fn();
+		zerogpu_headers.on_request = asked;
+		zerogpu_headers.value = { "X-ZeroGPU-Token": "jwt" };
+		const { client, requests } = fake_client();
+
+		// e.g. gr.FileExplorer listing a directory
+		await Client.prototype.component_server.call(client, 1, "ls", {});
+
+		expect(asked).not.toHaveBeenCalled();
+		expect(requests[0].headers).toEqual({
 			"Content-Type": "application/json"
 		});
 	});

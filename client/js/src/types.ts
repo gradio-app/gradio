@@ -98,7 +98,8 @@ export type client_return = {
 	component_server: (
 		component_id: number,
 		fn_name: string,
-		data: unknown[]
+		data: unknown[],
+		options?: { zerogpu_headers?: boolean }
 	) => any;
 	view_api: (_fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };

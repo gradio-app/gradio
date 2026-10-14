@@ -703,24 +703,27 @@ export class Client {
 	public async component_server(
 		component_id: number,
 		fn_name: string,
-		data: unknown | { binary: boolean; data: Record<string, any> }
+		data: unknown | { binary: boolean; data: Record<string, any> },
+		options: { zerogpu_headers?: boolean } = {}
 	): Promise<unknown> {
 		if (!this.config) {
 			throw new Error(CONFIG_ERROR_MSG);
 		}
 
-		// A server function can lead to ZeroGPU work (gr.WebRTC's offer starts
-		// the stream's handler), which is attributed to the visitor like the
-		// work of a queued event. Server functions do not wait on the
-		// embedding page for long: without an answer the call goes out
-		// without the headers.
-		const headers: Record<string, string> = {
-			...((await with_timeout(
-				get_server_call_zerogpu_headers(),
-				ZEROGPU_HEADERS_TIMEOUT_MS,
-				null
-			)) ?? {})
-		};
+		// A server function that starts ZeroGPU work (gr.WebRTC's offer starts
+		// the stream's handler) asks for the visitor's headers, so that the
+		// work is attributed to the visitor like that of a queued event. It
+		// does not wait on the embedding page for long: without an answer the
+		// call goes out without the headers.
+		const headers: Record<string, string> = options.zerogpu_headers
+			? {
+					...((await with_timeout(
+						get_server_call_zerogpu_headers(),
+						ZEROGPU_HEADERS_TIMEOUT_MS,
+						null
+					)) ?? {})
+				}
+			: {};
 
 		const { token } = this.options;
 		const { session_hash } = this;
