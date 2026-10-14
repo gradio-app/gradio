@@ -670,6 +670,53 @@ def test_history_is_only_kept_for_clients_that_may_resume():
         demo.close()
 
 
+@pytest.mark.parametrize("leave", ["cancel", "reset"])
+def test_the_line_moves_up_when_someone_leaves_it(leave):
+    from gradio.server_messages import EstimationMessage
+
+    with gr.Blocks() as demo:
+        gr.Button().click(lambda: time.sleep(3), None, None, concurrency_limit=1)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    queue = demo._queue
+
+    def ranks(session_hash):
+        # Peeks at the messages waiting for the page, without taking them
+        waiting = queue.pending_messages_per_session[session_hash]._queue  # type: ignore
+        return [m.rank for m in waiting if isinstance(m, EstimationMessage)]
+
+    try:
+        with httpx2.Client(timeout=10) as http:
+
+            def join(session_hash):
+                return http.post(
+                    f"{api}/queue/join",
+                    json={"data": [], "fn_index": 0, "session_hash": session_hash},
+                ).json()["event_id"]
+
+            join("running")
+            _wait_for(lambda: queue.get_active_worker_count() == 1)
+            ahead = join("ahead")
+            join("behind")
+            _wait_for(lambda: ranks("behind") == [1])
+            # Someone ahead leaves the line: by the button (cancel) or by
+            # closing the page (reset), while nothing new starts
+            if leave == "cancel":
+                http.post(
+                    f"{api}/cancel",
+                    json={"event_id": ahead, "fn_index": 0, "session_hash": "ahead"},
+                )
+            else:
+                http.post(f"{api}/reset", json={"event_id": ahead})
+            _wait_for(
+                lambda: ranks("behind")[-1:] == [0],
+                timeout=1.5,
+                message="The event behind did not hear that it moved up",
+            )
+    finally:
+        demo.close()
+
+
 @pytest.mark.parametrize("generator", [False, True])
 def test_history_keeps_only_the_latest_output_of_a_stream(generator):
     from types import SimpleNamespace

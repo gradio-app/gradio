@@ -1420,7 +1420,6 @@ class App(FastAPI):
                 queue.send_message(
                     event, ProcessCompletedMessage(output={}, success=True)
                 )
-                queue.broadcast_estimations(event.concurrency_id)
             return {"msg": "success"}
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")

@@ -745,7 +745,10 @@ class Queue:
                     q.queue.remove(event)
                     self.event_ids_to_events.pop(event_id, None)
                 except ValueError:
-                    pass
+                    return
+            # Everyone behind it moves up
+            if self.live_updates:
+                self.broadcast_estimations(event.concurrency_id)
 
     def _cancel_asyncio_tasks(self):
         for task in list(self._asyncio_tasks):
@@ -927,11 +930,13 @@ class Queue:
             # its slot until the wait times out
             event.signal.set()
 
+        left_lines: set[str] = set()
         async with self.delete_lock:
             for event in events.values():
                 queue = self.event_queue_per_concurrency_id[event.concurrency_id].queue
                 if event in queue:
                     queue.remove(event)
+                    left_lines.add(event.concurrency_id)
                 self.event_ids_to_events.pop(event._id, None)
 
             if session_hash:
@@ -943,6 +948,10 @@ class Queue:
                     pending_ids.discard(event_id)
                     if not pending_ids:
                         self.pending_event_ids_session.pop(current_session_hash)
+        # Everyone behind the events that left moves up
+        if self.live_updates:
+            for concurrency_id in left_lines:
+                self.broadcast_estimations(concurrency_id)
 
     async def notify_clients(self) -> None:
         """
