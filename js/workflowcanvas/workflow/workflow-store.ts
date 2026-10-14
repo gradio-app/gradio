@@ -498,12 +498,21 @@ export function removeNode(id: string): void {
 }
 
 export function addEdge(e: Omit<WFEdge, "id">): void {
-	workflow.update((wf) =>
-		reconcileComponentRoles({
+	workflow.update((wf) => {
+		const port = findNode(wf, e.to_node_id)?.inputs.find(
+			(p) => p.id === e.to_port_id
+		);
+		const references = is_secret_port(port ?? {})
+			? wf.references.map((n) =>
+					n.id === e.from_node_id ? { ...n, type: "password" as const } : n
+				)
+			: wf.references;
+		return reconcileComponentRoles({
 			...wf,
+			references,
 			edges: [...wf.edges, { ...e, id: uuid() }]
-		})
-	);
+		});
+	});
 }
 
 export function removeEdge(id: string): void {

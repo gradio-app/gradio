@@ -6,6 +6,7 @@ import {
 	save_secrets
 } from "./secret-persistence";
 import {
+	addEdge,
 	addNode,
 	sanitize_for_save,
 	set_masked,
@@ -169,5 +170,36 @@ describe("set_masked", () => {
 		expect(
 			JSON.parse(JSON.stringify(saved.references[0])).type
 		).toBeUndefined();
+	});
+});
+
+describe("wiring into a credential port", () => {
+	test("masks whatever node supplies it", () => {
+		workflow.set({
+			...workflowWith(reference("ref", "", false)),
+			operators: [
+				{
+					id: "op",
+					role: "operator",
+					kind: "fn",
+					label: "argon",
+					inputs: [{ id: "in_api_key", label: "api_key", type: "text" }],
+					outputs: [{ id: "out_0", label: "Answer", type: "text" }],
+					data: {},
+					x: 0,
+					y: 0,
+					width: 220,
+					height: 120
+				}
+			]
+		});
+		addEdge({
+			from_node_id: "ref",
+			from_port_id: "out",
+			to_node_id: "op",
+			to_port_id: "in_api_key",
+			type: "text"
+		});
+		expect(get(workflow).references[0].type).toBe("password");
 	});
 });
