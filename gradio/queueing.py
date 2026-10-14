@@ -53,7 +53,6 @@ from gradio.utils import (
     error_payload,
     run_coro_in_background,
     safe_aclose_iterator,
-    safe_get_lock,
     set_task_name,
 )
 
@@ -162,13 +161,13 @@ class Queue:
         self.pending_event_ids_session: dict[str, set[str]] = {}
         self.resumable_sessions: dict[str, ResumableSession] = {}
         self.event_ids_to_events: dict[str, Event] = {}
-        self.pending_message_lock = safe_get_lock()
+        self.pending_message_lock = asyncio.Lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.stopped = False
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = []
-        self.delete_lock = safe_get_lock()
+        self.delete_lock = asyncio.Lock()
         self.server_app = None
         self.server_pid = os.getpid()
         self.rpc_queue: SimpleQueue[tuple[str, EventMessage]] | None = None

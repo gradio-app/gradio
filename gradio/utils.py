@@ -114,29 +114,6 @@ def get_package_version() -> str:
         return ""
 
 
-def safe_get_lock() -> asyncio.Lock:
-    """Get asyncio.Lock() without fear of getting an Exception.
-
-    Needed because in reload mode we import the Blocks object outside
-    the main thread.
-    """
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    return asyncio.Lock()
-
-
-def safe_get_stop_event() -> asyncio.Event:
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    return asyncio.Event()
-
-
 class DynamicBoolean(int):
     def __init__(self, value: int):
         self.value = bool(value)
