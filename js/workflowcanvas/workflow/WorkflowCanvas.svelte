@@ -114,7 +114,8 @@
 		gradio_shared = undefined,
 		auth: shared_auth = undefined,
 		active = true,
-		dirty = $bindable(false)
+		dirty = $bindable(false),
+		ready = $bindable(false)
 	}: {
 		server?: Record<string, any>;
 		initialValue?: string | null;
@@ -126,6 +127,9 @@
 		/** Whether the canvas holds edits the server doesn't have yet. False
 		 * until `initialValue` is loaded, so the store's placeholder never counts. */
 		dirty?: boolean;
+		/** Set once `initialValue` is on screen. Before that the store holds a
+		 * placeholder workflow, which the parent keeps covered. */
+		ready?: boolean;
 	} = $props();
 
 	const gradio_client = $derived(gradio_shared?.client);
@@ -348,6 +352,7 @@
 		lastSavedSignature = structural_signature(loaded);
 		history.reset(loaded);
 		layoutReady = true;
+		ready = true;
 		if (autoArrange) {
 			requestAnimationFrame(() => {
 				autoLayout();
