@@ -862,7 +862,15 @@ def _app_signature(graph: WorkflowGraph | None) -> str:
         groups.append(
             [
                 api_name,
-                [[f["node"]["id"], f["type"], f["label"]] for f in frees],
+                [
+                    [
+                        f["node"]["id"],
+                        f["type"],
+                        f["label"],
+                        f["node"].get("type") or "text",
+                    ]
+                    for f in frees
+                ],
                 [[s["id"], subject_output_type(s), s.get("label")] for s in group],
             ]
         )

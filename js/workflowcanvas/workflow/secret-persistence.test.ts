@@ -100,9 +100,9 @@ describe("per-viewer mirror", () => {
 	test("a non-secret node is never mirrored or restored", () => {
 		const wf = workflowWith(reference("prompt", "a cat", false));
 		expect(extract_secrets(wf)).toEqual({});
-		expect(apply_secrets(wf, { prompt: "leaked" }).references[0].data.out).toBe(
-			"a cat"
-		);
+		expect(
+			apply_secrets(wf, { "prompt:out": "leaked" }).references[0].data.out
+		).toBe("a cat");
 	});
 
 	test("clearing the last key leaves nothing behind", () => {
@@ -113,30 +113,58 @@ describe("per-viewer mirror", () => {
 	});
 });
 
+function withOperator(data: Record<string, string>, keyDefault?: string) {
+	const wf = workflowWith();
+	wf.operators = [
+		{
+			id: "op",
+			role: "operator",
+			kind: "fn",
+			label: "argon",
+			inputs: [
+				{
+					id: "in_api_key",
+					label: "api_key",
+					type: "text",
+					...(keyDefault === undefined ? {} : { default_value: keyDefault })
+				},
+				{ id: "in_prompt", label: "prompt", type: "text" }
+			],
+			outputs: [{ id: "out_0", label: "Answer", type: "text" }],
+			data,
+			x: 0,
+			y: 0,
+			width: 220,
+			height: 120
+		}
+	];
+	return wf;
+}
+
 describe("credential-named operator ports", () => {
 	test("are masked out of the saved file", () => {
-		const wf = workflowWith();
-		wf.operators = [
-			{
-				id: "op",
-				role: "operator",
-				kind: "fn",
-				label: "argon",
-				inputs: [
-					{ id: "in_api_key", label: "api_key", type: "text" },
-					{ id: "in_prompt", label: "prompt", type: "text" }
-				],
-				outputs: [{ id: "out_0", label: "Answer", type: "text" }],
-				data: { in_api_key: "sk-live-123", in_prompt: "hello" },
-				x: 0,
-				y: 0,
-				width: 220,
-				height: 120
-			}
-		];
+		const wf = withOperator({ in_api_key: "sk-live-123", in_prompt: "hello" });
 		expect(sanitize_for_save(wf).operators[0].data).toEqual({
 			in_prompt: "hello"
 		});
+	});
+
+	test("a key hiding in a port default is dropped too, live ports intact", () => {
+		const wf = withOperator({}, "sk-live-123");
+		const saved = sanitize_for_save(wf);
+		expect(
+			JSON.parse(JSON.stringify(saved.operators[0].inputs[0])).default_value
+		).toBeUndefined();
+		expect(wf.operators[0].inputs[0].default_value).toBe("sk-live-123");
+	});
+
+	test("an inline key round-trips through the viewer's storage", () => {
+		const wf = withOperator({ in_api_key: "sk-live-123", in_prompt: "hello" });
+		save_secrets("Test", extract_secrets(wf), storage);
+
+		const fromFile = withOperator({ in_prompt: "hello" });
+		const restored = apply_secrets(fromFile, load_secrets("Test", storage));
+		expect(restored.operators[0].data.in_api_key).toBe("sk-live-123");
 	});
 });
 

@@ -119,6 +119,13 @@ function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
 	for (const port of node.inputs) {
 		if (is_secret_port(port)) delete cleaned[port.id];
 	}
+
+	const scrub = (ports: Port[]): Port[] =>
+		ports.map((p) =>
+			(is_secret(node) || is_secret_port(p)) && p.default_value !== undefined
+				? { ...p, default_value: undefined }
+				: p
+		);
 	const {
 		x: _x,
 		y: _y,
@@ -129,7 +136,12 @@ function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
 	// Only operators carry a catalog, so it can't be destructured off the
 	// generic alongside the geometry.
 	delete (persisted as { endpoints?: unknown }).endpoints;
-	return { ...persisted, data: cleaned };
+	return {
+		...persisted,
+		inputs: scrub(node.inputs),
+		outputs: scrub(node.outputs),
+		data: cleaned
+	};
 }
 
 export function sanitize_for_save(wf: Workflow): SavedWorkflow {

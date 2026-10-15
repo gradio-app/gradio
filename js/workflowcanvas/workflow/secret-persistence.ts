@@ -5,8 +5,9 @@
  * the same scheme `layout-persistence.ts` uses for geometry.
  */
 
-import { is_secret } from "./workflow-types";
-import type { ReferenceNode, Workflow } from "./workflow-types";
+import { is_secret, is_secret_port } from "./workflow-types";
+import type { AnyNode, Workflow } from "./workflow-types";
+import { allNodes } from "./workflow-migration";
 
 export type WorkflowSecrets = Record<string, string>;
 
@@ -18,12 +19,11 @@ function default_storage(): Storage | undefined {
 	return typeof localStorage !== "undefined" ? localStorage : undefined;
 }
 
-function secret_nodes(wf: Workflow): ReferenceNode[] {
-	return wf.references.filter(is_secret);
-}
-
-function value_port(node: ReferenceNode): string | undefined {
-	return node.outputs[0]?.id;
+/** The ports of one node whose values never reach the file. */
+function secret_ports(node: AnyNode): string[] {
+	const ports = node.inputs.filter(is_secret_port).map((p) => p.id);
+	if (is_secret(node) && node.outputs[0]) ports.push(node.outputs[0].id);
+	return ports;
 }
 
 export function load_secrets(
@@ -59,10 +59,13 @@ export function save_secrets(
 
 export function extract_secrets(wf: Workflow): WorkflowSecrets {
 	const secrets: WorkflowSecrets = {};
-	for (const node of secret_nodes(wf)) {
-		const port = value_port(node);
-		const value = port ? node.data?.[port] : undefined;
-		if (typeof value === "string" && value) secrets[node.id] = value;
+	for (const node of allNodes(wf)) {
+		for (const port of secret_ports(node)) {
+			const value = node.data?.[port];
+			if (typeof value === "string" && value) {
+				secrets[`${node.id}:${port}`] = value;
+			}
+		}
 	}
 	return secrets;
 }
@@ -72,13 +75,21 @@ export function apply_secrets(
 	secrets: WorkflowSecrets
 ): Workflow {
 	if (Object.keys(secrets).length === 0) return wf;
+	const restore = <T extends AnyNode>(node: T): T => {
+		const data = { ...node.data };
+		let found = false;
+		for (const port of secret_ports(node)) {
+			const stored = secrets[`${node.id}:${port}`];
+			if (typeof stored === "string") {
+				data[port] = stored;
+				found = true;
+			}
+		}
+		return found ? { ...node, data } : node;
+	};
 	return {
 		...wf,
-		references: wf.references.map((node) => {
-			const port = is_secret(node) ? value_port(node) : undefined;
-			const stored = secrets[node.id];
-			if (!port || typeof stored !== "string") return node;
-			return { ...node, data: { ...node.data, [port]: stored } };
-		})
+		references: wf.references.map(restore),
+		operators: wf.operators.map(restore)
 	};
 }
