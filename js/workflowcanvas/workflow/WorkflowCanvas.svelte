@@ -362,18 +362,26 @@
 			});
 		} else {
 			markArrangedBaseline();
-			if (checkOverlap) {
-				// Same two frames as above: overlap only shows with real heights.
-				requestAnimationFrame(() =>
-					requestAnimationFrame(() => {
-						if (!nodesOverlap(flatView.nodes)) return;
-						autoLayout();
-						markArrangedBaseline();
-						requestAnimationFrame(zoomToFit);
-					})
-				);
-			}
+			overlapCheckPending = checkOverlap;
 		}
+	});
+
+	// Hydration can add ports and grow model cards, so check after it settles,
+	// once the cards have measured. Skipped if the viewer has moved anything.
+	let overlapCheckPending = $state(false);
+	$effect(() => {
+		if (!overlapCheckPending || !hydrationSettled) return;
+		overlapCheckPending = false;
+		requestAnimationFrame(() =>
+			requestAnimationFrame(() => {
+				const moved =
+					layout_signature(extract_layout(get(workflow))) !== arrangedBaseline;
+				if (moved || !nodesOverlap(flatView.nodes)) return;
+				autoLayout();
+				markArrangedBaseline();
+				requestAnimationFrame(zoomToFit);
+			})
+		);
 	});
 
 	// The arrangement this canvas started from — the file's own, or the one

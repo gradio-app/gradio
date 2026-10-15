@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Gradio } from "@gradio/utils";
+	import { Gradio, on_page_info } from "@gradio/utils";
 	import { get } from "svelte/store";
 	import WorkflowCanvas from "./workflow/WorkflowCanvas.svelte";
 	import AppIcon from "./workflow/icons/AppIcon.svelte";
@@ -151,12 +151,11 @@
 		};
 	});
 
+	// Tells Blocks to fit an embedding iframe (Spaces) to the screen.
 	$effect(() => {
-		// Tells Blocks to fit an embedding iframe (Spaces) to the screen.
-		document.documentElement.toggleAttribute(
-			"data-gradio-cover",
-			view === "canvas"
-		);
+		const root = document.documentElement;
+		root.toggleAttribute("data-gradio-cover", view === "canvas");
+		return () => root.removeAttribute("data-gradio-cover");
 	});
 
 	// While the canvas covers the page, keep the app underneath out of the tab
@@ -188,14 +187,14 @@
 		const update = (): void => {
 			frame_lift = Math.max(0, window.innerHeight - visible_bottom);
 		};
-		window.parentIFrame?.getPageInfo((page) => {
+		const unsubscribe = on_page_info((page) => {
 			visible_bottom = page.scrollTop + page.clientHeight - page.offsetTop;
 			update();
 		});
 		window.addEventListener("resize", update);
 		return () => {
 			window.removeEventListener("resize", update);
-			window.parentIFrame?.getPageInfo(false);
+			unsubscribe();
 		};
 	});
 

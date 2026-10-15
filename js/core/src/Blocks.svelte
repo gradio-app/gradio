@@ -18,7 +18,7 @@
 	import type { ThemeMode, Payload } from "./types";
 	import { LiveStatus, Toast } from "@gradio/statustracker";
 	import type { LoadingStatusArgs, ToastMessage } from "@gradio/statustracker";
-	import { type ShareData, GRADIO_ROOT } from "@gradio/utils";
+	import { type ShareData, GRADIO_ROOT, on_page_info } from "@gradio/utils";
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
@@ -444,27 +444,23 @@
 		return bottom;
 	}
 
-	// A full-page overlay (the workflow canvas) sets this on <html>. The content
-	// under it is hidden, so size the frame to fit the parent's viewport instead
-	// of that content: otherwise the overlay outgrows the screen and, since it
-	// takes wheel events, the page around the frame can't be scrolled back to.
-	let sizing_to_viewport = false;
+	// While a full-page overlay (the workflow canvas) sets this on <html>, fit
+	// the frame to the parent's viewport rather than the hidden content under it.
+	let stop_viewport_sizing: (() => void) | null = null;
 
 	function handle_resize(): void {
 		if (!("parentIFrame" in window)) return;
 		const covered = "gradioCover" in document.documentElement.dataset;
-		if (covered !== sizing_to_viewport) {
-			sizing_to_viewport = covered;
-			// Called with every parent scroll / resize until passed `false`.
-			window.parentIFrame?.getPageInfo(
-				covered
-					? (info) =>
-							window.parentIFrame?.size(
-								Math.max(info.clientHeight - info.offsetTop, 320)
-							)
-					: false
+		if (covered && !stop_viewport_sizing) {
+			stop_viewport_sizing = on_page_info((page) =>
+				window.parentIFrame?.size(
+					Math.max(page.scrollTop + page.clientHeight - page.offsetTop, 320)
+				)
 			);
-			if (!covered) reset_resize_growth(resize_state);
+		} else if (!covered && stop_viewport_sizing) {
+			stop_viewport_sizing();
+			stop_viewport_sizing = null;
+			Object.assign(resize_state, create_resize_state());
 		}
 		if (covered) return;
 		const el = root_container.children[0] as HTMLElement | undefined;
@@ -535,6 +531,7 @@
 
 		return () => {
 			disconnect_iframe_resizer();
+			stop_viewport_sizing?.();
 			mutation_observer?.disconnect();
 			mutation_observer = null;
 			res.disconnect();
