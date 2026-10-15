@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Gradio, on_page_info } from "@gradio/utils";
+	import { Loader } from "@gradio/statustracker";
 	import { get } from "svelte/store";
 	import WorkflowCanvas from "./workflow/WorkflowCanvas.svelte";
 	import AppIcon from "./workflow/icons/AppIcon.svelte";
@@ -45,17 +46,28 @@
 	// An explicit choice (the `?ui=` param, or a toggle) wins over the default.
 	let chosen = $state<View | null>(read_view_param());
 	// Until the server confirms write access, guess from what this browser
-	// already knows, so neither view flashes for the common case: locally the
-	// write token is in the URL or a cookie; on a Space most visitors aren't
-	// the owner, so an owner sees the app for a moment before the canvas.
-	const predicted: View =
+	// already knows: locally the write token is in the URL or a cookie. On a
+	// Space there's nothing to go on (sign-in lives in an HttpOnly session
+	// cookie), and either guess makes someone watch the page switch views, so
+	// show the loading indicator until the server answers. That answer is
+	// quick for anyone not signed in, and is given up on after a few seconds.
+	const on_space =
 		typeof window !== "undefined" &&
-		!window.location.hostname.endsWith(".hf.space") &&
-		has_write_token_hint()
+		window.location.hostname.endsWith(".hf.space");
+	const predicted: View | null = on_space
+		? null
+		: has_write_token_hint()
 			? "canvas"
 			: "app";
+	const ACCESS_WAIT_MS = 3000;
+	let access_wait_over = $state(false);
+	$effect(() => {
+		const timer = setTimeout(() => (access_wait_over = true), ACCESS_WAIT_MS);
+		return () => clearTimeout(timer);
+	});
 
-	const view: View = $derived(
+	// `null` while waiting on the server, before either view is shown.
+	const view: View | null = $derived(
 		!app_view_id
 			? "canvas"
 			: (chosen ??
@@ -63,7 +75,7 @@
 						? auth.canWrite
 							? "canvas"
 							: "app"
-						: predicted))
+						: (predicted ?? (access_wait_over ? "app" : null))))
 	);
 
 	// Mount the canvas the first time it's shown and keep it mounted after, so
@@ -71,9 +83,15 @@
 	// it don't pay for it at all.
 	let canvas_mounted = $state(false);
 	let canvas_dirty = $state(false);
+	let canvas_ready = $state(false);
 	$effect.pre(() => {
 		if (view === "canvas") canvas_mounted = true;
 	});
+	// The canvas starts on a placeholder workflow and swaps in the real one once
+	// it knows where this viewer's layout is stored, so keep it covered until then.
+	const loading = $derived(
+		!!app_view_id && (!view || (view === "canvas" && !canvas_ready))
+	);
 
 	function set_view(next: View): void {
 		chosen = next;
@@ -160,6 +178,8 @@
 
 	// While the canvas covers the page, keep the app underneath out of the tab
 	// order / accessibility tree and stop the page behind it from scrolling.
+	// `data-view` reveals the app: the stylesheet `gr.Workflow` launches with
+	// keeps it hidden until then, so it can't paint before a view is chosen.
 	$effect(() => {
 		if (!app_view_id) return;
 		const covered = view === "canvas";
@@ -170,7 +190,8 @@
 				frame = requestAnimationFrame(apply);
 				return;
 			}
-			el.toggleAttribute("inert", covered);
+			el.toggleAttribute("inert", view !== "app");
+			if (view) el.dataset.view = view;
 		};
 		apply();
 		document.documentElement.style.overflow = covered ? "hidden" : "";
@@ -246,6 +267,7 @@
 			{auth}
 			active={view === "canvas"}
 			bind:dirty={canvas_dirty}
+			bind:ready={canvas_ready}
 		/>
 	</div>
 {/if}
@@ -257,7 +279,16 @@
 	</div>
 {/if}
 
-{#if app_view_id}
+{#if loading}
+	<!-- The page's own loading indicator, held while the server says which
+	     view this visitor gets, and then until the canvas has the workflow. -->
+	<div class="view-pending" role="status">
+		<Loader />
+		<p>{gradio.i18n("common.loading")}...</p>
+	</div>
+{/if}
+
+{#if app_view_id && view && !loading}
 	<div
 		class="view-toggle"
 		class:on-canvas={view === "canvas"}
@@ -298,6 +329,19 @@
 
 	.workflow-fullscreen.hidden {
 		display: none;
+	}
+
+	.view-pending {
+		position: fixed;
+		inset: 0;
+		/* Over the canvas (100), which mounts underneath while it loads. */
+		z-index: 102;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		background: var(--body-background-fill);
+		color: var(--body-text-color);
 	}
 
 	/* Bottom-left in both views, above the canvas overlay. The theme variables

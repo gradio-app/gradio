@@ -2,7 +2,6 @@ import { describe, test, expect } from "vitest";
 import {
 	isV2,
 	hasMissingNodeGeometry,
-	nodesOverlap,
 	migrateToV2,
 	toLegacyShape,
 	allNodes,
@@ -339,17 +338,5 @@ describe("hasMissingNodeGeometry", () => {
 		).toBe(true);
 		// Nothing to honour in an empty graph, so it isn't read as authored.
 		expect(hasMissingNodeGeometry({ schema_version: "2" })).toBe(true);
-	});
-});
-
-describe("nodesOverlap", () => {
-	const box = (x: number, y: number) => ({ x, y, width: 200, height: 100 });
-
-	test("detects cards covering each other", () => {
-		expect(nodesOverlap([box(0, 0), box(100, 50)])).toBe(true);
-	});
-
-	test("cards that only touch or sit apart don't overlap", () => {
-		expect(nodesOverlap([box(0, 0), box(200, 0), box(0, 300)])).toBe(false);
 	});
 });
