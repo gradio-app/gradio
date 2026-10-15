@@ -1267,6 +1267,11 @@ def log_message(
 
     blocks = LocalContext.blocks.get(None)
     event_id = LocalContext.event_id.get(None)
+    notifier = LocalContext.stream_notifier.get(None)
+    if event_id is None and notifier is not None:
+        # Called from a gr.WebRTC stream handler: shown on that stream's page
+        notifier.send(level, message, title, duration, visible)
+        return
     if blocks is None or event_id is None:
         # Function called outside of Gradio if blocks is None
         # Or from /api/predict if event_id is None

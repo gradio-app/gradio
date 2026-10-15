@@ -161,6 +161,8 @@ class Queue:
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = []
+        # Streams that got their next chunk and wait for a worker slot again
+        self.streams_waiting_for_worker = 0
         self.delete_lock = safe_get_lock()
         self.server_app = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
@@ -284,7 +286,22 @@ class Queue:
         # with such a client: the history would otherwise grow without bound
         resumable = self.resumable_sessions.get(event.session_hash)
         if resumable is not None and resumable.acknowledges:
-            resumable.history.append(event_message)
+            history = resumable.history
+            # Each call of a stream event sends whole output values, unless its
+            # function is a generator (whose outputs are diffs), so only the
+            # latest is worth replaying. A stream can run for hours.
+            if (
+                event_message.msg == ServerMessage.process_streaming
+                and not event.fn.types_generator
+            ):
+                for i in range(len(history) - 1, -1, -1):
+                    if (
+                        history[i].event_id == event_message.event_id
+                        and history[i].msg == ServerMessage.process_streaming
+                    ):
+                        del history[i]
+                        break
+            history.append(event_message)
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
 
@@ -359,7 +376,14 @@ class Queue:
         has_unacknowledged_history = resumable and any(
             message.event_id for message in resumable.history
         )
-        if not pending_ids and not has_unacknowledged_history:
+        if (
+            not pending_ids
+            and not has_unacknowledged_history
+            # An open message stream keeps reading this session's queue; the
+            # session is deleted when the stream closes instead. Deleting it
+            # now would leave the stream waiting on a queue nothing writes to.
+            and not (resumable and resumable.active_streams)
+        ):
             self.pending_event_ids_session.pop(session_hash, None)
             await self.delete_session(session_hash)
         else:
@@ -721,7 +745,10 @@ class Queue:
                     q.queue.remove(event)
                     self.event_ids_to_events.pop(event_id, None)
                 except ValueError:
-                    pass
+                    return
+            # Everyone behind it moves up
+            if self.live_updates:
+                self.broadcast_estimations(event.concurrency_id)
 
     def _cancel_asyncio_tasks(self):
         for task in list(self._asyncio_tasks):
@@ -771,13 +798,20 @@ class Queue:
                     await asyncio.sleep(self.sleep_when_free)
                     continue
 
-                if None not in self.active_jobs:
+                # A running stream that has its next chunk goes before new
+                # events, so that a busy queue delays new work instead of
+                # stalling streams that already started
+                if None not in self.active_jobs or self.streams_waiting_for_worker:
                     await asyncio.sleep(self.sleep_when_free)
                     continue
 
                 # Using mutex to avoid editing a list in use
                 async with self.delete_lock:
-                    event_batch = self.get_events()
+                    # A stream may have taken the free slot while this waited
+                    # for the lock
+                    event_batch = (
+                        self.get_events() if None in self.active_jobs else None
+                    )
 
                 if event_batch:
                     events, batch, concurrency_id = event_batch
@@ -892,12 +926,17 @@ class Queue:
 
         for event in events.values():
             event.alive = False
+            # A stream waiting for its next chunk ends now instead of holding
+            # its slot until the wait times out
+            event.signal.set()
 
+        left_lines: set[str] = set()
         async with self.delete_lock:
             for event in events.values():
                 queue = self.event_queue_per_concurrency_id[event.concurrency_id].queue
                 if event in queue:
                     queue.remove(event)
+                    left_lines.add(event.concurrency_id)
                 self.event_ids_to_events.pop(event._id, None)
 
             if session_hash:
@@ -909,6 +948,10 @@ class Queue:
                     pending_ids.discard(event_id)
                     if not pending_ids:
                         self.pending_event_ids_session.pop(current_session_hash)
+        # Everyone behind the events that left moves up
+        if self.live_updates:
+            for concurrency_id in left_lines:
+                self.broadcast_estimations(concurrency_id)
 
     async def notify_clients(self) -> None:
         """
@@ -930,11 +973,14 @@ class Queue:
         if event_queue.current_concurrency == event_queue.concurrency_limit:
             expected_end_times = []
             for fn, start_times in event_queue.start_times_per_fn.items():
-                if fn not in self.process_time_per_fn:
+                # A stream holds its slot until it is closed or reaches its
+                # time limit, so without a time limit there is no telling
+                # when the slot frees up
+                if fn.connection == "stream" and fn.time_limit is not None:
+                    process_time = fn.time_limit
+                elif fn.connection == "stream" or fn not in self.process_time_per_fn:
                     time_till_available_worker = None
                     break
-                if fn.connection == "stream":
-                    process_time = fn.time_limit or 0
                 else:
                     process_time = self.process_time_per_fn[fn].avg_time
                 expected_end_times += [
@@ -950,6 +996,8 @@ class Queue:
             process_time_for_fn = (
                 self.process_time_per_fn[event.fn].avg_time
                 if event.fn in self.process_time_per_fn
+                else 0
+                if event.streaming
                 else None
             )
 
@@ -976,13 +1024,17 @@ class Queue:
                 )
             if event_queue.concurrency_limit is None:
                 wait_so_far = 0
+            elif event.streaming and event.fn.time_limit is None:
+                wait_so_far = None
             elif wait_so_far is not None and process_time_for_fn is not None:
-                delta = process_time_for_fn / event_queue.concurrency_limit
-                if event.streaming:
-                    delta = (
-                        time_till_available_worker or 0
-                    ) / event_queue.concurrency_limit
-                wait_so_far += delta
+                # A stream ahead in line can hold its slot for its whole time
+                # limit once it gets one
+                held_for = (
+                    cast(float, event.fn.time_limit)
+                    if event.streaming
+                    else process_time_for_fn
+                )
+                wait_so_far += held_for / event_queue.concurrency_limit
             else:
                 wait_so_far = None
 
@@ -1007,10 +1059,14 @@ class Queue:
     ) -> Literal["signal", "timeout"]:
         t1 = asyncio.create_task(Queue.wait_for_event(event))
         t2 = asyncio.create_task(Queue.timeout(timeout))
-        done, _ = await asyncio.wait(
+        done, pending = await asyncio.wait(
             [t1, t2],
             return_when=asyncio.FIRST_COMPLETED,
         )
+        # A stream can be woken many times a second; each wake would otherwise
+        # leave a task sleeping for the whole timeout
+        for task in pending:
+            task.cancel()
         done = [d.result() for d in done]
         event.signal.clear()
         return cast(Literal["signal", "timeout"], done[0])
@@ -1038,6 +1094,24 @@ class Queue:
                 closed_events.append(event)
         return awake_events, closed_events
 
+    async def take_worker_back(self, job: list[Event]) -> bool:
+        """
+        Waits for a worker slot for a stream that got its next chunk. Returns
+        False, without a slot, when its events were dropped meanwhile.
+        """
+        self.streams_waiting_for_worker += 1
+        try:
+            while None not in self.active_jobs:
+                if not any(event.alive for event in job):
+                    return False
+                await asyncio.sleep(self.sleep_when_free)
+            if not any(event.alive for event in job):
+                return False
+            self.active_jobs[self.active_jobs.index(None)] = job
+            return True
+        finally:
+            self.streams_waiting_for_worker -= 1
+
     async def process_events(
         self,
         events: list[Event],
@@ -1047,6 +1121,7 @@ class Queue:
     ) -> None:
         awake_events: list[Event] = []
         success = False
+        job = events
         try:
             for event in events:
                 if event.alive:
@@ -1178,6 +1253,11 @@ class Queue:
                     try:
                         start = time.monotonic()
                         if awake_events[0].streaming:
+                            # A stream computes nothing while it waits for its
+                            # next chunk, so it gives its worker slot back
+                            # meanwhile. It keeps its place in the concurrency
+                            # limit of its function.
+                            self.active_jobs[self.active_jobs.index(job)] = None
                             awake_events, closed_events = await Queue.wait_for_batch(
                                 awake_events,
                                 # We need to wait for all of the events to have the latest input data
@@ -1194,8 +1274,18 @@ class Queue:
                                         output=response, success=True
                                     ),
                                 )
+                            # Woken because its session dropped it
+                            awake_events = [
+                                event for event in awake_events if event.alive
+                            ]
                         if not awake_events:
                             break
+                        if awake_events[0].streaming:
+                            if not await self.take_worker_back(job):
+                                break
+                            awake_events = [
+                                event for event in awake_events if event.alive
+                            ]
                         # Re-read the event's fn, which may have been swapped out
                         # if the app was hot-reloaded while this event was generating
                         fn = awake_events[0].fn
@@ -1317,7 +1407,9 @@ class Queue:
                 if not start_times:
                     del event_queue.start_times_per_fn[fn]
             try:
-                self.active_jobs[self.active_jobs.index(events)] = None
+                # The slot holds the list the job started with; `events` may
+                # since have dropped events that were already gone
+                self.active_jobs[self.active_jobs.index(job)] = None
             except ValueError:
                 # `events` can be absent from `self.active_jobs`
                 # when this coroutine is called from the `join_queue` endpoint handler in `routes.py`

@@ -24,6 +24,7 @@
 	import { prefix_css } from "./css";
 	import { execute_custom_js } from "./custom_js";
 	import { reactive_formatter } from "./gradio_helper";
+	import { event_toast } from "./toast";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
@@ -129,16 +130,20 @@
 		event: string,
 		data: unknown
 	): void {
+		const toast = event_toast(event, data);
 		if (event === "share") {
 			const { title, description } = data as ShareData;
 			// trigger_share(title, description);
 			// TODO: lets combine all of the into a log type with levels
-		} else if (event === "error") {
-			new_message("Error", data as string, -1, event, 10, true);
-		} else if (event === "warning") {
-			new_message("Warning", data as string, -1, event, 10, true);
-		} else if (event === "info") {
-			new_message("Info", data as string, -1, event, 10, true);
+		} else if (toast) {
+			new_message(
+				toast.title,
+				toast.message,
+				-1,
+				toast.type,
+				toast.duration,
+				toast.visible
+			);
 		} else if (event === "gradio_expand" || event === "gradio_tab_select") {
 			reset_resize_growth(resize_state);
 			const id_ =

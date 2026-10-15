@@ -544,7 +544,12 @@ export class DependencyManager {
 
 								// handle status updates here
 								if (result.stage === "complete") {
-									stream_state = "closed";
+									// Only a stream closes: for any other event, a "closed"
+									// stream_state would reach its input components and end
+									// a stream one of them is running
+									if (dep.connection_type === "stream") {
+										stream_state = "closed";
+									}
 									success.forEach((dep_id) => {
 										this.dispatch({
 											type: "fn",
@@ -768,6 +773,37 @@ export class DependencyManager {
 			.filter(({ fn_index }) => this.dependencies_by_fn.has(fn_index));
 	}
 
+	/**
+	 * Reads what the server replays for a resumed event while it keeps coming:
+	 * how the event ended if it already had, "gone" when the server no longer
+	 * has it, or null when it is still running.
+	 */
+	async replayed_outcome(
+		submission: ReturnType<Client["resume_jobs"]>[number]
+	): Promise<"complete" | "error" | "gone" | null> {
+		const iterator = submission[Symbol.asyncIterator]();
+		// The replay starts once the stream to the server opens, then arrives
+		// all at once. A stream still waiting in line keeps getting position
+		// updates, hence the overall limit.
+		let wait = 2000;
+		const deadline = Date.now() + 3000;
+		while (Date.now() < deadline) {
+			const next = await Promise.race([
+				iterator.next(),
+				new Promise<null>((resolve) => setTimeout(() => resolve(null), wait))
+			]);
+			if (next === null || next.done) return null;
+			wait = 300;
+			const result = next.value;
+			if (result?.type !== "status") continue;
+			if (result.stage === "complete") return "complete";
+			if (result.stage === "error") {
+				return result.session_not_found ? "gone" : "error";
+			}
+		}
+		return null;
+	}
+
 	async resume(
 		events: ResumableJob[] = this.get_resumable_events()
 	): Promise<void> {
@@ -778,6 +814,28 @@ export class DependencyManager {
 				if (!dep) return;
 
 				const submission = submissions[index];
+				if (dep.connection_type === "stream") {
+					// A stream does not outlive the page: its chunks (or, for
+					// gr.WebRTC, its peer connection) came from the page that was
+					// reloaded, so the event would only hold its place in the
+					// concurrency limit until it timed out. End it, and leave the
+					// component to start a new stream.
+					const outcome = await this.replayed_outcome(submission);
+					submission.close_stream();
+					await submission.acknowledge();
+					// The server no longer has it: nothing to follow up, as for
+					// any other event
+					if (outcome === "gone") return;
+					// A stream that failed runs `.failure()`; one that completed,
+					// or that is ended here as when the user stops it, runs
+					// `.success()` and `.then()`
+					const { success, failure, all } = dep.get_triggers();
+					const chained = outcome === "error" ? failure : [...success, ...all];
+					for (const dep_id of chained) {
+						this.dispatch({ type: "fn", fn_index: dep_id, event_data: null });
+					}
+					return;
+				}
 				this.submissions.set(fn_index, submission);
 				this.loading_stati.update({
 					status: "pending",
@@ -1103,6 +1161,10 @@ export class DependencyManager {
 		const fn_ids = this.get_fns_from_targets(id);
 
 		for (const fn_id of fn_ids) {
+			// Other events of the component (e.g. start_recording) keep running
+			if (this.dependencies_by_fn.get(fn_id)?.connection_type !== "stream") {
+				continue;
+			}
 			const submission = this.submissions.get(fn_id);
 			if (submission) {
 				submission.close_stream();

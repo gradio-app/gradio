@@ -298,6 +298,34 @@ describe("DependencyManager.dispatch", () => {
 		);
 	});
 
+	test("an event that is not a stream does not close its inputs' stream", async () => {
+		// e.g. a change handler that takes a streaming gr.Audio as an input
+		const handler = dependency(0, "handler", [10]);
+		handler.inputs = [11];
+		const client = {
+			submit: () =>
+				submission(
+					(async function* () {
+						yield { type: "status", stage: "pending", queue: true };
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				)
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager([handler], client, update_state);
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+
+		const input_states = update_state.mock.calls
+			.filter(([id]) => id === 11)
+			.map(([, state]) => state.loading_status?.stream_state);
+		expect(input_states).not.toContain("closed");
+	});
+
 	test("settles the input components of a rejected stream event", async () => {
 		const validated = dependency(0, "validated", [10]);
 		validated.inputs = [11];
@@ -352,6 +380,39 @@ describe("DependencyManager.dispatch", () => {
 		expect(painted.map((status) => status?.stream_state)).not.toContain(
 			"waiting"
 		);
+	});
+});
+
+describe("DependencyManager.close_stream", () => {
+	test("closes only the stream events of the component", async () => {
+		const stream = dependency(0, "stream", []);
+		stream.connection = "stream";
+		stream.targets = [[5, "stream"]];
+		const on_start = dependency(1, "on_start", [6]);
+		on_start.targets = [[5, "start_recording"]];
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[stream, on_start],
+			{} as Client,
+			update_state
+		);
+		const submissions = (dependency_manager as any).submissions as Map<
+			number,
+			{ close_stream: () => void }
+		>;
+		const stream_submission = { close_stream: vi.fn() };
+		const start_submission = { close_stream: vi.fn() };
+		submissions.set(0, stream_submission);
+		submissions.set(1, start_submission);
+
+		dependency_manager.close_stream(5);
+
+		expect(stream_submission.close_stream).toHaveBeenCalled();
+		expect(submissions.has(0)).toBe(false);
+		// A handler of another event of the component keeps running, and its
+		// outputs still get its result
+		expect(start_submission.close_stream).not.toHaveBeenCalled();
+		expect(submissions.has(1)).toBe(true);
 	});
 });
 
@@ -436,6 +497,84 @@ describe("DependencyManager.resume", () => {
 
 		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
 		expect(dispatch).not.toHaveBeenCalled();
+	});
+
+	test("ends a stream that was running when the page was reloaded", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "status", stage: "streaming", fn_index: 0, queue: true };
+		}
+		const stream = dependency(0, "stream", []);
+		stream.connection = "stream";
+		const resumed = Object.assign(submission(events()), {
+			close_stream: vi.fn()
+		});
+		const client = {
+			resume_jobs: vi.fn(() => [resumed])
+		} as unknown as Client;
+		const dependency_manager = manager([stream], client);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		// Its chunks came from the page that is gone, so it would only hold its
+		// place in the concurrency limit until it timed out
+		expect(resumed.close_stream).toHaveBeenCalled();
+		expect(resumed.acknowledge).toHaveBeenCalled();
+		// The next "stream" event from the component starts a new stream
+		// instead of sending a chunk to this one
+		expect((dependency_manager as any).submissions.has(0)).toBe(false);
+	});
+
+	test("a stream that had failed before the reload runs its failure handlers", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "status", stage: "pending", fn_index: 0, queue: true };
+			yield { type: "status", stage: "error", fn_index: 0, queue: true };
+		}
+		const [run, then, on_success, on_failure] = chain();
+		run.connection = "stream";
+		const resumed = Object.assign(submission(events()), {
+			close_stream: vi.fn()
+		});
+		const client = {
+			resume_jobs: vi.fn(() => [resumed])
+		} as unknown as Client;
+		const dependency_manager = manager(
+			[run, then, on_success, on_failure],
+			client
+		);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		expect(dispatch.mock.calls.map(([meta]) => (meta as any).fn_index)).toEqual(
+			[3]
+		);
+	});
+
+	test("runs the events chained to a stream it ends after a reload", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "status", stage: "streaming", fn_index: 0, queue: true };
+		}
+		const [run, then, on_success, on_failure] = chain();
+		run.connection = "stream";
+		const resumed = Object.assign(submission(events()), {
+			close_stream: vi.fn()
+		});
+		const client = {
+			resume_jobs: vi.fn(() => [resumed])
+		} as unknown as Client;
+		const dependency_manager = manager(
+			[run, then, on_success, on_failure],
+			client
+		);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		// As when a stream is stopped: .then() and .success() follow it
+		expect(
+			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
+		).toEqual([1, 2]);
 	});
 
 	test("builds the block of a resumed render function", async () => {

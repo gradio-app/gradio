@@ -151,6 +151,7 @@
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/vibeeditor": "workspace:^",
 		"@gradio/video": "workspace:^",
+		"@gradio/webrtc": "workspace:^",
 		"@gradio/workflowcanvas": "workspace:^",
 		"@storybook/addon-a11y": "^10.5.9",
 		"@storybook/addon-docs": "^10.5.9",
