@@ -1170,6 +1170,21 @@ async def cancel_tasks(task_ids: set[str]) -> list[str]:
     return event_ids
 
 
+async def cancel_event_tasks(event_ids: set[str]) -> None:
+    """Cancels the queue tasks running exactly these events. Batched runs have
+    no task name (see `set_task_name`), so they are never cancelled here: they
+    also carry other sessions' events."""
+    matching_tasks = [
+        task
+        for task in asyncio.all_tasks()
+        if "<gradio-sep>" in (name := task.get_name())
+        and name.split("<gradio-sep>")[1] in event_ids
+    ]
+    for task in matching_tasks:
+        task.cancel()
+    await asyncio.gather(*matching_tasks, return_exceptions=True)
+
+
 def set_task_name(task, session_hash: str, fn_index: int, event_id: str, batch: bool):
     if not batch:
         task.set_name(f"{session_hash}_{fn_index}<gradio-sep>{event_id}")

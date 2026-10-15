@@ -156,6 +156,7 @@ from gradio.utils import (
 
 if TYPE_CHECKING:
     from gradio.blocks import Block, BlockFunction
+    from gradio.queueing import Queue
 
 import difflib
 import re
@@ -209,6 +210,93 @@ class ORJSONResponse(JSONResponse):
     @staticmethod
     def _render_str(content: Any) -> str:
         return ORJSONResponse._render(content).decode("utf-8")
+
+
+class OwnEventStreamResponse(StreamingResponse):
+    """sse_v4: streams one event's messages on the request that submitted it,
+    ending with its completion.
+
+    If the client leaves first, a client that can resume (`acknowledges`, as with
+    the session stream) gets the event back on its session's `queue/data` stream:
+    the event keeps running for as long as the session is kept. Any other
+    client's event is cancelled, through `on_abandoned`.
+
+    Cleanup runs in `__call__`, which Starlette always awaits, rather than in the
+    generator: that never starts if the client has left before the response.
+    """
+
+    def __init__(
+        self,
+        request: fastapi.Request,
+        queue: Queue,
+        event_id: str,
+        session_hash: str,
+        on_abandoned: Callable[[str], Awaitable[None]],
+        acknowledges: bool = False,
+    ):
+        self.request = request
+        self.queue = queue
+        self.event_id = event_id
+        self.session_hash = session_hash
+        self.on_abandoned = on_abandoned
+        # Attached to the session (see `queue_join_helper`), so detached here
+        self.acknowledges = acknowledges
+        self.finished = False
+        super().__init__(self.stream(), media_type="text/event-stream")
+
+    async def stream(self) -> AsyncIterator[str]:
+        messages = self.queue.pending_messages_per_event[self.event_id]
+        heartbeat_rate = utils.get_heartbeat_rate()
+        while True:
+            try:
+                message = await asyncio.wait_for(messages.get(), timeout=heartbeat_rate)
+            except (TimeoutError, asyncio.TimeoutError):
+                # Keeps proxies from closing an idle connection while the event
+                # waits in the queue.
+                message = HeartbeatMessage()
+            if self.queue.stopped:
+                message = UnexpectedErrorMessage(
+                    message="Server stopped unexpectedly.", success=False
+                )
+            yield f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
+            if isinstance(message, (ProcessCompletedMessage, UnexpectedErrorMessage)):
+                self.finished = True
+                return
+            # Under uvicorn, Starlette stops this stream as soon as the client
+            # disconnects; servers on ASGI spec 2.4+ only report it here or when
+            # a send fails.
+            if await self.request.is_disconnected():
+                return
+
+    async def __call__(self, scope, receive, send) -> None:
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            # Starlette stops the stream by cancelling an anyio scope, which
+            # would also cancel the awaits in `close`.
+            with anyio.CancelScope(shield=True):
+                await self.close()
+
+    async def close(self) -> None:
+        queue = self.queue
+        if not self.finished and self.acknowledges and queue.resume_ttl > 0:
+            # The page resumes it after a refresh or a dropped connection, so
+            # it stays pending, with its messages kept in the session's history.
+            queue.move_to_session_stream(self.event_id, self.session_hash)
+        else:
+            queue.pending_messages_per_event.pop(self.event_id, None)
+            event_ids = queue.pending_event_ids_session.get(self.session_hash)
+            if event_ids is not None:
+                event_ids.discard(self.event_id)
+                if not event_ids:
+                    queue.pending_event_ids_session.pop(self.session_hash, None)
+            if not self.finished:
+                await self.on_abandoned(self.event_id)
+            # A fully cached event never reaches `process_events`, which is
+            # what normally forgets it.
+            queue.event_ids_to_events.pop(self.event_id, None)
+        if self.acknowledges:
+            await queue.mark_session_detached(self.session_hash)
 
 
 def toorjson(value):
@@ -1774,18 +1862,31 @@ class App(FastAPI):
             body: PredictBody,
             request: fastapi.Request,
             username: str = Depends(get_current_user),
+            acknowledgements: bool = False,
         ):
             if body.session_hash is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Session hash not found.",
                 )
-            return await queue_join_helper(body, request, username)
+            # sse_v4 clients ask for the event's messages on this response,
+            # so the event never depends on a second request reaching this
+            # process. Everyone else gets an event id to read from `queue/data`.
+            own_stream = "text/event-stream" in request.headers.get("accept", "")
+            return await queue_join_helper(
+                body,
+                request,
+                username,
+                own_stream=own_stream,
+                acknowledgements=acknowledgements,
+            )
 
         async def queue_join_helper(
             body: PredictBody,
             request: fastapi.Request,
             username: str,
+            own_stream: bool = False,
+            acknowledgements: bool = False,
         ):
             blocks = app.get_blocks()
 
@@ -1805,9 +1906,23 @@ class App(FastAPI):
                     fn = None
                 if fn is not None:
                     resolve_client_state(body, fn, username, request)
-            success, event_id, state = await blocks._queue.push(
-                body=body, request=request, username=username
-            )
+            # A client that can resume keeps the session's history from the
+            # event's first message on, like its session stream does.
+            attach = own_stream and acknowledgements
+            if attach:
+                blocks._queue.mark_session_attached(cast(str, body.session_hash))
+            try:
+                success, event_id, state = await blocks._queue.push(
+                    body=body, request=request, username=username, own_stream=own_stream
+                )
+            except BaseException:
+                if attach:
+                    await blocks._queue.mark_session_detached(
+                        cast(str, body.session_hash)
+                    )
+                raise
+            if attach and not success:
+                await blocks._queue.mark_session_detached(cast(str, body.session_hash))
             error_map = {
                 "queue_full": status.HTTP_503_SERVICE_UNAVAILABLE,
                 "validator_error": status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -1818,7 +1933,38 @@ class App(FastAPI):
             if not success:
                 status_code = error_map[state]
                 raise HTTPException(status_code=status_code, detail=event_id)
+            if own_stream:
+                return OwnEventStreamResponse(
+                    request,
+                    blocks._queue,
+                    cast(str, event_id),
+                    cast(str, body.session_hash),
+                    on_abandoned=cancel_own_stream_event,
+                    acknowledges=attach,
+                )
             return {"event_id": event_id}
+
+        async def cancel_own_stream_event(event_id: str):
+            """Does for a single event what `/cancel` does for a session's
+            events of one function: drops it from the queue, or stops it if it
+            is running."""
+            queue = app.get_blocks()._queue
+            await queue.clean_events(event_id=event_id)
+            await utils.cancel_event_tasks({event_id})
+            await close_event_iterator(event_id)
+
+        async def close_event_iterator(event_id: str):
+            if event_id not in app.iterators:
+                return
+            async with app.lock:
+                if event_id not in app.iterators:
+                    return
+                try:
+                    await safe_aclose_iterator(app.iterators[event_id])
+                except Exception:
+                    pass
+                del app.iterators[event_id]
+                app.iterators_to_reset.add(event_id)
 
         @router.post("/cancel")
         async def cancel_event(body: CancelBody):
@@ -1833,21 +1979,17 @@ class App(FastAPI):
                 in blocks._queue.pending_event_ids_session.get(body.session_hash, {})
             )
             await blocks._queue.remove_from_queue(body.event_id)
-            if session_open and event_running:
-                message = ProcessCompletedMessage(
-                    output={}, success=True, event_id=body.event_id
-                )
+            message = ProcessCompletedMessage(
+                output={}, success=True, event_id=body.event_id
+            )
+            own_messages = blocks._queue.pending_messages_per_event.get(body.event_id)
+            if own_messages is not None:
+                own_messages.put_nowait(message)
+            elif session_open and event_running:
                 blocks._queue.pending_messages_per_session[
                     body.session_hash
                 ].put_nowait(message)
-            if body.event_id in app.iterators:
-                async with app.lock:
-                    try:
-                        await safe_aclose_iterator(app.iterators[body.event_id])
-                    except Exception:
-                        pass
-                    del app.iterators[body.event_id]
-                    app.iterators_to_reset.add(body.event_id)
+            await close_event_iterator(body.event_id)
             return {"success": True}
 
         @router.post("/queue/close", dependencies=[Depends(login_check)])
