@@ -460,6 +460,49 @@ class TestVideo:
         assert Path(result.path).parent.parent == Path(video.GRADIO_CACHE)
 
     @pytest.mark.requires_ffmpeg
+    def test_format_conversion_refuses_a_blocked_source(self, tmp_path):
+        from gradio.context import LocalContext
+        from gradio.exceptions import InvalidPathError
+
+        private = tmp_path / "private"
+        private.mkdir()
+        source = private / "clip.mp4"
+        shutil.copy("test/test_files/video_sample.mp4", source)
+
+        blocks = gr.Blocks()
+        blocks.has_launched = True
+        blocks.allowed_paths = []
+        blocks.blocked_paths = [str(private)]
+        token = LocalContext.blocks.set(blocks)
+        video = gr.Video(format="avi")
+        video.GRADIO_CACHE = str(tmp_path / "cache")
+        try:
+            with pytest.raises(InvalidPathError):
+                video.postprocess(str(source))
+        finally:
+            LocalContext.blocks.reset(token)
+        assert not (tmp_path / "cache").exists() or not any(
+            f.is_file() for f in (tmp_path / "cache").rglob("*")
+        )
+
+    @pytest.mark.requires_ffmpeg
+    def test_watermarking_an_unplayable_video_leaves_only_the_result(self, tmp_path):
+        source = tmp_path / "clip.mkv"
+        shutil.copy("test/test_files/playable_but_bad_container.mkv", source)
+
+        video = gr.Video(
+            watermark=gr.WatermarkOptions(
+                watermark=str(Path(__file__).parents[1] / "test_files" / "bus.png")
+            )
+        )
+        video.GRADIO_CACHE = str(tmp_path / "cache")
+        result = video.postprocess(str(source))
+
+        assert result
+        cached_files = [f for f in (tmp_path / "cache").rglob("*") if f.is_file()]
+        assert cached_files == [Path(result.path)]
+
+    @pytest.mark.requires_ffmpeg
     @pytest.mark.asyncio
     async def test_stream_output_returns_a_flat_payload_and_chunk(self, tmp_path):
         component = gr.Video(streaming=True)
@@ -1254,6 +1297,18 @@ class TestVideo:
         assert "flip" not in Path(list(output_params.keys())[0]).name
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
+
+    @patch("gradio.components.video.FFmpeg")
+    def test_format_conversion_output_depends_on_include_audio(
+        self, mock_ffmpeg, tmp_path
+    ):
+        upload = FileData(path=str(tmp_path / "clip.avi"))
+        with_audio = gr.Video(format="mp4", include_audio=True).preprocess(upload)
+        without_audio = gr.Video(format="mp4", include_audio=False).preprocess(upload)
+
+        assert with_audio
+        assert without_audio
+        assert with_audio != without_audio
 
 
 def test_is_video_correct_length():
