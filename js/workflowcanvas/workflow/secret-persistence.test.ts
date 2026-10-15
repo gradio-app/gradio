@@ -81,7 +81,6 @@ describe("secrets never reach workflow.json", () => {
 		const saved = sanitize_for_save(wf);
 		expect(saved.references[0].data).toEqual({});
 		expect(saved.references[1].data).toEqual({ out: "a cat" });
-		// structural, so the node still opens masked
 		expect(saved.references[0].type).toBe("password");
 	});
 });
@@ -91,7 +90,6 @@ describe("per-viewer mirror", () => {
 		const wf = workflowWith(reference("key", "sk-live-123", true));
 		save_secrets("Test", extract_secrets(wf), storage);
 
-		// what a reload sees: the file, with no value in it
 		const fromFile = workflowWith(reference("key", "", true));
 		const restored = apply_secrets(fromFile, load_secrets("Test", storage));
 		expect(restored.references[0].data.out).toBe("sk-live-123");

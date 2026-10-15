@@ -740,7 +740,7 @@
 		-webkit-user-select: text;
 	}
 
-	/* A textarea can't be type=password, so mask the glyphs. */
+	/* textarea has no type=password */
 	.widget-text-wrap.masked :global(textarea) {
 		-webkit-text-security: disc;
 		text-security: disc;

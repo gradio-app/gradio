@@ -1,9 +1,4 @@
-/**
- * Per-viewer secrets. An API key is the viewer's, not the author's, and
- * `workflow.json` gets pushed to a Hub repo — so `sanitize_for_save` drops it
- * and it is mirrored here into localStorage instead, keyed by workflow name,
- * the same scheme `layout-persistence.ts` uses for geometry.
- */
+// API keys are per-viewer: kept in localStorage, never written to workflow.json.
 
 import { is_secret, is_secret_port } from "./workflow-types";
 import type { AnyNode, Workflow } from "./workflow-types";
@@ -19,7 +14,6 @@ function default_storage(): Storage | undefined {
 	return typeof localStorage !== "undefined" ? localStorage : undefined;
 }
 
-/** The ports of one node whose values never reach the file. */
 function secret_ports(node: AnyNode): string[] {
 	const ports = node.inputs.filter(is_secret_port).map((p) => p.id);
 	if (is_secret(node) && node.outputs[0]) ports.push(node.outputs[0].id);

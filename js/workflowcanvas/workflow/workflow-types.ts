@@ -34,17 +34,15 @@ export function ports_compatible(a: PortType, b: PortType): boolean {
 	return TEXTUAL.has(a) && TEXTUAL.has(b);
 }
 
-/** The input types `gr.Textbox` offers. */
 export type TextInputType = "text" | "password" | "email";
 
-/** A password textbox's value never leaves the viewer's browser. */
 export function is_secret(node: unknown): boolean {
 	return (node as { type?: string } | null)?.type === "password";
 }
 
 const SECRET_PORT = /\b(api[_-]?key|token|secret|password|passwd)\b/i;
 
-/** An operator input asking for a credential. Its name is the only signal. */
+/** Matched by name only. */
 export function is_secret_port(port: { id?: string; label?: string }): boolean {
 	return SECRET_PORT.test(`${port.label ?? ""} ${port.id ?? ""}`);
 }
@@ -170,9 +168,6 @@ export interface BaseNode {
 export interface ReferenceNode extends BaseNode {
 	role: "reference";
 	asset_type: PortType;
-	/** Mirrors `gr.Textbox`'s `type`, so node and component convert one for one.
-	 * `password` also keeps the value out of the file — see
-	 * `secret-persistence.ts`. */
 	type?: TextInputType;
 	/** Inline literal value, or in a later iteration an `hf://...` URI. */
 	value?: NodeDataValue;

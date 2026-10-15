@@ -403,7 +403,6 @@
 		return () => clearTimeout(timer);
 	});
 
-	// Mirror API keys into this viewer's localStorage — the only place they live.
 	$effect(() => {
 		const wf = $workflow;
 		if (!layoutReady) return;
@@ -2359,7 +2358,7 @@
 					const node = legacyView.nodes.find((n) => n.id === ref.id);
 					const outPort = node?.outputs?.[0];
 					if (!node || !outPort) continue;
-					if (is_secret(ref)) continue; // never upload a key to the bucket
+					if (is_secret(ref)) continue;
 					// User-supplied media lives in a `blob:` object URL that dies
 					// with the tab, and the server can only store a file it can
 					// reach. Upload it first so the record stays loadable.
