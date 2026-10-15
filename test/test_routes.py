@@ -1484,8 +1484,20 @@ class TestRoutes:
             assert resp.status_code == 403
             assert "location" not in resp.headers
 
-    def test_file_endpoint_url_is_not_served_compressed(self, monkeypatch):
+    @pytest.mark.parametrize(
+        "path,decoded",
+        [
+            ("data.json", True),
+            # A stored compressed file mislabelled with `Content-Encoding: gzip`
+            # is served as-is, as browsers do.
+            ("archive.tar.gz", False),
+        ],
+    )
+    def test_file_endpoint_url_is_not_served_compressed(
+        self, monkeypatch, path, decoded
+    ):
         body = b'{"hello": "world"}'
+        compressed = gzip.compress(body)
         upstream_headers = {}
 
         async def stream(data: bytes):
@@ -1499,7 +1511,7 @@ class TestRoutes:
                     "content-type": "application/json",
                     "content-encoding": "gzip",
                 },
-                content=stream(gzip.compress(body)),
+                content=stream(compressed),
             )
 
         async def resolve(host):
@@ -1515,11 +1527,11 @@ class TestRoutes:
         client = TestClient(routes.App.create_app(io))
 
         resp = client.get(
-            f"{API_PREFIX}/file=https://example.com/data.json",
+            f"{API_PREFIX}/file=https://example.com/{path}",
             headers={"Range": "bytes=0-", "If-Range": '"v1"'},
         )
         assert resp.status_code == 200
-        assert resp.content == body
+        assert resp.content == (body if decoded else compressed)
         assert upstream_headers["accept-encoding"] == "identity"
         assert upstream_headers["range"] == "bytes=0-"
         assert upstream_headers["if-range"] == '"v1"'
