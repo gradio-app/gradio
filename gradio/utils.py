@@ -1,7 +1,6 @@
 """Utility helpers shared across Gradio."""
 
 import asyncio
-import contextvars
 import copy
 import dataclasses
 import functools
@@ -876,27 +875,14 @@ def run_sync_iterator_async(iterator):
 class SyncToAsyncIterator:
     """Treat a synchronous iterator as async one."""
 
-    def __init__(
-        self,
-        iterator,
-        limiter,
-        context: contextvars.Context | None = None,
-    ) -> None:
+    def __init__(self, iterator, limiter) -> None:
         self.iterator = iterator
         self.limiter = limiter
-        self.context = context
 
     def __aiter__(self):
         return self
 
     async def __anext__(self):
-        if self.context is not None:
-            return await anyio.to_thread.run_sync(
-                self.context.copy().run,
-                run_sync_iterator_async,
-                self.iterator,
-                limiter=self.limiter,
-            )
         return await anyio.to_thread.run_sync(
             run_sync_iterator_async, self.iterator, limiter=self.limiter
         )
@@ -914,17 +900,8 @@ class SyncToAsyncIterator:
                     raise
 
 
-async def async_iteration(
-    iterator,
-    context: contextvars.Context | None = None,
-):
-    if context is None:
-        return await anext(iterator)
-
-    def create_task():
-        return asyncio.create_task(anext(iterator))
-
-    return await context.copy().run(create_task)
+async def async_iteration(iterator):
+    return await anext(iterator)
 
 
 @contextmanager

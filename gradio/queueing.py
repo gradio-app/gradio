@@ -624,7 +624,6 @@ class Queue:
                     body=body,
                     gr_request=gr_request,
                     fn=validator_fn,
-                    context=context,
                     root_path=root_path,
                 )
 
@@ -687,7 +686,6 @@ class Queue:
                         body=body,
                         gr_request=gr_request,
                         fn=fn,
-                        context=context,
                         root_path=root_path,
                     )
                     while response and response.get("is_generating", False):
@@ -703,7 +701,6 @@ class Queue:
                             body=body,
                             gr_request=gr_request,
                             fn=fn,
-                            context=context,
                             root_path=root_path,
                         )
                 cache_duration = time.time() - cache_start
@@ -828,8 +825,16 @@ class Queue:
                     for event in events:
                         if (a := self.event_analytics.get(event._id)) is not None:
                             a["status"] = "processing"
-                    process_event_task = run_coro_in_background(
-                        self.process_events, events, batch, start_time, fn
+                    context = contextvars.copy_context()
+                    for variable, value in events[0].context.items():
+                        context.run(variable.set, value)
+                    process_event_task = context.run(
+                        run_coro_in_background,
+                        self.process_events,
+                        events,
+                        batch,
+                        start_time,
+                        fn,
                     )
                     set_task_name(
                         process_event_task,
@@ -1098,7 +1103,6 @@ class Queue:
         fn: BlockFunction,
     ) -> None:
         awake_events: list[Event] = []
-        context = events[0].context
         success = False
         try:
             for event in events:
@@ -1173,7 +1177,6 @@ class Queue:
                     body=body,
                     gr_request=gr_request,
                     fn=fn,
-                    context=context,
                     root_path=root_path,
                 )
                 end = time.monotonic()
@@ -1270,7 +1273,6 @@ class Queue:
                             body=body,
                             gr_request=gr_request,
                             fn=fn,
-                            context=context,
                             root_path=root_path,
                         )
                         end = time.monotonic()

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-import contextvars
 import copy
 import dataclasses
 import hashlib
@@ -1888,7 +1886,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         in_event_listener: bool = False,
         state: SessionState | None = None,
         oauth_token: oauth.OAuthToken | None = None,
-        context: contextvars.Context | None = None,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -1904,13 +1901,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             block_fn = self.fns[block_fn]
         if not block_fn.fn:
             raise IndexError("function has no backend method.")
-        if context is not None:
-            # Retain execution context (cache tracking, profiling, etc.) while
-            # restoring the values captured from the queue join request.
-            execution_context = contextvars.copy_context()
-            for variable, value in context.items():
-                execution_context.run(variable.set, value)
-            context = execution_context
         is_generating = False
         request = requests[0] if isinstance(requests, list) else requests
         start = time.time()
@@ -1965,16 +1955,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 fn = partial(fn, **input_kwargs)
 
             if inspect.iscoroutinefunction(fn):
-                if context is not None:
-                    prediction = await context.copy().run(
-                        asyncio.create_task, fn(*processed_input)
-                    )
-                else:
-                    prediction = await fn(*processed_input)
-            elif context is not None:
-                prediction = await anyio.to_thread.run_sync(  # type: ignore
-                    context.copy().run, fn, *processed_input, limiter=self.limiter
-                )
+                prediction = await fn(*processed_input)
             else:
                 prediction = await anyio.to_thread.run_sync(  # type: ignore
                     fn, *processed_input, limiter=self.limiter
@@ -1987,12 +1968,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if iterator is None:
                     iterator = cast(AsyncIterator[Any], prediction)
                 if inspect.isgenerator(iterator):
-                    iterator = utils.SyncToAsyncIterator(
-                        iterator, self.limiter, context
-                    )
-                elif isinstance(iterator, utils.SyncToAsyncIterator):
-                    iterator.context = context
-                prediction = await utils.async_iteration(iterator, context=context)
+                    iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
+                prediction = await utils.async_iteration(iterator)
                 is_generating = True
             except StopAsyncIteration:
                 n_outputs = len(block_fn.outputs)
@@ -2631,7 +2608,6 @@ Received inputs:
         explicit_call: bool = False,
         root_path: str | None = None,
         oauth_token: oauth.OAuthToken | None = None,
-        context: contextvars.Context | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -2696,7 +2672,6 @@ Received inputs:
                     in_event_listener,
                     state,
                     oauth_token,
-                    context=context,
                 )
                 manual_cache_used = used_manual_cache()
             preds = result["prediction"]
@@ -2733,7 +2708,6 @@ Received inputs:
                         in_event_listener,
                         state,
                         oauth_token,
-                        context=context,
                     )
                 manual_cache_used = used_manual_cache()
 
