@@ -25,9 +25,27 @@ export type PortType =
  * tile and a markdown reference can prompt a text input. */
 const TEXTUAL = new Set<PortType>(["text", "markdown"]);
 
+export function is_textual(type: PortType): boolean {
+	return TEXTUAL.has(type);
+}
+
 export function ports_compatible(a: PortType, b: PortType): boolean {
 	if (a === "any" || b === "any" || a === b) return true;
 	return TEXTUAL.has(a) && TEXTUAL.has(b);
+}
+
+export type TextInputType = "text" | "password" | "email";
+
+export function is_secret(node: unknown): boolean {
+	return (node as { type?: string } | null)?.type === "password";
+}
+
+const SECRET_PORT =
+	/(?:^|[^a-z0-9])(api[_-]?key|token|secret|password|passwd)(?:$|[^a-z0-9])/i;
+
+/** Matched by name only. */
+export function is_secret_port(port: { id?: string; label?: string }): boolean {
+	return SECRET_PORT.test(`${port.label ?? ""} ${port.id ?? ""}`);
 }
 
 export interface Port {
@@ -64,6 +82,7 @@ export type NodeStatus = "idle" | "running" | "done" | "error";
 
 export interface WFNode {
 	id: string;
+	type?: TextInputType;
 	kind: "input" | "transform" | "output" | "component";
 	label: string;
 	source: "local" | "space" | "model" | "dataset" | "fn";
@@ -150,6 +169,7 @@ export interface BaseNode {
 export interface ReferenceNode extends BaseNode {
 	role: "reference";
 	asset_type: PortType;
+	type?: TextInputType;
 	/** Inline literal value, or in a later iteration an `hf://...` URI. */
 	value?: NodeDataValue;
 }
