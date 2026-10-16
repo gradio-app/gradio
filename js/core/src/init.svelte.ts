@@ -91,6 +91,14 @@ export class AppTree {
 	/** A list of components that are currently loading */
 	#pending_components: LoadingComponent[] = [];
 
+	/**
+	 * Lookup tables from component id to its node and parent node in `root`.
+	 * Rebuilt lazily after the tree is replaced, so that looking up a node
+	 * on every update does not walk the whole tree.
+	 */
+	#nodes_by_id: Map<number, ProcessedComponentMeta> | null = null;
+	#parents_by_id = new Map<number, ProcessedComponentMeta>();
+
 	#get_callbacks = new Map<number, get_data_type>();
 	#set_callbacks = new Map<number, set_data_type>();
 	#pending_updates = new Map<number, Record<string, unknown>>();
@@ -275,6 +283,7 @@ export class AppTree {
 	process() {}
 
 	postprocess(tree: ProcessedComponentMeta) {
+		this.#nodes_by_id = null;
 		this.root = this.traverse(tree, [
 			(node) => handle_visibility(node, this.#config.api_url),
 			(node) =>
@@ -452,12 +461,13 @@ export class AppTree {
 		const subtree = this.traverse(_subtree, (node) =>
 			apply_initial_tabs(node, this.initial_tabs)
 		);
-		const n = find_node_by_id(this.root!, subtree.id);
+		const n = this.#find_node(subtree.id);
 
 		if (!n) {
 			throw new Error("Rerender failed: root node not found in current tree");
 		}
 		n.children = subtree.children;
+		this.#nodes_by_id = null;
 
 		// push server prop changes into mounted components, skipping undefined
 		// so local edits survive. keys + identity persist.
@@ -506,6 +516,31 @@ export class AppTree {
 			}
 		}
 	}
+
+	#index_tree(): Map<number, ProcessedComponentMeta> {
+		const nodes = new Map<number, ProcessedComponentMeta>();
+		this.#parents_by_id.clear();
+		const visit = (node: ProcessedComponentMeta): void => {
+			nodes.set(node.id, node);
+			for (const child of node.children) {
+				this.#parents_by_id.set(child.id, node);
+				visit(child);
+			}
+		};
+		if (this.root) visit(this.root);
+		this.#nodes_by_id = nodes;
+		return nodes;
+	}
+
+	#find_node(id: number): ProcessedComponentMeta | null {
+		return (this.#nodes_by_id ?? this.#index_tree()).get(id) ?? null;
+	}
+
+	#find_parent(id: number): ProcessedComponentMeta | null {
+		if (!this.#nodes_by_id) this.#index_tree();
+		return this.#parents_by_id.get(id) ?? null;
+	}
+
 	/*
 	 * Updates the state of a component by its ID
 	 * @param id the ID of the component to update
@@ -516,21 +551,21 @@ export class AppTree {
 		new_state: Partial<SharedProps> & Record<string, unknown>,
 		check_visibility = true
 	) {
-		let node = find_node_by_id(this.root!, id);
+		let node = this.#find_node(id);
 		let already_updated_visibility = false;
 		if (check_visibility && !node?.component) {
 			await tick();
 			// Update the node in place. Rebuilding the tree with traverse() here
 			// replaces every node's children array, and two rebuilds racing in one
 			// event (two outputs made visible together) freeze Svelte's reactivity.
-			const updated_node = find_node_by_id(this.root!, id);
+			const updated_node = this.#find_node(id);
 			if (updated_node && "visible" in new_state) {
 				updated_node.props.shared_props.visible =
 					new_state.visible as SharedProps["visible"];
 			}
 			load_components(this.root!, this.#config.api_url);
 			await tick();
-			node = find_node_by_id(this.root!, id);
+			node = this.#find_node(id);
 			already_updated_visibility = true;
 		}
 		const _set_data = this.#set_callbacks.get(id);
@@ -671,7 +706,7 @@ export class AppTree {
 		id: number,
 		node: ProcessedComponentMeta
 	): void {
-		const parent = find_parent(this.root!, id);
+		const parent = this.#find_parent(id);
 		if (!parent || parent.type !== "tabs") return;
 
 		const initial_tabs = parent.props.props.initial_tabs as Tab[];
@@ -724,7 +759,7 @@ export class AppTree {
 	 */
 	async get_state(id: number): Promise<Record<string, unknown> | null> {
 		const _get_data = this.#get_callbacks.get(id);
-		const component = find_node_by_id(this.root!, id);
+		const component = this.#find_node(id);
 		if (!_get_data && !component) return null;
 		if (_get_data) return await _get_data();
 
@@ -735,7 +770,7 @@ export class AppTree {
 	}
 
 	async render_previously_invisible_children(id: number) {
-		const node = find_node_by_id(this.root!, id);
+		const node = this.#find_node(id);
 		if (!node) return;
 
 		const revealed: ProcessedComponentMeta[] = [];
@@ -1094,42 +1129,4 @@ function gather_initial_tabs(
 		}
 	}
 	return single_visit(node);
-}
-
-function find_node_by_id(
-	tree: ProcessedComponentMeta,
-	id: number
-): ProcessedComponentMeta | null {
-	if (tree.id === id) {
-		return tree;
-	}
-
-	if (tree.children) {
-		for (const child of tree.children) {
-			const result = find_node_by_id(child, id);
-			if (result) {
-				return result;
-			}
-		}
-	}
-
-	return null;
-}
-
-function find_parent(
-	tree: ProcessedComponentMeta,
-	id: number
-): ProcessedComponentMeta | null {
-	if (tree.children) {
-		for (const child of tree.children) {
-			if (child.id === id) {
-				return tree;
-			}
-			const result = find_parent(child, id);
-			if (result) {
-				return result;
-			}
-		}
-	}
-	return null;
 }

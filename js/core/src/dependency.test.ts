@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { settled } from "svelte";
 import type { Client } from "@gradio/client";
 import { DependencyManager, process_frontend_fn } from "./dependency";
 import type { Dependency as DependencyConfig } from "./types";
@@ -334,6 +335,155 @@ describe("DependencyManager.dispatch", () => {
 		// stream_state alone, so settling the status is not enough on its own.
 		expect(painted.map((status) => status?.stream_state)).not.toContain(
 			"waiting"
+		);
+	});
+
+	test("pushes loading status only to the components whose status changed", async () => {
+		const client = {
+			submit: () =>
+				(async function* () {
+					yield { type: "status", stage: "complete", queue: true };
+				})()
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[dependency(0, "first", [10, 11]), dependency(1, "second", [20])],
+			client,
+			update_state
+		);
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+		update_state.mockClear();
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 1,
+			event_data: null
+		});
+
+		const painted_ids = update_state.mock.calls
+			.filter(([, state]) => "loading_status" in state)
+			.map(([id]) => id);
+		expect(painted_ids).toContain(20);
+		expect(painted_ids).not.toContain(10);
+		expect(painted_ids).not.toContain(11);
+
+		// After a reload every component is remounted, so all are pushed again
+		update_state.mockClear();
+		await dependency_manager.update_loading_stati_state(true);
+		expect(update_state.mock.calls.map(([id]) => id).sort()).toEqual([
+			10, 11, 20
+		]);
+	});
+
+	test("pushes loading status again to the components a gr.render rebuilt", async () => {
+		const messages: Record<number, unknown> = {
+			0: { type: "status", stage: "complete", queue: true },
+			1: {
+				type: "render",
+				data: {
+					layout: { id: 99, children: [{ id: 10 }] },
+					components: [{ id: 10, type: "textbox", props: {} }],
+					render_id: 99,
+					dependencies: []
+				}
+			}
+		};
+		const client = {
+			submit: (fn_index: number) =>
+				(async function* () {
+					yield messages[fn_index];
+				})()
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const rerender = vi.fn();
+		const dependency_manager = new DependencyManager(
+			[dependency(0, "output", [10]), dependency(1, "render", [])],
+			client,
+			update_state,
+			vi.fn().mockResolvedValue(null),
+			rerender,
+			vi.fn(),
+			vi.fn(),
+			vi.fn(),
+			vi.fn()
+		);
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 1,
+			event_data: null
+		});
+
+		expect(rerender).toHaveBeenCalledOnce();
+
+		// 10's status did not change, but the render replaced its component,
+		// which starts without one, so it is pushed again once rendered
+		const rendered_at = rerender.mock.invocationCallOrder[0];
+		await vi.waitFor(() => {
+			const pushed_after_render = update_state.mock.calls.filter(
+				([id, state], i) =>
+					id === 10 &&
+					"loading_status" in state &&
+					update_state.mock.invocationCallOrder[i] > rendered_at
+			);
+			expect(pushed_after_render.length).toBeGreaterThan(0);
+		});
+	});
+	test("preserves another event's pending status when clearing input validation errors", async () => {
+		// Stub the transport so the second event remains pending during the check.
+		const client = {
+			submit: () =>
+				(async function* () {
+					yield { type: "status", stage: "pending", queue: true };
+				})()
+		} as unknown as Client;
+		const second = dependency(1, "second", [20]);
+		second.inputs = [10, 11];
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[dependency(0, "first", [10]), second],
+			client,
+			update_state
+		);
+		await settled();
+		dependency_manager.update_loading_status({
+			fn_index: 0,
+			status: "pending",
+			stream_state: null
+		});
+		await dependency_manager.update_loading_stati_state();
+		update_state.mockClear();
+
+		await dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 1,
+			event_data: null
+		});
+		await settled();
+
+		const input_statuses = update_state.mock.calls
+			.filter(([id, state]) => id === 10 && "loading_status" in state)
+			.map(([, state]) => state.loading_status);
+		expect(input_statuses.length).toBeGreaterThan(0);
+		for (const status of input_statuses) {
+			expect(status).toMatchObject({ status: "pending", fn_index: 0 });
+		}
+		expect(input_statuses.at(-1)).toMatchObject({ validation_error: null });
+		expect(update_state).toHaveBeenCalledWith(
+			11,
+			{
+				loading_status: { validation_error: null }
+			},
+			false
 		);
 	});
 });
