@@ -852,6 +852,7 @@ class Queue:
                     gr_request=gr_request,
                     fn=fn,
                     root_path=root_path,
+                    record_history=fn.connection != "stream",
                 )
                 end = time.monotonic()
                 first_iteration = end - start
@@ -948,6 +949,7 @@ class Queue:
                             gr_request=gr_request,
                             fn=fn,
                             root_path=root_path,
+                            record_history=fn.connection != "stream",
                         )
                         end = time.monotonic()
                         for event in awake_events:
@@ -1020,13 +1022,19 @@ class Queue:
                         ),
                     )
             if fn.connection == "stream" and response is not None:
-                # A chunk is not the run's input, and the stream itself is never
-                # kept, so only the last output is saved.
+                # A chunk is not the run's input, so the streamed component is
+                # saved empty; the event's other inputs are kept.
+                streamed = {
+                    block_id for block_id, event in fn.targets if event == "stream"
+                }
                 route_utils.record_run_history(
                     app,
                     fn=fn,
                     gr_request=gr_request,
-                    inputs=[],
+                    inputs=[
+                        None if block._id in streamed else value
+                        for block, value in zip(fn.inputs, body.data, strict=False)
+                    ],
                     outputs=response.get("data"),
                     started_at=started_at,
                 )

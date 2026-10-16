@@ -115,25 +115,30 @@ describe("submit iterator", () => {
 	);
 
 	test.skipIf(typeof window === "undefined")(
-		"saves no inputs for an input stream",
+		"saves an input stream without the streamed chunk",
 		async () => {
 			const app = await Client.connect("hmb/hello_world");
 			const scope = {
 				app_id: app.config?.app_id,
 				username: app.config?.username
 			};
-			app.config!.dependencies[0].connection = "stream";
+			const dependency = app.config!.dependencies[0];
+			dependency.connection = "stream";
+			dependency.targets = [[dependency.inputs[0], "stream"]];
+			let sent: unknown;
 			server.resetHandlers(
-				http.post(`${direct_space_url}/queue/join`, () =>
-					HttpResponse.json({ event_id: "stream-event" })
-				)
+				http.post(`${direct_space_url}/queue/join`, async ({ request }) => {
+					sent = ((await request.json()) as { data: unknown }).data;
+					return HttpResponse.json({ event_id: "stream-event" });
+				})
 			);
 
 			const iterator = app.submit("/predict", ["hi"]);
 			await iterator.wait_for_id();
 			const [run] = read_run_history(scope);
 			expect(run.api_name).toBe("/predict");
-			expect(run.inputs).toEqual([]);
+			expect(run.inputs).toEqual([null]);
+			expect(sent).toEqual(["hi"]);
 			await iterator.return();
 		}
 	);

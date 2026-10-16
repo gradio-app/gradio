@@ -118,8 +118,17 @@ export function submit(
 		// UI submits through an undocumented dependency — `gr.ChatInterface` does
 		// — records nothing for its in-app use.
 		const is_documented_endpoint = dependency.api_visibility === "public";
-		// An input stream's chunks are not its input, so it is saved without one.
-		const records_inputs = dependency.connection !== "stream";
+		// A chunk is not the input of an input stream, so the streamed component
+		// is saved empty; the event's other inputs are kept.
+		const streamed_inputs = new Set(
+			dependency.targets
+				.filter(([, event]) => event === "stream")
+				.map(([id]) => id)
+		);
+		const history_inputs = (values: unknown[]): unknown[] =>
+			values.map((value, index) =>
+				streamed_inputs.has(dependency.inputs[index]) ? null : value
+			);
 		// Either side may opt out: the app for everyone who uses it, and this
 		// caller for itself.
 		const history_enabled =
@@ -143,15 +152,15 @@ export function submit(
 						// Aligned to `dependency.inputs` the same way the submitted payload
 						// is, so this placeholder matches the components until the uploaded
 						// files are swapped in by `update_run_inputs` below.
-						inputs: records_inputs
-							? handle_payload(
-									resolved_data,
-									dependency,
-									config.components,
-									"input",
-									true
-								)
-							: [],
+						inputs: history_inputs(
+							handle_payload(
+								resolved_data,
+								dependency,
+								config.components,
+								"input",
+								true
+							)
+						),
 						input_components: dependency.inputs.map(component_metadata),
 						output_components: dependency.outputs.map(component_metadata)
 					});
@@ -262,9 +271,11 @@ export function submit(
 				"input",
 				true
 			);
-			if (records_inputs) {
-				update_run_inputs(history_scope, history_run_id, input_data || []);
-			}
+			update_run_inputs(
+				history_scope,
+				history_run_id,
+				history_inputs(input_data || [])
+			);
 			payload = {
 				data: input_data || [],
 				event_data,

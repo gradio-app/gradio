@@ -459,29 +459,40 @@ class TestServerSideRecording:
         assert r.status_code == 200
         assert r.json()["data"] == ["hello world"]
 
-    def test_an_input_stream_is_recorded_once_with_its_last_output(self, monkeypatch):
-        recorded = []
-        monkeypatch.setattr(
-            history_mod, "schedule_record_run", lambda app, **kw: recorded.append(kw)
-        )
+    def test_an_input_stream_is_recorded_once_without_its_chunk(self, monkeypatch):
+        monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
+        hub = FakeHub()
         calls = []
 
-        def on_chunk(audio):
-            calls.append(audio)
-            return str(len(calls))
+        def on_chunk(chunk, threshold):
+            calls.append(chunk)
+            return f"{len(calls)} chunks at {threshold}"
 
         with gr.Blocks() as demo:
             mic = gr.Audio(sources=["microphone"], streaming=True)
+            threshold = gr.Number(3)
             out = gr.Textbox()
-            mic.stream(on_chunk, mic, out, api_name="transcribe")
+            mic.stream(on_chunk, [mic, threshold], out)
 
-        _, local_url, _ = demo.launch(prevent_thread_lock=True)
-        body = {"data": [None], "fn_index": 0, "session_hash": "s"}
+        app, local_url, _ = demo.launch(prevent_thread_lock=True)
+        completed = None
         try:
-            with httpx.Client(base_url=local_url, timeout=30) as client:
-                event_id = client.post("/gradio_api/queue/join", json=body).json()[
-                    "event_id"
-                ]
+            with (
+                patch("gradio.history.resolve_token", return_value="tok"),
+                patch("gradio.history.HfApi", return_value=hub),
+                httpx.Client(base_url=local_url, timeout=30) as client,
+            ):
+                with open("test/test_files/audio_sample.wav", "rb") as f:
+                    (path,) = client.post(
+                        "/gradio_api/upload", files={"files": f}
+                    ).json()
+                chunk = {"path": path, "meta": {"_type": "gradio.FileData"}}
+                body = {"data": [chunk, 3], "fn_index": 0, "session_hash": "s"}
+                event_id = client.post(
+                    "/gradio_api/queue/join",
+                    json=body,
+                    headers={"X-Gradio-History-Bucket": "alice/hist"},
+                ).json()["event_id"]
                 chunks = 1
                 with client.stream(
                     "GET", "/gradio_api/queue/data", params={"session_hash": "s"}
@@ -499,13 +510,18 @@ class TestServerSideRecording:
                         elif msg["msg"] == "process_completed":
                             completed = msg
                             break
+                assert _wait_for(lambda: hub.files and not app.state.history_tasks), (
+                    "no record was written"
+                )
         finally:
             demo.close()
 
+        assert completed is not None
         assert len(calls) >= 3
-        assert len(recorded) == 1
-        assert recorded[0]["inputs"] == []
-        assert recorded[0]["outputs"] == completed["output"]["data"]
+        (path,) = list(hub.files)
+        record = json.loads(hub.files[path])
+        assert record["inputs"] == [None, 3]
+        assert record["outputs"] == completed["output"]["data"]
 
 
 # ------------------------------------------------- end-to-end: workflow canvas

@@ -393,6 +393,7 @@ async def call_process_api(
     gr_request: Union[Request, list[Request]],
     fn: BlockFunction,
     root_path: str,
+    record_history: bool = True,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
@@ -454,9 +455,7 @@ async def call_process_api(
         inputs=submitted_inputs,
         outputs=output.get("data"),
         started_at=started_at,
-        # Each call of an input stream handles one chunk; the queue records the
-        # stream once, when it ends.
-        is_final=not output.get("is_generating") and fn.connection != "stream",
+        is_final=record_history and not output.get("is_generating"),
     )
     return output
 
