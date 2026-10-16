@@ -18,7 +18,7 @@
 	import type { ThemeMode, Payload } from "./types";
 	import { LiveStatus, Toast } from "@gradio/statustracker";
 	import type { LoadingStatusArgs, ToastMessage } from "@gradio/statustracker";
-	import { type ShareData, GRADIO_ROOT } from "@gradio/utils";
+	import { type ShareData, GRADIO_ROOT, on_page_info } from "@gradio/utils";
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
@@ -444,8 +444,25 @@
 		return bottom;
 	}
 
+	// While a full-page overlay (the workflow canvas) sets this on <html>, fit
+	// the frame to the parent's viewport rather than the hidden content under it.
+	let stop_viewport_sizing: (() => void) | null = null;
+
 	function handle_resize(): void {
 		if (!("parentIFrame" in window)) return;
+		const covered = "gradioCover" in document.documentElement.dataset;
+		if (covered && !stop_viewport_sizing) {
+			stop_viewport_sizing = on_page_info((page) =>
+				window.parentIFrame?.size(
+					Math.max(page.scrollTop + page.clientHeight - page.offsetTop, 320)
+				)
+			);
+		} else if (!covered && stop_viewport_sizing) {
+			stop_viewport_sizing();
+			stop_viewport_sizing = null;
+			Object.assign(resize_state, create_resize_state());
+		}
+		if (covered) return;
 		const el = root_container.children[0] as HTMLElement | undefined;
 		if (!el) return;
 
@@ -485,6 +502,9 @@
 			subtree: true,
 			attributes: true
 		});
+		mutation_observer.observe(document.documentElement, {
+			attributeFilter: ["data-gradio-cover"]
+		});
 		res.observe(root_container.parentElement ?? root_container);
 		const disconnect_iframe_resizer = setup_iframe_resizer(
 			window,
@@ -511,6 +531,7 @@
 
 		return () => {
 			disconnect_iframe_resizer();
+			stop_viewport_sizing?.();
 			mutation_observer?.disconnect();
 			mutation_observer = null;
 			res.disconnect();
