@@ -502,7 +502,9 @@ class TestServerSideRecording:
                 release.set()
                 assert _wait_for(lambda: len(hub.files) == 2), "missing records"
         finally:
+            release.set()
             demo.close()
+            close_all()
 
         assert ["alice's secret", "bob's secret"] in batches
         records = {
