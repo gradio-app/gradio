@@ -152,9 +152,9 @@
 		box-shadow: var(--checkbox-label-shadow);
 		border: var(--checkbox-label-border-width) solid
 			var(--checkbox-label-border-color);
-		border-radius: var(--checkbox-border-radius);
+		border-radius: 999px;
 		background: var(--checkbox-label-background-fill);
-		padding: var(--checkbox-label-padding);
+		padding: var(--size-1-5) var(--size-4) var(--size-1-5) var(--size-3);
 		color: var(--checkbox-label-text-color);
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);

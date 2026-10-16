@@ -1,5 +1,6 @@
 from gradio.themes.base import Base, ThemeClass
 from gradio.themes.citrus import Citrus
+from gradio.themes.classic import Classic
 from gradio.themes.cyberpunk import Cyberpunk
 from gradio.themes.default import Default
 from gradio.themes.ember import Ember
@@ -17,6 +18,7 @@ from gradio.themes.utils.sizes import Size
 
 __all__ = [
     "Base",
+    "Classic",
     "Color",
     "Default",
     "Ember",

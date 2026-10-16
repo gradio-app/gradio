@@ -166,6 +166,19 @@
 	.message-buttons {
 		z-index: var(--layer-1);
 	}
+
+	.message-buttons :global(.icon-button-wrapper) {
+		border: none;
+		box-shadow: none;
+		background: none;
+		opacity: 0.55;
+		transition: opacity 0.12s ease-out;
+	}
+
+	.message-buttons :global(.icon-button-wrapper:hover),
+	.message-buttons :global(.icon-button-wrapper:focus-within) {
+		opacity: 1;
+	}
 	.message-buttons-left {
 		align-self: flex-start;
 	}

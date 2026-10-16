@@ -425,8 +425,6 @@
 		align-items: center;
 		justify-content: space-between;
 		position: relative;
-		height: var(--size-8);
-		padding-bottom: var(--size-2);
 		margin-bottom: var(--layout-gap);
 	}
 
@@ -434,28 +432,28 @@
 		height: auto;
 	}
 
+	/* Segmented control: a tinted track with the selected tab raised */
 	.tab-container {
 		display: flex;
 		align-items: center;
-		width: 100%;
+		gap: 2px;
+		max-width: 100%;
 		position: relative;
 		overflow: hidden;
-		height: var(--size-8);
+		padding: 3px;
+		border-radius: 999px;
+		background: var(--border-color-primary);
+	}
+
+	.tab-container.visually-hidden {
+		padding: 0;
 	}
 
 	.tab-container.wrap {
 		flex-wrap: wrap;
 		overflow: visible;
 		height: auto;
-		background: repeating-linear-gradient(
-			to bottom,
-			transparent 0,
-			transparent calc(var(--size-8) - 1px),
-			color-mix(in srgb, var(--border-color-primary) 45%, transparent)
-				calc(var(--size-8) - 1px),
-			color-mix(in srgb, var(--border-color-primary) 45%, transparent)
-				var(--size-8)
-		);
+		border-radius: 18px;
 	}
 
 	.tab-container:not(.visually-hidden) > button,
@@ -466,20 +464,6 @@
 		text-overflow: ellipsis;
 	}
 
-	.tab-container.wrap button {
-		height: var(--size-8);
-	}
-
-	.tab-container::after {
-		content: "";
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: 1px;
-		background-color: var(--border-color-primary);
-	}
-
 	.overflow-menu {
 		flex-shrink: 0;
 		margin-left: var(--size-2);
@@ -488,14 +472,17 @@
 	button {
 		margin-bottom: 0;
 		border: none;
-		border-radius: 0;
+		border-radius: 999px;
 		padding: 0 var(--size-4);
-		color: var(--body-text-color);
-		font-weight: var(--section-header-text-weight);
-		font-size: var(--section-header-text-size);
-		transition: background-color color 0.2s ease-out;
+		color: var(--body-text-color-subdued);
+		font-weight: 500;
+		font-size: var(--text-sm);
+		transition:
+			background-color 0.15s ease-out,
+			color 0.15s ease-out,
+			box-shadow 0.15s ease-out;
 		background-color: transparent;
-		height: 100%;
+		height: 30px;
 		display: flex;
 		align-items: center;
 		white-space: nowrap;
@@ -534,38 +521,16 @@
 	}
 
 	button:hover:not(:disabled):not(.selected) {
-		background-color: var(--background-fill-secondary);
 		color: var(--body-text-color);
 	}
 
 	.selected {
-		background-color: transparent;
-		color: var(--color-accent);
+		background-color: var(--block-background-fill);
+		color: var(--body-text-color);
 		position: relative;
-	}
-
-	.selected::after {
-		content: "";
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		width: 100%;
-		height: 2px;
-		background-color: var(--color-accent);
-		animation: fade-grow 0.2s ease-out forwards;
-		transform-origin: center;
-		z-index: 1;
-	}
-
-	@keyframes fade-grow {
-		from {
-			opacity: 0;
-			transform: scaleX(0.8);
-		}
-		to {
-			opacity: 1;
-			transform: scaleX(1);
-		}
+		box-shadow:
+			0 1px 2px rgb(0 0 0 / 0.08),
+			0 2px 6px -2px rgb(0 0 0 / 0.1);
 	}
 
 	.overflow-dropdown {

@@ -425,6 +425,24 @@
 		padding: var(--spacing-sm) var(--spacing-xl);
 	}
 
+	/* Bubble layout: user speaks in a filled bubble, the assistant replies as plain text */
+	.bubble .user {
+		--body-text-color: var(--chatbot-user-text-color);
+		color: var(--chatbot-user-text-color);
+		background-color: var(--chatbot-user-background-fill);
+		border: none;
+		border-radius: 20px 20px 6px 20px;
+		padding: var(--spacing-lg) var(--spacing-xxl);
+		box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.2);
+	}
+
+	.bubble .bot {
+		background: none;
+		border: none;
+		box-shadow: none;
+		padding: 0 var(--spacing-sm);
+	}
+
 	.bot:has(.table-wrap) {
 		border: none;
 		box-shadow: none;

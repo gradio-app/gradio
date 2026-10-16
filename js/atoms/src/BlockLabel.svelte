@@ -25,9 +25,6 @@
 	data-testid="block-label"
 	dir={rtl ? "rtl" : "ltr"}
 >
-	<span>
-		<Icon />
-	</span>
 	{label}
 </label>
 
@@ -69,12 +66,6 @@
 		display: none;
 	}
 
-	span {
-		opacity: 0.8;
-		margin-right: var(--size-2);
-		width: calc(var(--block-label-text-size) - 1px);
-		height: calc(var(--block-label-text-size) - 1px);
-	}
 	.hide-label {
 		box-shadow: none;
 		border-width: 0;
@@ -90,10 +81,5 @@
 		border-bottom-left-radius: var(--block-radius);
 		border-bottom-right-radius: var(--block-label-radius);
 		border-top-left-radius: var(--block-label-radius);
-	}
-
-	label[dir="rtl"] span {
-		margin-left: var(--size-2);
-		margin-right: 0;
 	}
 </style>

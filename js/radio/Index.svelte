@@ -79,6 +79,11 @@
 	.wrap {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--checkbox-label-gap);
+		gap: 2px;
+		width: fit-content;
+		max-width: 100%;
+		padding: 3px;
+		border-radius: 18px;
+		background: var(--checkbox-label-background-fill);
 	}
 </style>

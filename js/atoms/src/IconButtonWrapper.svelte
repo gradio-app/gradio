@@ -54,10 +54,16 @@
 		padding: var(--spacing-xxs);
 	}
 
-	.icon-button-wrapper.hide-top-corner {
-		border-top: none;
-		border-right: none;
-		border-radius: var(--block-label-right-radius);
+	.icon-button-wrapper.top-panel {
+		border: none;
+		border-radius: 999px;
+		margin: var(--spacing-md);
+		padding: 2px var(--spacing-sm);
+		background: color-mix(in srgb, var(--block-background-fill) 75%, transparent);
+		backdrop-filter: blur(12px) saturate(1.5);
+		box-shadow:
+			0 0 0 1px var(--border-color-primary),
+			0 2px 8px -2px rgb(0 0 0 / 0.1);
 	}
 
 	.icon-button-wrapper.display-top-corner {
@@ -75,7 +81,6 @@
 		position: absolute;
 		top: var(--block-label-margin);
 		right: var(--block-label-margin);
-		margin: 0;
 	}
 
 	.icon-button-wrapper :global(button) {
@@ -87,19 +92,6 @@
 	.icon-button-wrapper :global(a.download-link:not(:last-child)),
 	.icon-button-wrapper :global(button:not(:last-child)) {
 		margin-right: var(--spacing-xxs);
-	}
-
-	.icon-button-wrapper
-		:global(a.download-link:not(:last-child):not(.no-border *)::after),
-	.icon-button-wrapper
-		:global(button:not(:last-child):not(.no-border *)::after) {
-		content: "";
-		position: absolute;
-		right: -4.5px;
-		top: 15%;
-		height: 70%;
-		width: 1px;
-		background-color: var(--border-color-primary);
 	}
 
 	.icon-button-wrapper :global(> *) {

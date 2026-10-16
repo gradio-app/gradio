@@ -162,13 +162,22 @@
 
 	.or {
 		color: var(--body-text-color-subdued);
+		font-size: var(--text-sm);
 		display: flex;
 	}
 
 	.icon-wrap {
 		flex: 0 0 auto;
-		width: 30px;
-		margin-bottom: var(--spacing-lg);
+		display: grid;
+		place-items: center;
+		width: 48px;
+		height: 48px;
+		padding: 13px;
+		margin-bottom: var(--spacing-xl);
+		border-radius: 999px;
+		background: var(--input-background-fill);
+		color: var(--body-text-color);
+		transition: transform 0.15s ease-out;
 	}
 
 	.compact {
@@ -219,5 +228,6 @@
 
 	.hovered {
 		color: var(--color-accent);
+		transform: scale(1.08);
 	}
 </style>

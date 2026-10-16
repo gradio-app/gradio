@@ -61,9 +61,6 @@
 						min="0"
 						max="1"
 						value={confidence_set.confidence}
-						style="width: {confidence_set.confidence *
-							100}%; background: var(--stat-background-fill);
-						"
 					/>
 
 					<dl class="label">
@@ -121,40 +118,36 @@
 		flex-direction: column;
 	}
 
+	/* Full-width track with the confidence filled in */
 	.bar {
 		appearance: none;
 		-webkit-appearance: none;
 		-moz-appearance: none;
-		align-self: flex-start;
+		width: 100%;
+		height: 6px;
 		margin-bottom: var(--size-1);
-		border-radius: var(--radius-md);
-		background: var(--stat-background-fill);
-		height: var(--size-1);
 		border: none;
-	}
-
-	.bar::-moz-meter-bar {
-		border-radius: var(--radius-md);
-		background: var(--stat-background-fill);
+		border-radius: 999px;
+		background: var(--slider-track-color);
 	}
 
 	.bar::-webkit-meter-bar {
-		border-radius: var(--radius-md);
-		background: var(--stat-background-fill);
+		height: 6px;
 		border: none;
+		border-radius: 999px;
+		background: var(--slider-track-color);
 	}
 
 	.bar::-webkit-meter-optimum-value,
 	.bar::-webkit-meter-suboptimum-value,
 	.bar::-webkit-meter-even-less-good-value {
-		border-radius: var(--radius-md);
+		border-radius: 999px;
 		background: var(--stat-background-fill);
 	}
 
-	.bar::-ms-fill {
-		border-radius: var(--radius-md);
+	.bar::-moz-meter-bar {
+		border-radius: 999px;
 		background: var(--stat-background-fill);
-		border: none;
 	}
 
 	.label {

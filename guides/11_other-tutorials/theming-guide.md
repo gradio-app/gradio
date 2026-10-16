@@ -24,7 +24,8 @@ Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`
 
 
 * `gr.themes.Base()` - the `"base"` theme sets the primary color to blue but otherwise has minimal styling, making it particularly useful as a base for creating new, custom themes.
-* `gr.themes.Default()` - the `"default"` Gradio 5 theme, with a vibrant orange primary color and gray secondary color.
+* `gr.themes.Default()` - the `"default"` Gradio 7 theme: monochrome surfaces, soft depth, pill-shaped controls and the Geist typeface, with orange reserved for focus states.
+* `gr.themes.Classic()` - the `"classic"` theme is the Gradio 5 and 6 default, with a vibrant orange primary color and gray secondary color.
 * `gr.themes.Origin()` - the `"origin"` theme is most similar to Gradio 4 styling. Colors, especially in light mode, are more subdued than the Gradio 5 default theme.
 * `gr.themes.Citrus()` - the `"citrus"` theme uses a yellow primary color, highlights form elements that are in focus, and includes fun 3D effects when buttons are clicked.
 * `gr.themes.Monochrome()` - the `"monochrome"` theme uses a black primary and white secondary color, and uses serif-style fonts, giving the appearance of a black-and-white newspaper. 

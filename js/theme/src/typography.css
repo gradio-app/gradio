@@ -31,11 +31,18 @@
 }
 
 .prose h1 {
-	font-size: var(--text-xxl);
+	font-size: calc(var(--text-xxl) * 1.5);
+	line-height: 1.1;
+	letter-spacing: -0.035em;
 }
 
 .prose h2 {
 	font-size: var(--text-xl);
+	letter-spacing: -0.02em;
+}
+
+.prose h3 {
+	letter-spacing: -0.01em;
 }
 
 .prose h3 {

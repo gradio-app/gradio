@@ -628,6 +628,10 @@ class Base(ThemeClass):
         table_text_color_dark=None,
         checkbox_background_color=None,
         chatbot_text_size=None,
+        chatbot_user_background_fill=None,
+        chatbot_user_background_fill_dark=None,
+        chatbot_user_text_color=None,
+        chatbot_user_text_color_dark=None,
         checkbox_background_color_dark=None,
         checkbox_background_color_focus=None,
         checkbox_background_color_focus_dark=None,
@@ -647,6 +651,7 @@ class Base(ThemeClass):
         checkbox_border_width=None,
         checkbox_border_width_dark=None,
         checkbox_check=None,
+        checkbox_check_dark=None,
         radio_circle=None,
         checkbox_shadow=None,
         checkbox_label_background_fill=None,
@@ -715,6 +720,8 @@ class Base(ThemeClass):
         loader_color_dark=None,
         slider_color=None,
         slider_color_dark=None,
+        slider_track_color=None,
+        slider_track_color_dark=None,
         stat_background_fill=None,
         stat_background_fill_dark=None,
         table_border_color=None,
@@ -898,6 +905,10 @@ class Base(ThemeClass):
             section_header_text_size: The text size of a section header (e.g. tab name).
             section_header_text_weight: The text weight of a section header (e.g. tab name).
             chatbot_text_size: The text size of the chatbot text.
+            chatbot_user_background_fill: The background of the user's message bubble in the chatbot.
+            chatbot_user_background_fill_dark: The background of the user's message bubble in the chatbot in dark mode.
+            chatbot_user_text_color: The text color of the user's message bubble in the chatbot.
+            chatbot_user_text_color_dark: The text color of the user's message bubble in the chatbot in dark mode.
             checkbox_background_color: The background of a checkbox square or radio circle.
             checkbox_background_color_dark: The background of a checkbox square or radio circle in dark mode.
             checkbox_background_color_focus: The background of a checkbox square or radio circle when focused.
@@ -918,6 +929,7 @@ class Base(ThemeClass):
             checkbox_border_width: The border width of a checkbox square or radio circle.
             checkbox_border_width_dark: The border width of a checkbox square or radio circle in dark mode.
             checkbox_check: The checkmark visual of a checkbox square.
+            checkbox_check_dark: The checkmark visual of a checkbox square in dark mode.
             radio_circle: The circle visual of a radio circle.
             checkbox_shadow: The shadow of a checkbox square or radio circle.
             checkbox_label_background_fill: The background of the surrounding button of a checkbox or radio element.
@@ -982,6 +994,8 @@ class Base(ThemeClass):
             loader_color_dark: The color of the loading animation while a request is pending in dark mode.
             slider_color: The color of the slider in a range element.
             slider_color_dark: The color of the slider in a range element in dark mode.
+            slider_track_color: The color of the unfilled track of a range element.
+            slider_track_color_dark: The color of the unfilled track of a range element in dark mode.
             stat_background_fill: The background used for stats visuals (e.g. confidence bars in label).
             stat_background_fill_dark: The background used for stats visuals (e.g. confidence bars in label) in dark mode.
             table_border_color: The border color of a table.
@@ -1353,6 +1367,19 @@ class Base(ThemeClass):
         self.chatbot_text_size = chatbot_text_size or getattr(
             self, "chatbot_text_size", "*text_lg"
         )
+        self.chatbot_user_background_fill = chatbot_user_background_fill or getattr(
+            self, "chatbot_user_background_fill", "*color_accent_soft"
+        )
+        self.chatbot_user_background_fill_dark = (
+            chatbot_user_background_fill_dark
+            or getattr(self, "chatbot_user_background_fill_dark", None)
+        )
+        self.chatbot_user_text_color = chatbot_user_text_color or getattr(
+            self, "chatbot_user_text_color", "*body_text_color"
+        )
+        self.chatbot_user_text_color_dark = chatbot_user_text_color_dark or getattr(
+            self, "chatbot_user_text_color_dark", None
+        )
         self.checkbox_background_color = checkbox_background_color or getattr(
             self, "checkbox_background_color", "*background_fill_primary"
         )
@@ -1559,6 +1586,9 @@ class Base(ThemeClass):
             "checkbox_check",
             """url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e")""",
         )
+        self.checkbox_check_dark = checkbox_check_dark or getattr(
+            self, "checkbox_check_dark", None
+        )
         self.radio_circle = radio_circle or getattr(
             self,
             "radio_circle",
@@ -1709,6 +1739,12 @@ class Base(ThemeClass):
         )
         self.slider_color_dark = slider_color_dark or getattr(
             self, "slider_color_dark", None
+        )
+        self.slider_track_color = slider_track_color or getattr(
+            self, "slider_track_color", "*neutral_200"
+        )
+        self.slider_track_color_dark = slider_track_color_dark or getattr(
+            self, "slider_track_color_dark", "*neutral_700"
         )
         self.stat_background_fill = stat_background_fill or getattr(
             self, "stat_background_fill", "*primary_300"

@@ -33,8 +33,16 @@
 	class:open
 >
 	<span>{label}</span>
-	<span style:transform={open ? "rotate(0)" : "rotate(90deg)"} class="icon">
-		▼
+	<span style:transform={open ? "rotate(0)" : "rotate(-90deg)"} class="icon">
+		<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+			<path
+				d="M4 6l4 4 4-4"
+				stroke="currentColor"
+				stroke-width="1.75"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			/>
+		</svg>
 	</span>
 </button>
 <div
@@ -54,6 +62,7 @@
 	}
 	.label-wrap {
 		display: flex;
+		align-items: center;
 		justify-content: space-between;
 		cursor: pointer;
 		width: var(--size-full);
@@ -64,7 +73,23 @@
 	}
 
 	.icon {
-		transition: 150ms;
+		display: grid;
+		place-items: center;
+		width: 24px;
+		height: 24px;
+		border-radius: 999px;
+		color: var(--body-text-color-subdued);
+		transition: transform 150ms ease-out;
+	}
+
+	.icon svg {
+		width: 16px;
+		height: 16px;
+	}
+
+	.label-wrap:hover .icon {
+		background: var(--input-background-fill);
+		color: var(--body-text-color);
 	}
 
 	.scrollable {

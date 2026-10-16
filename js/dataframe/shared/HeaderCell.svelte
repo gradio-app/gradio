@@ -172,15 +172,12 @@
 		--ring-color: transparent;
 		position: relative;
 		outline: none;
-		box-shadow:
-			inset 1px 0 0 var(--border-color-primary),
-			inset 0 0 0 1px var(--ring-color);
-		padding: 0;
 		background: var(--table-even-background-fill) !important;
-		font-weight: var(--weight-bold, 700);
-		outline: none;
+		color: var(--body-text-color-subdued);
+		font-size: var(--text-sm);
+		font-weight: 500;
 		box-shadow:
-			inset 1px 0 0 var(--border-color-primary),
+			inset 0 -1px 0 var(--border-color-primary),
 			inset 0 0 0 1px var(--ring-color);
 		padding: 0;
 		overflow: visible;

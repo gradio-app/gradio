@@ -1,5 +1,5 @@
 from gradio.themes.default import Default
-from gradio.themes.utils.fonts import GoogleFont, LocalFont
+from gradio.themes.utils.fonts import GoogleFont, LocalFont, local_font_available
 
 
 def test_local_font_stylesheet_uses_bundled_static_path():
@@ -19,3 +19,8 @@ def test_google_font_falls_back_to_cdn_when_not_bundled():
 def test_default_theme_has_no_external_stylesheet_urls():
     theme = Default()
     assert theme._stylesheets == []
+
+
+def test_default_theme_fonts_are_bundled():
+    assert local_font_available("Geist", (400, 500, 600))
+    assert local_font_available("Geist Mono", (400, 600))
