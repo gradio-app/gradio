@@ -710,3 +710,211 @@ def test_a_remote_request_cannot_use_the_hosts_own_token():
         assert share_proxy.status_code == 401
         assert lan_visitor.status_code == 401
     close_all()
+
+
+def test_a_mocked_local_login_falls_back_to_the_hosts_own_token():
+    """Signing in locally must not be worse than not signing in at all.
+
+    Off Spaces the login routes are mocked and the session carries a sentinel
+    string rather than a credential; sending it to the Hub would 401 every
+    bucket call, so it has to fall through to the host's own token.
+    """
+    from types import SimpleNamespace
+
+    from gradio.oauth import MOCKED_OAUTH_TOKEN
+
+    request = SimpleNamespace(
+        session={"oauth_info": {"access_token": MOCKED_OAUTH_TOKEN}},
+        headers={},
+        query_params={},
+        url=SimpleNamespace(hostname="localhost"),
+        client=SimpleNamespace(host="127.0.0.1"),
+    )
+
+    with (
+        patch("gradio.workflow._get_locally_saved_hf_token", return_value="hf_local"),
+        patch(
+            "gradio.oauth._get_valid_oauth_info_from_session",
+            return_value=request.session["oauth_info"],
+        ),
+    ):
+        assert history_mod.resolve_token(request) == "hf_local"
+
+    # A real token still wins over the local one.
+    with (
+        patch("gradio.workflow._get_locally_saved_hf_token", return_value="hf_local"),
+        patch(
+            "gradio.oauth._get_valid_oauth_info_from_session",
+            return_value={"access_token": "hf_oauth"},
+        ),
+    ):
+        assert history_mod.resolve_token(request) == "hf_oauth"
+
+
+# ------------------------------------------------- platform-minted credentials
+
+
+PLATFORM_HEADERS = {
+    "X-HF-History-Bucket": "alice/history-org-space",
+    "X-HF-History-Token": "hf_minted_for_alice",
+}
+
+
+def make_platform_request(headers=None):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        session={},
+        headers={
+            k.lower(): v
+            for k, v in (PLATFORM_HEADERS if headers is None else headers).items()
+        },
+        query_params={},
+        url=SimpleNamespace(hostname="example.hf.space"),
+        client=SimpleNamespace(host="10.0.0.1"),
+    )
+
+
+def platform_app():
+    app = MagicMock()
+    app.get_blocks.return_value = MagicMock(run_history=True, app_id="app")
+    return app
+
+
+def test_a_visitor_who_delegated_nothing_uses_the_minted_credential():
+    """The ordinary Space visitor: no OAuth, no bucket of their own, just what
+    the platform vouched for on the way in."""
+    with (
+        patch("gradio.history.resolve_bucket_id", return_value=None),
+        patch("gradio.history.resolve_token", return_value=None),
+    ):
+        target = history_mod.resolve_target(platform_app(), make_platform_request())
+    assert target == HistoryTarget(
+        "alice/history-org-space", "hf_minted_for_alice", "app", True
+    )
+
+
+def test_half_a_pair_is_not_a_credential():
+    """A token is scoped to the bucket it arrived with, so one without the
+    other cannot be used against anything."""
+    for headers in (
+        {"X-HF-History-Bucket": "alice/hist"},
+        {"X-HF-History-Token": "hf_minted"},
+        {},
+    ):
+        assert (
+            history_mod.resolve_platform_credentials(make_platform_request(headers))
+            is None
+        )
+
+
+def test_an_explicitly_delegated_bucket_wins_over_the_platform():
+    """Signing in and naming a bucket is a choice; a platform default must not
+    quietly override it."""
+    with (
+        patch("gradio.history.resolve_bucket_id", return_value="alice/mine"),
+        patch("gradio.history.resolve_token", return_value="hf_real"),
+    ):
+        target = history_mod.resolve_target(platform_app(), make_platform_request())
+    assert target == HistoryTarget("alice/mine", "hf_real", "app", False)
+
+
+def test_a_named_bucket_is_never_paired_with_a_minted_token():
+    """The two halves never mix: a minted token against a bucket the caller
+    named would only ever be refused, so it must not be tried."""
+    with (
+        patch("gradio.history.resolve_bucket_id", return_value="alice/somewhere-else"),
+        patch("gradio.history.resolve_token", return_value=None),
+    ):
+        target = history_mod.resolve_target(platform_app(), make_platform_request())
+    assert target is not None
+    assert target.bucket == "alice/history-org-space"
+    assert target.token == "hf_minted_for_alice"
+
+
+def test_a_minted_credential_never_tries_to_create_a_bucket():
+    """It is scoped to a bucket that already exists, and narrowed precisely to
+    exclude creating repos — asking would only 403."""
+    hub = FakeHub()
+    target = HistoryTarget("alice/history-org-space", "tok", "app", True)
+    with use_hub(hub):
+        history_mod.save_record(target, make_record(), None)
+    assert hub.created == []
+    assert len(hub.files) == 1
+
+
+def test_a_delegated_credential_still_creates_its_bucket():
+    hub = FakeHub()
+    history_mod._ensured.clear()
+    with use_hub(hub):
+        history_mod.save_record(make_target(), make_record(), None)
+    assert hub.created == ["alice/hist"]
+
+
+def test_platform_reads_need_no_bucket():
+    """A visitor has no bucket to name, so requiring one would make their own
+    history unreadable to them."""
+    from gradio.routes import App
+
+    hub = FakeHub()
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = App.create_app(demo)
+    with patch("gradio.history.HfApi", return_value=hub):
+        response = TestClient(app).get(
+            "/gradio_api/run-history/records", headers=PLATFORM_HEADERS
+        )
+    assert response.status_code == 200, response.text
+    assert response.json() == {"records": []}
+    close_all()
+
+
+def test_a_space_visitor_is_recorded_end_to_end(monkeypatch):
+    """The whole Spaces story through the recorder, with the app holding no
+    credential of its own."""
+    monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
+    hub = FakeHub()
+
+    io = gr.Interface(lambda name: f"hello {name}", "text", "text", api_name="greet")
+    app, _, _ = io.launch(prevent_thread_lock=True)
+    with (
+        # The platform hands a Space no credential; only what it minted.
+        patch("gradio.history.resolve_token", return_value=None),
+        patch("gradio.history.HfApi", return_value=hub),
+        TestClient(app) as client,
+    ):
+        r = client.post(
+            "/gradio_api/run/greet", json={"data": ["world"]}, headers=PLATFORM_HEADERS
+        )
+        assert r.status_code == 200, r.text
+        assert _wait_for(lambda: len(hub.files) == 1), "no record was written"
+
+    (path,) = list(hub.files)
+    assert path.startswith(f"runs/{io.app_id}/greet/")
+    record = json.loads(hub.files[path])
+    assert record["inputs"] == ["world"]
+    assert record["outputs"] == ["hello world"]
+    io.close()
+    close_all()
+
+
+def test_a_space_visitor_the_platform_did_not_vouch_for_records_nothing(monkeypatch):
+    """No headers means the platform would not say who is calling, and a run
+    with no owner has nowhere to go."""
+    monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
+    hub = FakeHub()
+
+    io = gr.Interface(lambda name: f"hello {name}", "text", "text", api_name="greet")
+    app, _, _ = io.launch(prevent_thread_lock=True)
+    with (
+        patch("gradio.history.resolve_token", return_value=None),
+        patch("gradio.history.HfApi", return_value=hub),
+        TestClient(app) as client,
+    ):
+        assert (
+            client.post("/gradio_api/run/greet", json={"data": ["world"]}).status_code
+            == 200
+        )
+        assert not _wait_for(lambda: bool(hub.files), timeout=1.0)
+    io.close()
+    close_all()
