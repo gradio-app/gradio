@@ -248,11 +248,13 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
         output = gr.Textbox()
         mic.stream(on_chunk, chunk, output)
 
-    app, local_url, _ = demo.launch(prevent_thread_lock=True)
-    test_client = TestClient(app)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    # A real client rather than TestClient, which would set the event's
+    # asyncio signal from another thread and cannot drop an endless response
+    client = httpx.Client(base_url=local_url.rstrip("/") + API_PREFIX, timeout=10)
     try:
-        r = test_client.post(
-            f"{API_PREFIX}/queue/join",
+        r = client.post(
+            "/queue/join",
             json={
                 "data": ["a"],
                 "fn_index": 0,
@@ -269,13 +271,12 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
             if event is not None and event.run_time > 0:
                 break
             time.sleep(0.1)
+        assert event is not None and event.run_time > 0
         if end == "close":
-            test_client.post(f"{API_PREFIX}/stream/{event_id}/close")
+            assert client.post(f"/stream/{event_id}/close").status_code == 200
         else:
-            # The tab closes, so its heartbeat connection drops. TestClient
-            # cannot drop an endless response, hence the real server.
-            heartbeat = f"{local_url.rstrip('/')}{API_PREFIX}/heartbeat/sess"
-            with httpx.stream("GET", heartbeat) as r:
+            # The tab closes, so its heartbeat connection drops
+            with client.stream("GET", "/heartbeat/sess") as r:
                 next(r.iter_lines())
         for _ in range(50):
             if event_id not in demo._queue.event_ids_to_events:
@@ -285,7 +286,7 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
         assert calls == ["a"]
 
         if end == "close":
-            r = test_client.get(f"{API_PREFIX}/queue/data?session_hash=sess")
+            r = client.get("/queue/data", params={"session_hash": "sess"})
             messages = [
                 json.loads(line[5:])
                 for line in r.iter_lines()
@@ -294,6 +295,7 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
             completed = [m for m in messages if m["msg"] == "process_completed"]
             assert [m["output"]["data"] for m in completed] == [["got a"]]
     finally:
+        client.close()
         demo.close()
 
 
