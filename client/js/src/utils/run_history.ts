@@ -99,13 +99,7 @@ export function run_history_url(
 
 const AUTOMATIC_EVENTS = new Set(["tick", "load"]);
 
-/**
- * Whether this call was started by a Timer tick or a page load rather than by
- * the user, including `.then()` steps chained after one. Decided per call, so
- * a function wired to both a button and a Timer is still recorded for clicks.
- * Must match `_is_automatic_run` in `gradio/route_utils.py`.
- */
-export function is_automatic_run(
+function is_automatic_run_impl(
 	dependencies: Dependency[],
 	dependency: Dependency,
 	trigger_id: number | null | undefined
@@ -591,6 +585,23 @@ function mark_complete(run: StoredRun, event: StatusMessage): void {
 }
 
 // Public API. Each of these is a no-op if anything goes wrong.
+
+/**
+ * Whether this call was started by a Timer tick or a page load rather than by
+ * the user, including `.then()` steps chained after one. Decided per call, so
+ * a function wired to both a button and a Timer is still recorded for clicks.
+ * Must match `_is_automatic_run` in `gradio/route_utils.py`.
+ */
+export function is_automatic_run(
+	dependencies: Dependency[],
+	dependency: Dependency,
+	trigger_id: number | null | undefined
+): boolean {
+	return safely(
+		() => is_automatic_run_impl(dependencies, dependency, trigger_id),
+		false
+	);
+}
 
 export function read_run_history(
 	scope: RunHistoryScope | null | undefined

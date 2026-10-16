@@ -442,9 +442,9 @@ export class DependencyManager {
 
 				const { success, failure, all } = dep.get_triggers();
 				let active_submission: ReturnType<Client["submit"]> | undefined;
+				let target_id: number | null = null;
 
 				try {
-					let target_id: number | null = null;
 					if (
 						event_meta.target_id !== undefined ||
 						event_meta.type === "event"
@@ -753,7 +753,8 @@ export class DependencyManager {
 						this.dispatch({
 							type: "fn",
 							fn_index: dep_id,
-							event_data: null
+							event_data: null,
+							target_id: target_id as number | undefined
 						});
 					});
 				}

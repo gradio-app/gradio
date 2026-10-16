@@ -454,10 +454,9 @@ async def call_process_api(
         inputs=submitted_inputs,
         outputs=output.get("data"),
         started_at=started_at,
+        fns=session_state.blocks_config.fns,
+        trigger_id=body.trigger_id,
         is_final=not output.get("is_generating"),
-        automatic=_is_automatic_run(
-            session_state.blocks_config.fns, fn, body.trigger_id
-        ),
     )
     return output
 
@@ -486,18 +485,16 @@ def _record_run_history(
     inputs: Any,
     outputs: Any,
     started_at: str,
+    fns: dict[int, BlockFunction],
+    trigger_id: int | None,
     is_final: bool = True,
-    automatic: bool = False,
 ) -> None:
     """Hand a finished run to the recorder; records only public endpoints."""
-    if (
-        not is_final
-        or automatic
-        or fn.is_cancel_function
-        or fn.api_visibility != "public"
-    ):
+    if not is_final or fn.is_cancel_function or fn.api_visibility != "public":
         return
     try:
+        if _is_automatic_run(fns, fn, trigger_id):
+            return
         history.schedule_record_run(
             app,
             request=gr_request,
