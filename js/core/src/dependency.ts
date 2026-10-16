@@ -449,7 +449,7 @@ export class DependencyManager {
 						event_meta.target_id !== undefined ||
 						event_meta.type === "event"
 					) {
-						target_id = event_meta.target_id || null;
+						target_id = event_meta.target_id ?? null;
 					} else {
 						target_id = dep.original_trigger_id;
 					}
