@@ -926,6 +926,13 @@ class Queue:
                                 )
                         if not awake_events:
                             break
+                        # Closed while waiting, so there is no new chunk and
+                        # the last response is the final one
+                        if awake_events[0].streaming and all(
+                            event.is_finished for event in awake_events
+                        ):
+                            response = {**response, "is_generating": False}
+                            break
                         # Re-read the event's fn, which may have been swapped out
                         # if the app was hot-reloaded while this event was generating
                         fn = awake_events[0].fn

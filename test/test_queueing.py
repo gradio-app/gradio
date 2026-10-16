@@ -5,6 +5,7 @@ import time
 from unittest.mock import patch
 
 import gradio_client as grc
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -231,6 +232,69 @@ def test_heartbeat_task_cancelled_after_stream_completes():
                 "Heartbeat task was not cancelled after stream completed"
             )
     demo.close()
+
+
+@pytest.mark.parametrize("end", ["close", "disconnect"])
+def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
+    calls = []
+
+    def on_chunk(chunk):
+        calls.append(chunk)
+        return f"got {chunk}"
+
+    with gr.Blocks() as demo:
+        mic = gr.Audio(sources=["microphone"], streaming=True)
+        chunk = gr.Textbox()
+        output = gr.Textbox()
+        mic.stream(on_chunk, chunk, output)
+
+    app, local_url, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+    try:
+        r = test_client.post(
+            f"{API_PREFIX}/queue/join",
+            json={
+                "data": ["a"],
+                "fn_index": 0,
+                "event_data": None,
+                "session_hash": "sess",
+                "trigger_id": None,
+            },
+        )
+        event_id = r.json()["event_id"]
+        # End once the first call has returned and the stream waits for its
+        # next chunk
+        for _ in range(50):
+            event = demo._queue.event_ids_to_events.get(event_id)
+            if event is not None and event.run_time > 0:
+                break
+            time.sleep(0.1)
+        if end == "close":
+            test_client.post(f"{API_PREFIX}/stream/{event_id}/close")
+        else:
+            # The tab closes, so its heartbeat connection drops. TestClient
+            # cannot drop an endless response, hence the real server.
+            heartbeat = f"{local_url.rstrip('/')}{API_PREFIX}/heartbeat/sess"
+            with httpx.stream("GET", heartbeat) as r:
+                next(r.iter_lines())
+        for _ in range(50):
+            if event_id not in demo._queue.event_ids_to_events:
+                break
+            time.sleep(0.1)
+        assert event_id not in demo._queue.event_ids_to_events
+        assert calls == ["a"]
+
+        if end == "close":
+            r = test_client.get(f"{API_PREFIX}/queue/data?session_hash=sess")
+            messages = [
+                json.loads(line[5:])
+                for line in r.iter_lines()
+                if line.startswith("data")
+            ]
+            completed = [m for m in messages if m["msg"] == "process_completed"]
+            assert [m["output"]["data"] for m in completed] == [["got a"]]
+    finally:
+        demo.close()
 
 
 def test_cancel_removes_pending_event_from_queue():
