@@ -455,8 +455,38 @@ async def call_process_api(
         outputs=output.get("data"),
         started_at=started_at,
         is_final=not output.get("is_generating"),
+        batched=bool(body.batched and fn.batch),
     )
     return output
+
+
+def _split_batched_run(
+    gr_request: Union[Request, list[Request]],
+    inputs: list[Any],
+    outputs: list[Any] | None,
+) -> list[tuple[Request, list[Any], list[Any]]]:
+    """Split a batched call into one run per sample, with the request that sent it.
+
+    The queue passes one request per event; a direct batched call has a single
+    caller for every sample. Any other mismatch returns no runs, rather than
+    filing a sample under someone else's request.
+    """
+    requests = gr_request if isinstance(gr_request, list) else [gr_request]
+    samples = [list(sample) for sample in zip(*inputs, strict=False)]
+    results = [list(result) for result in zip(*(outputs or []), strict=False)] or [
+        [] for _ in samples
+    ]
+    if len(requests) == 1:
+        requests = requests * len(samples)
+    if not len(requests) == len(samples) == len(results):
+        logger.debug(
+            "history: %d requests for %d samples and %d results, not recording",
+            len(requests),
+            len(samples),
+            len(results),
+        )
+        return []
+    return list(zip(requests, samples, results, strict=True))
 
 
 def _record_run_history(
@@ -468,20 +498,26 @@ def _record_run_history(
     outputs: Any,
     started_at: str,
     is_final: bool = True,
+    batched: bool = False,
 ) -> None:
     """Hand a finished run to the recorder; records only public endpoints."""
     if not is_final or fn.is_cancel_function or fn.api_visibility != "public":
         return
     try:
-        history.schedule_record_run(
-            app,
-            request=gr_request,
-            inputs=inputs,
-            outputs=outputs,
-            api_name=fn.api_name,
-            fn_index=fn._id,
-            started_at=started_at,
-        )
+        if batched:
+            runs = _split_batched_run(gr_request, inputs, outputs)
+        else:
+            runs = [(gr_request, inputs, outputs)]
+        for run_request, run_inputs, run_outputs in runs:
+            history.schedule_record_run(
+                app,
+                request=run_request,
+                inputs=run_inputs,
+                outputs=run_outputs,
+                api_name=fn.api_name,
+                fn_index=fn._id,
+                started_at=started_at,
+            )
     except Exception:
         logger.debug("history: scheduling failed", exc_info=True)
 
