@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import shutil
 import subprocess
 import tempfile
 import warnings
@@ -376,8 +377,14 @@ class Video(StreamingOutput, Component):
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
             output_options += ["-an"] if not self.include_audio else []
             flip_suffix = "_flip" if flip else ""
+            # Components that differ in `include_audio` can receive the same
+            # upload, so the name records it; otherwise each would reuse
+            # whichever conversion ran first.
+            muted_prefix = "" if self.include_audio else "muted_"
             output_file_name = str(
-                file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
+                file_name.with_name(
+                    f"{muted_prefix}{file_name.stem}{flip_suffix}{format}"
+                )
             )
             output_filepath = Path(output_file_name)
             if output_filepath.exists():
@@ -449,6 +456,12 @@ class Video(StreamingOutput, Component):
             video = processing_utils.save_url_to_cache(
                 video, cache_dir=self.GRADIO_CACHE
             )
+        else:
+            # The converted copies below are written into the cache, where they
+            # would be served even if the source is not, so the source has to
+            # pass the same check before ffmpeg reads it.
+            processing_utils._check_allowed(video, check_in_upload_folder=False)
+        playable_intermediate = None
         if (
             processing_utils.ffmpeg_installed()
             and not processing_utils.video_is_playable(video)
@@ -457,9 +470,12 @@ class Video(StreamingOutput, Component):
                 "Video does not have browser-compatible container or codec. Converting to mp4."
             )
             with trace_phase_sync("postprocess_video_convert_video_to_playable_mp4"):
-                video = processing_utils.convert_video_to_playable_mp4(
+                playable = processing_utils.convert_video_to_playable_mp4(
                     video, cache_dir=self.GRADIO_CACHE
                 )
+            if playable != video:
+                playable_intermediate = playable
+            video = playable
         # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
         returned_format = utils.get_extension_from_file_path_or_url(video).lower()
         if (
@@ -467,11 +483,7 @@ class Video(StreamingOutput, Component):
         ) or self.watermark.watermark:
             global_option_list = ["-y"]
             inputs_dict = {video: None}
-            output_file_name = video[0 : video.rindex(".") + 1]
-            if self.format is not None:
-                output_file_name += self.format
-            else:
-                output_file_name += returned_format
+            output_stem = Path(video).stem
             if self.watermark.watermark:
                 inputs_dict[str(self.watermark.watermark)] = None
                 pos = self.watermark.position
@@ -492,18 +504,34 @@ class Video(StreamingOutput, Component):
                     watermark_cmd = "overlay=W-w-5:H-h-5"
 
                 global_option_list += ["-filter_complex", watermark_cmd]
-                output_file_name = (
-                    Path(output_file_name).stem
-                    + "_watermarked"
-                    + Path(output_file_name).suffix
-                )
-            ff = FFmpeg(  # type: ignore
-                inputs=inputs_dict,
-                outputs={output_file_name: None},
-                global_options=global_option_list,
-            )
-            ff.run()
-            video = output_file_name
+                output_stem += "_watermarked"
+            cache_root = Path(self.GRADIO_CACHE)
+            cache_root.mkdir(parents=True, exist_ok=True)
+            # Stage each encode separately, then deduplicate by its content hash.
+            # The staging directory is removed even if encoding or caching fails.
+            try:
+                with tempfile.TemporaryDirectory(dir=cache_root) as output_dir:
+                    output_file_name = str(
+                        Path(output_dir)
+                        / f"{output_stem}.{self.format or returned_format}"
+                    )
+                    ff = FFmpeg(  # type: ignore
+                        inputs=inputs_dict,
+                        outputs={output_file_name: None},
+                        global_options=global_option_list,
+                    )
+                    ff.run()
+                    video = processing_utils.save_file_to_cache(
+                        output_file_name, cache_dir=self.GRADIO_CACHE
+                    )
+            finally:
+                # The playable mp4 was only an input to this encode and is never
+                # handed out, so `delete_cache` would not know to remove it.
+                # `convert_video_to_playable_mp4` gave it a directory of its own.
+                if playable_intermediate is not None:
+                    shutil.rmtree(
+                        Path(playable_intermediate).parent, ignore_errors=True
+                    )
 
         return FileData(path=video, orig_name=Path(video).name)
 
