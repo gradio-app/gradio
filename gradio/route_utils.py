@@ -447,16 +447,44 @@ async def call_process_api(
     if batch_in_single_out:
         output["data"] = output["data"][0]
 
-    _record_run_history(
-        app,
-        fn=fn,
-        gr_request=gr_request,
-        inputs=submitted_inputs,
-        outputs=output.get("data"),
-        started_at=started_at,
-        is_final=not output.get("is_generating"),
-    )
+    if body.batched:
+        runs = _split_batched_run(gr_request, submitted_inputs, output.get("data"))
+    else:
+        runs = [(gr_request, submitted_inputs, output.get("data"))]
+    for run_request, run_inputs, run_outputs in runs:
+        _record_run_history(
+            app,
+            fn=fn,
+            gr_request=run_request,
+            inputs=run_inputs,
+            outputs=run_outputs,
+            started_at=started_at,
+            is_final=not output.get("is_generating"),
+        )
     return output
+
+
+def _split_batched_run(
+    gr_request: Union[Request, list[Request]],
+    inputs: list[Any],
+    outputs: list[Any] | None,
+) -> list[tuple[Request, list[Any], list[Any]]]:
+    """Split a batched call into one run per sample, with the request that sent it.
+
+    The queue passes one request per event; a direct batched call has a single
+    caller for every sample. Any other mismatch returns no runs, rather than
+    filing a sample under someone else's request.
+    """
+    requests = gr_request if isinstance(gr_request, list) else [gr_request]
+    samples = [list(sample) for sample in zip(*inputs, strict=False)]
+    results = [list(result) for result in zip(*(outputs or []), strict=False)] or [
+        [] for _ in samples
+    ]
+    if len(requests) == 1:
+        requests = requests * len(samples)
+    if not len(requests) == len(samples) == len(results):
+        return []
+    return list(zip(requests, samples, results, strict=True))
 
 
 def _record_run_history(

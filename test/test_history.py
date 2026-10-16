@@ -11,10 +11,12 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import threading
 from contextlib import contextmanager
 from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -51,6 +53,7 @@ class FakeHub:
 
     def __init__(self):
         self.files: dict[str, bytes] = {}
+        self.bucket_of: dict[str, str] = {}
         self.created: list[str] = []
         self.downloads: list[str] = []
         self.fail_next_add_paths: set[str] | None = None
@@ -65,6 +68,7 @@ class FakeHub:
         for payload, path in add or []:
             if self.fail_next_add_paths and path in self.fail_next_add_paths:
                 raise RuntimeError("simulated hub failure")
+            self.bucket_of[path] = bucket_id
             if isinstance(payload, bytes):
                 self.files[path] = payload
             else:
@@ -457,6 +461,57 @@ class TestServerSideRecording:
         )
         assert r.status_code == 200
         assert r.json()["data"] == ["hello world"]
+
+    def test_a_batch_is_recorded_per_user_in_their_own_bucket(self, monkeypatch):
+        monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
+        hub = FakeHub()
+        started, release = threading.Event(), threading.Event()
+        batches = []
+
+        def upper(texts):
+            batches.append(list(texts))
+            started.set()
+            release.wait(10)
+            return [[t.upper() for t in texts]]
+
+        with gr.Blocks() as demo:
+            t = gr.Textbox()
+            o = gr.Textbox()
+            gr.Button().click(upper, t, o, batch=True, max_batch_size=2)
+
+        app, local_url, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            with (
+                patch("gradio.history.resolve_token", return_value="tok"),
+                patch("gradio.history.HfApi", return_value=hub),
+                httpx.Client(base_url=local_url, timeout=30) as client,
+            ):
+
+                def join(text, session_hash, headers=None):
+                    body = {"data": [text], "fn_index": 0, "session_hash": session_hash}
+                    r = client.post(
+                        "/gradio_api/queue/join", json=body, headers=headers
+                    )
+                    assert r.status_code == 200, r.text
+
+                # Keep the worker busy so the next two events form one batch.
+                join("busy", "busy")
+                assert started.wait(10)
+                join("alice's secret", "a", {"X-Gradio-History-Bucket": "alice/hist"})
+                join("bob's secret", "b", {"X-Gradio-History-Bucket": "bob/hist"})
+                release.set()
+                assert _wait_for(lambda: len(hub.files) == 2), "missing records"
+        finally:
+            demo.close()
+
+        assert ["alice's secret", "bob's secret"] in batches
+        records = {
+            hub.bucket_of[path]: json.loads(data) for path, data in hub.files.items()
+        }
+        assert records["alice/hist"]["inputs"] == ["alice's secret"]
+        assert records["alice/hist"]["outputs"] == ["ALICE'S SECRET"]
+        assert records["bob/hist"]["inputs"] == ["bob's secret"]
+        assert records["bob/hist"]["outputs"] == ["BOB'S SECRET"]
 
 
 # ------------------------------------------------- end-to-end: workflow canvas
