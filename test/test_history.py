@@ -53,7 +53,7 @@ class FakeHub:
 
     def __init__(self):
         self.files: dict[str, bytes] = {}
-        self.bucket_of: dict[str, str] = {}
+        self.bucket_of: dict[str, str | None] = {}
         self.created: list[str] = []
         self.downloads: list[str] = []
         self.fail_next_add_paths: set[str] | None = None
