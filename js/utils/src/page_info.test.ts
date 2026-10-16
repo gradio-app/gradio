@@ -4,7 +4,7 @@ import { on_page_info, type PageInfo } from "./page_info";
 describe("on_page_info", () => {
 	let send: ((info: PageInfo) => void) | false = false;
 	const getPageInfo = vi.fn((cb: typeof send) => (send = cb));
-	vi.stubGlobal("window", { parentIFrame: { getPageInfo } });
+	window.parentIFrame = { getPageInfo } as any;
 	const info = { scrollTop: 0, offsetTop: 0, clientHeight: 800 };
 
 	test("every subscriber gets updates, and the parent is released after the last", () => {
