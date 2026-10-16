@@ -164,6 +164,7 @@ export function submit(
 						input_components: dependency.inputs.map(component_metadata),
 						output_components: dependency.outputs.map(component_metadata)
 					});
+		let chunk_inputs = "";
 
 		let stream: EventSource | null;
 		let event_id_final = "";
@@ -819,6 +820,25 @@ export function submit(
 			},
 			cancel,
 			send_chunk: (payload: Record<string, unknown>) => {
+				// The other inputs can change mid-stream, and the output that is
+				// saved is the last one, so keep them in step. Writing serialises
+				// every saved run, hence only on a change.
+				if (history_run_id) {
+					const inputs = history_inputs(
+						handle_payload(
+							payload.data as unknown[],
+							dependency,
+							config.components,
+							"input",
+							true
+						)
+					);
+					const key = JSON.stringify(inputs);
+					if (key !== chunk_inputs) {
+						chunk_inputs = key;
+						update_run_inputs(history_scope, history_run_id, inputs);
+					}
+				}
 				post_to_event("", { ...payload, session_hash: this.session_hash });
 			},
 			close_stream: () => {

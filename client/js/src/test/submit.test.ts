@@ -118,6 +118,7 @@ describe("submit iterator", () => {
 		"saves an input stream without the streamed chunk",
 		async () => {
 			const app = await Client.connect("hmb/hello_world");
+			app.stream_status.open = true;
 			const scope = {
 				app_id: app.config?.app_id,
 				username: app.config?.username
