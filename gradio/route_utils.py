@@ -393,6 +393,7 @@ async def call_process_api(
     gr_request: Union[Request, list[Request]],
     fn: BlockFunction,
     root_path: str,
+    record_history: bool = True,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
@@ -447,19 +448,19 @@ async def call_process_api(
     if batch_in_single_out:
         output["data"] = output["data"][0]
 
-    _record_run_history(
+    record_run_history(
         app,
         fn=fn,
         gr_request=gr_request,
         inputs=submitted_inputs,
         outputs=output.get("data"),
         started_at=started_at,
-        is_final=not output.get("is_generating"),
+        is_final=record_history and not output.get("is_generating"),
     )
     return output
 
 
-def _record_run_history(
+def record_run_history(
     app: App,
     *,
     fn: BlockFunction,

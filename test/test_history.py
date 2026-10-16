@@ -15,6 +15,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -457,6 +458,70 @@ class TestServerSideRecording:
         )
         assert r.status_code == 200
         assert r.json()["data"] == ["hello world"]
+
+    def test_an_input_stream_is_recorded_once_without_its_chunk(self, monkeypatch):
+        monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
+        hub = FakeHub()
+        calls = []
+
+        def on_chunk(chunk, threshold):
+            calls.append(chunk)
+            return f"{len(calls)} chunks at {threshold}"
+
+        with gr.Blocks() as demo:
+            mic = gr.Audio(sources=["microphone"], streaming=True)
+            threshold = gr.Number(3)
+            out = gr.Textbox()
+            mic.stream(on_chunk, [mic, threshold], out)
+
+        app, local_url, _ = demo.launch(prevent_thread_lock=True)
+        completed = None
+        try:
+            with (
+                patch("gradio.history.resolve_token", return_value="tok"),
+                patch("gradio.history.HfApi", return_value=hub),
+                httpx.Client(base_url=local_url, timeout=30) as client,
+            ):
+                with open("test/test_files/audio_sample.wav", "rb") as f:
+                    (path,) = client.post(
+                        "/gradio_api/upload", files={"files": f}
+                    ).json()
+                chunk = {"path": path, "meta": {"_type": "gradio.FileData"}}
+                body = {"data": [chunk, 3], "fn_index": 0, "session_hash": "s"}
+                event_id = client.post(
+                    "/gradio_api/queue/join",
+                    json=body,
+                    headers={"X-Gradio-History-Bucket": "alice/hist"},
+                ).json()["event_id"]
+                chunks = 1
+                with client.stream(
+                    "GET", "/gradio_api/queue/data", params={"session_hash": "s"}
+                ) as sse:
+                    for line in sse.iter_lines():
+                        if not line.startswith("data:"):
+                            continue
+                        msg = json.loads(line[5:])
+                        if msg["msg"] == "process_streaming":
+                            if chunks < 3:
+                                chunks += 1
+                                client.post(f"/gradio_api/stream/{event_id}", json=body)
+                            else:
+                                client.post(f"/gradio_api/stream/{event_id}/close")
+                        elif msg["msg"] == "process_completed":
+                            completed = msg
+                            break
+                assert _wait_for(lambda: hub.files and not app.state.history_tasks), (
+                    "no record was written"
+                )
+        finally:
+            demo.close()
+
+        assert completed is not None
+        assert len(calls) >= 3
+        (path,) = list(hub.files)
+        record = json.loads(hub.files[path])
+        assert record["inputs"] == [None, 3]
+        assert record["outputs"] == completed["output"]["data"]
 
 
 # ------------------------------------------------- end-to-end: workflow canvas

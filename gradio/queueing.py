@@ -16,7 +16,7 @@ import fastapi
 import numpy as np
 from anyio.to_thread import run_sync
 
-from gradio import route_utils, routes
+from gradio import history, route_utils, routes
 from gradio.caching import CacheMissError, ProbeCache
 from gradio.data_classes import (
     PredictBodyInternal,
@@ -388,6 +388,7 @@ class Queue:
                         gr_request=gr_request,
                         fn=fn,
                         root_path=root_path,
+                        record_history=fn.connection != "stream",
                     )
                     while response and response.get("is_generating", False):
                         self.send_message(
@@ -403,6 +404,7 @@ class Queue:
                             gr_request=gr_request,
                             fn=fn,
                             root_path=root_path,
+                            record_history=fn.connection != "stream",
                         )
                 cache_duration = time.time() - cache_start
                 avg_time = (
@@ -831,6 +833,8 @@ class Queue:
                 root_path=app.root_path,
             )
             first_iteration = 0
+            old_response = None
+            started_at = history.now_utc_iso()
 
             if PROFILING_ENABLED:
                 trace = RequestTrace(
@@ -851,6 +855,7 @@ class Queue:
                     gr_request=gr_request,
                     fn=fn,
                     root_path=root_path,
+                    record_history=fn.connection != "stream",
                 )
                 end = time.monotonic()
                 first_iteration = end - start
@@ -947,6 +952,7 @@ class Queue:
                             gr_request=gr_request,
                             fn=fn,
                             root_path=root_path,
+                            record_history=fn.connection != "stream",
                         )
                         end = time.monotonic()
                         for event in awake_events:
@@ -1018,6 +1024,29 @@ class Queue:
                             avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),
                     )
+            if fn.connection == "stream" and response is not None:
+                # A chunk is not the run's input, so the streamed component is
+                # saved empty; the event's other inputs are kept.
+                streamed = {
+                    block_id for block_id, event in fn.targets if event == "stream"
+                }
+                # A generator called again under the event id, which happens
+                # only when no chunk came after the first, returns a diff
+                # against its previous output, which is the full value.
+                last = response
+                if fn.types_generator and body.event_id is not None and old_response:
+                    last = old_response
+                route_utils.record_run_history(
+                    app,
+                    fn=fn,
+                    gr_request=gr_request,
+                    inputs=[
+                        None if block._id in streamed else value
+                        for block, value in zip(fn.inputs, body.data, strict=False)
+                    ],
+                    outputs=last.get("data"),
+                    started_at=started_at,
+                )
             end_time = time.time()
             if response is not None:
                 duration = (
