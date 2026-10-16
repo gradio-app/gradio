@@ -458,6 +458,46 @@ class TestServerSideRecording:
         assert r.status_code == 200
         assert r.json()["data"] == ["hello world"]
 
+    def test_timer_and_load_runs_are_not_recorded(self):
+        hub = FakeHub()
+        with gr.Blocks() as demo:
+            timer = gr.Timer(1)
+            button = gr.Button()
+            out = gr.Textbox()
+            gr.on(
+                [button.click, timer.tick], lambda: "x", None, out, api_name="story"
+            ).then(lambda: "y", None, out, api_name="after_story")
+            demo.load(lambda: "z", None, out, api_name="on_load")
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        with (
+            patch("gradio.history.resolve_token", return_value="tok"),
+            patch("gradio.history.HfApi", return_value=hub),
+            TestClient(app) as client,
+        ):
+            headers = {"X-Gradio-History-Bucket": "alice/hist"}
+            for api_name, trigger_id in [
+                ("story", timer._id),
+                ("after_story", timer._id),
+                ("on_load", demo._id),
+                ("story", button._id),
+                ("after_story", button._id),
+                ("story", None),
+            ]:
+                r = client.post(
+                    f"/gradio_api/run/{api_name}",
+                    json={"data": [], "trigger_id": trigger_id},
+                    headers=headers,
+                )
+                assert r.status_code == 200, r.text
+            assert _wait_for(lambda: len(hub.files) == 3)
+            import time as _time
+
+            _time.sleep(0.3)
+            endpoints = sorted(path.split("/")[2] for path in hub.files)
+            assert endpoints == ["after_story", "story", "story"], sorted(hub.files)
+        demo.close()
+        close_all()
+
 
 # ------------------------------------------------- end-to-end: workflow canvas
 

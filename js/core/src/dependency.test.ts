@@ -336,4 +336,37 @@ describe("DependencyManager.dispatch", () => {
 			"waiting"
 		);
 	});
+
+	test("sends the root Blocks id as the trigger of a load event and its .failure() step", async () => {
+		const on_load = dependency(0, "on_load", [10]);
+		on_load.targets = [[0, "load"]];
+		const fallback = dependency(1, "fallback", [10]);
+		fallback.trigger_after = 0;
+		fallback.trigger_only_on_failure = true;
+		const submitted: [number, unknown][] = [];
+		const client = {
+			submit: (
+				fn_index: number,
+				_data: unknown,
+				_event_data: unknown,
+				trigger_id: unknown
+			) => {
+				submitted.push([fn_index, trigger_id]);
+				return (async function* () {
+					yield fn_index === 0
+						? { type: "status", stage: "error", queue: true, message: "boom" }
+						: { type: "status", stage: "complete", queue: true };
+				})();
+			}
+		} as unknown as Client;
+
+		manager([on_load, fallback], client).dispatch_load_events();
+
+		await vi.waitFor(() =>
+			expect(submitted).toEqual([
+				[0, 0],
+				[1, 0]
+			])
+		);
+	});
 });

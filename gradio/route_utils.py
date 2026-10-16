@@ -454,9 +454,27 @@ async def call_process_api(
         inputs=submitted_inputs,
         outputs=output.get("data"),
         started_at=started_at,
+        fns=session_state.blocks_config.fns,
+        trigger_id=body.trigger_id,
         is_final=not output.get("is_generating"),
     )
     return output
+
+
+def _is_automatic_run(
+    fns: dict[int, BlockFunction], fn: BlockFunction, trigger_id: int | None
+) -> bool:
+    """Whether a Timer tick or a page load started this call; must match
+    `is_automatic_run` in `client/js/src/utils/run_history.ts`."""
+    if trigger_id is None:
+        return False
+    original = fn
+    for _ in range(100):
+        if original.trigger_after is None or original.trigger_after not in fns:
+            break
+        original = fns[original.trigger_after]
+    events = [event for block_id, event in original.targets if block_id == trigger_id]
+    return bool(events) and all(event in ("tick", "load") for event in events)
 
 
 def _record_run_history(
@@ -467,12 +485,16 @@ def _record_run_history(
     inputs: Any,
     outputs: Any,
     started_at: str,
+    fns: dict[int, BlockFunction],
+    trigger_id: int | None,
     is_final: bool = True,
 ) -> None:
     """Hand a finished run to the recorder; records only public endpoints."""
     if not is_final or fn.is_cancel_function or fn.api_visibility != "public":
         return
     try:
+        if _is_automatic_run(fns, fn, trigger_id):
+            return
         history.schedule_record_run(
             app,
             request=gr_request,
