@@ -40,7 +40,8 @@ export function is_secret(node: unknown): boolean {
 	return (node as { type?: string } | null)?.type === "password";
 }
 
-const SECRET_PORT = /\b(api[_-]?key|token|secret|password|passwd)\b/i;
+const SECRET_PORT =
+	/(?:^|[^a-z0-9])(api[_-]?key|token|secret|password|passwd)(?:$|[^a-z0-9])/i;
 
 /** Matched by name only. */
 export function is_secret_port(port: { id?: string; label?: string }): boolean {
