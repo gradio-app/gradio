@@ -480,6 +480,8 @@ class TestServerSideRecording:
                 ("after_story", timer._id),
                 ("on_load", demo._id),
                 ("story", button._id),
+                ("after_story", button._id),
+                ("story", None),
             ]:
                 r = client.post(
                     f"/gradio_api/run/{api_name}",
@@ -487,12 +489,12 @@ class TestServerSideRecording:
                     headers=headers,
                 )
                 assert r.status_code == 200, r.text
-            assert _wait_for(lambda: len(hub.files) == 1)
+            assert _wait_for(lambda: len(hub.files) == 3)
             import time as _time
 
             _time.sleep(0.3)
-            (path,) = list(hub.files)
-            assert path.startswith(f"runs/{demo.app_id}/story/")
+            endpoints = sorted(path.split("/")[2] for path in hub.files)
+            assert endpoints == ["after_story", "story", "story"], sorted(hub.files)
         demo.close()
         close_all()
 
