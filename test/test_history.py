@@ -15,6 +15,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -457,6 +458,54 @@ class TestServerSideRecording:
         )
         assert r.status_code == 200
         assert r.json()["data"] == ["hello world"]
+
+    def test_an_input_stream_is_recorded_once_with_its_last_output(self, monkeypatch):
+        recorded = []
+        monkeypatch.setattr(
+            history_mod, "schedule_record_run", lambda app, **kw: recorded.append(kw)
+        )
+        calls = []
+
+        def on_chunk(audio):
+            calls.append(audio)
+            return str(len(calls))
+
+        with gr.Blocks() as demo:
+            mic = gr.Audio(sources=["microphone"], streaming=True)
+            out = gr.Textbox()
+            mic.stream(on_chunk, mic, out, api_name="transcribe")
+
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+        body = {"data": [None], "fn_index": 0, "session_hash": "s"}
+        try:
+            with httpx.Client(base_url=local_url, timeout=30) as client:
+                event_id = client.post("/gradio_api/queue/join", json=body).json()[
+                    "event_id"
+                ]
+                chunks = 1
+                with client.stream(
+                    "GET", "/gradio_api/queue/data", params={"session_hash": "s"}
+                ) as sse:
+                    for line in sse.iter_lines():
+                        if not line.startswith("data:"):
+                            continue
+                        msg = json.loads(line[5:])
+                        if msg["msg"] == "process_streaming":
+                            if chunks < 3:
+                                chunks += 1
+                                client.post(f"/gradio_api/stream/{event_id}", json=body)
+                            else:
+                                client.post(f"/gradio_api/stream/{event_id}/close")
+                        elif msg["msg"] == "process_completed":
+                            completed = msg
+                            break
+        finally:
+            demo.close()
+
+        assert len(calls) >= 3
+        assert len(recorded) == 1
+        assert recorded[0]["inputs"] == []
+        assert recorded[0]["outputs"] == completed["output"]["data"]
 
 
 # ------------------------------------------------- end-to-end: workflow canvas

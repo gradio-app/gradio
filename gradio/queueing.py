@@ -16,7 +16,7 @@ import fastapi
 import numpy as np
 from anyio.to_thread import run_sync
 
-from gradio import route_utils, routes
+from gradio import history, route_utils, routes
 from gradio.caching import CacheMissError, ProbeCache
 from gradio.data_classes import (
     PredictBodyInternal,
@@ -831,6 +831,7 @@ class Queue:
                 root_path=app.root_path,
             )
             first_iteration = 0
+            started_at = history.now_utc_iso()
 
             if PROFILING_ENABLED:
                 trace = RequestTrace(
@@ -1018,6 +1019,17 @@ class Queue:
                             avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),
                     )
+            if fn.connection == "stream" and response is not None:
+                # A chunk is not the run's input, and the stream itself is never
+                # kept, so only the last output is saved.
+                route_utils.record_run_history(
+                    app,
+                    fn=fn,
+                    gr_request=gr_request,
+                    inputs=[],
+                    outputs=response.get("data"),
+                    started_at=started_at,
+                )
             end_time = time.time()
             if response is not None:
                 duration = (

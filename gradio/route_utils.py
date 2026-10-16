@@ -447,19 +447,21 @@ async def call_process_api(
     if batch_in_single_out:
         output["data"] = output["data"][0]
 
-    _record_run_history(
+    record_run_history(
         app,
         fn=fn,
         gr_request=gr_request,
         inputs=submitted_inputs,
         outputs=output.get("data"),
         started_at=started_at,
-        is_final=not output.get("is_generating"),
+        # Each call of an input stream handles one chunk; the queue records the
+        # stream once, when it ends.
+        is_final=not output.get("is_generating") and fn.connection != "stream",
     )
     return output
 
 
-def _record_run_history(
+def record_run_history(
     app: App,
     *,
     fn: BlockFunction,

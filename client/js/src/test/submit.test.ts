@@ -10,7 +10,10 @@ import {
 import { HttpResponse, http } from "msw";
 
 import { Client } from "../client";
-import { set_run_history_storage } from "../utils/run_history";
+import {
+	read_run_history,
+	set_run_history_storage
+} from "../utils/run_history";
 import { direct_space_url } from "./handlers";
 import { initialise_server } from "./server";
 
@@ -108,6 +111,30 @@ describe("submit iterator", () => {
 			expect(header).toBe("alice/app-history");
 			await iterator.return();
 			set_run_history_storage(scope, { type: "browser" });
+		}
+	);
+
+	test.skipIf(typeof window === "undefined")(
+		"saves no inputs for an input stream",
+		async () => {
+			const app = await Client.connect("hmb/hello_world");
+			const scope = {
+				app_id: app.config?.app_id,
+				username: app.config?.username
+			};
+			app.config!.dependencies[0].connection = "stream";
+			server.resetHandlers(
+				http.post(`${direct_space_url}/queue/join`, () =>
+					HttpResponse.json({ event_id: "stream-event" })
+				)
+			);
+
+			const iterator = app.submit("/predict", ["hi"]);
+			await iterator.wait_for_id();
+			const [run] = read_run_history(scope);
+			expect(run.api_name).toBe("/predict");
+			expect(run.inputs).toEqual([]);
+			await iterator.return();
 		}
 	);
 
