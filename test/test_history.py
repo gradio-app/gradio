@@ -537,24 +537,24 @@ class TestServerSideRecording:
         assert records["tok-b", "bob/hist"]["outputs"] == ["BOB'S SECRET"]
 
     def test_split_batched_run(self):
+        alice, bob = gr.Request(username="alice"), gr.Request(username="bob")
         # A direct batched call has one caller for every sample.
         assert _split_batched_run(
-            "alice", [["x", "y"]], [["X", "Y"]], has_outputs=True
-        ) == [("alice", ["x"], ["X"]), ("alice", ["y"], ["Y"])]
+            alice, [["x", "y"]], [["X", "Y"]], has_outputs=True
+        ) == [(alice, ["x"], ["X"]), (alice, ["y"], ["Y"])]
         # A function without outputs still records each sample.
         assert _split_batched_run(
-            ["alice", "bob"], [["x", "y"]], [], has_outputs=False
-        ) == [("alice", ["x"], []), ("bob", ["y"], [])]
+            [alice, bob], [["x", "y"]], [], has_outputs=False
+        ) == [(alice, ["x"], []), (bob, ["y"], [])]
         # Anything that does not line up is dropped, not guessed.
         assert (
             _split_batched_run(
-                ["alice", "bob"], [["x", "y", "z"]], [["X", "Y", "Z"]], has_outputs=True
+                [alice, bob], [["x", "y", "z"]], [["X", "Y", "Z"]], has_outputs=True
             )
             == []
         )
         assert (
-            _split_batched_run(["alice", "bob"], [["x", "y"]], [], has_outputs=True)
-            == []
+            _split_batched_run([alice, bob], [["x", "y"]], [], has_outputs=True) == []
         )
 
 
