@@ -1411,6 +1411,7 @@ _FILE_STREAM_MAX_REDIRECTS = 20
 _FILE_STREAM_PASSTHROUGH_HEADERS = (
     "content-length",
     "content-range",
+    "content-encoding",
     "accept-ranges",
     "last-modified",
     "etag",
@@ -1428,10 +1429,10 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
     re-validating every redirect hop. Hosts that are unresolvable or resolve to a
     private / loopback / link-local / reserved address are rejected. See #13593.
     """
-    forward_headers = {}
-    range_header = request.headers.get("Range")
-    if range_header:
-        forward_headers["Range"] = range_header
+    forward_headers = {"Accept-Encoding": "identity"}
+    for header in ("Range", "If-Range"):
+        if value := request.headers.get(header):
+            forward_headers[header] = value
 
     current_url = url
     redirects = 0
@@ -1471,7 +1472,7 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
             continue
 
         upstream_mime = upstream.headers.get("content-type", "").split(";")[0].strip()
-        guessed_mime, _ = mimetypes.guess_type(current_url)
+        guessed_mime, guessed_encoding = mimetypes.guess_type(current_url)
         if upstream_mime in XSS_SAFE_MIMETYPES or guessed_mime in XSS_SAFE_MIMETYPES:
             content_type = upstream_mime or guessed_mime or "application/octet-stream"
             content_disposition = "inline"
@@ -1487,6 +1488,11 @@ async def secure_url_stream_response(url: str, request: StarletteRequest):
         for header in _FILE_STREAM_PASSTHROUGH_HEADERS:
             if header in upstream.headers:
                 response_headers[header] = upstream.headers[header]
+        # Some hosts label a stored compressed file (e.g. `archive.tar.gz`) with
+        # `Content-Encoding: gzip`. Like browsers, treat a URL that names a
+        # compressed file as the file itself, so clients don't decode it.
+        if guessed_encoding:
+            response_headers.pop("content-encoding", None)
 
         async def _close(upstream=upstream, client=client) -> None:
             await upstream.aclose()
