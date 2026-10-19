@@ -820,26 +820,32 @@ export function submit(
 			},
 			cancel,
 			send_chunk: (payload: Record<string, unknown>) => {
-				// The other inputs can change mid-stream, and the output that is
-				// saved is the last one, so keep them in step. Writing serialises
-				// every saved run, hence only on a change.
-				if (history_run_id) {
-					const inputs = history_inputs(
-						handle_payload(
-							payload.data as unknown[],
-							dependency,
-							config.components,
-							"input",
-							true
-						)
-					);
-					const key = JSON.stringify(inputs);
-					if (key !== chunk_inputs) {
-						chunk_inputs = key;
-						update_run_inputs(history_scope, history_run_id, inputs);
-					}
-				}
 				post_to_event("", { ...payload, session_hash: this.session_hash });
+				// The saved output is the last one, so keep the other inputs in step,
+				// after the job has written the first ones.
+				job.then(
+					() => {
+						if (!history_run_id || complete) return;
+						try {
+							const inputs = history_inputs(
+								handle_payload(
+									payload.data as unknown[],
+									dependency,
+									config.components,
+									"input",
+									true
+								)
+							);
+							const key = JSON.stringify(inputs);
+							if (key === chunk_inputs) return;
+							chunk_inputs = key;
+							update_run_inputs(history_scope, history_run_id, inputs);
+						} catch (error) {
+							console.warn("Could not update the run history.", error);
+						}
+					},
+					() => {}
+				);
 			},
 			close_stream: () => {
 				close();

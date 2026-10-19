@@ -515,6 +515,7 @@ class TestServerSideRecording:
                 )
         finally:
             demo.close()
+            close_all()
 
         assert completed is not None
         assert len(calls) >= 3
