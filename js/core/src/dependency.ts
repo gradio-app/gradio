@@ -935,6 +935,9 @@ export class DependencyManager {
 		if (!ids) return;
 
 		for (const id of ids) {
+			// Drop any deferred event before awaiting: the cancelled run can
+			// finish, and would replay it, before submission.cancel() returns.
+			this.queue.delete(id);
 			const submission = this.submissions.get(id);
 			if (submission) {
 				await submission.cancel();
@@ -1005,6 +1008,7 @@ export class DependencyManager {
 		const fn_ids = this.get_fns_from_targets(id);
 
 		for (const fn_id of fn_ids) {
+			this.queue.delete(fn_id);
 			const submission = this.submissions.get(fn_id);
 			if (submission) {
 				submission.close_stream();
