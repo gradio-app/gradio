@@ -234,6 +234,13 @@ def test_heartbeat_task_cancelled_after_stream_completes():
     demo.close()
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="The readiness probe relies on run_time growing past 0, which the "
+    "coarse time.monotonic() on Windows may not register for this trivial "
+    "handler, and the disconnect case has the same heartbeat cancellation "
+    "issue as the test above.",
+)
 @pytest.mark.parametrize("end", ["close", "disconnect"])
 def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
     calls = []
