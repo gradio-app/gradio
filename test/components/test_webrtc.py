@@ -1777,12 +1777,16 @@ class TestVideoTracks:
         from gradio.webrtc.tracks import HandlerVideoTrack
         from gradio.webrtc.utils import Context
 
+        released = asyncio.Event()
+
         class OneFrame(VideoStreamTrack):
             frames = [video_frame(0)]
 
             async def recv(self):
                 if self.frames:
                     return self.frames.pop()
+                # An ended input stops the track, which would race with recv()
+                await released.wait()
                 raise MediaStreamError
 
         class Handler(AudioVideoStreamHandler):
@@ -1810,6 +1814,8 @@ class TestVideoTracks:
         while len(Handler.seen) < 2 and time.monotonic() < deadline:
             await asyncio.sleep(0.01)
         track.stop()
+        released.set()
+        await track.process_task
         assert sorted(Handler.seen) == [("emit", "id"), ("receive", "id")]
 
     @pytest.mark.asyncio
