@@ -437,8 +437,22 @@ export class DependencyManager {
 				// rather than replay it after this run finishes.
 				this.queue.delete(dep.id);
 
-				// No loading status for js-only deps
+				// No loading status or validation errors for js-only deps
 				if (dep.functions.backend) {
+					// Clear previously set validation errors before any listener of
+					// this event awaits, so a sibling cannot clear a rejection that
+					// arrived ahead of its own first message.
+					dep.inputs.forEach((input_id) => {
+						this.update_state_cb(
+							input_id,
+							{
+								loading_status: {
+									validation_error: null
+								}
+							},
+							false
+						);
+					});
 					this.update_loading_status({
 						status: "pending",
 						fn_index: dep.id,
@@ -503,6 +517,16 @@ export class DependencyManager {
 						if (dep_submission.type === "data") {
 							await this.handle_data(dep.outputs, dep_submission.data);
 						}
+						// A transpiled js=True fn has a backend_fn, so it was marked
+						// pending above but runs entirely in the browser.
+						if (dep.functions.backend) {
+							this.update_loading_status({
+								status: "complete",
+								fn_index: dep.id,
+								stream_state: null
+							});
+							this.update_loading_stati_state();
+						}
 						unset_args.forEach((fn) => fn());
 						[...success, ...all].forEach((dep_id) => {
 							this.dispatch({
@@ -525,24 +549,8 @@ export class DependencyManager {
 						this.submissions.set(dep.id, dep_submission.data);
 						this.active_dependencies.set(dep_submission.data, dep);
 						active_submission = dep_submission.data;
-						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
-							if (index === 0) {
-								// Clear out previously set validation errors
-								dep.inputs.forEach((input_id) => {
-									this.update_state_cb(
-										input_id,
-										{
-											loading_status: {
-												validation_error: null
-											}
-										},
-										false
-									);
-								});
-							}
-							index += 1;
 							if (result === null) continue;
 							if (result.type === "data") {
 								await this.handle_data(dep.outputs, result.data);
@@ -946,7 +954,7 @@ export class DependencyManager {
 					stream_state: null
 				});
 				this.update_loading_stati_state();
-				this.clear_submission(id);
+				this.clear_submission(id, submission);
 				// Need to trigger any dependencies that are waiting for this one to complete
 				const { failure, all } = this.dependencies_by_fn
 					.get(id)

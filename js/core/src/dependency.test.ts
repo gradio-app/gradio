@@ -364,7 +364,9 @@ describe("DependencyManager.dispatch", () => {
 					trigger_id: number | null
 				) => {
 					calls.push([fn_index, event_data, trigger_id]);
-					const is_first_run = calls.length === 1;
+					const is_first_run =
+						fn_index === 0 &&
+						calls.filter(([called]) => called === 0).length === 1;
 					return (async function* () {
 						if (is_first_run) {
 							await first_run;
@@ -491,6 +493,71 @@ describe("DependencyManager.dispatch", () => {
 		expect(painted()).toBe("complete");
 	});
 
+	test("does not keep an output pending while another listener reads it as an input", async () => {
+		const reader = dependency(0, "reader", [20]);
+		reader.targets = [[1, "click"]];
+		reader.inputs = [10];
+		const writer = dependency(1, "writer", [10]);
+		writer.targets = [[1, "click"]];
+		let finish_reader!: () => void;
+		const reader_done = new Promise<void>((resolve) => {
+			finish_reader = resolve;
+		});
+		const client = {
+			submit: (fn_index: number) =>
+				(async function* () {
+					if (fn_index === 0) await reader_done;
+					yield { type: "status", stage: "complete", queue: true };
+				})()
+		} as unknown as Client;
+		const on_loading_status_change = vi.fn();
+		const dependency_manager = manager(
+			[reader, writer],
+			client,
+			undefined,
+			on_loading_status_change
+		);
+
+		const click = dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+		await vi.waitFor(() =>
+			expect(on_loading_status_change).toHaveBeenCalledWith(
+				expect.objectContaining({ fn_index: 1, status: "complete" })
+			)
+		);
+		expect(dependency_manager.loading_stati.current[10].status).toBe(
+			"complete"
+		);
+		finish_reader();
+		await click;
+		expect(dependency_manager.loading_stati.current[10].status).toBe(
+			"complete"
+		);
+	});
+
+	test("settles the loading status of a dependency transpiled to JavaScript", async () => {
+		const transpiled = dependency(0, "transpiled", [10]);
+		transpiled.targets = [[1, "click"]];
+		transpiled.js = true;
+		transpiled.js_implementation = "() => 'client result'";
+		const dependency_manager = manager([transpiled]);
+
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+
+		expect(dependency_manager.loading_stati.current[10].status).toBe(
+			"complete"
+		);
+	});
+
 	test("runs the other listeners of an event when a validator rejects one", async () => {
 		const validated = dependency(0, "validated", [10]);
 		validated.targets = [[1, "click"]];
@@ -522,5 +589,57 @@ describe("DependencyManager.dispatch", () => {
 		});
 
 		expect(submitted).toContain(1);
+	});
+
+	test("keeps a validation error when another listener on the same input responds later", async () => {
+		const validated = dependency(0, "validated", [20]);
+		validated.targets = [[1, "click"]];
+		validated.inputs = [10];
+		const other = dependency(1, "other", [30]);
+		other.targets = [[1, "click"]];
+		other.inputs = [10];
+		let release_other!: () => void;
+		const other_released = new Promise<void>((resolve) => {
+			release_other = resolve;
+		});
+		const client = {
+			submit: (fn_index: number) =>
+				(async function* () {
+					if (fn_index === 1) await other_released;
+					yield fn_index === 0
+						? {
+								type: "status",
+								stage: "error",
+								queue: true,
+								message: [{ is_valid: false, message: "bad" }]
+							}
+						: { type: "status", stage: "complete", queue: true };
+				})()
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[validated, other],
+			client,
+			update_state
+		);
+		const validation_errors = () =>
+			update_state.mock.calls
+				.filter(
+					([id, state]) =>
+						id === 10 && state.loading_status?.validation_error !== undefined
+				)
+				.map(([, state]) => state.loading_status.validation_error);
+
+		const click = dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+		await vi.waitFor(() => expect(validation_errors()).toContain("bad"));
+		release_other();
+		await click;
+
+		expect(validation_errors().at(-1)).toBe("bad");
 	});
 });
