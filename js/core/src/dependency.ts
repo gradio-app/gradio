@@ -432,6 +432,9 @@ export class DependencyManager {
 					this.queue.set(dep.id, event_meta);
 					continue;
 				}
+				// Anything deferred before this run is older than it, so drop it
+				// rather than replay it after this run finishes.
+				this.queue.delete(dep.id);
 
 				// No loading status for js-only deps
 				if (dep.functions.backend) {

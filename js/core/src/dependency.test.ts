@@ -387,12 +387,15 @@ describe("DependencyManager.dispatch", () => {
 				event_data: "click data"
 			});
 			await vi.waitFor(() => expect(calls).toHaveLength(1));
-			await dependency_manager.dispatch({
-				type: "event",
-				event_name: "change",
-				target_id: 2,
-				event_data: "change data"
-			});
+			for (const event_data of ["stale change data", "change data"]) {
+				await dependency_manager.dispatch({
+					type: "event",
+					event_name: "change",
+					target_id: 2,
+					event_data
+				});
+			}
+			expect(calls).toHaveLength(1);
 			finish_first_run();
 			await click;
 
