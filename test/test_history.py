@@ -12,6 +12,7 @@ import asyncio
 import json
 import os
 import threading
+from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -31,6 +32,7 @@ from gradio.history import (
     validate_bucket_id,
 )
 from gradio.interface import close_all
+from gradio.route_utils import _split_batched_run
 
 
 def externalize(tree, counter=None, **kwargs):
@@ -464,7 +466,7 @@ class TestServerSideRecording:
 
     def test_a_batch_is_recorded_per_user_in_their_own_bucket(self, monkeypatch):
         monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
-        hub = FakeHub()
+        hubs: dict[str, FakeHub] = defaultdict(FakeHub)
         started, release = threading.Event(), threading.Event()
         batches = []
 
@@ -477,43 +479,83 @@ class TestServerSideRecording:
         with gr.Blocks() as demo:
             t = gr.Textbox()
             o = gr.Textbox()
-            gr.Button().click(upper, t, o, batch=True, max_batch_size=2)
+            gr.Button().click(
+                upper, t, o, batch=True, max_batch_size=2, concurrency_limit=1
+            )
 
-        app, local_url, _ = demo.launch(prevent_thread_lock=True)
-        try:
-            with (
-                patch("gradio.history.resolve_token", return_value="tok"),
-                patch("gradio.history.HfApi", return_value=hub),
-                httpx.Client(base_url=local_url, timeout=30) as client,
-            ):
+        def stored():
+            return {
+                (token, hub.bucket_of[path]): json.loads(data)
+                for token, hub in list(hubs.items())
+                for path, data in list(hub.files.items())
+            }
 
-                def join(text, session_hash, headers=None):
-                    body = {"data": [text], "fn_index": 0, "session_hash": session_hash}
-                    r = client.post(
-                        "/gradio_api/queue/join", json=body, headers=headers
+        # Each user's token is distinct, so a run saved with someone else's
+        # credentials lands under the wrong key.
+        with (
+            patch(
+                "gradio.history.resolve_token",
+                side_effect=lambda request: f"tok-{request.session_hash}",
+            ),
+            patch("gradio.history.HfApi", side_effect=lambda token: hubs[token]),
+        ):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            try:
+                with httpx.Client(base_url=local_url, timeout=30) as client:
+
+                    def join(text, session_hash, headers=None):
+                        body = {
+                            "data": [text],
+                            "fn_index": 0,
+                            "session_hash": session_hash,
+                        }
+                        r = client.post(
+                            "/gradio_api/queue/join", json=body, headers=headers
+                        )
+                        assert r.status_code == 200, r.text
+
+                    # Keep the worker busy so the next two events form one batch.
+                    join("busy", "busy")
+                    assert started.wait(10)
+                    join(
+                        "alice's secret", "a", {"X-Gradio-History-Bucket": "alice/hist"}
                     )
-                    assert r.status_code == 200, r.text
-
-                # Keep the worker busy so the next two events form one batch.
-                join("busy", "busy")
-                assert started.wait(10)
-                join("alice's secret", "a", {"X-Gradio-History-Bucket": "alice/hist"})
-                join("bob's secret", "b", {"X-Gradio-History-Bucket": "bob/hist"})
+                    join("bob's secret", "b", {"X-Gradio-History-Bucket": "bob/hist"})
+                    release.set()
+                    assert _wait_for(lambda: len(stored()) == 2), "missing records"
+            finally:
                 release.set()
-                assert _wait_for(lambda: len(hub.files) == 2), "missing records"
-        finally:
-            release.set()
-            demo.close()
-            close_all()
+                demo.close()
+                close_all()
 
         assert ["alice's secret", "bob's secret"] in batches
-        records = {
-            hub.bucket_of[path]: json.loads(data) for path, data in hub.files.items()
-        }
-        assert records["alice/hist"]["inputs"] == ["alice's secret"]
-        assert records["alice/hist"]["outputs"] == ["ALICE'S SECRET"]
-        assert records["bob/hist"]["inputs"] == ["bob's secret"]
-        assert records["bob/hist"]["outputs"] == ["BOB'S SECRET"]
+        records = stored()
+        assert set(records) == {("tok-a", "alice/hist"), ("tok-b", "bob/hist")}
+        assert records["tok-a", "alice/hist"]["inputs"] == ["alice's secret"]
+        assert records["tok-a", "alice/hist"]["outputs"] == ["ALICE'S SECRET"]
+        assert records["tok-b", "bob/hist"]["inputs"] == ["bob's secret"]
+        assert records["tok-b", "bob/hist"]["outputs"] == ["BOB'S SECRET"]
+
+    def test_split_batched_run(self):
+        # A direct batched call has one caller for every sample.
+        assert _split_batched_run(
+            "alice", [["x", "y"]], [["X", "Y"]], has_outputs=True
+        ) == [("alice", ["x"], ["X"]), ("alice", ["y"], ["Y"])]
+        # A function without outputs still records each sample.
+        assert _split_batched_run(
+            ["alice", "bob"], [["x", "y"]], [], has_outputs=False
+        ) == [("alice", ["x"], []), ("bob", ["y"], [])]
+        # Anything that does not line up is dropped, not guessed.
+        assert (
+            _split_batched_run(
+                ["alice", "bob"], [["x", "y", "z"]], [["X", "Y", "Z"]], has_outputs=True
+            )
+            == []
+        )
+        assert (
+            _split_batched_run(["alice", "bob"], [["x", "y"]], [], has_outputs=True)
+            == []
+        )
 
 
 # ------------------------------------------------- end-to-end: workflow canvas

@@ -464,6 +464,8 @@ def _split_batched_run(
     gr_request: Union[Request, list[Request]],
     inputs: list[Any],
     outputs: list[Any] | None,
+    *,
+    has_outputs: bool,
 ) -> list[tuple[Request, list[Any], list[Any]]]:
     """Split a batched call into one run per sample, with the request that sent it.
 
@@ -473,13 +475,14 @@ def _split_batched_run(
     """
     requests = gr_request if isinstance(gr_request, list) else [gr_request]
     samples = [list(sample) for sample in zip(*inputs, strict=False)]
-    results = [list(result) for result in zip(*(outputs or []), strict=False)] or [
-        [] for _ in samples
-    ]
+    if has_outputs:
+        results = [list(result) for result in zip(*(outputs or []), strict=False)]
+    else:
+        results = [[] for _ in samples]
     if len(requests) == 1:
         requests = requests * len(samples)
     if not len(requests) == len(samples) == len(results):
-        logger.debug(
+        logger.warning(
             "history: %d requests for %d samples and %d results, not recording",
             len(requests),
             len(samples),
@@ -505,7 +508,14 @@ def _record_run_history(
         return
     try:
         if batched:
-            runs = _split_batched_run(gr_request, inputs, outputs)
+            runs = _split_batched_run(
+                gr_request, inputs, outputs, has_outputs=bool(fn.outputs)
+            )
+        elif fn.batch and isinstance(gr_request, list):
+            # A streaming batch loses body.batched after its first chunk, so
+            # the zipped batch arrives here as if it were one sample.
+            logger.debug("history: batch ran unbatched, not recording")
+            runs = []
         else:
             runs = [(gr_request, inputs, outputs)]
         for run_request, run_inputs, run_outputs in runs:
