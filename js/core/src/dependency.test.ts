@@ -369,4 +369,49 @@ describe("DependencyManager.dispatch", () => {
 			])
 		);
 	});
+
+	test("sends the cancelled run's trigger to the step chained after it", async () => {
+		const slow = dependency(0, "slow", [10]);
+		slow.targets = [[5, "click"]];
+		const after = dependency(1, "after", [11]);
+		after.trigger_after = 0;
+		const stop = dependency(2, "stop", []);
+		stop.targets = [[6, "click"]];
+		stop.cancels = [0];
+		const submitted: [number, unknown][] = [];
+		const client = {
+			submit: (
+				fn_index: number,
+				_data: unknown,
+				_event_data: unknown,
+				trigger_id: unknown
+			) => {
+				submitted.push([fn_index, trigger_id]);
+				const submission = (async function* () {
+					if (fn_index === 0) await new Promise(() => {});
+					yield { type: "status", stage: "complete", queue: true };
+				})();
+				return Object.assign(submission, { cancel: vi.fn() });
+			}
+		} as unknown as Client;
+		const dependency_manager = manager([slow, after, stop], client);
+
+		dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 5,
+			event_data: null
+		});
+		await vi.waitFor(() =>
+			expect(dependency_manager.submissions.has(0)).toBe(true)
+		);
+		dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 6,
+			event_data: null
+		});
+
+		await vi.waitFor(() => expect(submitted).toContainEqual([1, 5]));
+	});
 });

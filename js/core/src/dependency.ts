@@ -206,6 +206,7 @@ export class DependencyManager {
 	render_id_deps = new Map<number, Set<number>>();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
+	submission_trigger_ids: Map<number, number | null> = new Map();
 	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
 		new Map();
 	client: Client;
@@ -493,6 +494,7 @@ export class DependencyManager {
 						}
 
 						this.submissions.set(dep.id, dep_submission.data);
+						this.submission_trigger_ids.set(dep.id, target_id);
 						this.active_dependencies.set(dep_submission.data, dep);
 						active_submission = dep_submission.data;
 						let index = 0;
@@ -920,6 +922,7 @@ export class DependencyManager {
 					stream_state: null
 				});
 				this.update_loading_stati_state();
+				const target_id = this.submission_trigger_ids.get(id) ?? undefined;
 				this.clear_submission(id);
 				// Need to trigger any dependencies that are waiting for this one to complete
 				const { failure, all } = this.dependencies_by_fn
@@ -930,7 +933,7 @@ export class DependencyManager {
 						type: "fn",
 						fn_index: dep_id,
 						event_data: null,
-						target_id: id
+						target_id
 					});
 				});
 				all.forEach((dep_id) => {
@@ -938,7 +941,7 @@ export class DependencyManager {
 						type: "fn",
 						fn_index: dep_id,
 						event_data: null,
-						target_id: id
+						target_id
 					});
 				});
 			}
@@ -1004,6 +1007,7 @@ export class DependencyManager {
 		const registered_submission = this.submissions.get(id);
 		if (submission === undefined || registered_submission === submission) {
 			this.submissions.delete(id);
+			this.submission_trigger_ids.delete(id);
 		}
 		if (submission) {
 			this.active_dependencies.delete(submission);
