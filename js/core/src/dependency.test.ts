@@ -339,7 +339,16 @@ describe("DependencyManager.dispatch", () => {
 
 	test.each([
 		["completes", { type: "status", stage: "complete", queue: true }],
-		["fails", { type: "status", stage: "error", queue: true, message: "boom" }]
+		["fails", { type: "status", stage: "error", queue: true, message: "boom" }],
+		[
+			"is rejected by its validator",
+			{
+				type: "status",
+				stage: "error",
+				queue: true,
+				message: [{ is_valid: false, message: "bad" }]
+			}
+		]
 	])(
 		"runs a deferred always_last event with its own event data, for that dependency only, when the running call %s",
 		async (_, first_run_result) => {
@@ -356,6 +365,8 @@ describe("DependencyManager.dispatch", () => {
 				finish_first_run = resolve;
 			});
 			const calls: [number, unknown, number | null][] = [];
+			const calls_to = (fn_index: number) =>
+				calls.filter(([i]) => i === fn_index);
 			const client = {
 				submit: (
 					fn_index: number,
@@ -364,9 +375,7 @@ describe("DependencyManager.dispatch", () => {
 					trigger_id: number | null
 				) => {
 					calls.push([fn_index, event_data, trigger_id]);
-					const is_first_run =
-						fn_index === 0 &&
-						calls.filter(([called]) => called === 0).length === 1;
+					const is_first_run = calls_to(0).length === 1 && fn_index === 0;
 					return (async function* () {
 						if (is_first_run) {
 							await first_run;
@@ -378,7 +387,7 @@ describe("DependencyManager.dispatch", () => {
 				}
 			} as unknown as Client;
 			const dependency_manager = manager(
-				[always_last, other_click_listener],
+				[other_click_listener, always_last],
 				client
 			);
 
@@ -388,9 +397,7 @@ describe("DependencyManager.dispatch", () => {
 				target_id: 1,
 				event_data: "click data"
 			});
-			await vi.waitFor(() =>
-				expect(calls).toContainEqual([0, "click data", 1])
-			);
+			await vi.waitFor(() => expect(calls_to(0)).toHaveLength(1));
 			for (const event_data of ["stale change data", "change data"]) {
 				await dependency_manager.dispatch({
 					type: "event",
@@ -399,7 +406,7 @@ describe("DependencyManager.dispatch", () => {
 					event_data
 				});
 			}
-			expect(calls.filter(([fn_index]) => fn_index === 0)).toHaveLength(1);
+			expect(calls_to(0)).toHaveLength(1);
 			finish_first_run();
 			await click;
 
@@ -641,5 +648,54 @@ describe("DependencyManager.dispatch", () => {
 		await click;
 
 		expect(validation_errors().at(-1)).toBe("bad");
+	});
+
+	test("drops a deferred always_last event when the running call is cancelled", async () => {
+		const always_last = dependency(0, "always_last", [10]);
+		always_last.targets = [[2, "change"]];
+		always_last.trigger_mode = "always_last";
+		let finish_run!: () => void;
+		const run_finished = new Promise<void>((resolve) => {
+			finish_run = resolve;
+		});
+		const calls: unknown[] = [];
+		const client = {
+			submit: (_fn_index: number, _data: unknown, event_data: unknown) => {
+				calls.push(event_data);
+				const submission = (async function* () {
+					await run_finished;
+					// What the client yields for the empty output the backend sends
+					// to finish a cancelled job
+					yield { type: "data", data: undefined };
+					yield { type: "status", stage: "complete", queue: true };
+				})();
+				return Object.assign(submission, {
+					cancel: async () => {
+						finish_run();
+						await new Promise((resolve) => setTimeout(resolve, 10));
+					}
+				});
+			}
+		} as unknown as Client;
+		const dependency_manager = manager([always_last], client);
+
+		const run = dependency_manager.dispatch({
+			type: "event",
+			event_name: "change",
+			target_id: 2,
+			event_data: "a"
+		});
+		await vi.waitFor(() => expect(calls).toHaveLength(1));
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "change",
+			target_id: 2,
+			event_data: "ab"
+		});
+		await dependency_manager.cancel([0]);
+		await run;
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		expect(calls).toEqual(["a"]);
 	});
 });
