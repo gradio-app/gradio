@@ -213,7 +213,7 @@ export class DependencyManager {
 	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
 		new Map();
 	client: Client;
-	queue: Map<number, DispatchFunction | DispatchEvent> = new Map();
+	deferred_events: Map<number, DispatchFunction | DispatchEvent> = new Map();
 	add_to_api_calls: (payload: Payload) => void;
 
 	update_state_cb: UpdateStateCallback;
@@ -312,6 +312,9 @@ export class DependencyManager {
 		}
 		this.dependencies_by_event = by_event;
 		this.dependencies_by_fn = by_id;
+		// Deferred events are keyed by the old fn ids, which may now belong to
+		// other functions.
+		this.deferred_events.clear();
 		this.client = client;
 		this.update_state_cb = update_state;
 		this.get_state_cb = get_state;
@@ -388,9 +391,9 @@ export class DependencyManager {
 
 	/** Runs the always_last event that was deferred while the dependency was running, if any */
 	dispatch_deferred(dep_id: number): void {
-		const deferred = this.queue.get(dep_id);
+		const deferred = this.deferred_events.get(dep_id);
 		if (!deferred) return;
-		this.queue.delete(dep_id);
+		this.deferred_events.delete(dep_id);
 		this.dispatch({
 			type: "fn",
 			fn_index: dep_id,
@@ -429,12 +432,12 @@ export class DependencyManager {
 				if (dispatch_status === "skip") {
 					continue;
 				} else if (dispatch_status === "defer") {
-					this.queue.set(dep.id, event_meta);
+					this.deferred_events.set(dep.id, event_meta);
 					continue;
 				}
 				// Anything deferred before this run is older than it, so drop it
 				// rather than replay it after this run finishes.
-				this.queue.delete(dep.id);
+				this.deferred_events.delete(dep.id);
 
 				// No loading status for js-only deps
 				if (dep.functions.backend) {
@@ -934,10 +937,10 @@ export class DependencyManager {
 	async cancel(ids: number[] | undefined): Promise<void> {
 		if (!ids) return;
 
+		// Drop the deferred events before awaiting anything: a cancelled run can
+		// finish, and would replay its event, before submission.cancel() returns.
+		ids.forEach((id) => this.deferred_events.delete(id));
 		for (const id of ids) {
-			// Drop any deferred event before awaiting: the cancelled run can
-			// finish, and would replay it, before submission.cancel() returns.
-			this.queue.delete(id);
 			const submission = this.submissions.get(id);
 			if (submission) {
 				await submission.cancel();
@@ -949,7 +952,7 @@ export class DependencyManager {
 					stream_state: null
 				});
 				this.update_loading_stati_state();
-				this.clear_submission(id);
+				this.clear_submission(id, submission);
 				// Need to trigger any dependencies that are waiting for this one to complete
 				const { failure, all } = this.dependencies_by_fn
 					.get(id)
@@ -1008,7 +1011,6 @@ export class DependencyManager {
 		const fn_ids = this.get_fns_from_targets(id);
 
 		for (const fn_id of fn_ids) {
-			this.queue.delete(fn_id);
 			const submission = this.submissions.get(fn_id);
 			if (submission) {
 				submission.close_stream();

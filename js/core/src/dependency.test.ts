@@ -97,6 +97,25 @@ describe("DependencyManager.reload", () => {
 		expect(dependency_manager.loading_stati.fn_outputs[0]).toEqual([32]);
 	});
 
+	test("drops deferred events, whose fn ids may now belong to other functions", () => {
+		const dependency_manager = manager([dependency(0, "generate", [10])]);
+		dependency_manager.deferred_events.set(0, {
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+
+		dependency_manager.reload(
+			[dependency(0, "unrelated", [20]), dependency(1, "generate", [21])],
+			vi.fn().mockResolvedValue(undefined),
+			vi.fn().mockResolvedValue(null),
+			vi.fn(),
+			{} as Client
+		);
+
+		expect(dependency_manager.deferred_events.size).toBe(0);
+	});
+
 	test("accepts the js=True marker used by transpiled dependencies", async () => {
 		const transpiled_dependency = dependency(0, "transpiled", [10]);
 		transpiled_dependency.js = true;
@@ -424,52 +443,57 @@ describe("DependencyManager.dispatch", () => {
 		}
 	);
 
-	test("drops a deferred always_last event when the running call is cancelled", async () => {
-		const always_last = dependency(0, "always_last", [10]);
-		always_last.targets = [[2, "change"]];
-		always_last.trigger_mode = "always_last";
-		let finish_run!: () => void;
-		const run_finished = new Promise<void>((resolve) => {
-			finish_run = resolve;
+	test("drops the deferred always_last events of cancelled calls", async () => {
+		const dependencies = [0, 1].map((id) => {
+			const always_last = dependency(id, `always_last_${id}`, [10 + id]);
+			always_last.targets = [[2 + id, "change"]];
+			always_last.trigger_mode = "always_last";
+			return always_last;
 		});
-		const calls: unknown[] = [];
+		let finish_runs!: () => void;
+		const runs_finished = new Promise<void>((resolve) => {
+			finish_runs = resolve;
+		});
+		const calls: [number, unknown][] = [];
 		const client = {
-			submit: (_fn_index: number, _data: unknown, event_data: unknown) => {
-				calls.push(event_data);
+			submit: (fn_index: number, _data: unknown, event_data: unknown) => {
+				calls.push([fn_index, event_data]);
 				const submission = (async function* () {
-					await run_finished;
+					await runs_finished;
 					// What the client yields for the empty output the backend sends
 					// to finish a cancelled job
 					yield { type: "data", data: undefined };
 					yield { type: "status", stage: "complete", queue: true };
 				})();
 				return Object.assign(submission, {
+					// Both runs end while the first cancel request is in flight
 					cancel: async () => {
-						finish_run();
+						finish_runs();
 						await new Promise((resolve) => setTimeout(resolve, 10));
 					}
 				});
 			}
 		} as unknown as Client;
-		const dependency_manager = manager([always_last], client);
+		const dependency_manager = manager(dependencies, client);
+		const change = (id: number, event_data: string) =>
+			dependency_manager.dispatch({
+				type: "event",
+				event_name: "change",
+				target_id: 2 + id,
+				event_data
+			});
 
-		const run = dependency_manager.dispatch({
-			type: "event",
-			event_name: "change",
-			target_id: 2,
-			event_data: "a"
-		});
-		await vi.waitFor(() => expect(calls).toHaveLength(1));
-		await dependency_manager.dispatch({
-			type: "event",
-			event_name: "change",
-			target_id: 2,
-			event_data: "ab"
-		});
-		await dependency_manager.cancel([0]);
-		await run;
+		const runs = [change(0, "a"), change(1, "x")];
+		await vi.waitFor(() => expect(calls).toHaveLength(2));
+		await change(0, "ab");
+		await change(1, "xy");
+		await dependency_manager.cancel([0, 1]);
+		await Promise.all(runs);
 		await new Promise((resolve) => setTimeout(resolve, 50));
 
-		expect(calls).toEqual(["a"]);
+		expect(calls).toEqual([
+			[0, "a"],
+			[1, "x"]
+		]);
 	});
 });
