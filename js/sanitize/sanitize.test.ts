@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { sanitize } from "./browser";
+import { sanitize, sanitize_fragment } from "./browser";
 
 describe("sanitize", () => {
 	test("opens non-fragment links in a new tab", () => {
@@ -52,6 +52,20 @@ describe("sanitize", () => {
 		expect(result).toBe("<p>hello</p>");
 	});
 
+	test.each([
+		[
+			"at the start",
+			'<meta http-equiv="refresh" content="0;url=/x"><p>hello</p>'
+		],
+		[
+			"after other content",
+			'<p>hello</p><meta http-equiv="refresh" content="0;url=/x">'
+		]
+	])("removes meta elements %s", (_, source) => {
+		expect(sanitize(source)).toBe("<p>hello</p>");
+		expect(sanitize_fragment(source).querySelector("meta")).toBeNull();
+	});
+
 	test("keeps style attributes", () => {
 		const node = new DOMParser().parseFromString(
 			sanitize('<p style="color: red;">hello</p>'),
@@ -70,6 +84,27 @@ describe("sanitize", () => {
 		try {
 			expect(sanitize("<p><b>bold</b> text</p>")).toBe(
 				"<p><b>bold</b> text</p>"
+			);
+			expect(spy).not.toHaveBeenCalled();
+		} finally {
+			spy.mockRestore();
+		}
+	});
+
+	test("sanitize_fragment does not create node iterators on the template contents document", () => {
+		// That document lives as long as the page, so an iterator created there
+		// would keep every sanitized fragment alive.
+		const owner = document.createElement("template").content.ownerDocument;
+		const spy = vi.spyOn(owner, "createNodeIterator");
+		try {
+			const fragment = sanitize_fragment(
+				'<p onclick="alert(1)"><a href="/docs">docs</a><script>alert(1)</script></p>'
+			);
+
+			const container = document.createElement("div");
+			container.append(fragment);
+			expect(container.innerHTML).toBe(
+				'<p><a href="/docs" target="_blank" rel="noopener noreferrer">docs</a></p>'
 			);
 			expect(spy).not.toHaveBeenCalled();
 		} finally {
