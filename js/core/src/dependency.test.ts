@@ -336,4 +336,75 @@ describe("DependencyManager.dispatch", () => {
 			"waiting"
 		);
 	});
+
+	test.each([
+		["completes", { type: "status", stage: "complete", queue: true }],
+		["fails", { type: "status", stage: "error", queue: true, message: "boom" }]
+	])(
+		"runs a deferred always_last event with its own event data, for that dependency only, when the running call %s",
+		async (_, first_run_result) => {
+			const always_last = dependency(0, "always_last", []);
+			always_last.targets = [
+				[1, "click"],
+				[2, "change"]
+			];
+			always_last.trigger_mode = "always_last";
+			const other_click_listener = dependency(1, "other", []);
+			other_click_listener.targets = [[1, "click"]];
+			let finish_first_run!: () => void;
+			const first_run = new Promise<void>((resolve) => {
+				finish_first_run = resolve;
+			});
+			const calls: [number, unknown, number | null][] = [];
+			const client = {
+				submit: (
+					fn_index: number,
+					_data: unknown,
+					event_data: unknown,
+					trigger_id: number | null
+				) => {
+					calls.push([fn_index, event_data, trigger_id]);
+					const is_first_run = calls.length === 1;
+					return (async function* () {
+						if (is_first_run) {
+							await first_run;
+							yield first_run_result;
+						} else {
+							yield { type: "status", stage: "complete", queue: true };
+						}
+					})();
+				}
+			} as unknown as Client;
+			const dependency_manager = manager(
+				[always_last, other_click_listener],
+				client
+			);
+
+			const click = dependency_manager.dispatch({
+				type: "event",
+				event_name: "click",
+				target_id: 1,
+				event_data: "click data"
+			});
+			await vi.waitFor(() => expect(calls).toHaveLength(1));
+			await dependency_manager.dispatch({
+				type: "event",
+				event_name: "change",
+				target_id: 2,
+				event_data: "change data"
+			});
+			finish_first_run();
+			await click;
+
+			const expected = [
+				[0, "click data", 1],
+				[1, "click data", 1],
+				[0, "change data", 2]
+			];
+			await vi.waitFor(() =>
+				expect(calls).toEqual(expect.arrayContaining(expected))
+			);
+			expect(calls).toHaveLength(expected.length);
+		}
+	);
 });

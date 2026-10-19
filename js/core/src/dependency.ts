@@ -213,7 +213,7 @@ export class DependencyManager {
 	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
 		new Map();
 	client: Client;
-	queue: Set<number> = new Set();
+	queue: Map<number, DispatchFunction | DispatchEvent> = new Map();
 	add_to_api_calls: (payload: Payload) => void;
 
 	update_state_cb: UpdateStateCallback;
@@ -386,6 +386,19 @@ export class DependencyManager {
 		}
 	}
 
+	/** Runs the always_last event that was deferred while the dependency was running, if any */
+	dispatch_deferred(dep_id: number): void {
+		const deferred = this.queue.get(dep_id);
+		if (!deferred) return;
+		this.queue.delete(dep_id);
+		this.dispatch({
+			type: "fn",
+			fn_index: dep_id,
+			event_data: deferred.event_data,
+			target_id: deferred.target_id
+		});
+	}
+
 	/** Dispatches an event to the appropriate dependency
 	 * @param event_name the name of the event
 	 * @param target_id the id of the component that triggered the event
@@ -416,7 +429,7 @@ export class DependencyManager {
 				if (dispatch_status === "skip") {
 					continue;
 				} else if (dispatch_status === "defer") {
-					this.queue.add(dep.id);
+					this.queue.set(dep.id, event_meta);
 					continue;
 				}
 
@@ -642,10 +655,7 @@ export class DependencyManager {
 										});
 										unset_args.forEach((fn) => fn());
 										this.clear_submission(dep.id, dep_submission.data);
-										if (this.queue.has(dep.id)) {
-											this.queue.delete(dep.id);
-											this.dispatch(event_meta);
-										}
+										this.dispatch_deferred(dep.id);
 										return;
 									}
 
@@ -731,11 +741,7 @@ export class DependencyManager {
 						});
 						unset_args.forEach((fn) => fn());
 						this.clear_submission(dep.id, dep_submission.data);
-
-						if (this.queue.has(dep.id)) {
-							this.queue.delete(dep.id);
-							this.dispatch(event_meta);
-						}
+						this.dispatch_deferred(dep.id);
 					}
 				} catch (error) {
 					this.update_loading_status({
@@ -756,6 +762,7 @@ export class DependencyManager {
 							event_data: null
 						});
 					});
+					this.dispatch_deferred(dep.id);
 				}
 			}
 		}
