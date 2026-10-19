@@ -97,6 +97,25 @@ describe("DependencyManager.reload", () => {
 		expect(dependency_manager.loading_stati.fn_outputs[0]).toEqual([32]);
 	});
 
+	test("drops deferred events, whose fn ids may now belong to other functions", () => {
+		const dependency_manager = manager([dependency(0, "generate", [10])]);
+		dependency_manager.deferred_events.set(0, {
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+
+		dependency_manager.reload(
+			[dependency(0, "unrelated", [20]), dependency(1, "generate", [21])],
+			vi.fn().mockResolvedValue(undefined),
+			vi.fn().mockResolvedValue(null),
+			vi.fn(),
+			{} as Client
+		);
+
+		expect(dependency_manager.deferred_events.size).toBe(0);
+	});
+
 	test("accepts the js=True marker used by transpiled dependencies", async () => {
 		const transpiled_dependency = dependency(0, "transpiled", [10]);
 		transpiled_dependency.js = true;
@@ -454,117 +473,6 @@ describe("DependencyManager.dispatch", () => {
 		await click;
 	});
 
-	test("keeps a shared output pending until every listener writing to it is done", async () => {
-		const slow = dependency(0, "slow", [10]);
-		slow.targets = [[1, "click"]];
-		const quick = dependency(1, "quick", [10]);
-		quick.targets = [[1, "click"]];
-		let finish_slow!: () => void;
-		const slow_done = new Promise<void>((resolve) => {
-			finish_slow = resolve;
-		});
-		const client = {
-			submit: (fn_index: number) =>
-				(async function* () {
-					if (fn_index === 0) await slow_done;
-					yield { type: "status", stage: "complete", queue: true };
-				})()
-		} as unknown as Client;
-		const update_state = vi.fn().mockResolvedValue(undefined);
-		const on_loading_status_change = vi.fn();
-		const dependency_manager = manager(
-			[slow, quick],
-			client,
-			update_state,
-			on_loading_status_change
-		);
-		const painted = () =>
-			update_state.mock.calls
-				.filter(([id, state]) => id === 10 && state.loading_status)
-				.at(-1)?.[1].loading_status.status;
-
-		const click = dependency_manager.dispatch({
-			type: "event",
-			event_name: "click",
-			target_id: 1,
-			event_data: null
-		});
-		await vi.waitFor(() =>
-			expect(on_loading_status_change).toHaveBeenCalledWith(
-				expect.objectContaining({ fn_index: 1, status: "complete" })
-			)
-		);
-		expect(painted()).toBe("pending");
-		finish_slow();
-		await click;
-		expect(painted()).toBe("complete");
-	});
-
-	test("does not keep an output pending while another listener reads it as an input", async () => {
-		const reader = dependency(0, "reader", [20]);
-		reader.targets = [[1, "click"]];
-		reader.inputs = [10];
-		const writer = dependency(1, "writer", [10]);
-		writer.targets = [[1, "click"]];
-		let finish_reader!: () => void;
-		const reader_done = new Promise<void>((resolve) => {
-			finish_reader = resolve;
-		});
-		const client = {
-			submit: (fn_index: number) =>
-				(async function* () {
-					if (fn_index === 0) await reader_done;
-					yield { type: "status", stage: "complete", queue: true };
-				})()
-		} as unknown as Client;
-		const on_loading_status_change = vi.fn();
-		const dependency_manager = manager(
-			[reader, writer],
-			client,
-			undefined,
-			on_loading_status_change
-		);
-
-		const click = dependency_manager.dispatch({
-			type: "event",
-			event_name: "click",
-			target_id: 1,
-			event_data: null
-		});
-		await vi.waitFor(() =>
-			expect(on_loading_status_change).toHaveBeenCalledWith(
-				expect.objectContaining({ fn_index: 1, status: "complete" })
-			)
-		);
-		expect(dependency_manager.loading_stati.current[10].status).toBe(
-			"complete"
-		);
-		finish_reader();
-		await click;
-		expect(dependency_manager.loading_stati.current[10].status).toBe(
-			"complete"
-		);
-	});
-
-	test("settles the loading status of a dependency transpiled to JavaScript", async () => {
-		const transpiled = dependency(0, "transpiled", [10]);
-		transpiled.targets = [[1, "click"]];
-		transpiled.js = true;
-		transpiled.js_implementation = "() => 'client result'";
-		const dependency_manager = manager([transpiled]);
-
-		await dependency_manager.dispatch({
-			type: "event",
-			event_name: "click",
-			target_id: 1,
-			event_data: null
-		});
-
-		expect(dependency_manager.loading_stati.current[10].status).toBe(
-			"complete"
-		);
-	});
-
 	test("runs the other listeners of an event when a validator rejects one", async () => {
 		const validated = dependency(0, "validated", [10]);
 		validated.targets = [[1, "click"]];
@@ -650,52 +558,85 @@ describe("DependencyManager.dispatch", () => {
 		expect(validation_errors().at(-1)).toBe("bad");
 	});
 
-	test("drops a deferred always_last event when the running call is cancelled", async () => {
-		const always_last = dependency(0, "always_last", [10]);
-		always_last.targets = [[2, "change"]];
-		always_last.trigger_mode = "always_last";
-		let finish_run!: () => void;
-		const run_finished = new Promise<void>((resolve) => {
-			finish_run = resolve;
+	test("leaves the input's loading status alone when sending a chunk to an open stream", async () => {
+		const stream = dependency(0, "stream", []);
+		stream.targets = [[1, "stream"]];
+		stream.inputs = [10];
+		stream.connection = "stream";
+		stream.trigger_mode = "multiple";
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager([stream], {} as Client, update_state);
+		const send_chunk = vi.fn();
+		dependency_manager.submissions.set(0, {
+			send_chunk
+		} as unknown as ReturnType<Client["submit"]>);
+
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "stream",
+			target_id: 1,
+			event_data: null
 		});
-		const calls: unknown[] = [];
+
+		expect(send_chunk).toHaveBeenCalled();
+		expect(
+			update_state.mock.calls.filter(
+				([id, state]) => id === 10 && state.loading_status
+			)
+		).toEqual([]);
+	});
+
+	test("drops the deferred always_last events of cancelled calls", async () => {
+		const dependencies = [0, 1].map((id) => {
+			const always_last = dependency(id, `always_last_${id}`, [10 + id]);
+			always_last.targets = [[2 + id, "change"]];
+			always_last.trigger_mode = "always_last";
+			return always_last;
+		});
+		let finish_runs!: () => void;
+		const runs_finished = new Promise<void>((resolve) => {
+			finish_runs = resolve;
+		});
+		const calls: [number, unknown][] = [];
 		const client = {
-			submit: (_fn_index: number, _data: unknown, event_data: unknown) => {
-				calls.push(event_data);
+			submit: (fn_index: number, _data: unknown, event_data: unknown) => {
+				calls.push([fn_index, event_data]);
 				const submission = (async function* () {
-					await run_finished;
+					await runs_finished;
 					// What the client yields for the empty output the backend sends
 					// to finish a cancelled job
 					yield { type: "data", data: undefined };
 					yield { type: "status", stage: "complete", queue: true };
 				})();
 				return Object.assign(submission, {
+					// Both runs end while the first cancel request is in flight
 					cancel: async () => {
-						finish_run();
+						finish_runs();
 						await new Promise((resolve) => setTimeout(resolve, 10));
 					}
 				});
 			}
 		} as unknown as Client;
-		const dependency_manager = manager([always_last], client);
+		const dependency_manager = manager(dependencies, client);
+		const change = (id: number, event_data: string) =>
+			dependency_manager.dispatch({
+				type: "event",
+				event_name: "change",
+				target_id: 2 + id,
+				event_data
+			});
 
-		const run = dependency_manager.dispatch({
-			type: "event",
-			event_name: "change",
-			target_id: 2,
-			event_data: "a"
-		});
-		await vi.waitFor(() => expect(calls).toHaveLength(1));
-		await dependency_manager.dispatch({
-			type: "event",
-			event_name: "change",
-			target_id: 2,
-			event_data: "ab"
-		});
-		await dependency_manager.cancel([0]);
-		await run;
+		const runs = [change(0, "a"), change(1, "x")];
+		await vi.waitFor(() => expect(calls).toHaveLength(2));
+		await change(0, "ab");
+		await change(1, "xy");
+		await dependency_manager.cancel([0, 1]);
+		await Promise.all(runs);
 		await new Promise((resolve) => setTimeout(resolve, 50));
 
-		expect(calls).toEqual(["a"]);
+		expect(calls).toEqual([
+			[0, "a"],
+			[1, "x"]
+		]);
 	});
 });

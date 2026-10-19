@@ -136,7 +136,6 @@ export class LoadingStatus {
 				};
 			}
 		);
-		this.fn_status[args.fn_index] = args.status;
 	}
 
 	set_status(id: number, status: ILoadingStatus["status"]): void {
@@ -163,7 +162,7 @@ export class LoadingStatus {
 		const last_status = this.fn_status[fn_index];
 		const inputs = this.fn_inputs[fn_index];
 
-		const all_ids = [...new Set(outputs.concat(inputs))];
+		const all_ids = outputs.concat(inputs);
 
 		// from (pending -> error) | complete - decrement pending count
 		return all_ids
@@ -172,12 +171,8 @@ export class LoadingStatus {
 
 				const pending_count = this.pending_outputs.get(id) || 0;
 
-				// Only outputs are counted: an input-only id is never painted as
-				// pending, so a count left on it would hold another fn's output.
-				if (!outputs.includes(id)) {
-					new_status = status;
-					// from (pending -> error) | complete - decrement pending count
-				} else if (last_status === "pending" && status !== "pending") {
+				// from (pending -> error) | complete - decrement pending count
+				if (last_status === "pending" && status !== "pending") {
 					let new_count = pending_count - 1;
 
 					this.pending_outputs.set(id, new_count < 0 ? 0 : new_count);
