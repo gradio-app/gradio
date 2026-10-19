@@ -276,8 +276,28 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
     name = client_utils.strip_invalid_filename_characters(Path(file_path).name)
     full_temp_file_path = str(abspath(temp_dir / name))
 
-    if not Path(full_temp_file_path).exists():
-        shutil.copy2(file_path, full_temp_file_path)
+    if Path(full_temp_file_path).exists():
+        # `delete_cache` ages files by ctime, so a cached copy that is handed
+        # out again is touched; otherwise it could be deleted on the schedule of
+        # its first use, before the new reference to it is ever fetched.
+        try:
+            os.utime(full_temp_file_path)
+        except OSError:
+            pass
+        return full_temp_file_path
+
+    # The copy is written under a temporary name and renamed into place, so a
+    # concurrent call for the same file never returns a partially written copy,
+    # and a copy that fails partway never leaves a truncated file behind for
+    # later calls to return.
+    fd, staging_path = tempfile.mkstemp(dir=temp_dir, prefix=f".{name}.")
+    os.close(fd)
+    try:
+        shutil.copy2(file_path, staging_path)
+        os.replace(staging_path, full_temp_file_path)
+    except BaseException:
+        Path(staging_path).unlink(missing_ok=True)
+        raise
 
     return full_temp_file_path
 
