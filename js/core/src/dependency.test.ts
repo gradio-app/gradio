@@ -386,7 +386,9 @@ describe("DependencyManager.dispatch", () => {
 				target_id: 1,
 				event_data: "click data"
 			});
-			await vi.waitFor(() => expect(calls).toHaveLength(1));
+			await vi.waitFor(() =>
+				expect(calls).toContainEqual([0, "click data", 1])
+			);
 			for (const event_data of ["stale change data", "change data"]) {
 				await dependency_manager.dispatch({
 					type: "event",
@@ -395,7 +397,7 @@ describe("DependencyManager.dispatch", () => {
 					event_data
 				});
 			}
-			expect(calls).toHaveLength(1);
+			expect(calls.filter(([fn_index]) => fn_index === 0)).toHaveLength(1);
 			finish_first_run();
 			await click;
 
@@ -410,4 +412,115 @@ describe("DependencyManager.dispatch", () => {
 			expect(calls).toHaveLength(expected.length);
 		}
 	);
+
+	test("starts every listener of an event without waiting for the others to finish", async () => {
+		const slow = dependency(0, "slow", []);
+		slow.targets = [[1, "click"]];
+		const quick = dependency(1, "quick", []);
+		quick.targets = [[1, "click"]];
+		let finish_slow!: () => void;
+		const slow_done = new Promise<void>((resolve) => {
+			finish_slow = resolve;
+		});
+		const submitted: number[] = [];
+		const client = {
+			submit: (fn_index: number) => {
+				submitted.push(fn_index);
+				return (async function* () {
+					if (fn_index === 0) await slow_done;
+					yield { type: "status", stage: "complete", queue: true };
+				})();
+			}
+		} as unknown as Client;
+		const dependency_manager = manager([slow, quick], client);
+
+		const click = dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+		await vi.waitFor(() => expect(submitted).toContain(1));
+		finish_slow();
+		await click;
+	});
+
+	test("keeps a shared output pending until every listener writing to it is done", async () => {
+		const slow = dependency(0, "slow", [10]);
+		slow.targets = [[1, "click"]];
+		const quick = dependency(1, "quick", [10]);
+		quick.targets = [[1, "click"]];
+		let finish_slow!: () => void;
+		const slow_done = new Promise<void>((resolve) => {
+			finish_slow = resolve;
+		});
+		const client = {
+			submit: (fn_index: number) =>
+				(async function* () {
+					if (fn_index === 0) await slow_done;
+					yield { type: "status", stage: "complete", queue: true };
+				})()
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const on_loading_status_change = vi.fn();
+		const dependency_manager = manager(
+			[slow, quick],
+			client,
+			update_state,
+			on_loading_status_change
+		);
+		const painted = () =>
+			update_state.mock.calls
+				.filter(([id, state]) => id === 10 && state.loading_status)
+				.at(-1)?.[1].loading_status.status;
+
+		const click = dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+		await vi.waitFor(() =>
+			expect(on_loading_status_change).toHaveBeenCalledWith(
+				expect.objectContaining({ fn_index: 1, status: "complete" })
+			)
+		);
+		expect(painted()).toBe("pending");
+		finish_slow();
+		await click;
+		expect(painted()).toBe("complete");
+	});
+
+	test("runs the other listeners of an event when a validator rejects one", async () => {
+		const validated = dependency(0, "validated", [10]);
+		validated.targets = [[1, "click"]];
+		const other = dependency(1, "other", [20]);
+		other.targets = [[1, "click"]];
+		const submitted: number[] = [];
+		const client = {
+			submit: (fn_index: number) => {
+				submitted.push(fn_index);
+				return (async function* () {
+					yield fn_index === 0
+						? {
+								type: "status",
+								stage: "error",
+								queue: true,
+								message: [{ is_valid: false, message: "bad" }]
+							}
+						: { type: "status", stage: "complete", queue: true };
+				})();
+			}
+		} as unknown as Client;
+		const dependency_manager = manager([validated, other], client);
+
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+
+		expect(submitted).toContain(1);
+	});
 });

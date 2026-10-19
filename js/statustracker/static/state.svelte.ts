@@ -136,6 +136,7 @@ export class LoadingStatus {
 				};
 			}
 		);
+		this.fn_status[args.fn_index] = args.status;
 	}
 
 	set_status(id: number, status: ILoadingStatus["status"]): void {

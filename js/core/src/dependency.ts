@@ -416,9 +416,10 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-		for (let i = 0; i < (deps?.length || 0); i++) {
-			const dep = deps ? deps[i] : undefined;
-			if (dep) {
+		// The listeners of an event are independent, so start them all at once
+		// instead of waiting for each run to finish before the next one.
+		await Promise.all(
+			(deps ?? []).map(async (dep) => {
 				this.cancel(dep.cancels);
 
 				const dispatch_status = should_dispatch(
@@ -427,10 +428,10 @@ export class DependencyManager {
 				);
 
 				if (dispatch_status === "skip") {
-					continue;
+					return;
 				} else if (dispatch_status === "defer") {
 					this.queue.set(dep.id, event_meta);
-					continue;
+					return;
 				}
 				// Anything deferred before this run is older than it, so drop it
 				// rather than replay it after this run finishes.
@@ -482,7 +483,7 @@ export class DependencyManager {
 						};
 						submission!.send_chunk(payload as any);
 						unset_args.forEach((fn) => fn());
-						continue;
+						return;
 					}
 
 					this.add_to_api_calls({
@@ -767,9 +768,8 @@ export class DependencyManager {
 					});
 					this.dispatch_deferred(dep.id);
 				}
-			}
-		}
-		return;
+			})
+		);
 	}
 
 	/**
