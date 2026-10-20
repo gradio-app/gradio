@@ -445,40 +445,7 @@ describe("DependencyManager.dispatch", () => {
 		await click;
 	});
 
-	test("runs the other listeners of an event when a validator rejects one", async () => {
-		const validated = dependency(0, "validated", [10]);
-		validated.targets = [[1, "click"]];
-		const other = dependency(1, "other", [20]);
-		other.targets = [[1, "click"]];
-		const submitted: number[] = [];
-		const client = {
-			submit: (fn_index: number) => {
-				submitted.push(fn_index);
-				return (async function* () {
-					yield fn_index === 0
-						? {
-								type: "status",
-								stage: "error",
-								queue: true,
-								message: [{ is_valid: false, message: "bad" }]
-							}
-						: { type: "status", stage: "complete", queue: true };
-				})();
-			}
-		} as unknown as Client;
-		const dependency_manager = manager([validated, other], client);
-
-		await dependency_manager.dispatch({
-			type: "event",
-			event_name: "click",
-			target_id: 1,
-			event_data: null
-		});
-
-		expect(submitted).toContain(1);
-	});
-
-	test("keeps a validation error when another listener on the same input responds later", async () => {
+	test("runs the other listeners when a validator rejects one, without clearing its error", async () => {
 		const validated = dependency(0, "validated", [20]);
 		validated.targets = [[1, "click"]];
 		validated.inputs = [10];
@@ -489,9 +456,11 @@ describe("DependencyManager.dispatch", () => {
 		const other_released = new Promise<void>((resolve) => {
 			release_other = resolve;
 		});
+		const submitted: number[] = [];
 		const client = {
-			submit: (fn_index: number) =>
-				(async function* () {
+			submit: (fn_index: number) => {
+				submitted.push(fn_index);
+				return (async function* () {
 					if (fn_index === 1) await other_released;
 					yield fn_index === 0
 						? {
@@ -501,7 +470,8 @@ describe("DependencyManager.dispatch", () => {
 								message: [{ is_valid: false, message: "bad" }]
 							}
 						: { type: "status", stage: "complete", queue: true };
-				})()
+				})();
+			}
 		} as unknown as Client;
 		const update_state = vi.fn().mockResolvedValue(undefined);
 		const dependency_manager = manager(
@@ -528,6 +498,7 @@ describe("DependencyManager.dispatch", () => {
 		await click;
 
 		expect(validation_errors().at(-1)).toBe("bad");
+		expect(submitted).toContain(1);
 	});
 
 	test("leaves the input's loading status alone when sending a chunk to an open stream", async () => {

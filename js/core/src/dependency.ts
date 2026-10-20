@@ -420,7 +420,6 @@ export class DependencyManager {
 			);
 		}
 		// The listeners of an event are independent, so start them all at once
-		// instead of waiting for each run to finish before the next one.
 		await Promise.all(
 			(deps ?? []).map(async (dep) => {
 				this.cancel(dep.cancels);
