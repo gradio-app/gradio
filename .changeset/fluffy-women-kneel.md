@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:handle system vs browser scrolling in gr.wf
+feat:handle system clashing with browser scrolling in `gr.workflow`
