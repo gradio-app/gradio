@@ -848,7 +848,6 @@ class Queue:
                 root_path=app.root_path,
             )
             first_iteration = 0
-            old_response = None
             started_at = history.now_utc_iso()
 
             if PROFILING_ENABLED:
@@ -1051,12 +1050,6 @@ class Queue:
                 streamed = {
                     block_id for block_id, event in fn.targets if event == "stream"
                 }
-                # A generator called again under the event id, which happens
-                # only when no chunk came after the first, returns a diff
-                # against its previous output, which is the full value.
-                last = response
-                if fn.types_generator and body.event_id is not None and old_response:
-                    last = old_response
                 route_utils.record_run_history(
                     app,
                     fn=fn,
@@ -1065,7 +1058,7 @@ class Queue:
                         None if block._id in streamed else value
                         for block, value in zip(fn.inputs, body.data, strict=False)
                     ],
-                    outputs=last.get("data"),
+                    outputs=response.get("data"),
                     started_at=started_at,
                 )
             end_time = time.time()
