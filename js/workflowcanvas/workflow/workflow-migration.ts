@@ -75,6 +75,11 @@ export function hasMissingNodeGeometry(raw: unknown): boolean {
  * and still unreadable: an agent writing `workflow.json` can't know how tall a
  * card renders, so its guessed positions stack cards on top of one another.
  */
+// Overlaps up to this deep are tolerated: a hand-placed card can render a few
+// pixels taller than when its author saved it, and that alone shouldn't throw
+// the author's layout away.
+const OVERLAP_SLACK = 16;
+
 // ponytail: O(n²) pair scan, fine for hand-sized graphs.
 export function nodesOverlap(
 	nodes: { x: number; y: number; width: number; height: number }[]
@@ -84,10 +89,10 @@ export function nodesOverlap(
 			.slice(i + 1)
 			.some(
 				(b) =>
-					a.x < b.x + b.width &&
-					b.x < a.x + a.width &&
-					a.y < b.y + b.height &&
-					b.y < a.y + a.height
+					a.x + OVERLAP_SLACK < b.x + b.width &&
+					b.x + OVERLAP_SLACK < a.x + a.width &&
+					a.y + OVERLAP_SLACK < b.y + b.height &&
+					b.y + OVERLAP_SLACK < a.y + a.height
 			)
 	);
 }
