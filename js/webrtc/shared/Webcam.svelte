@@ -355,6 +355,8 @@
 
 	onDestroy(() => {
 		attempts.destroy();
+		// A camera request still pending must not keep its camera
+		camera_request++;
 		stop(pc);
 		stop_tracks(stream);
 		release_mic();

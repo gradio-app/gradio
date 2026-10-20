@@ -312,6 +312,32 @@ describe("WebRTC send-receive video", () => {
 		});
 	});
 
+	test("a camera that opens after the component is gone is let go", async () => {
+		let open_camera: (stream: MediaStream) => void = () => {};
+		const get_user_media = vi.mocked(navigator.mediaDevices.getUserMedia);
+		get_user_media.mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					open_camera = resolve;
+				})
+		);
+		const { getByText, unmount } = await render(WebRTC, {
+			...base_props,
+			server: make_server()
+		});
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => expect(get_user_media).toHaveBeenCalled());
+		// e.g. a re-render removes the component while the browser asks
+		unmount();
+		const late = fake_stream("video");
+		open_camera(late);
+		await waitFor(() => {
+			expect(late.getTracks().every((t) => t.readyState === "ended")).toBe(
+				true
+			);
+		});
+	});
+
 	test("leaving the page closes the connection at once", async () => {
 		const server = make_server();
 		const { getByRole, getByText, set_data } = await render(WebRTC, {
