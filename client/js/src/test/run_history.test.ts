@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 
+import type { Dependency } from "../types";
 import {
 	apply_run_history_replay,
 	clear_run_history,
 	consume_run_history_replay,
 	delete_run_history,
+	is_automatic_run,
 	on_run_history_change,
 	read_run_history,
 	read_run_history_storage,
@@ -438,6 +440,35 @@ describe("run history url", () => {
 		expect(run_history_url("http://localhost:7860", "/api")).toBe(
 			"http://localhost:7860/api/runs"
 		);
+	});
+});
+
+describe("automatic runs", () => {
+	// Blocks root 0, Timer 1, Button 2, as in a `gr.Blocks` config.
+	const dep = (
+		id: number,
+		targets: [number | null, string][],
+		trigger_after?: number
+	) => ({ id, targets, trigger_after }) as unknown as Dependency;
+	const dependencies = [
+		dep(0, [
+			[2, "click"],
+			[1, "tick"]
+		]),
+		dep(1, [[null, "then"]], 0),
+		dep(2, [[0, "load"]])
+	];
+
+	test("skips Timer ticks and page loads, and steps chained after them", () => {
+		expect(is_automatic_run(dependencies, dependencies[0], 1)).toBe(true);
+		expect(is_automatic_run(dependencies, dependencies[1], 1)).toBe(true);
+		expect(is_automatic_run(dependencies, dependencies[2], 0)).toBe(true);
+	});
+
+	test("keeps a click on a function a Timer also triggers, and API calls", () => {
+		expect(is_automatic_run(dependencies, dependencies[0], 2)).toBe(false);
+		expect(is_automatic_run(dependencies, dependencies[1], 2)).toBe(false);
+		expect(is_automatic_run(dependencies, dependencies[0], null)).toBe(false);
 	});
 });
 

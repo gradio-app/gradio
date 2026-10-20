@@ -10,7 +10,10 @@ import {
 import { HttpResponse, http } from "msw";
 
 import { Client } from "../client";
-import { set_run_history_storage } from "../utils/run_history";
+import {
+	read_run_history,
+	set_run_history_storage
+} from "../utils/run_history";
 import { direct_space_url } from "./handlers";
 import { initialise_server } from "./server";
 
@@ -108,6 +111,44 @@ describe("submit iterator", () => {
 			expect(header).toBe("alice/app-history");
 			await iterator.return();
 			set_run_history_storage(scope, { type: "browser" });
+		}
+	);
+
+	test.skipIf(typeof window === "undefined")(
+		"saves an input stream without the streamed chunk",
+		async () => {
+			const app = await Client.connect("hmb/hello_world");
+			app.stream_status.open = true;
+			const scope = {
+				app_id: app.config?.app_id,
+				username: app.config?.username
+			};
+			const dependency = app.config!.dependencies[0];
+			dependency.connection = "stream";
+			dependency.targets = [[dependency.inputs[0], "stream"]];
+			dependency.inputs = [dependency.inputs[0], dependency.outputs[0]];
+			let sent: unknown;
+			let chunk_sent: () => void;
+			const chunk_posted = new Promise<void>((r) => (chunk_sent = r));
+			server.resetHandlers(
+				http.post(`${direct_space_url}/queue/join`, async ({ request }) => {
+					sent = ((await request.json()) as { data: unknown }).data;
+					return HttpResponse.json({ event_id: "stream-event" });
+				}),
+				http.post(`${direct_space_url}/stream/stream-event`, () => {
+					chunk_sent();
+					return HttpResponse.json({});
+				})
+			);
+
+			const iterator = app.submit("/predict", ["hi", 3]);
+			iterator.send_chunk({ fn_index: 0, data: ["there", 7] });
+			await chunk_posted;
+			const [run] = read_run_history(scope);
+			expect(run.api_name).toBe("/predict");
+			expect(run.inputs).toEqual([null, 7]);
+			expect(sent).toEqual(["hi", 3]);
+			await iterator.return();
 		}
 	);
 
