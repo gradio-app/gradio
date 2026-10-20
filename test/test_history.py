@@ -523,7 +523,7 @@ class TestServerSideRecording:
             close_all()
 
         assert completed is not None
-        assert len(calls) >= 3
+        assert len(calls) == 3
         (path,) = list(hub.files)
         record = json.loads(hub.files[path])
         assert record["inputs"] == [None, 3]
