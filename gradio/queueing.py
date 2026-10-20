@@ -818,6 +818,10 @@ class Queue:
                 )
                 body.request = events[0].request
                 body.batched = True
+                body.batch_trigger_ids = [
+                    cast(PredictBodyInternal, event.data).trigger_id
+                    for event in batch_events
+                ]
 
             app = self.server_app
             if app is None:
@@ -1050,6 +1054,12 @@ class Queue:
                 streamed = {
                     block_id for block_id, event in fn.targets if event == "stream"
                 }
+                session_hash = body.session_hash
+                fns = (
+                    app.state_holder[session_hash].blocks_config.fns
+                    if session_hash and session_hash in app.state_holder
+                    else app.get_blocks().fns
+                )
                 route_utils.record_run_history(
                     app,
                     fn=fn,
@@ -1060,6 +1070,8 @@ class Queue:
                     ],
                     outputs=response.get("data"),
                     started_at=started_at,
+                    fns=fns,
+                    trigger_id=body.trigger_id,
                 )
             end_time = time.time()
             if response is not None:

@@ -35,6 +35,7 @@ import {
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
 import {
+	is_automatic_run,
 	read_run_history_storage,
 	start_run_history,
 	update_run_history,
@@ -142,7 +143,9 @@ export function submit(
 				: {})
 		};
 		const history_run_id =
-			!history_enabled || !is_documented_endpoint
+			!history_enabled ||
+			!is_documented_endpoint ||
+			is_automatic_run(config.dependencies, dependency, trigger_id)
 				? null
 				: start_run_history({
 						...history_scope,
