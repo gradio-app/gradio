@@ -464,6 +464,46 @@ class TestServerSideRecording:
         assert r.status_code == 200
         assert r.json()["data"] == ["hello world"]
 
+    def test_timer_and_load_runs_are_not_recorded(self):
+        hub = FakeHub()
+        with gr.Blocks() as demo:
+            timer = gr.Timer(1)
+            button = gr.Button()
+            out = gr.Textbox()
+            gr.on(
+                [button.click, timer.tick], lambda: "x", None, out, api_name="story"
+            ).then(lambda: "y", None, out, api_name="after_story")
+            demo.load(lambda: "z", None, out, api_name="on_load")
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        with (
+            patch("gradio.history.resolve_token", return_value="tok"),
+            patch("gradio.history.HfApi", return_value=hub),
+            TestClient(app) as client,
+        ):
+            headers = {"X-Gradio-History-Bucket": "alice/hist"}
+            for api_name, trigger_id in [
+                ("story", timer._id),
+                ("after_story", timer._id),
+                ("on_load", demo._id),
+                ("story", button._id),
+                ("after_story", button._id),
+                ("story", None),
+            ]:
+                r = client.post(
+                    f"/gradio_api/run/{api_name}",
+                    json={"data": [], "trigger_id": trigger_id},
+                    headers=headers,
+                )
+                assert r.status_code == 200, r.text
+            assert _wait_for(lambda: len(hub.files) == 3)
+            import time as _time
+
+            _time.sleep(0.3)
+            endpoints = sorted(path.split("/")[2] for path in hub.files)
+            assert endpoints == ["after_story", "story", "story"], sorted(hub.files)
+        demo.close()
+        close_all()
+
     def test_a_batch_is_recorded_per_user_in_their_own_bucket(self, monkeypatch):
         monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
         hubs: dict[str, FakeHub] = defaultdict(FakeHub)
@@ -535,6 +575,74 @@ class TestServerSideRecording:
         assert records["tok-a", "alice/hist"]["outputs"] == ["ALICE'S SECRET"]
         assert records["tok-b", "bob/hist"]["inputs"] == ["bob's secret"]
         assert records["tok-b", "bob/hist"]["outputs"] == ["BOB'S SECRET"]
+
+    def test_a_batch_skips_only_its_timer_runs(self, monkeypatch):
+        monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
+        hub = FakeHub()
+        started, release = threading.Event(), threading.Event()
+        batches = []
+
+        def upper(texts):
+            batches.append(list(texts))
+            started.set()
+            release.wait(10)
+            return [[t.upper() for t in texts]]
+
+        with gr.Blocks() as demo:
+            timer = gr.Timer(1, active=False)
+            button = gr.Button()
+            t = gr.Textbox()
+            o = gr.Textbox()
+            gr.on(
+                [button.click, timer.tick],
+                upper,
+                t,
+                o,
+                batch=True,
+                max_batch_size=2,
+                concurrency_limit=1,
+            )
+
+        with (
+            patch("gradio.history.resolve_token", return_value="tok"),
+            patch("gradio.history.HfApi", return_value=hub),
+        ):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            try:
+                with httpx.Client(base_url=local_url, timeout=30) as client:
+
+                    def join(text, trigger_id):
+                        body = {
+                            "data": [text],
+                            "fn_index": 0,
+                            "session_hash": text,
+                            "trigger_id": trigger_id,
+                        }
+                        r = client.post(
+                            "/gradio_api/queue/join",
+                            json=body,
+                            headers={"X-Gradio-History-Bucket": "alice/hist"},
+                        )
+                        assert r.status_code == 200, r.text
+
+                    # Keep the worker busy so the next two events form one batch.
+                    join("busy", timer._id)
+                    assert started.wait(10)
+                    join("clicked", button._id)
+                    join("ticked", timer._id)
+                    release.set()
+                    assert _wait_for(lambda: hub.files), "missing record"
+                    import time as _time
+
+                    _time.sleep(0.3)
+            finally:
+                release.set()
+                demo.close()
+                close_all()
+
+        assert ["clicked", "ticked"] in batches
+        records = [json.loads(data) for data in hub.files.values()]
+        assert [record["inputs"] for record in records] == [["clicked"]]
 
     def test_split_batched_run(self):
         alice, bob = gr.Request(username="alice"), gr.Request(username="bob")

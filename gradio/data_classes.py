@@ -128,6 +128,9 @@ class PredictBodyInternal(PredictBody):
     request: PydanticStarletteRequest | None = (
         None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
     )
+    batch_trigger_ids: list[int | None] | None = (
+        None  # trigger_id of each event in a queued batch, in the order of data
+    )
 
 
 class ResetBody(BaseModel):
