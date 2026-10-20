@@ -56,6 +56,7 @@
 	);
 	let pulse_color = $derived(options.pulse_color ?? "var(--color-accent)");
 	let icon_radius = $derived(options.icon_radius ?? 50);
+	let icon = $derived(options.icon?.url ?? null);
 	let is_send = $derived(
 		gradio.props.mode === "send" || gradio.props.mode === "send-receive"
 	);
@@ -142,6 +143,16 @@
 	$effect(() => {
 		const status = gradio.shared.loading_status;
 		const state = status?.stream_state ?? null;
+		// A join that fails (a full queue, a lost connection) reports an error
+		// before any "waiting", so the stream's event is not known yet
+		if (
+			pending_turn &&
+			!pending_turn.saw_waiting &&
+			status?.status === "error"
+		) {
+			settle_turn(false);
+			return;
+		}
 		if (state === "waiting") stream_fn_index = status.fn_index;
 		if (status?.fn_index !== stream_fn_index) return;
 		queue_state = state;
@@ -273,7 +284,7 @@
 			{turn}
 			{queue_state}
 			{queue_detail}
-			icon={options.icon}
+			{icon}
 			{icon_button_color}
 			{pulse_color}
 			{icon_radius}
@@ -293,7 +304,7 @@
 			rtp_params={gradio.props.rtp_params}
 			time_limit={gradio.props.time_limit}
 			{button_labels}
-			icon={options.icon}
+			{icon}
 			{icon_button_color}
 			{pulse_color}
 			{icon_radius}
@@ -318,7 +329,7 @@
 			rtp_params={gradio.props.rtp_params}
 			time_limit={gradio.props.time_limit}
 			{button_labels}
-			icon={options.icon}
+			{icon}
 			{icon_button_color}
 			{pulse_color}
 			{icon_radius}

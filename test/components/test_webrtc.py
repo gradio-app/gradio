@@ -1,4 +1,5 @@
 import asyncio
+import gc
 import json
 import pickle
 import time
@@ -36,6 +37,10 @@ from gradio.webrtc.connection import get_manager
 
 def flip(frame, *args):
     return frame
+
+
+async def admitted_anyway(webrtc_id, session_hash):
+    return True
 
 
 def on_event_loop():
@@ -106,6 +111,31 @@ class FailingShutdown(SyncHandler):
 
     def shutdown(self):
         raise RuntimeError("shutdown failed")
+
+
+class SlowShutdown(SyncHandler):
+    log = []
+
+    def __init__(self):
+        super().__init__()
+        SlowShutdown.log.append("created")
+
+    def copy(self):
+        return SlowShutdown()
+
+    def shutdown(self):
+        SlowShutdown.log.append("shutdown begins")
+        time.sleep(0.5)
+        SlowShutdown.log.append("shutdown ends")
+
+
+class RequestOnEmit(SyncHandler):
+    seen = []
+
+    def emit(self):
+        request = LocalContext.request.get(None)
+        RequestOnEmit.seen.append(getattr(request, "session_hash", None))
+        time.sleep(0.02)
 
 
 class InfoOnEmit(SyncHandler):
@@ -233,6 +263,24 @@ class RecordingAudioVideo(AsyncAudioVideoStreamHandler):
 
 
 class TestWebRTC:
+    def test_ice_candidates_are_parsed_like_aiortc(self):
+        candidate = webrtc_connection._parse_ice_candidate(
+            {
+                "candidate": "candidate:1 1 udp 1 203.0.113.5 9 typ srflx "
+                "raddr 10.0.0.2 rport 5000 generation 0",
+                "sdpMid": "0",
+                "sdpMLineIndex": 0,
+            }
+        )
+        assert candidate is not None
+        assert (candidate.type, candidate.relatedAddress, candidate.relatedPort) == (
+            "srflx",
+            "10.0.0.2",
+            5000,
+        )
+        assert (candidate.sdpMid, candidate.sdpMLineIndex) == ("0", 0)
+        assert webrtc_connection._parse_ice_candidate({"candidate": "nonsense"}) is None
+
     def test_component_functions(self):
         webrtc = gr.WebRTC(
             rtc_configuration=lambda: {"iceServers": []},
@@ -243,6 +291,13 @@ class TestWebRTC:
         config = webrtc.get_config()
         assert "rtc_configuration" not in config
         assert "server_rtc_configuration" not in config
+        # Nor in an update, which sends the named attributes as they are
+        from gradio.blocks import postprocess_update_dict
+
+        update = postprocess_update_dict(
+            webrtc, {"server_rtc_configuration": {"iceServers": []}}
+        )
+        assert "server_rtc_configuration" not in update
         assert config["mode"] == "send-receive"
         assert config["modality"] == "video"
         assert config["track_constraints"]["facingMode"] == "user"
@@ -355,8 +410,16 @@ class TestWebRTC:
             ORJSONResponse._render_str(config["stream_options"])
         )
         assert sent["stream_options"]["button_labels"]["start"].startswith("__i18n__")
-        assert sent["stream_options"]["icon"].endswith("bus.png")
-        assert "test/test_files" not in sent["stream_options"]["icon"]
+        icon_url = sent["stream_options"]["icon"]["url"]
+        assert icon_url.endswith("bus.png")
+        assert "test/test_files" not in icon_url
+        # Served file data, so an app mounted under a path gets its root added
+        from gradio.processing_utils import add_root_url
+
+        mounted = add_root_url(sent, "https://example.com/app", None)
+        assert mounted["stream_options"]["icon"]["url"] == (
+            f"https://example.com/app{icon_url}"
+        )
 
     @pytest.mark.parametrize(
         "video_bitrate",
@@ -556,6 +619,9 @@ class TestWebRTC:
             skip = gr.skip()
             assert await webrtc._run_stream("abc") == (skip, skip, skip)
             assert manager.sessions["abc"].event is event
+            # A hot reload gives the event a new function, whose manager never
+            # saw the stream; the stream stays with the one that admitted it
+            event.fn = SimpleNamespace(webrtc_manager=TestCleanUp.manager())
 
             # Every output is delivered, oldest first, one per call; a call
             # that leaves outputs behind wakes the event again
@@ -1252,11 +1318,73 @@ class TestStreams:
             allow_extra_tracks=False,
             server_rtc_configuration=None,
         )
+        # ...and that other session's render may then be gone
+        del other
+        gc.collect()
+        assert get_manager(h.webrtc._id) is None
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         await h.push_inputs("one", 0.2)
         assert h.manager.connections["one"][0].latest_args == [0.2]
-        assert not other.pcs
+        await pc.close()
+
+    @pytest.mark.asyncio
+    async def test_only_a_stream_with_its_turn_gets_the_rtc_configuration(
+        self, launched
+    ):
+        h = launched
+
+        async def ask(webrtc_id, session_hash):
+            return await h.server_fn(
+                "get_rtc_configuration", {"webrtc_id": webrtc_id}, None, session_hash
+            )
+
+        # TURN credentials may be billed to the app's owner, so the queue's
+        # limits must decide who gets them
+        assert "error" in await ask("nobody", "nobody")
+        await h.start("one")
+        assert await ask("one", "one") == {}
+        assert "error" in await ask("one", "intruder")
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"modality": "audio", "handler": SlowShutdown()}], indirect=True
+    )
+    async def test_the_next_handler_waits_for_the_last_one_to_shut_down(self, launched):
+        h = launched
+        SlowShutdown.log.clear()
+        await h.start("one")
+        first = await make_offer(audio=True)
+        await h.connect(first, "one")
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.join("two")
+        # The queue gives the slot to "two" before the handler of "one" has
+        # shut down; a model loaded per handler must not be in memory twice
+        await first.close()
+        await h.wait_until(lambda: "two" in h.manager.sessions, timeout=10)
+        second = await make_offer(audio=True)
+        await h.connect(second, "two")
+        assert SlowShutdown.log[:4] == [
+            "created",
+            "shutdown begins",
+            "shutdown ends",
+            "created",
+        ]
+        await second.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"modality": "audio", "handler": RequestOnEmit}], indirect=True
+    )
+    async def test_a_sync_emit_sees_the_visitor_request(self, launched):
+        h = launched
+        RequestOnEmit.seen.clear()
+        await h.start("one")
+        pc = await make_offer(audio=True)
+        await h.connect(pc, "one")
+        # e.g. for a @spaces.GPU call, which reads the visitor's ZeroGPU headers
+        await h.wait_until(lambda: len(RequestOnEmit.seen) > 0)
+        assert RequestOnEmit.seen[-1] == "one"
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1537,20 +1665,24 @@ class TestStreams:
             return {"iceServers": [{"urls": "turn:example.com"}]}
 
         webrtc = gr.WebRTC(rtc_configuration=issue_credentials)
-        assert await webrtc.get_rtc_configuration() == {
+        assert await webrtc._rtc_configuration_for() == {
             "iceServers": [{"urls": "turn:example.com"}]
         }
         assert calls == [1]
-        assert await gr.WebRTC().get_rtc_configuration() == {}
+        assert await gr.WebRTC()._rtc_configuration_for() == {}
         assert await gr.WebRTC(
             rtc_configuration=lambda: {"iceServers": []}
-        ).get_rtc_configuration() == {"iceServers": []}
+        )._rtc_configuration_for() == {"iceServers": []}
 
         await asyncio.sleep(0)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("show_error", [False, True])
-    async def test_rtc_configuration_errors_follow_show_error(self, show_error):
+    async def test_rtc_configuration_errors_follow_show_error(
+        self, show_error, monkeypatch
+    ):
+        monkeypatch.setattr(webrtc_connection, "stream_admitted", admitted_anyway)
+
         def broken():
             raise RuntimeError("internal detail")
 
@@ -1586,7 +1718,9 @@ class TestStreams:
                 assert await resolve(signed_in_webrtc) == {"error": "Sign in first."}
 
     @pytest.mark.asyncio
-    async def test_rtc_configuration_gets_the_request_of_the_page(self):
+    async def test_rtc_configuration_gets_the_request_of_the_page(self, monkeypatch):
+        monkeypatch.setattr(webrtc_connection, "stream_admitted", admitted_anyway)
+
         def issue_credentials(request: gr.Request):
             return {"iceServers": [], "agent": request.headers["user-agent"]}
 
@@ -1632,27 +1766,27 @@ class TestStreams:
             }
         }
         optional = gr.WebRTC(rtc_configuration=issue_credentials)
-        assert await optional.get_rtc_configuration(None, page(session)) == {
+        assert await optional._rtc_configuration_for(page(session)) == {
             "iceServers": [],
             "token": "visitor-token",
         }
-        assert await optional.get_rtc_configuration(None, page()) == {
+        assert await optional._rtc_configuration_for(page()) == {
             "iceServers": [],
             "token": None,
         }
         required = gr.WebRTC(rtc_configuration=logged_in_only)
-        assert await required.get_rtc_configuration(None, page(session)) == {
+        assert await required._rtc_configuration_for(page(session)) == {
             "iceServers": [],
             "token": "visitor-token",
         }
-        assert await required.get_rtc_configuration(None, page()) == {
+        assert await required._rtc_configuration_for(page()) == {
             "error": "This action requires a logged in user. Please sign in and retry."
         }
 
         def refuse():
             raise gr.Error("Sign in first.")
 
-        assert await gr.WebRTC(rtc_configuration=refuse).get_rtc_configuration() == {
+        assert await gr.WebRTC(rtc_configuration=refuse)._rtc_configuration_for() == {
             "error": "Sign in first."
         }
 

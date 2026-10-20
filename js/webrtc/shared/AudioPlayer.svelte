@@ -103,7 +103,8 @@
 
 		let rtc_configuration: Record<string, any> = {};
 		try {
-			rtc_configuration = (await server.get_rtc_configuration()) ?? {};
+			rtc_configuration =
+				(await server.get_rtc_configuration({ webrtc_id })) ?? {};
 		} catch (e) {
 			rtc_configuration = { error: String(e) };
 		}

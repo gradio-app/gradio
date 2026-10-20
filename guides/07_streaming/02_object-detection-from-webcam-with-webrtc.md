@@ -153,7 +153,7 @@ async def turn_credentials() -> dict:
     return response.json()
 ```
 
-Store the key as secrets of your Space. Since every visitor's traffic is billed to you, set `concurrency_limit` and `time_limit` in `stream()`: together they cap how much TURN traffic the app can use at a time.
+Store the key as secrets of your Space. Since every visitor's traffic is billed to you, set `concurrency_limit` and `time_limit` in `stream()`: a page gets credentials only once its stream's turn has come, so together they cap how much TURN traffic the app can use at a time. A credential keeps working until its `ttl` runs out, so keep the `ttl` close to `time_limit`.
 
 ### For testing only: your own Hugging Face token
 

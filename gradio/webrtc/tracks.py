@@ -11,8 +11,10 @@ import fractions
 import functools
 import inspect
 import logging
+import math
 import time
 import traceback
+import weakref
 from collections.abc import Callable, Generator
 from typing import Any, Literal, cast
 
@@ -55,6 +57,25 @@ _GENERATOR_DONE = object()
 # Put on a track's queue when it stops, so that a recv() waiting on the queue
 # ends instead of waiting forever
 _STOPPED = object()
+
+
+_thread_limiters: weakref.WeakKeyDictionary[
+    asyncio.AbstractEventLoop, anyio.CapacityLimiter
+] = weakref.WeakKeyDictionary()
+
+
+async def run_in_thread(fn: Callable, *args: Any) -> Any:
+    """
+    Runs a sync handler call in a worker thread, in the caller's context (the
+    visitor's request, the stream's notifier). Its threads are counted apart
+    from the default limiter, whose `max_threads` tokens Gradio's sync event
+    listeners share, so that busy streams do not hold those up.
+    """
+    loop = asyncio.get_running_loop()
+    limiter = _thread_limiters.get(loop)
+    if limiter is None:
+        limiter = _thread_limiters[loop] = anyio.CapacityLimiter(math.inf)
+    return await anyio.to_thread.run_sync(fn, *args, limiter=limiter)
 
 
 async def wait_unless_stopped(event: asyncio.Event, stopped: asyncio.Event) -> None:
@@ -212,9 +233,7 @@ class VideoCallback(VideoStreamTrack):
             # and on the event loop it would stall every other connection and
             # the app's HTTP routes for as long as it runs.
             array, outputs = split_output(
-                await anyio.to_thread.run_sync(
-                    self.event_handler, frame_array, *self.latest_args
-                )
+                await run_in_thread(self.event_handler, frame_array, *self.latest_args)
             )
             if isinstance(outputs, CloseStream):
                 cast(DataChannel, self.channel).send(
@@ -299,7 +318,7 @@ class HandlerVideoTrack(VideoCallback):
                 ):
                     await handler.video_receive(frame_array)
                 else:
-                    await anyio.to_thread.run_sync(handler.video_receive, frame_array)
+                    await run_in_thread(handler.video_receive, frame_array)
             except (MediaStreamError, HandlerFailedError):
                 self.stop()
 
@@ -319,7 +338,7 @@ class HandlerVideoTrack(VideoCallback):
                     )
                 await start_up
             elif isinstance(handler, VideoStreamHandler):
-                await anyio.to_thread.run_sync(handler.start_up)
+                await run_in_thread(handler.start_up)
         except (HandlerFailedError, MediaStreamError):
             self.stop()
 
@@ -340,7 +359,7 @@ class HandlerVideoTrack(VideoCallback):
                 ):
                     outputs = await handler.video_emit()
                 else:
-                    outputs = await anyio.to_thread.run_sync(handler.video_emit)
+                    outputs = await run_in_thread(handler.video_emit)
 
                 array, outputs = split_output(outputs)
                 if (
@@ -404,7 +423,7 @@ class AudioCallback(AudioStreamTrack):
         self.channel = channel
         self.set_additional_outputs = set_additional_outputs
         self.context = context
-        # Sync emit() runs in executor threads, which do not inherit contextvars
+        # Set again in each sync emit(), on the worker thread that runs it
         self.notifier = LocalContext.stream_notifier.get(None)
 
     def clear_queue(self):
@@ -446,7 +465,7 @@ class AudioCallback(AudioStreamTrack):
                             (resampled.sample_rate, numpy_array)
                         )
                     else:
-                        await anyio.to_thread.run_sync(
+                        await run_in_thread(
                             self.event_handler_receive,
                             (resampled.sample_rate, numpy_array),
                         )
@@ -459,7 +478,6 @@ class AudioCallback(AudioStreamTrack):
 
     async def start(self):
         if not self.has_started:
-            loop = asyncio.get_running_loop()
             await self.wait_for_channel()
             if isinstance(self.event_handler, AsyncHandler):
                 callable = self.event_handler.emit
@@ -472,10 +490,8 @@ class AudioCallback(AudioStreamTrack):
                         )
                     )
             else:
-                callable = functools.partial(
-                    loop.run_in_executor, None, self.event_handler_emit
-                )
-                start_up = anyio.to_thread.run_sync(self.event_handler.start_up)
+                callable = functools.partial(run_in_thread, self.event_handler_emit)
+                start_up = run_in_thread(self.event_handler.start_up)
             self.process_input_task = asyncio.create_task(self.process_input_frames())
             self.start_up_task = asyncio.create_task(start_up)
             self.decode_task = asyncio.create_task(
@@ -612,7 +628,7 @@ class ServerToClientVideo(VideoStreamTrack):
             current_context.set(self.context)
             # The generator does the handler's work, so advance it in a worker
             # thread to keep the event loop free.
-            item = await anyio.to_thread.run_sync(self._next_item)
+            item = await run_in_thread(self._next_item)
             if item is _GENERATOR_DONE:
                 self.stop()
                 return
@@ -661,7 +677,7 @@ class ServerToClientAudio(AudioStreamTrack):
         self.has_started = False
         self._clock_start: float | None = None
         self.context = context
-        # next() runs in executor threads, which do not inherit contextvars
+        # Set again in each next(), on the worker thread that runs it
         self.notifier = LocalContext.stream_notifier.get(None)
         super().__init__()
 
@@ -682,7 +698,7 @@ class ServerToClientAudio(AudioStreamTrack):
         # never ends (the client left before sending them) then holds no
         # thread, and the decode loop's timeout can cancel it
         await self.args_set.wait()
-        return await asyncio.get_running_loop().run_in_executor(None, self.next)
+        return await run_in_thread(self.next)
 
     def next(self) -> tuple[int, np.ndarray] | None:
         current_context.set(self.context)

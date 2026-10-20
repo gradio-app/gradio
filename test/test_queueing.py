@@ -750,15 +750,27 @@ def test_history_keeps_only_the_latest_output_of_a_stream(generator):
             ):
                 queue.send_message(
                     cast(queueing.Event, e),
-                    ProcessGeneratingMessage(msg=msg, output={"i": i}, success=True),
+                    ProcessGeneratingMessage(
+                        msg=msg, output={"i": i, "data": [f"value {i}"]}, success=True
+                    ),
                 )
+        # A wake-up with nothing new: every output skipped
+        queue.send_message(
+            cast(queueing.Event, stream),
+            ProcessGeneratingMessage(
+                msg=ServerMessage.process_streaming,
+                output={"i": 3, "data": [{"__type__": "update"}]},
+                success=True,
+            ),
+        )
         kept = [(m.event_id, cast(Any, m).output["i"]) for m in resumable.history]
         if generator:
             # A generator's outputs are diffs, each needed to rebuild the value
-            assert len(kept) == 6
+            assert len(kept) == 7
         else:
             # Each call of a stream sends whole values; a stream that runs for
-            # hours must not fill the history
+            # hours must not fill the history, and a call that changed
+            # nothing does not replace the last output
             assert kept == [
                 ("generating", 0),
                 ("generating", 1),

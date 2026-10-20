@@ -7,7 +7,10 @@ export type StreamState = "open" | "waiting" | "closed";
 /** Server functions exposed by the Python component. */
 export interface WebRTCServer {
 	offer: (body: Record<string, unknown>) => Promise<any>;
-	get_rtc_configuration: () => Promise<Record<string, any>>;
+	// Only for a stream whose turn has come, from the page that started it
+	get_rtc_configuration: (body: {
+		webrtc_id: string;
+	}) => Promise<Record<string, any>>;
 }
 
 /**
@@ -43,7 +46,8 @@ export interface WebRTCProps {
 	/** gr.StreamOptions; labels may be translation markers. */
 	stream_options: {
 		button_labels: { start?: string; stop?: string; waiting?: string };
-		icon: string | null;
+		// Served file data, like gr.Button's icon
+		icon: { url?: string | null } | null;
 		icon_button_color: string | null;
 		pulse_color: string | null;
 		icon_radius: number | null;

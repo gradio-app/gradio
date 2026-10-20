@@ -231,7 +231,7 @@
 		const [local_stream, rtc_configuration] = await Promise.all([
 			open_mic(selected_device?.deviceId),
 			server
-				.get_rtc_configuration()
+				.get_rtc_configuration({ webrtc_id })
 				.then((config) => config ?? {})
 				.catch((e): Record<string, any> => ({ error: String(e) }))
 		]);

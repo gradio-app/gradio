@@ -29,7 +29,6 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, cast
 
-import anyio
 from aiortc import (
     RTCConfiguration,
     RTCIceCandidate,
@@ -39,6 +38,7 @@ from aiortc import (
 )
 from aiortc.contrib.media import MediaRelay
 from aiortc.mediastreams import MediaStreamError
+from aiortc.sdp import candidate_from_sdp
 
 from gradio.context import LocalContext
 from gradio.exceptions import Error
@@ -60,6 +60,7 @@ from gradio.webrtc.tracks import (
     ServerToClientVideo,
     Track,
     VideoCallback,
+    run_in_thread,
 )
 from gradio.webrtc.utils import (
     AdditionalOutputs,
@@ -88,6 +89,8 @@ WATCH_INTERVAL = 0.25
 MAX_PENDING_OUTPUTS = 64
 MAX_PENDING_CANDIDATES = 32
 MAX_PENDING_CANDIDATE_IDS = 256
+# Seconds a new stream waits for the handlers of ended streams to shut down
+SHUTDOWN_WAIT = 5
 
 # The stream each queue event admitted. Weak, so that an event is forgotten
 # once the queue drops it; module-level, so that it outlives a manager that
@@ -200,20 +203,20 @@ def _failed(error: str, **meta: Any) -> dict[str, Any]:
 
 def _parse_ice_candidate(candidate: dict[str, Any]) -> RTCIceCandidate | None:
     # Example: "candidate:2393089663 1 udp 2122260223 192.168.86.60 63692 typ host ..."
-    parts = candidate.get("candidate", "").split()
-    if len(parts) < 8 or not parts[0].startswith("candidate:") or "typ" not in parts:
+    line = candidate.get("candidate", "")
+    if not line.startswith("candidate:"):
         return None
-    return RTCIceCandidate(
-        foundation=parts[0].split(":", 1)[1],
-        component=int(parts[1]),
-        protocol=parts[2],
-        priority=int(parts[3]),
-        ip=parts[4],
-        port=int(parts[5]),
-        type=parts[parts.index("typ") + 1],
-        sdpMid=candidate.get("sdpMid"),
-        sdpMLineIndex=candidate.get("sdpMLineIndex"),
-    )
+    sdp = line.split(":", 1)[1]
+    parts = sdp.split()
+    if len(parts) < 8 or parts[6] != "typ":
+        return None
+    try:
+        parsed = candidate_from_sdp(sdp)
+    except ValueError:
+        return None
+    parsed.sdpMid = candidate.get("sdpMid")
+    parsed.sdpMLineIndex = candidate.get("sdpMLineIndex")
+    return parsed
 
 
 class ConnectionManager:
@@ -240,6 +243,7 @@ class ConnectionManager:
         self.connections: dict[str, list[Track]] = defaultdict(list)
         self.data_channels: dict[str, Any] = {}
         self.tasks: set[asyncio.Task] = set()
+        self.shutdowns: set[asyncio.Task] = set()
 
     def admit(self, webrtc_id: str, event: Event, queue: Queue) -> bool:
         """
@@ -390,7 +394,9 @@ class ConnectionManager:
             for handler in handlers.values():
                 # A handler blocked in wait_for_args() would wait forever
                 handler.args_set.set()
-                self._spawn(self._shut_down(handler))
+                shutdown = self._spawn(self._shut_down(handler))
+                self.shutdowns.add(shutdown)
+                shutdown.add_done_callback(self.shutdowns.discard)
         finally:
             self.end(webrtc_id)
 
@@ -403,7 +409,7 @@ class ConnectionManager:
                 # Declared sync on the base class; a subclass may make it async
                 await cast(Any, handler).shutdown()
             else:
-                await anyio.to_thread.run_sync(handler.shutdown)
+                await run_in_thread(handler.shutdown)
         except Exception:
             # The handler's own clean-up must not keep the stream going
             logger.exception("Stream handler shutdown() failed")
@@ -449,6 +455,10 @@ class ConnectionManager:
         stream ends and the error is returned for the page to show.
         """
         session_hash = getattr(request, "session_hash", None)
+        # The queue frees an ended stream's place before its handler has shut
+        # down. With concurrency_limit=1, a model that each handler loads must
+        # not be in memory twice, so the next handler waits.
+        await self._wait_for_shutdowns()
         session = self.sessions.get(webrtc_id)
         if session is None or session.ended or not self.owns(webrtc_id, session_hash):
             return _failed("not_admitted")
@@ -479,6 +489,18 @@ class ConnectionManager:
             payload = error_payload(e, show_error)
             return _failed(
                 "setup_failed", message=payload["error"] or "An error occurred."
+            )
+
+    async def _wait_for_shutdowns(self) -> None:
+        pending = [task for task in self.shutdowns if not task.done()]
+        if not pending:
+            return
+        _, still_running = await asyncio.wait(pending, timeout=SHUTDOWN_WAIT)
+        if still_running:
+            logger.warning(
+                "A stream handler's shutdown() is still running after %s s; "
+                "starting the next stream anyway",
+                SHUTDOWN_WAIT,
             )
 
     async def _connect(
@@ -725,6 +747,22 @@ async def _add_ice_candidate(
     except Exception as e:
         logger.error("Error adding ICE candidate: %s", e, exc_info=True)
         return _failed(str(e))
+
+
+def stream_manager(webrtc_id: str) -> ConnectionManager | None:
+    """The manager that admitted the stream, if it is still running."""
+    return _streams.get(webrtc_id)
+
+
+async def stream_admitted(webrtc_id: str | None, session_hash: str | None) -> bool:
+    """
+    Whether the stream's turn has come and the stream belongs to this browser
+    session. Waits a little for an admission that is just under way.
+    """
+    if not webrtc_id:
+        return False
+    manager = await _wait_for_admission(webrtc_id)
+    return manager is not None and manager.owns(webrtc_id, session_hash)
 
 
 def set_input(webrtc_id: str, session_hash: str | None, *args: Any) -> None:

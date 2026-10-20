@@ -175,8 +175,8 @@ class WebRTC(Component):
             modality: the kind of media: "video", "audio", or "audio-video" for both at once.
             rtc_configuration: the configuration for the browser's RTCPeerConnection, in particular the ICE servers (STUN and TURN) it may use. A dict, or a function (sync or async) that returns one, which is called for every new connection so that short-lived TURN credentials can be issued. Like an event listener, the function can take `gr.Request`, `gr.OAuthProfile` or `gr.OAuthToken` parameters, e.g. to issue the credentials with the visitor's own Hugging Face account. Required when the app runs on Hugging Face Spaces or Colab, where the browser often cannot reach the server directly.
             server_rtc_configuration: the equivalent configuration for the server side of the peer connection. Not sent to the browser.
-            webcam_options: a `gr.WebcamOptions` instance that sets whether the webcam is mirrored and the media constraints of the video track, for "video" and "audio-video" streams. As in `gr.Image`, a mirrored webcam also gives the handler mirrored frames, so the processed video looks like the preview; set `mirror=False` when the handler needs the camera's own view (e.g. to read text). As in `gr.Image`, the video track constraints go under the "video" key of `constraints`, e.g. `gr.WebcamOptions(constraints={"video": {"facingMode": "environment"}})`. They are merged over the defaults (front camera, 1280x720 and 30 fps, all as ideal values), so only the keys that differ need to be given. The audio track of "audio-video" streams is set with `microphone_options`.
-            microphone_options: a `gr.MicrophoneOptions` instance, or a dict of its arguments, that sets the media constraints of the audio track for "audio" and "audio-video" streams, e.g. `gr.MicrophoneOptions(constraints={"echoCancellation": False})`. The constraints are merged over the defaults, which turn on echo cancellation, noise suppression and automatic gain control and ask for a single channel at 24 kHz, so only the keys that differ need to be given.
+            webcam_options: a `gr.WebcamOptions` instance that sets whether the webcam is mirrored and the media constraints of the video track, for "video" and "audio-video" streams. As in `gr.Image`, a mirrored webcam also gives the handler mirrored frames, so the processed video looks like the preview; set `mirror=False` when the handler needs the camera's own view (e.g. to read text). As in `gr.Image`, the video track constraints go under the "video" key of `constraints`, e.g. `gr.WebcamOptions(constraints={"video": {"facingMode": "environment"}})`. They are merged over the defaults (front camera, 1280x720 and 30 fps, all as ideal values), so only the keys that differ need to be given. The audio track of "audio-video" streams is set with `microphone_options`. Cannot be changed with `gr.update()`.
+            microphone_options: a `gr.MicrophoneOptions` instance, or a dict of its arguments, that sets the media constraints of the audio track for "audio" and "audio-video" streams, e.g. `gr.MicrophoneOptions(constraints={"echoCancellation": False})`. The constraints are merged over the defaults, which turn on echo cancellation, noise suppression and automatic gain control and ask for a single channel at 24 kHz, so only the keys that differ need to be given. Cannot be changed with `gr.update()`.
             rtp_params: parameters passed to `RTCRtpSender.setParameters` for the tracks the browser sends. For example, `{"degradationPreference": "maintain-framerate"}` keeps the frame rate steady when the resolution has to drop.
             video_bitrate: the bitrate range of the video in kbps, as a dict with any of the keys "min", "start" and "max", e.g. `{"min": 1000, "start": 1500, "max": 4000}`. WebRTC starts video at a low bitrate and raises it as it finds bandwidth, so the first seconds of a stream are blurry and the browser may send a smaller picture than the camera captures; a higher "start" and "min" avoid that at the cost of bandwidth. The range applies to the video the server sends back, and is passed on to the browser for the video it sends, which Chromium-based browsers honor and others ignore. If None, the defaults of the browser and of aiortc apply (aiortc starts VP8 at 500 kbps and keeps it between 250 kbps and 1.5 Mbps).
             allow_extra_tracks: if True, connections that carry tracks beyond the modality (for example an audio track on a "video" stream) are accepted and the extra tracks are ignored. If False, such connections are rejected.
@@ -215,7 +215,8 @@ class WebRTC(Component):
         # Kept off the config: a callable cannot be serialized, and the browser
         # fetches the configuration through `get_rtc_configuration` anyway.
         self._rtc_configuration = rtc_configuration
-        self.server_rtc_configuration = server_rtc_configuration
+        # Private for the same reason, and so that gr.update() cannot send it
+        self._server_rtc_configuration = server_rtc_configuration
         self.webcam_options = (
             webcam_options if webcam_options is not None else WebcamOptions()
         )
@@ -257,12 +258,12 @@ class WebRTC(Component):
             preserved_by_key=preserved_by_key,
             value=value,
         )
-        # Kept in the form the frontend takes (like gr.Button's icon), since
-        # gr.update(stream_options=...) sends this attribute as is: the served
-        # url of the icon, and no labels left as None (they keep the default).
-        # After super().__init__ so that the proxy url is known.
+        # Kept in the form the frontend takes, since gr.update(stream_options=...)
+        # sends this attribute as is: the icon as served file data, like
+        # gr.Button's icon, so that the app's root url is added to it, and no
+        # labels left as None (they keep the default). After super().__init__
+        # so that the proxy url is known.
         options = self.stream_options
-        served_icon = self.serve_static_file(options.icon) if options.icon else None
         self.stream_options = dataclasses.replace(
             options,
             button_labels={
@@ -270,7 +271,7 @@ class WebRTC(Component):
                 for key, label in (options.button_labels or {}).items()
                 if label is not None
             },
-            icon=served_icon["url"] if served_icon else None,
+            icon=cast(Any, self.serve_static_file(options.icon)),
         )
 
     def _track_constraints(self) -> dict[str, Any]:
@@ -294,7 +295,6 @@ class WebRTC(Component):
 
     def get_config(self, cls: type[Block] | None = None) -> dict[str, Any]:
         config = super().get_config(cls)
-        config.pop("server_rtc_configuration", None)
         config.pop("video_bitrate", None)
         manager = self._manager()
         config["time_limit"] = manager.time_limit if manager else self.time_limit
@@ -417,7 +417,7 @@ class WebRTC(Component):
             modality=self.modality,
             time_limit=time_limit,
             allow_extra_tracks=self.allow_extra_tracks,
-            server_rtc_configuration=self.server_rtc_configuration,
+            server_rtc_configuration=self._server_rtc_configuration,
             video_bitrate=self.video_bitrate,
         )
 
@@ -573,7 +573,7 @@ class WebRTC(Component):
         each later call delivers the next AdditionalOutputs. The value of this
         component itself is never changed.
         """
-        from gradio.webrtc.connection import admitted_id
+        from gradio.webrtc.connection import admitted_id, stream_manager
 
         nothing = [skip()] * (1 + self._num_extra_outputs)
         blocks = LocalContext.blocks.get(None)
@@ -599,6 +599,9 @@ class WebRTC(Component):
                     # use. Nothing would wake it before its time limit.
                     event.closed = True
             else:
+                # The manager that admitted it: after a hot reload, the event's
+                # function is a new one whose manager never saw the stream
+                manager = stream_manager(stream_id) or manager
                 outputs = manager.take_outputs(stream_id)
                 manager.finish_if_drained(stream_id)
                 if outputs is not None:
@@ -626,9 +629,8 @@ class WebRTC(Component):
             return await config(*args)
         return await anyio.to_thread.run_sync(config, *args)
 
-    @server
-    async def get_rtc_configuration(
-        self, _: Any = None, request: Request | None = None
+    async def _rtc_configuration_for(
+        self, request: Request | None = None
     ) -> dict[str, Any]:
         try:
             return await self._resolve_rtc_configuration(request)
@@ -642,16 +644,37 @@ class WebRTC(Component):
             payload = utils.error_payload(e, bool(blocks and blocks.show_error))
             return {"error": payload["error"] or "An error occurred."}
 
+    @server
+    async def get_rtc_configuration(
+        self, body: dict[str, Any] | None = None, request: Request | None = None
+    ) -> dict[str, Any]:
+        # Only for a stream whose turn has come, and only to the page that
+        # started it: the configuration may hold TURN credentials billed to the
+        # app's owner, so the queue's limits have to cap who gets them
+        try:
+            from gradio.webrtc.connection import stream_admitted
+        except ImportError:
+            return {"error": "No stream handler is attached to this component."}
+        webrtc_id = body.get("webrtc_id") if isinstance(body, dict) else None
+        if not await stream_admitted(webrtc_id, getattr(request, "session_hash", None)):
+            return {
+                "error": "The stream's turn in the queue ended before it "
+                "connected. Please try again."
+            }
+        return await self._rtc_configuration_for(request)
+
     # The offer starts the stream's handler, whose GPU work is the visitor's
     @server(zerogpu_headers=True)
     async def offer(
         self, body: dict[str, Any], request: Request | None = None
     ) -> dict[str, Any]:
-        if self._manager() is None:
+        # A stream finds its manager by its id; one that was never admitted
+        # (also when this component has no stream) is rejected as such
+        try:
+            from gradio.webrtc.connection import handle_signal
+        except ImportError:
             return {
                 "status": "failed",
                 "meta": {"error": "no_stream_handler"},
             }
-        from gradio.webrtc.connection import handle_signal
-
         return await handle_signal(body, request)

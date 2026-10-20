@@ -312,6 +312,21 @@ describe("WebRTC send-receive video", () => {
 		});
 	});
 
+	test("a camera that cannot be opened says so", async () => {
+		vi.mocked(navigator.mediaDevices.getUserMedia).mockRejectedValueOnce(
+			new DOMException("Device in use", "NotReadableError")
+		);
+		const { getByText, listen } = await render(WebRTC, {
+			...base_props,
+			server: make_server()
+		});
+		const error = listen("error");
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(error).toHaveBeenCalledWith("audio.no_device_support");
+		});
+	});
+
 	test("a camera that opens after the component is gone is let go", async () => {
 		let open_camera: (stream: MediaStream) => void = () => {};
 		const get_user_media = vi.mocked(navigator.mediaDevices.getUserMedia);
@@ -683,6 +698,21 @@ describe("WebRTC queue turn", () => {
 		});
 		return { server, ...result };
 	}
+
+	test("a join that fails ends the wait", async () => {
+		const { getByRole, server, set_data } = await ready_webcam();
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		// e.g. a full queue answers the join with 503, before any "waiting"
+		await set_data({
+			loading_status: { ...loading_status, status: "error", stream_state: null }
+		});
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toHaveTextContent(
+				"audio.record"
+			);
+		});
+		expect(server.offer).not.toHaveBeenCalled();
+	});
 
 	test("while waiting, the place in the queue and the wait count down", async () => {
 		const { getByRole, set_data } = await ready_webcam();
@@ -1103,7 +1133,7 @@ describe("WebRTC audio", () => {
 				modality: "audio",
 				stream_options: {
 					...base_props.stream_options,
-					icon: "https://example.com/icon.png"
+					icon: { url: "https://example.com/icon.png" }
 				},
 				server: make_server()
 			});
@@ -1134,6 +1164,10 @@ describe("WebRTC audio", () => {
 			}
 
 			await stream_once(1);
+			// The icon arrives as served file data, like gr.Button's
+			expect(
+				getByRole("img", { name: "Audio visualization icon" })
+			).toHaveAttribute("src", "https://example.com/icon.png");
 			const per_stream = analysed.length;
 			expect(per_stream).toBeGreaterThan(0);
 			await fireEvent.click(getByRole("button", { name: "stop stream" }));

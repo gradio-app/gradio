@@ -209,7 +209,10 @@
 				onerror?.(i18n("image.allow_webcam_access"));
 				return;
 			}
-			throw err;
+			// e.g. no camera, a camera another app holds, or constraints the
+			// device cannot meet
+			console.debug("getUserMedia failed", err);
+			onerror?.(i18n("audio.no_device_support"));
 		}
 	}
 
@@ -283,7 +286,7 @@
 		const [mic, rtc_configuration] = await Promise.all([
 			include_audio ? open_mic() : Promise.resolve(null),
 			server
-				.get_rtc_configuration()
+				.get_rtc_configuration({ webrtc_id })
 				.then((config) => config ?? {})
 				.catch((e): Record<string, any> => ({ error: String(e) }))
 		]);

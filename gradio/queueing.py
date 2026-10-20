@@ -290,18 +290,24 @@ class Queue:
             # Each call of a stream event sends whole output values, unless its
             # function is a generator (whose outputs are diffs), so only the
             # latest is worth replaying. A stream can run for hours.
+            # A call that changed nothing (every output skipped, e.g. a wake-up
+            # with no new output) is not kept, so it cannot replace the last
+            # output that did.
             if (
                 event_message.msg == ServerMessage.process_streaming
                 and not event.fn.types_generator
             ):
-                for i in range(len(history) - 1, -1, -1):
-                    if (
-                        history[i].event_id == event_message.event_id
-                        and history[i].msg == ServerMessage.process_streaming
-                    ):
-                        del history[i]
-                        break
-            history.append(event_message)
+                if _carries_values(event_message):
+                    for i in range(len(history) - 1, -1, -1):
+                        if (
+                            history[i].event_id == event_message.event_id
+                            and history[i].msg == ServerMessage.process_streaming
+                        ):
+                            del history[i]
+                            break
+                    history.append(event_message)
+            else:
+                history.append(event_message)
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
 
@@ -1543,3 +1549,9 @@ def process_validation_response(
     return all(
         x.get("is_valid", None) is True for x in validation_data
     ), validation_data
+
+
+def _carries_values(message: EventMessage) -> bool:
+    """Whether an output message changes anything, i.e. not every value is gr.skip()."""
+    data = cast(dict, getattr(message, "output", {})).get("data")
+    return bool(data) and any(value != {"__type__": "update"} for value in data)
