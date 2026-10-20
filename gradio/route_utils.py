@@ -458,6 +458,7 @@ async def call_process_api(
         trigger_id=body.trigger_id,
         is_final=not output.get("is_generating"),
         batched=bool(body.batched and fn.batch),
+        batch_trigger_ids=body.batch_trigger_ids,
     )
     return output
 
@@ -522,25 +523,33 @@ def _record_run_history(
     trigger_id: int | None,
     is_final: bool = True,
     batched: bool = False,
+    batch_trigger_ids: list[int | None] | None = None,
 ) -> None:
     """Hand a finished run to the recorder; records only public endpoints."""
     if not is_final or fn.is_cancel_function or fn.api_visibility != "public":
         return
     try:
-        if _is_automatic_run(fns, fn, trigger_id):
-            return
         if batched:
             runs = _split_batched_run(
                 gr_request, inputs, outputs, has_outputs=bool(fn.outputs)
             )
+            # The queue builds both lists from the same events, and a split
+            # either keeps every event or returns no runs.
+            trigger_ids = batch_trigger_ids or [trigger_id] * len(runs)
         elif fn.batch and isinstance(gr_request, list):
             # A streaming batch loses body.batched after its first chunk, so
             # the zipped batch arrives here as if it were one sample.
             logger.debug("history: batch ran unbatched, not recording")
             runs = []
+            trigger_ids = []
         else:
             runs = [(gr_request, inputs, outputs)]
-        for run_request, run_inputs, run_outputs in runs:
+            trigger_ids = [trigger_id]
+        for (run_request, run_inputs, run_outputs), run_trigger_id in zip(
+            runs, trigger_ids, strict=False
+        ):
+            if _is_automatic_run(fns, fn, run_trigger_id):
+                continue
             history.schedule_record_run(
                 app,
                 request=run_request,

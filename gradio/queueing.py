@@ -816,6 +816,10 @@ class Queue:
                 )
                 body.request = events[0].request
                 body.batched = True
+                body.batch_trigger_ids = [
+                    cast(PredictBodyInternal, event.data).trigger_id
+                    for event in batch_events
+                ]
 
             app = self.server_app
             if app is None:
