@@ -939,6 +939,12 @@ class Queue:
                                         output=response, success=True
                                     ),
                                 )
+                            # Closed while waiting, so there is no new chunk and
+                            # the last response is the final one
+                            if awake_events and all(
+                                event.is_finished for event in awake_events
+                            ):
+                                break
                         if not awake_events:
                             break
                         # Re-read the event's fn, which may have been swapped out

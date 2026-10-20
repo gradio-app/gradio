@@ -1542,6 +1542,7 @@ class App(FastAPI):
                             if event is None:
                                 continue
                             event.run_time = math.inf
+                            event.closed = True
                             event.signal.set()
                         return
 
