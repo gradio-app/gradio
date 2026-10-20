@@ -393,6 +393,7 @@ async def call_process_api(
     gr_request: Union[Request, list[Request]],
     fn: BlockFunction,
     root_path: str,
+    record_history: bool = True,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
@@ -447,7 +448,7 @@ async def call_process_api(
     if batch_in_single_out:
         output["data"] = output["data"][0]
 
-    _record_run_history(
+    record_run_history(
         app,
         fn=fn,
         gr_request=gr_request,
@@ -456,7 +457,7 @@ async def call_process_api(
         started_at=started_at,
         fns=session_state.blocks_config.fns,
         trigger_id=body.trigger_id,
-        is_final=not output.get("is_generating"),
+        is_final=record_history and not output.get("is_generating"),
         batched=bool(body.batched and fn.batch),
         batch_trigger_ids=body.batch_trigger_ids,
     )
@@ -511,7 +512,7 @@ def _split_batched_run(
     return list(zip(requests, samples, results, strict=True))
 
 
-def _record_run_history(
+def record_run_history(
     app: App,
     *,
     fn: BlockFunction,
