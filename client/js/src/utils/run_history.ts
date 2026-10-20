@@ -1,4 +1,4 @@
-import type { GradioEvent, StatusMessage } from "../types";
+import type { Dependency, GradioEvent, StatusMessage } from "../types";
 
 // Keyed on the app id, so two different apps served on the same port never
 // share a history. The id is regenerated whenever an app starts, so a restart
@@ -95,6 +95,28 @@ export function run_history_url(
 	api_prefix = "/gradio_api"
 ): string {
 	return `${root.replace(/\/+$/, "")}${api_prefix}/runs`;
+}
+
+const AUTOMATIC_EVENTS = new Set(["tick", "load"]);
+
+function is_automatic_run_impl(
+	dependencies: Dependency[],
+	dependency: Dependency,
+	trigger_id: number | null | undefined
+): boolean {
+	if (trigger_id === null || trigger_id === undefined) return false;
+	let original = dependency;
+	for (let i = 0; i < 100 && original.trigger_after != null; i++) {
+		const parent = dependencies.find((d) => d.id === original.trigger_after);
+		if (!parent) break;
+		original = parent;
+	}
+	const events = original.targets
+		.filter(([id]) => id === trigger_id)
+		.map(([, event]) => event);
+	return (
+		events.length > 0 && events.every((event) => AUTOMATIC_EVENTS.has(event))
+	);
 }
 
 function storage_key(scope: RunHistoryScope | null | undefined): string | null {
@@ -563,6 +585,23 @@ function mark_complete(run: StoredRun, event: StatusMessage): void {
 }
 
 // Public API. Each of these is a no-op if anything goes wrong.
+
+/**
+ * Whether this call was started by a Timer tick or a page load rather than by
+ * the user, including `.then()` steps chained after one. Decided per call, so
+ * a function wired to both a button and a Timer is still recorded for clicks.
+ * Must match `_is_automatic_run` in `gradio/route_utils.py`.
+ */
+export function is_automatic_run(
+	dependencies: Dependency[],
+	dependency: Dependency,
+	trigger_id: number | null | undefined
+): boolean {
+	return safely(
+		() => is_automatic_run_impl(dependencies, dependency, trigger_id),
+		false
+	);
+}
 
 export function read_run_history(
 	scope: RunHistoryScope | null | undefined

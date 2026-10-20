@@ -393,6 +393,7 @@ async def call_process_api(
     gr_request: Union[Request, list[Request]],
     fn: BlockFunction,
     root_path: str,
+    record_history: bool = True,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
@@ -447,19 +448,71 @@ async def call_process_api(
     if batch_in_single_out:
         output["data"] = output["data"][0]
 
-    _record_run_history(
+    record_run_history(
         app,
         fn=fn,
         gr_request=gr_request,
         inputs=submitted_inputs,
         outputs=output.get("data"),
         started_at=started_at,
-        is_final=not output.get("is_generating"),
+        fns=session_state.blocks_config.fns,
+        trigger_id=body.trigger_id,
+        is_final=record_history and not output.get("is_generating"),
+        batched=bool(body.batched and fn.batch),
+        batch_trigger_ids=body.batch_trigger_ids,
     )
     return output
 
 
-def _record_run_history(
+def _is_automatic_run(
+    fns: dict[int, BlockFunction], fn: BlockFunction, trigger_id: int | None
+) -> bool:
+    """Whether a Timer tick or a page load started this call; must match
+    `is_automatic_run` in `client/js/src/utils/run_history.ts`."""
+    if trigger_id is None:
+        return False
+    original = fn
+    for _ in range(100):
+        if original.trigger_after is None or original.trigger_after not in fns:
+            break
+        original = fns[original.trigger_after]
+    events = [event for block_id, event in original.targets if block_id == trigger_id]
+    return bool(events) and all(event in ("tick", "load") for event in events)
+
+
+def _split_batched_run(
+    gr_request: Union[Request, list[Request]],
+    inputs: list[Any],
+    outputs: list[Any] | None,
+    *,
+    has_outputs: bool,
+) -> list[tuple[Request, list[Any], list[Any]]]:
+    """Split a batched call into one run per sample, with the request that sent it.
+
+    The queue passes one request per event; a direct batched call has a single
+    caller for every sample. Any other mismatch returns no runs, rather than
+    filing a sample under someone else's request.
+    """
+    requests = gr_request if isinstance(gr_request, list) else [gr_request]
+    samples = [list(sample) for sample in zip(*inputs, strict=False)]
+    if has_outputs:
+        results = [list(result) for result in zip(*(outputs or []), strict=False)]
+    else:
+        results = [[] for _ in samples]
+    if len(requests) == 1:
+        requests = requests * len(samples)
+    if not len(requests) == len(samples) == len(results):
+        logger.warning(
+            "history: %d requests for %d samples and %d results, not recording",
+            len(requests),
+            len(samples),
+            len(results),
+        )
+        return []
+    return list(zip(requests, samples, results, strict=True))
+
+
+def record_run_history(
     app: App,
     *,
     fn: BlockFunction,
@@ -467,21 +520,46 @@ def _record_run_history(
     inputs: Any,
     outputs: Any,
     started_at: str,
+    fns: dict[int, BlockFunction],
+    trigger_id: int | None,
     is_final: bool = True,
+    batched: bool = False,
+    batch_trigger_ids: list[int | None] | None = None,
 ) -> None:
     """Hand a finished run to the recorder; records only public endpoints."""
     if not is_final or fn.is_cancel_function or fn.api_visibility != "public":
         return
     try:
-        history.schedule_record_run(
-            app,
-            request=gr_request,
-            inputs=inputs,
-            outputs=outputs,
-            api_name=fn.api_name,
-            fn_index=fn._id,
-            started_at=started_at,
-        )
+        if batched:
+            runs = _split_batched_run(
+                gr_request, inputs, outputs, has_outputs=bool(fn.outputs)
+            )
+            # The queue builds both lists from the same events, and a split
+            # either keeps every event or returns no runs.
+            trigger_ids = batch_trigger_ids or [trigger_id] * len(runs)
+        elif fn.batch and isinstance(gr_request, list):
+            # A streaming batch loses body.batched after its first chunk, so
+            # the zipped batch arrives here as if it were one sample.
+            logger.debug("history: batch ran unbatched, not recording")
+            runs = []
+            trigger_ids = []
+        else:
+            runs = [(gr_request, inputs, outputs)]
+            trigger_ids = [trigger_id]
+        for (run_request, run_inputs, run_outputs), run_trigger_id in zip(
+            runs, trigger_ids, strict=False
+        ):
+            if _is_automatic_run(fns, fn, run_trigger_id):
+                continue
+            history.schedule_record_run(
+                app,
+                request=run_request,
+                inputs=run_inputs,
+                outputs=run_outputs,
+                api_name=fn.api_name,
+                fn_index=fn._id,
+                started_at=started_at,
+            )
     except Exception:
         logger.debug("history: scheduling failed", exc_info=True)
 
