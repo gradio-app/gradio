@@ -10,6 +10,7 @@ import { create_custom_js_handler } from "./custom_js";
 import { Client, type client_return } from "@gradio/client";
 import {
 	LoadingStatusState,
+	type ILoadingStatus,
 	type LoadingStatusArgs
 } from "@gradio/statustracker";
 import type { ToastMessage } from "@gradio/statustracker";
@@ -224,6 +225,8 @@ export class DependencyManager {
 	on_loading_status_change: (status: LoadingStatusArgs) => void;
 
 	loading_stati = new LoadingStatusState();
+	/** The loading status last pushed to each component, by component id */
+	#pushed_loading_stati = new Map<string, ILoadingStatus>();
 	connection_lost = false;
 
 	constructor(
@@ -325,7 +328,7 @@ export class DependencyManager {
 		// loading_status reaches them via set_data rather than being dropped
 		// (pending updates intentionally exclude loading_status).
 		void settled()
-			.then(() => this.update_loading_stati_state())
+			.then(() => this.update_loading_stati_state(true))
 			.catch(() => {
 				// fire-and-forget: components may unmount mid-update during teardown
 			});
@@ -353,17 +356,27 @@ export class DependencyManager {
 		});
 	}
 
-	async update_loading_stati_state() {
+	/**
+	 * Pushes the loading status of each component whose status changed since
+	 * it was last pushed. Pass `force` to push all of them, e.g. after the
+	 * components were remounted.
+	 */
+	async update_loading_stati_state(force = false) {
+		const changed: [string, ILoadingStatus][] = [];
+		for (const [id, status] of Object.entries(this.loading_stati.current)) {
+			if (!force && this.#pushed_loading_stati.get(id) === status) continue;
+			this.#pushed_loading_stati.set(id, status);
+			changed.push([id, status]);
+		}
 		await Promise.all(
-			Object.entries(this.loading_stati.current).map(
-				([component_id, loading_status]) =>
-					this.update_state_cb(
-						Number(component_id),
-						{
-							loading_status: loading_status
-						},
-						false
-					)
+			changed.map(([component_id, loading_status]) =>
+				this.update_state_cb(
+					Number(component_id),
+					{
+						loading_status: loading_status
+					},
+					false
+				)
 			)
 		);
 	}
@@ -518,6 +531,7 @@ export class DependencyManager {
 										input_id,
 										{
 											loading_status: {
+												...this.loading_stati.current[input_id],
 												validation_error: null
 											}
 										},
@@ -713,6 +727,17 @@ export class DependencyManager {
 									new Set(Array.from(by_id.keys()))
 								);
 								this.rerender_cb(components, layout);
+								// The rendered components are new, so their status is pushed
+								// again once they are mounted (e.g. an event still running
+								// for them keeps its progress indicator)
+								for (const component of components) {
+									this.#pushed_loading_stati.delete(String(component.id));
+								}
+								void settled()
+									.then(() => this.update_loading_stati_state())
+									.catch(() => {
+										// fire-and-forget: components may unmount mid-update
+									});
 								this.dispatch_load_events(by_id);
 								break submit_loop;
 							}
