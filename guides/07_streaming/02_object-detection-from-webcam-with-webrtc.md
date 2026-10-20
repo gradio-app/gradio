@@ -72,7 +72,7 @@ import gradio as gr
 css = """.my-group {max-width: 600px !important; max-height: 600px !important;}
          .my-column {display: flex !important; justify-content: center !important; align-items: center !important;}"""
 
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     gr.HTML(
         """
         <h1 style='text-align: center'>
@@ -96,7 +96,7 @@ with gr.Blocks(css=css) as demo:
         )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(css=css)
 ```
 
 ## Deploying to Hugging Face Spaces
@@ -124,7 +124,7 @@ async def turn_credentials(token: gr.OAuthToken | None) -> dict:
     response.raise_for_status()
     return response.json()
 
-with gr.Blocks(css=css) as demo:
+with gr.Blocks() as demo:
     gr.LoginButton()
     ...
     webcam = gr.WebRTC(label="Stream", rtc_configuration=turn_credentials)
