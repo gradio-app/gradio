@@ -803,10 +803,14 @@ class Queue:
             except ValueError:
                 pass
 
+            batch_events = [event for event in events if event.data]
             if batch:
                 body.data = list(
                     zip(
-                        *[event.data.data for event in events if event.data],
+                        *[
+                            cast(PredictBodyInternal, event.data).data
+                            for event in batch_events
+                        ],
                         strict=False,
                     )
                 )
@@ -823,6 +827,17 @@ class Queue:
                 username=username,
                 request=None,
             )
+            if batch:
+                # One per event, in the order of body.data, so each sample is
+                # recorded to run history for the user who sent it.
+                gr_request = [
+                    route_utils.Request(
+                        username=event.username,
+                        request=event.request,
+                        session_hash=event.session_hash,
+                    )
+                    for event in batch_events
+                ]
             assert body.request is not None  # noqa: S101
             api_route_path = route_utils.get_api_call_path(request=body.request)
             root_path = route_utils.get_root_url(
