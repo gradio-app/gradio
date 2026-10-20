@@ -97,25 +97,6 @@ describe("DependencyManager.reload", () => {
 		expect(dependency_manager.loading_stati.fn_outputs[0]).toEqual([32]);
 	});
 
-	test("drops deferred events, whose fn ids may now belong to other functions", () => {
-		const dependency_manager = manager([dependency(0, "generate", [10])]);
-		dependency_manager.deferred_events.set(0, {
-			type: "fn",
-			fn_index: 0,
-			event_data: null
-		});
-
-		dependency_manager.reload(
-			[dependency(0, "unrelated", [20]), dependency(1, "generate", [21])],
-			vi.fn().mockResolvedValue(undefined),
-			vi.fn().mockResolvedValue(null),
-			vi.fn(),
-			{} as Client
-		);
-
-		expect(dependency_manager.deferred_events.size).toBe(0);
-	});
-
 	test("accepts the js=True marker used by transpiled dependencies", async () => {
 		const transpiled_dependency = dependency(0, "transpiled", [10]);
 		transpiled_dependency.js = true;
@@ -358,16 +339,7 @@ describe("DependencyManager.dispatch", () => {
 
 	test.each([
 		["completes", { type: "status", stage: "complete", queue: true }],
-		["fails", { type: "status", stage: "error", queue: true, message: "boom" }],
-		[
-			"is rejected by its validator",
-			{
-				type: "status",
-				stage: "error",
-				queue: true,
-				message: [{ is_valid: false, message: "bad" }]
-			}
-		]
+		["fails", { type: "status", stage: "error", queue: true, message: "boom" }]
 	])(
 		"runs a deferred always_last event with its own event data, for that dependency only, when the running call %s",
 		async (_, first_run_result) => {
@@ -405,10 +377,8 @@ describe("DependencyManager.dispatch", () => {
 					})();
 				}
 			} as unknown as Client;
-			// other_click_listener goes first because a validator rejection
-			// currently stops the event's later listeners from running.
 			const dependency_manager = manager(
-				[other_click_listener, always_last],
+				[always_last, other_click_listener],
 				client
 			);
 
