@@ -1412,10 +1412,9 @@ class App(FastAPI):
             event.closed = True
             event.signal.set()
             # A stream still waiting in line leaves it, instead of being
-            # started later only to end, and the ones behind it move up
-            line = queue.event_queue_per_concurrency_id.get(event.concurrency_id)
-            if line is not None and event in line.queue:
-                await queue.remove_from_queue(event_id)
+            # started later only to end, and the ones behind it move up. One
+            # that the queue started meanwhile ends through `closed` instead.
+            if await queue.remove_from_queue(event_id):
                 # As for /cancel: the client hears that the event is over
                 queue.send_message(
                     event, ProcessCompletedMessage(output={}, success=True)

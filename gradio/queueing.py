@@ -736,7 +736,8 @@ class Queue:
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
         return True, event._id, "success"
 
-    async def remove_from_queue(self, event_id: str):
+    async def remove_from_queue(self, event_id: str) -> bool:
+        """Removes an event that is still waiting in line; False if it is not."""
         event = self.event_ids_to_events.get(event_id)
         if event:
             async with self.delete_lock:
@@ -745,10 +746,12 @@ class Queue:
                     q.queue.remove(event)
                     self.event_ids_to_events.pop(event_id, None)
                 except ValueError:
-                    return
+                    return False
             # Everyone behind it moves up
             if self.live_updates:
                 self.broadcast_estimations(event.concurrency_id)
+            return True
+        return False
 
     def _cancel_asyncio_tasks(self):
         for task in list(self._asyncio_tasks):

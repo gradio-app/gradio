@@ -40,6 +40,7 @@ VideoEmitType = (
     | tuple[VideoNDArray, CloseStream]
     | AdditionalOutputs
     | CloseStream
+    | None
 )
 VideoEventGenerator = Generator[VideoEmitType, None, None]
 VideoEventHandler = Callable[..., VideoEmitType | VideoEventGenerator]
@@ -167,7 +168,11 @@ class StreamHandlerBase:
         self.args_set.clear()
 
     def shutdown(self) -> None:
-        """Called when the connection closes. Override to release resources."""
+        """
+        Called when the connection closes. Override to release resources. A
+        sync `shutdown()` runs in a worker thread, and a last call of the other
+        methods may still be running when it starts.
+        """
         pass
 
     def resample(self, frame: AudioFrame) -> Generator[AudioFrame, None, None]:
@@ -270,7 +275,7 @@ class AudioVideoStreamHandler(StreamHandler):
 
     @abstractmethod
     def video_emit(self) -> VideoEmitType:
-        """Returns the next video frame to send, as an RGB uint8 array."""
+        """Returns the next video frame to send, as an RGB uint8 array, or None when none is ready yet."""
         pass
 
 
@@ -314,7 +319,7 @@ class VideoStreamHandler(StreamHandlerBase, ABC):
 
     @abstractmethod
     def video_emit(self) -> VideoEmitType:
-        """Returns the next video frame to send, as an RGB uint8 array."""
+        """Returns the next video frame to send, as an RGB uint8 array, or None when none is ready yet."""
         pass
 
     def copy(self) -> VideoStreamHandler:

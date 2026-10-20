@@ -228,6 +228,9 @@ export function rejection_message(response: Record<string, any>): string {
 			);
 		case "no_stream_handler":
 			return "No stream handler is attached to this component.";
+		case "setup_failed":
+			// What the handler raised, shown like the error of an event
+			return response.meta?.message ?? "Could not establish the connection.";
 		default:
 			return "Could not establish the connection.";
 	}

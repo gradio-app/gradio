@@ -52,6 +52,26 @@ from gradio.webrtc.utils import (
 logger = logging.getLogger(__name__)
 
 _GENERATOR_DONE = object()
+# Put on a track's queue when it stops, so that a recv() waiting on the queue
+# ends instead of waiting forever
+_STOPPED = object()
+
+
+async def wait_unless_stopped(event: asyncio.Event, stopped: asyncio.Event) -> None:
+    """
+    Waits for `event`. Raises MediaStreamError, which ends a track, once
+    `stopped` is set, for example when a stream ends before its data channel
+    opened.
+    """
+    if not event.is_set() and not stopped.is_set():
+        waits = [asyncio.ensure_future(e.wait()) for e in (event, stopped)]
+        try:
+            await asyncio.wait(waits, return_when=asyncio.FIRST_COMPLETED)
+        finally:
+            for wait in waits:
+                wait.cancel()
+    if stopped.is_set():
+        raise MediaStreamError
 
 
 def audio_frame_to_array(frame: AudioFrame) -> npt.NDArray[np.int16]:
@@ -100,7 +120,7 @@ class VideoCallback(VideoStreamTrack):
         self.fps = fps
         self.frame_ptime = 1.0 / fps
         self.skip_frames = skip_frames
-        self.frame_queue: asyncio.Queue[VideoFrame] = asyncio.Queue()
+        self.frame_queue: asyncio.Queue[Any] = asyncio.Queue()
         self.context = context
         self._clock_start: float | None = None
         self._clock_timestamp: int | None = None
@@ -132,19 +152,25 @@ class VideoCallback(VideoStreamTrack):
                 await self.recv()
             except TimeoutError:
                 continue
+            except MediaStreamError:
+                return
+            except HandlerFailedError:
+                self.stop()
+                return
 
     async def start(self):
-        asyncio.create_task(self.process_frames())
+        """Runs the handler on every frame in mode="send", where nothing pulls the frames."""
+        await self.process_frames()
 
     def stop(self):
         super().stop()
         logger.debug("video callback stop")
         self.thread_quit.set()
+        self.frame_queue.put_nowait(_STOPPED)
 
     async def wait_for_channel(self):
         current_context.set(self.context)
-        if not self.channel_set.is_set():
-            await self.channel_set.wait()
+        await wait_unless_stopped(self.channel_set, self.thread_quit)
         if current_channel.get() != self.channel:
             current_channel.set(self.channel)
 
@@ -169,6 +195,8 @@ class VideoCallback(VideoStreamTrack):
             if self.skip_frames:
                 while not self.frame_queue.empty():
                     frame = self.frame_queue.get_nowait()
+            if frame is _STOPPED:
+                raise MediaStreamError
             await self.wait_for_channel()
             frame_array = self.frame_to_array(frame)
             if self.latest_args is None:
@@ -198,6 +226,10 @@ class VideoCallback(VideoStreamTrack):
                 self.set_additional_outputs(outputs)
             if array is None and self.mode == "send":
                 return
+            if array is None:
+                # Only AdditionalOutputs (or nothing): the frame goes back as it
+                # came in, as before the extra inputs arrive
+                array = frame_array
 
             new_frame = self.array_to_frame(array)
             if frame:
@@ -288,7 +320,7 @@ class HandlerVideoTrack(VideoCallback):
                 await start_up
             elif isinstance(handler, VideoStreamHandler):
                 await anyio.to_thread.run_sync(handler.start_up)
-        except HandlerFailedError:
+        except (HandlerFailedError, MediaStreamError):
             self.stop()
 
     async def start(self):
@@ -302,24 +334,33 @@ class HandlerVideoTrack(VideoCallback):
         try:
             await self.wait_for_channel()
             handler = self.handler
-            if isinstance(
-                handler, AsyncAudioVideoStreamHandler | AsyncVideoStreamHandler
-            ):
-                outputs = await handler.video_emit()
-            else:
-                outputs = await anyio.to_thread.run_sync(handler.video_emit)
+            while True:
+                if isinstance(
+                    handler, AsyncAudioVideoStreamHandler | AsyncVideoStreamHandler
+                ):
+                    outputs = await handler.video_emit()
+                else:
+                    outputs = await anyio.to_thread.run_sync(handler.video_emit)
 
-            array, outputs = split_output(outputs)
-            if isinstance(outputs, AdditionalOutputs) and self.set_additional_outputs:
-                self.set_additional_outputs(outputs)
-            if isinstance(outputs, CloseStream):
-                cast(DataChannel, self.channel).send(
-                    create_message("end_stream", outputs.msg)
-                )
-                self.stop()
-                return
-            if array is None and self.mode == "send":
-                return
+                array, outputs = split_output(outputs)
+                if (
+                    isinstance(outputs, AdditionalOutputs)
+                    and self.set_additional_outputs
+                ):
+                    self.set_additional_outputs(outputs)
+                if isinstance(outputs, CloseStream):
+                    cast(DataChannel, self.channel).send(
+                        create_message("end_stream", outputs.msg)
+                    )
+                    self.stop()
+                    return
+                if array is not None:
+                    break
+                # No frame yet (e.g. the model is still starting up): ask again
+                # a frame later, while the page keeps showing the last one
+                await asyncio.sleep(self.frame_ptime)
+                if self.thread_quit.is_set():
+                    raise MediaStreamError
 
             new_frame = self.array_to_frame(array)
             pts, time_base = await self.next_timestamp()
@@ -373,8 +414,7 @@ class AudioCallback(AudioStreamTrack):
 
     async def wait_for_channel(self):
         current_context.set(self.context)
-        if not self.event_handler.channel_set.is_set():
-            await self.event_handler.channel_set.wait()
+        await wait_unless_stopped(self.event_handler.channel_set, self.thread_quit)
         if current_channel.get() != self.event_handler.channel:
             current_channel.set(self.event_handler.channel)
 
@@ -456,13 +496,12 @@ class AudioCallback(AudioStreamTrack):
             if self.readyState != "live":
                 raise MediaStreamError
 
-            if not self.event_handler.channel_set.is_set():
-                await self.event_handler.channel_set.wait()
-            if current_channel.get() != self.event_handler.channel:
-                current_channel.set(self.event_handler.channel)
+            await self.wait_for_channel()
             await self.start()
 
             frame = await self.queue.get()
+            if frame is _STOPPED:
+                raise MediaStreamError
             if isinstance(frame, CloseStream):
                 cast(DataChannel, self.channel).send(
                     create_message("end_stream", frame.msg)
@@ -486,12 +525,16 @@ class AudioCallback(AudioStreamTrack):
                 await asyncio.sleep(wait)
             self.last_timestamp = time.time()
             return frame
+        except MediaStreamError:
+            # How a track tells its reader (aiortc, or _drain) that it has ended
+            raise
         except Exception as e:
             logger.debug("exception %s\n%s", e, traceback.format_exc())
 
     def stop(self):
         logger.debug("audio callback stop")
         self.thread_quit.set()
+        self.queue.put_nowait(_STOPPED)
         super().stop()
 
 

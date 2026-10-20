@@ -38,6 +38,14 @@ def flip(frame, *args):
     return frame
 
 
+def on_event_loop():
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return False
+    return True
+
+
 seen_requests: list = []
 
 
@@ -72,6 +80,11 @@ class EchoHandler(AsyncStreamHandler):
 
     async def emit(self):
         return None
+
+
+class FailsToStart(EchoHandler):
+    def __init__(self):
+        raise gr.Error("Model not found")
 
 
 class StartsWithRequest(EchoHandler):
@@ -167,7 +180,7 @@ class RecordingVideo(VideoStreamHandler):
         return frame, AdditionalOutputs(self.latest_args[0] * 2)
 
     def shutdown(self):
-        self.events.append("shutdown")
+        self.events.append("shutdown on the loop" if on_event_loop() else "shutdown")
 
 
 class AsyncRecordingVideo(AsyncVideoStreamHandler):
@@ -192,7 +205,7 @@ class AsyncRecordingVideo(AsyncVideoStreamHandler):
         return frame, AdditionalOutputs(self.latest_args[0] * 2)
 
     def shutdown(self):
-        self.events.append("shutdown")
+        self.events.append("shutdown on the loop" if on_event_loop() else "shutdown")
 
 
 class RecordingAudioVideo(AsyncAudioVideoStreamHandler):
@@ -216,7 +229,7 @@ class RecordingAudioVideo(AsyncAudioVideoStreamHandler):
         return np.zeros((16, 16, 3), dtype=np.uint8)
 
     def shutdown(self):
-        self.events.append("shutdown")
+        self.events.append("shutdown on the loop" if on_event_loop() else "shutdown")
 
 
 class TestWebRTC:
@@ -412,6 +425,15 @@ class TestWebRTC:
                 receive.stream(flip, inputs=[slider], outputs=[receive])
             with pytest.raises(ValueError, match="cannot be one of"):
                 receive.stream(flip, inputs=[receive], outputs=[receive])
+            receive_audio = gr.WebRTC(mode="receive", modality="audio")
+            with pytest.raises(
+                ValueError, match='VideoOptions is for modality="video"'
+            ):
+                receive_audio.stream(
+                    VideoOptions(three_frames),
+                    outputs=[receive_audio],
+                    trigger=slider.change,
+                )
         with pytest.raises(AttributeError, match="Blocks context"):
             gr.WebRTC().stream(flip, inputs=[], outputs=[])
 
@@ -514,8 +536,10 @@ class TestWebRTC:
             alive = True
             closed = False
 
-            def __init__(self):
+            def __init__(self, manager):
                 self.signal = asyncio.Event()
+                # Each call serves the stream through its event's own manager
+                self.fn = SimpleNamespace(webrtc_manager=manager)
 
         with gr.Blocks() as demo:
             webrtc = gr.WebRTC()
@@ -523,7 +547,7 @@ class TestWebRTC:
             text = gr.Textbox()
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc, number, text])
         manager = get_manager(webrtc._id)
-        event = FakeEvent()
+        event = FakeEvent(manager)
         queue = SimpleNamespace(event_ids_to_events={"event": event})
         demo._queue = queue  # type: ignore
         blocks_token = LocalContext.blocks.set(demo)
@@ -569,7 +593,7 @@ class TestWebRTC:
 
             # Another queue event that joins with an id already in use ends at
             # once instead of holding a place it can never use
-            other = FakeEvent()
+            other = FakeEvent(manager)
             other._id = "other"
             queue.event_ids_to_events["other"] = other
             other_token = LocalContext.event_id.set("other")
@@ -717,6 +741,10 @@ class Harness:
     def event_running(self, event_id):
         return event_id in self.demo._queue.event_ids_to_events
 
+    def handler(self, webrtc_id):
+        """The handler instance of a stream, which all its tracks share."""
+        return self.manager.connections[webrtc_id][0].event_handler
+
 
 def completed(messages):
     return any(m.get("msg") == "process_completed" for m in messages)
@@ -726,6 +754,11 @@ class TestStreams:
     @pytest_asyncio.fixture
     async def launched(self, request, monkeypatch):
         monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+        # Tests reuse stream ids, and a stream an earlier test left open stays
+        # registered after its app is closed
+        webrtc_connection._streams.clear()
+        webrtc_connection._admissions.clear()
+        webrtc_connection._pending_candidates.clear()
         params = dict(getattr(request, "param", {}))
         handler = params.pop("handler", flip)
         stream_kwargs = params.pop("stream_kwargs", {})
@@ -1203,6 +1236,49 @@ class TestStreams:
             await connection.close()
 
     @pytest.mark.asyncio
+    async def test_a_stream_stays_with_its_manager_when_its_component_id_is_reused(
+        self, launched
+    ):
+        h = launched
+        await h.start("one")
+        # As when @gr.render creates a keyed component again, in another
+        # session or a later render: the same id gets another manager
+        other = webrtc_connection.register_manager(
+            h.webrtc._id,
+            handler=flip,
+            mode="send-receive",
+            modality="video",
+            time_limit=None,
+            allow_extra_tracks=False,
+            server_rtc_configuration=None,
+        )
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        await h.push_inputs("one", 0.2)
+        assert h.manager.connections["one"][0].latest_args == [0.2]
+        assert not other.pcs
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"modality": "audio", "handler": FailsToStart}], indirect=True
+    )
+    async def test_a_stream_whose_handler_cannot_start_ends_with_its_error(
+        self, launched
+    ):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(audio=True)
+        response = await h.offer(pc, "one")
+        assert response["meta"] == {
+            "error": "setup_failed",
+            "message": "Model not found",
+        }
+        assert "one" not in h.manager.pcs
+        await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
+        await pc.close()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched", [{"stream_kwargs": {"time_limit": 600}}], indirect=True
     )
@@ -1255,8 +1331,8 @@ class TestStreams:
         second = await make_offer(audio=True)
         assert (await h.offer(first, "one"))["type"] == "answer"
         assert (await h.offer(second, "two"))["type"] == "answer"
-        assert isinstance(h.manager.handlers["one"], EchoHandler)
-        assert h.manager.handlers["one"] is not h.manager.handlers["two"]
+        assert isinstance(h.handler("one"), EchoHandler)
+        assert h.handler("one") is not h.handler("two")
         for pc in (first, second):
             await pc.close()
 
@@ -1327,7 +1403,7 @@ class TestStreams:
         answer = await h.connect(pc, "one")
         # Video only: the page does not have to send (or ask for) a microphone
         assert "m=audio" not in answer["sdp"]
-        handler = h.manager.handlers["one"]
+        handler = h.handler("one")
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
         await h.wait_until(lambda: handler.events == ["start_up"])
         await h.wait_until(lambda: handler.frames > 0)
@@ -1359,7 +1435,7 @@ class TestStreams:
         event_id = await h.start("one")
         pc = await make_offer(audio=True, video=True)
         await h.connect(pc, "one")
-        handler = h.manager.handlers["one"]
+        handler = h.handler("one")
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
         # Both tracks share the handler; closing must not shut it down twice
         await pc.close()
@@ -1410,7 +1486,7 @@ class TestStreams:
         await h.wait_until(lambda: "one" in h.manager.sessions)
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        assert "one" not in h.manager.pending_candidates
+        assert "one" not in webrtc_connection._pending_candidates
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1819,6 +1895,38 @@ class TestVideoTracks:
         assert sorted(Handler.seen) == [("emit", "id"), ("receive", "id")]
 
     @pytest.mark.asyncio
+    async def test_video_emit_may_have_no_frame_yet(self):
+        import numpy as np
+
+        from gradio.webrtc.tracks import HandlerVideoTrack
+        from gradio.webrtc.utils import Context
+
+        # e.g. while the model starts up, or between two outputs
+        returns = [None, AdditionalOutputs(1), np.zeros((16, 16, 3), dtype=np.uint8)]
+
+        class Handler(VideoStreamHandler):
+            def video_receive(self, frame):
+                pass
+
+            def video_emit(self):
+                return returns.pop(0)
+
+        outputs = []
+        track = HandlerVideoTrack(
+            VideoStreamTrack(),
+            event_handler=cast(Callable, Handler()),
+            context=Context("id"),
+            set_additional_outputs=outputs.append,
+            fps=100,
+        )
+        track.channel_set.set()
+        frame = await asyncio.wait_for(track.recv(), 2)
+        assert frame.to_ndarray(format="rgb24").shape == (16, 16, 3)
+        assert [o.args for o in outputs] == [(1,)]
+        track.stop()
+        await asyncio.wait_for(track.process_task, 2)
+
+    @pytest.mark.asyncio
     async def test_frames_are_rgb_both_ways(self):
         import fractions
 
@@ -2154,6 +2262,33 @@ class TestCleanUp:
         assert not waiting.done()
         manager.clean_up("one")
         await asyncio.wait_for(waiting, 1)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("kind", ["audio", "video"])
+    async def test_a_send_mode_reader_ends_with_its_track(self, kind):
+        from gradio.webrtc.tracks import AudioCallback
+        from gradio.webrtc.utils import Context
+
+        # In mode="send" nothing plays the output, so the server reads the
+        # track itself; that reader must not outlive the stream
+        if kind == "audio":
+            # Like speech to text: emit() gives no audio, only outputs
+            handler = SyncHandler()
+            handler._loop = asyncio.get_running_loop()
+            handler.channel_set.set()
+            track = AudioCallback(
+                AudioStreamTrack(), event_handler=handler, context=Context("one")
+            )
+            reader = asyncio.create_task(
+                webrtc_connection.ConnectionManager._drain(track)
+            )
+        else:
+            track = TestVideoTracks.callback(flip, mode="send")
+            reader = asyncio.create_task(track.start())
+        await asyncio.sleep(0.2)
+        assert not reader.done()
+        track.stop()
+        await asyncio.wait_for(reader, 2)
 
     @pytest.mark.asyncio
     async def test_receive_audio_waits_for_its_inputs_outside_a_thread(self):

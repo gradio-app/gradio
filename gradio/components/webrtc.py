@@ -517,6 +517,11 @@ class WebRTC(Component):
                 "VideoStreamHandler or AsyncVideoStreamHandler subclass or "
                 "instance."
             )
+        elif isinstance(fn, VideoOptions) and self.modality != "video":
+            raise ValueError(
+                f'A VideoOptions is for modality="video"; for modality='
+                f'"{self.modality}" in mode="{self.mode}", pass a function.'
+            )
         elif not callable(fn) and not isinstance(fn, VideoOptions):
             raise ValueError("`fn` must be a callable or a VideoOptions.")
 
@@ -534,10 +539,10 @@ class WebRTC(Component):
 
     def _stream_id(self) -> int:
         """
-        The id this component was registered under in `stream()`. When an event
-        updates the component (`gr.update(...)`), Gradio gives the session a new
-        instance with its own id, stored under the original id in the session's
-        blocks, and server functions then run on that instance.
+        The id this component was registered under in `stream()`, for its
+        config. When an event updates the component (`gr.update(...)`), Gradio
+        gives the session a new instance with its own id, stored under the
+        original id in the session's blocks.
         """
         blocks_config = LocalContext.blocks_config.get(None)
         if blocks_config is not None:
@@ -554,10 +559,13 @@ class WebRTC(Component):
         return get_manager(self._stream_id())
 
     async def _push_inputs(self, webrtc_id: str | None, *args: Any) -> None:
-        manager = self._manager()
-        if manager is not None and webrtc_id:
+        try:
+            from gradio.webrtc.connection import set_input
+        except ImportError:
+            return
+        if webrtc_id:
             request = LocalContext.request.get(None)
-            manager.set_input(webrtc_id, getattr(request, "session_hash", None), *args)
+            set_input(webrtc_id, getattr(request, "session_hash", None), *args)
 
     async def _run_stream(self, webrtc_id: str | None) -> Any:
         """
@@ -568,13 +576,17 @@ class WebRTC(Component):
         from gradio.webrtc.connection import admitted_id
 
         nothing = [skip()] * (1 + self._num_extra_outputs)
-        manager = self._manager()
         blocks = LocalContext.blocks.get(None)
         queue = blocks._queue if blocks is not None else None
         event = (
             queue.event_ids_to_events.get(LocalContext.event_id.get(None) or "")
             if queue is not None
             else None
+        )
+        # The event's own manager: the one registered for this component id may
+        # belong to another session's render, or to a later render of it
+        manager: ConnectionManager | None = getattr(
+            getattr(event, "fn", None), "webrtc_manager", None
         )
         if manager is not None and queue is not None and event is not None:
             # A later call carries whatever id a chunk sent, so it only
@@ -635,10 +647,11 @@ class WebRTC(Component):
     async def offer(
         self, body: dict[str, Any], request: Request | None = None
     ) -> dict[str, Any]:
-        manager = self._manager()
-        if manager is None:
+        if self._manager() is None:
             return {
                 "status": "failed",
                 "meta": {"error": "no_stream_handler"},
             }
-        return await manager.handle_offer(body, request)
+        from gradio.webrtc.connection import handle_signal
+
+        return await handle_signal(body, request)
