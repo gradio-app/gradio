@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import {
-		asset_url,
 		clear_run_history,
 		delete_run_history,
 		list_bucket_records,
 		on_run_history_change,
 		read_run_history,
 		read_run_history_storage,
+		resolve_record_assets,
 		stage_run_history_replay,
 		type HistoryRecord,
 		type RunHistoryScope,
@@ -105,37 +105,9 @@
 			: null;
 	}
 
-	function restore_assets(value: unknown, record: HistoryRecord): unknown {
-		if (Array.isArray(value)) {
-			return value.map((item) => restore_assets(item, record));
-		}
-		if (!value || typeof value !== "object") return value;
-		const marker = (value as { __asset__?: unknown }).__asset__;
-		if (typeof marker === "string") {
-			const url = asset_url(
-				root,
-				bucket_id,
-				record.endpoint,
-				record.record_id,
-				marker
-			);
-			return {
-				path: url,
-				url,
-				orig_name: marker,
-				meta: { _type: "gradio.FileData" }
-			};
-		}
-		return Object.fromEntries(
-			Object.entries(value).map(([key, item]) => [
-				key,
-				restore_assets(item, record)
-			])
-		);
-	}
-
 	function bucket_run(record: HistoryRecord): StoredRun {
 		const dependency = dependency_for(record.endpoint);
+		const resolved = resolve_record_assets(root, bucket_id, record);
 		return {
 			id: record.record_id,
 			endpoint: dependency?.id ?? record.endpoint,
@@ -144,8 +116,8 @@
 				: `/${record.endpoint}`,
 			fn_index: dependency?.id ?? -1,
 			page: new URL(root, window.location.href).pathname,
-			inputs: restore_assets(record.inputs, record),
-			outputs: restore_assets(record.outputs, record),
+			inputs: resolved.inputs,
+			outputs: resolved.outputs,
 			input_components: dependency?.inputs.map(component_metadata),
 			output_components: dependency?.outputs.map(component_metadata),
 			status: "completed",

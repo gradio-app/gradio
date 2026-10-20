@@ -28,6 +28,7 @@ export {
 	is_valid_bucket_id,
 	list_bucket_records,
 	list_user_buckets,
+	resolve_record_assets,
 	type HistoryRecord,
 	type HistoryResult
 } from "./utils/bucket_sync";
