@@ -1,0 +1,145 @@
+{
+  "timestamp": "2026-10-20T18:43:55.076615+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "host": {
+    "device": "Apple M5",
+    "wall_seconds": 0.03747701644897461,
+    "effective_bandwidth_gbs": 85.95202546034409,
+    "bandwidth_gbs": 115.65906619798744,
+    "recommended_bytes": 26800603136,
+    "working_bytes": 134676480,
+    "valid": 1,
+    "gpu_seconds": 0.027851041668327525
+  },
+  "note": "Host-local throttling measurements. Not measurements on the named target devices.",
+  "runs": [
+    {
+      "rate": null,
+      "torch_seconds": [
+        0.1979212500009453,
+        0.1982789580069948,
+        0.19769066700246185
+      ],
+      "copy_seconds": [
+        0.03492891788482666,
+        0.034497976303100586,
+        0.03554201126098633
+      ],
+      "copy_effective_gbs": [
+        92.22230939479864,
+        93.37433140130265,
+        90.63149095155083
+      ],
+      "torch_median_seconds": 0.1979212500009453,
+      "copy_median_effective_gbs": 92.22230939479864,
+      "llama": [
+        {
+          "prompt_tokens": 128,
+          "generated_tokens": 0,
+          "tokens_per_second": 32428.458119
+        },
+        {
+          "prompt_tokens": 0,
+          "generated_tokens": 64,
+          "tokens_per_second": 1657.033866
+        }
+      ]
+    },
+    {
+      "rate": 1.0,
+      "torch_seconds": [
+        0.2036665420018835,
+        0.19795070799591485,
+        0.19741358299506828
+      ],
+      "copy_seconds": [
+        0.03519093990325928,
+        0.0347670316696167,
+        0.03530704975128174
+      ],
+      "copy_effective_gbs": [
+        91.53564755176261,
+        92.65172542225011,
+        91.23462579546344
+      ],
+      "torch_median_seconds": 0.19795070799591485,
+      "copy_median_effective_gbs": 91.53564755176261,
+      "llama": [
+        {
+          "prompt_tokens": 128,
+          "generated_tokens": 0,
+          "tokens_per_second": 105763.94017
+        },
+        {
+          "prompt_tokens": 0,
+          "generated_tokens": 64,
+          "tokens_per_second": 1798.877056
+        }
+      ]
+    },
+    {
+      "rate": 0.65,
+      "torch_seconds": [
+        0.3234953330102144,
+        0.32373645799816586,
+        0.32379887500428595
+      ],
+      "copy_seconds": [
+        0.05215096473693848,
+        0.0511469841003418,
+        0.05044591426849365
+      ],
+      "copy_effective_gbs": [
+        61.76732277626322,
+        62.979773463876114,
+        63.855032041947524
+      ],
+      "torch_median_seconds": 0.32373645799816586,
+      "copy_median_effective_gbs": 62.979773463876114,
+      "llama": [
+        {
+          "prompt_tokens": 128,
+          "generated_tokens": 0,
+          "tokens_per_second": 45054.931383
+        },
+        {
+          "prompt_tokens": 0,
+          "generated_tokens": 64,
+          "tokens_per_second": 1323.73456
+        }
+      ]
+    },
+    {
+      "rate": 0.35,
+      "torch_seconds": [
+        0.8812455000006594,
+        0.7135735420015408,
+        0.7478614169958746
+      ],
+      "copy_seconds": [
+        0.08942508697509766,
+        0.0933690071105957,
+        0.09405303001403809
+      ],
+      "copy_effective_gbs": [
+        36.02149666230707,
+        34.499943521777574,
+        34.24903452360024
+      ],
+      "torch_median_seconds": 0.7478614169958746,
+      "copy_median_effective_gbs": 34.499943521777574,
+      "llama": [
+        {
+          "prompt_tokens": 128,
+          "generated_tokens": 0,
+          "tokens_per_second": 22609.510455
+        },
+        {
+          "prompt_tokens": 0,
+          "generated_tokens": 64,
+          "tokens_per_second": 403.010419
+        }
+      ]
+    }
+  ]
+}

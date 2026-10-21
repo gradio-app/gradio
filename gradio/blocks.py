@@ -3165,6 +3165,12 @@ Received inputs:
         """
         from gradio.routes import App
 
+        if os.environ.get("GRADIO_HARDWARE", "host") != "host" and _app is None:
+            raise ValueError(
+                "Experimental --hardware execution currently requires gr.App/gr.Server. "
+                "Blocks and Interface apps can still run without --hardware."
+            )
+
         theme = theme if theme is not None else self._deprecated_theme
         css = css if css is not None else self._deprecated_css
         css_paths = css_paths if css_paths is not None else self._deprecated_css_paths

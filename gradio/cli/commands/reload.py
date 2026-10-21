@@ -110,6 +110,7 @@ def main(
     watch_dirs: list[str] | None = None,
     encoding: str = "utf-8",
     watch_library: bool = False,
+    hardware: str | None = None,
     app_args: Annotated[
         list[str] | None,
         typer.Argument(
@@ -136,6 +137,20 @@ def main(
         GRADIO_WATCH_DEMO_PATH=str(path),
         GRADIO_WATCH_ENCODING=encoding,
     )
+
+    import json
+
+    env_vars["GRADIO_HARDWARE_APP"] = str(path)
+    env_vars["GRADIO_HARDWARE_APP_ARGS"] = json.dumps(app_args or [])
+    if hardware is not None:
+        from gradio.hardware.native import build
+        from gradio.hardware.profiles import resolve
+
+        profile = resolve(hardware)
+        if profile.id != "host":
+            build()
+        env_vars["GRADIO_HARDWARE"] = profile.id
+        env_vars["GRADIO_HARDWARE_APP"] = str(path)
 
     if "GRADIO_VIBE_MODE" in os.environ:
         env_vars["GRADIO_VIBE_MODE"] = os.environ["GRADIO_VIBE_MODE"]
