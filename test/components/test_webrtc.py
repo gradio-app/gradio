@@ -40,7 +40,15 @@ def flip(frame, *args):
 
 
 async def admitted_anyway(webrtc_id, session_hash, component_id):
-    return True
+    return SimpleNamespace(rtc_configuration=None)
+
+
+issued_credentials: list = []
+
+
+def issue_credentials():
+    issued_credentials.append(1)
+    return {"iceServers": [{"urls": f"turn:{len(issued_credentials)}"}]}
 
 
 def on_event_loop():
@@ -1455,6 +1463,25 @@ class TestStreams:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
+        "launched", [{"rtc_configuration": issue_credentials}], indirect=True
+    )
+    async def test_a_stream_gets_its_rtc_configuration_issued_once(self, launched):
+        h = launched
+        issued_credentials.clear()
+        await h.start("one")
+        answers = [
+            await h.server_fn(
+                "get_rtc_configuration", {"webrtc_id": "one"}, None, "one"
+            )
+            for _ in range(3)
+        ]
+        # Asking again within the turn does not issue more credentials on the
+        # app owner's account
+        assert answers == [{"iceServers": [{"urls": "turn:1"}]}] * 3
+        assert len(issued_credentials) == 1
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
         "launched",
         [{"second": {"rtc_configuration": {"iceServers": [{"urls": "turn:x"}]}}}],
         indirect=True,
@@ -2205,6 +2232,51 @@ class TestVideoTracks:
         released.set()
         await asyncio.wait_for(processing, 2)
         assert received[0][0, -1 if mirror else 0, 0] == 255
+
+    @pytest.mark.asyncio
+    async def test_a_receive_function_that_returns_a_frame_says_so(self):
+        import numpy as np
+
+        from gradio.webrtc.tracks import ServerToClientVideo
+        from gradio.webrtc.utils import Context, HandlerFailedError
+
+        def frame():
+            return np.zeros((16, 16, 3), dtype=np.uint8)
+
+        track = ServerToClientVideo(frame, context=Context("id"))
+        track.set_args([])
+        with pytest.raises(HandlerFailedError, match="must be a generator"):
+            await asyncio.wait_for(track.recv(), 2)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("dtype", ["float32", "uint16"])
+    @pytest.mark.parametrize("receive", [False, True])
+    async def test_frames_of_other_dtypes_are_sent_like_gr_image(self, dtype, receive):
+        import numpy as np
+
+        from gradio.webrtc.tracks import ServerToClientVideo
+        from gradio.webrtc.utils import Context
+
+        # e.g. a model's output in [0, 1]
+        top = 1.0 if dtype == "float32" else 65535
+        out = np.zeros((16, 16, 3), dtype=dtype)
+        out[0] = top
+
+        def generate():
+            while True:
+                yield out
+
+        if receive:
+            track = ServerToClientVideo(generate, context=Context("id"))
+            track.set_args([])
+        else:
+            track = self.callback(lambda frame: out)
+            track.frame_queue.put_nowait(video_frame(0))
+        frame = await asyncio.wait_for(track.recv(), 2)
+        track.stop()
+        sent = frame.to_ndarray(format="rgb24")
+        assert sent[0, 0].tolist() == [255, 255, 255]
+        assert sent[-1, 0].tolist() == [0, 0, 0]
 
     @pytest.mark.asyncio
     async def test_a_slow_video_receive_gets_the_newest_frame(self):

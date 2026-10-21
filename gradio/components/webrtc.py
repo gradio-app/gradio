@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 import inspect
 import logging
@@ -691,14 +692,21 @@ class WebRTC(Component):
         except ImportError:
             return {"error": "No stream handler is attached to this component."}
         webrtc_id = body.get("webrtc_id") if isinstance(body, dict) else None
-        if not await stream_admitted(
+        stream = await stream_admitted(
             webrtc_id, getattr(request, "session_hash", None), self._stream_id()
-        ):
+        )
+        if stream is None:
             return {
                 "error": "The stream's turn in the queue ended before it "
                 "connected. Please try again."
             }
-        return await self._rtc_configuration_for(request)
+        # Once per stream, however often the page asks: each call of the
+        # author's function may issue credentials on their account
+        if stream.rtc_configuration is None:
+            stream.rtc_configuration = asyncio.ensure_future(
+                self._rtc_configuration_for(request)
+            )
+        return await asyncio.shield(stream.rtc_configuration)
 
     # The offer starts the stream's handler, whose GPU work is the visitor's
     @server(zerogpu_headers=True)

@@ -15,7 +15,7 @@ import math
 import threading
 import time
 import weakref
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Iterator
 from typing import Any, Literal, cast
 
 import anyio
@@ -25,6 +25,7 @@ from aiortc import AudioStreamTrack, MediaStreamTrack, VideoStreamTrack
 from aiortc.contrib.media import AudioFrame, VideoFrame
 from aiortc.mediastreams import VIDEO_CLOCK_RATE, VIDEO_TIME_BASE, MediaStreamError
 
+from gradio import processing_utils
 from gradio.context import LocalContext
 from gradio.webrtc.handlers import (
     AsyncAudioVideoStreamHandler,
@@ -60,6 +61,13 @@ logger = logging.getLogger(__name__)
 # Put on a track's queue when it stops, so that a recv() waiting on the queue
 # ends instead of waiting forever
 _STOPPED = object()
+
+
+def rgb_frame(array: Any) -> VideoFrame:
+    """A video frame from an RGB array of any dtype, scaled to uint8 as gr.Image does."""
+    return VideoFrame.from_ndarray(
+        processing_utils._convert(array, np.uint8, force_copy=False), format="rgb24"
+    )
 
 
 def _spawn(coroutine: Any) -> asyncio.Task:
@@ -186,7 +194,7 @@ class VideoCallback(VideoStreamTrack):
 
     # Frames are RGB arrays, like the numpy values of gr.Image and gr.Video
     def array_to_frame(self, array: Any) -> VideoFrame:
-        return VideoFrame.from_ndarray(array, format="rgb24")
+        return rgb_frame(array)
 
     def frame_to_array(self, frame: VideoFrame) -> npt.NDArray[np.uint8]:
         array = cast(npt.NDArray[np.uint8], frame.to_ndarray(format="rgb24"))
@@ -620,6 +628,12 @@ class HandlerGenerator:
                 self.generator = start()
             if self.generator is None:
                 return GENERATOR_DONE
+            if not isinstance(self.generator, Iterator):
+                raise TypeError(
+                    'In mode="receive", `fn` must be a generator that yields '
+                    "the frames to send, but it returned a "
+                    f"{type(self.generator).__name__}."
+                )
             try:
                 return next(self.generator)
             except StopIteration:
@@ -663,7 +677,7 @@ class ServerToClientVideo(VideoStreamTrack):
         self._clock_timestamp: int | None = None
 
     def array_to_frame(self, array: Any) -> VideoFrame:
-        return VideoFrame.from_ndarray(array, format="rgb24")
+        return rgb_frame(array)
 
     def set_channel(self, channel: DataChannel):
         self.channel = channel

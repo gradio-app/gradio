@@ -135,6 +135,8 @@ class Session:
     connected: bool = False
     ended: bool = False
     watcher: asyncio.Task | None = None
+    # The page's rtc_configuration, resolved once per stream
+    rtc_configuration: asyncio.Future | None = None
 
     def wake(self) -> None:
         self.last_signal = time.monotonic()
@@ -771,19 +773,20 @@ def stream_manager(webrtc_id: str) -> ConnectionManager | None:
 
 async def stream_admitted(
     webrtc_id: str | None, session_hash: str | None, component_id: int
-) -> bool:
+) -> Session | None:
     """
-    Whether the stream's turn has come in the line of this component, and the
-    stream belongs to this browser session. Waits a little for an admission
-    that is just under way.
+    The stream, if its turn has come in the line of this component and it
+    belongs to this browser session. Waits a little for an admission that is
+    just under way.
     """
     if not webrtc_id:
-        return False
+        return None
     manager = await _wait_for_admission(webrtc_id)
     if manager is None or not manager.owns(webrtc_id, session_hash):
-        return False
-    fn = manager.sessions[webrtc_id].event.fn
-    return (component_id, "stream") in [tuple(target) for target in fn.targets]
+        return None
+    session = manager.sessions[webrtc_id]
+    targets = [tuple(target) for target in session.event.fn.targets]
+    return session if (component_id, "stream") in targets else None
 
 
 def set_input(webrtc_id: str, session_hash: str | None, *args: Any) -> None:

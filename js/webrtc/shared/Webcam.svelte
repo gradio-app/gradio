@@ -229,7 +229,8 @@
 
 	async function handle_device_change(event: Event): Promise<void> {
 		const device_id = (event.target as HTMLSelectElement).value;
-		stream?.getTracks().forEach((track) => track.stop());
+		stop_tracks(stream);
+		stream = null;
 		await access_webcam(device_id);
 		options_open = false;
 	}
@@ -255,7 +256,11 @@
 		// stop() ends the local tracks too, so reopen the camera for the
 		// preview. Without a connection (stopped while waiting in line, or it
 		// never connected) the preview is still running.
-		if (connection) await access_webcam(selected_device?.deviceId);
+		if (connection) {
+			// No stream may start with the ended tracks meanwhile
+			stream = null;
+			await access_webcam(selected_device?.deviceId);
+		}
 	}
 
 	// When the user last stopped (or left the line), see RESTART_GUARD_MS

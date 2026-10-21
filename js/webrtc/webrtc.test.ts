@@ -525,6 +525,50 @@ describe("WebRTC send-receive video", () => {
 		expect(getByRole("button", { name: "start stream" })).toBeVisible();
 	});
 
+	test("a stream does not start while the camera is reopening after the last one", async () => {
+		const server = make_server();
+		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
+			...base_props,
+			server
+		});
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+		const stream = listen("stream");
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(FakePeerConnection.instances).toHaveLength(1));
+		FakePeerConnection.instances[0].set_state("connected");
+		await waitFor(() => {
+			expect(getByRole("button", { name: "stop stream" })).toBeVisible();
+		});
+
+		// The camera comes back for the preview only when this resolves
+		let reopen!: () => void;
+		const get_user_media = navigator.mediaDevices.getUserMedia as Mock;
+		get_user_media.mockImplementationOnce(
+			() =>
+				new Promise((resolve) => {
+					reopen = () => resolve(fake_stream("video"));
+				})
+		);
+		// The server ends the stream (e.g. its time limit), which stops the
+		// camera's tracks with the connection
+		await queue_reports(set_data, "closed");
+		await waitFor(() => expect(reopen).toBeDefined());
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		// A stream would send the stopped tracks and the handler get no frame
+		expect(stream).toHaveBeenCalledTimes(1);
+
+		reopen();
+		await waitFor(async () => {
+			await fireEvent.click(getByRole("button", { name: "start stream" }));
+			expect(stream).toHaveBeenCalledTimes(2);
+		});
+	});
+
 	test("another event that takes the component as an input does not end the stream", async () => {
 		const server = make_server();
 		const { getByRole, getByText, set_data } = await render(WebRTC, {
