@@ -351,7 +351,7 @@ class WebRTC(Component):
         trigger: Callable | None = None,
     ) -> Dependency:
         """
-        Attaches the function or handler that processes the media of this component. For video streams, `fn` is called with each frame as an RGB numpy array of shape (height, width, 3), like the numpy value of `gr.Image`, followed by the values of the other inputs, and returns the frame to show in the same format. For audio streams, `fn` is a `StreamHandler` or `AsyncStreamHandler` subclass (or instance) from `gradio.webrtc`. A video stream that needs state or resources for its whole duration, for example one GPU allocation per stream on ZeroGPU, can instead use a `VideoStreamHandler` or `AsyncVideoStreamHandler` subclass in mode="send-receive". In mode="receive", `fn` is a generator that yields frames and takes the values of `inputs` as arguments. A handler can return `(frame, AdditionalOutputs(...))` or yield `AdditionalOutputs(...)` to update the other components in `outputs`, and `CloseStream()` to end the connection.
+        Attaches the function or handler that processes the media of this component. For video streams, `fn` is called with each frame as an RGB numpy array of shape (height, width, 3), like the numpy value of `gr.Image`, followed by the values of the other inputs, and returns the frame to show in the same format. For audio streams, `fn` is a `StreamHandler` or `AsyncStreamHandler` subclass (or instance) from `gradio.webrtc`. A video stream that needs state or resources for its whole duration, for example one GPU allocation per stream on ZeroGPU, can instead use a `VideoStreamHandler` or `AsyncVideoStreamHandler` subclass in mode="send-receive". In mode="receive", `fn` is a generator that yields frames and takes the values of `inputs` as arguments; it is closed when the stream ends, so its `finally` blocks and `with` statements run then. A handler can return `(frame, AdditionalOutputs(...))` or yield `AdditionalOutputs(...)` to update the other components in `outputs`, and `CloseStream()` to end the connection.
         Parameters:
             fn: the function or handler that processes the stream. One handler serves one connection: pass a handler class to create a new instance per connection, or an instance that implements `copy()`. Like an event listener, a function (and the `start_up` method of a handler class) can take `gr.Request`, `gr.OAuthProfile` or `gr.OAuthToken` parameters, which receive the values of the visitor who started the stream.
             inputs: the components whose values are passed to the handler. In mode="send" and mode="send-receive", the first element must be this component. The values of the other inputs are passed to video functions after the frame, to receive-mode generators as arguments, and to stream handlers through `latest_args` after `wait_for_args()`.
@@ -684,7 +684,9 @@ class WebRTC(Component):
         except ImportError:
             return {"error": "No stream handler is attached to this component."}
         webrtc_id = body.get("webrtc_id") if isinstance(body, dict) else None
-        if not await stream_admitted(webrtc_id, getattr(request, "session_hash", None)):
+        if not await stream_admitted(
+            webrtc_id, getattr(request, "session_hash", None), self._stream_id()
+        ):
             return {
                 "error": "The stream's turn in the queue ended before it "
                 "connected. Please try again."

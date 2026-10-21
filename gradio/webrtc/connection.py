@@ -385,6 +385,8 @@ class ConnectionManager:
                 # Stopping a track ends its loops; its "ended" event calls
                 # this again, which then finds the id already released
                 conn.stop()
+                if isinstance(conn, ServerToClientAudio | ServerToClientVideo):
+                    self._add_shutdown(conn.close_generator())
             # Handler classes, once each: both tracks of an audio-video
             # connection share one handler
             handlers = {
@@ -396,11 +398,15 @@ class ConnectionManager:
             for handler in handlers.values():
                 # A handler blocked in wait_for_args() would wait forever
                 handler.args_set.set()
-                shutdown = self._spawn(self._shut_down(handler))
-                self.shutdowns.add(shutdown)
-                shutdown.add_done_callback(self.shutdowns.discard)
+                self._add_shutdown(self._shut_down(handler))
         finally:
             self.end(webrtc_id)
+
+    def _add_shutdown(self, coroutine: Any) -> None:
+        # The next stream waits for it (see `_wait_for_shutdowns`)
+        shutdown = self._spawn(coroutine)
+        self.shutdowns.add(shutdown)
+        shutdown.add_done_callback(self.shutdowns.discard)
 
     @staticmethod
     async def _shut_down(handler: StreamHandlerBase) -> None:
@@ -755,15 +761,21 @@ def stream_manager(webrtc_id: str) -> ConnectionManager | None:
     return _streams.get(webrtc_id)
 
 
-async def stream_admitted(webrtc_id: str | None, session_hash: str | None) -> bool:
+async def stream_admitted(
+    webrtc_id: str | None, session_hash: str | None, component_id: int
+) -> bool:
     """
-    Whether the stream's turn has come and the stream belongs to this browser
-    session. Waits a little for an admission that is just under way.
+    Whether the stream's turn has come in the line of this component, and the
+    stream belongs to this browser session. Waits a little for an admission
+    that is just under way.
     """
     if not webrtc_id:
         return False
     manager = await _wait_for_admission(webrtc_id)
-    return manager is not None and manager.owns(webrtc_id, session_hash)
+    if manager is None or not manager.owns(webrtc_id, session_hash):
+        return False
+    fn = manager.sessions[webrtc_id].event.fn
+    return (component_id, "stream") in [tuple(target) for target in fn.targets]
 
 
 def set_input(webrtc_id: str, session_hash: str | None, *args: Any) -> None:

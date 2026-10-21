@@ -39,7 +39,7 @@ def flip(frame, *args):
     return frame
 
 
-async def admitted_anyway(webrtc_id, session_hash):
+async def admitted_anyway(webrtc_id, session_hash, component_id):
     return True
 
 
@@ -887,6 +887,7 @@ class TestStreams:
         params = dict(getattr(request, "param", {}))
         handler = params.pop("handler", flip)
         stream_kwargs = params.pop("stream_kwargs", {})
+        second_kwargs = params.pop("second", None)
         with gr.Blocks() as demo:
             webrtc = gr.WebRTC(**params)
             slider = gr.Slider()
@@ -907,9 +908,14 @@ class TestStreams:
                     outputs=[webrtc, number],
                     **stream_kwargs,
                 )
+            if second_kwargs is not None:
+                second = gr.WebRTC(**second_kwargs)
+                second.stream(flip, inputs=[second], outputs=[second])
         with closing(demo):
             _, local_url, _ = demo.launch(prevent_thread_lock=True)
             harness = Harness(demo, local_url, webrtc)
+            if second_kwargs is not None:
+                harness.second = second
             try:
                 yield harness
             finally:
@@ -1408,6 +1414,22 @@ class TestStreams:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
+        "launched",
+        [{"second": {"rtc_configuration": {"iceServers": [{"urls": "turn:x"}]}}}],
+        indirect=True,
+    )
+    async def test_a_turn_gets_only_its_own_components_rtc_configuration(
+        self, launched
+    ):
+        h = launched
+        await h.start("one")
+        # A turn in one component's line is no turn in another's
+        assert "error" in await h.server_fn(
+            "get_rtc_configuration", {"webrtc_id": "one"}, h.second, "one"
+        )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
         "launched", [{"modality": "audio", "handler": SlowShutdown()}], indirect=True
     )
     async def test_the_next_handler_waits_for_the_last_one_to_shut_down(self, launched):
@@ -1492,6 +1514,12 @@ class TestStreams:
         assert replacement is not webrtc
         assert replacement._id != webrtc._id
         await h.start("one")
+        assert (
+            await h.server_fn(
+                "get_rtc_configuration", {"webrtc_id": "one"}, None, "one"
+            )
+            == {}
+        )
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         await h.push_inputs("one", 0.5)
@@ -2880,6 +2908,60 @@ class TestCleanUp:
         chunk = await asyncio.wait_for(track.next_in_thread(), 1)
         assert chunk is not None
         assert chunk[0] == 24000
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("modality", ["video", "audio"])
+    async def test_clean_up_closes_a_receive_generator(self, modality):
+        import threading
+
+        import numpy as np
+
+        from gradio.webrtc.tracks import ServerToClientAudio, ServerToClientVideo
+        from gradio.webrtc.utils import Context
+
+        def frame():
+            if modality == "video":
+                return np.zeros((16, 16, 3), dtype=np.uint8)
+            return 48000, np.zeros(960, dtype=np.int16)
+
+        resume = threading.Event()
+        released = []
+
+        def generate():
+            try:
+                yield frame()
+                # Still running in a worker thread when the stream ends
+                resume.wait(5)
+                while True:
+                    yield frame()
+            finally:
+                released.append(True)
+
+        manager = webrtc_connection.ConnectionManager(
+            handler=generate,
+            mode="receive",
+            modality=modality,
+            time_limit=None,
+            allow_extra_tracks=False,
+            server_rtc_configuration=None,
+        )
+        if modality == "video":
+            track = ServerToClientVideo(generate, context=Context("one"))
+        else:
+            track = ServerToClientAudio(generate, context=Context("one"))
+        manager.connections["one"].append(track)
+        track.set_args([])
+        await track.recv()
+        pending = asyncio.create_task(track.recv())
+        await asyncio.sleep(0.2)
+        manager.clean_up("one")
+        resume.set()
+        # A finally block or a with statement in the generator releases what
+        # it holds when the stream ends, before the next stream starts
+        await manager._wait_for_shutdowns()
+        assert released == [True]
+        pending.cancel()
+        await asyncio.gather(pending, return_exceptions=True)
 
     def test_a_manager_goes_away_with_its_stream_event(self):
         import gc

@@ -12,6 +12,7 @@ import functools
 import inspect
 import logging
 import math
+import threading
 import time
 import weakref
 from collections.abc import Callable, Generator
@@ -581,6 +582,46 @@ class AudioCallback(AudioStreamTrack):
         super().stop()
 
 
+class HandlerGenerator:
+    """
+    The generator of a receive-mode handler, which its track advances in
+    worker threads. Closing it when the stream ends runs its own clean-up (a
+    finally block, a with statement) then, rather than whenever it is
+    collected.
+    """
+
+    def __init__(self) -> None:
+        self.generator: Generator[Any, None, Any] | None = None
+        self.closed = False
+        # Held while the generator runs, which closing it has to wait for
+        self.lock = threading.Lock()
+
+    def next(self, start: Callable[[], Any]) -> Any:
+        # StopIteration cannot cross into the awaiting task, so the end of the
+        # generator is reported with a sentinel instead
+        with self.lock:
+            if self.closed:
+                return GENERATOR_DONE
+            if self.generator is None:
+                self.generator = start()
+            if self.generator is None:
+                return GENERATOR_DONE
+            try:
+                return next(self.generator)
+            except StopIteration:
+                return GENERATOR_DONE
+
+    def close(self) -> None:
+        self.closed = True
+        with self.lock:
+            if self.generator is None:
+                return
+            try:
+                self.generator.close()
+            except Exception:
+                logger.exception("Stream handler clean-up failed")
+
+
 class ServerToClientVideo(VideoStreamTrack):
     """Video track for the "receive" mode: frames come from a generator handler."""
 
@@ -598,7 +639,7 @@ class ServerToClientVideo(VideoStreamTrack):
         self.event_handler = event_handler
         self.args_set = asyncio.Event()
         self.latest_args: list[Any] = []
-        self.generator: Generator[Any, None, Any] | None = None
+        self.generator = HandlerGenerator()
         self.channel = channel
         self.set_additional_outputs = set_additional_outputs
         self.fps = fps
@@ -636,16 +677,13 @@ class ServerToClientVideo(VideoStreamTrack):
         return self._clock_timestamp, VIDEO_TIME_BASE
 
     def _next_item(self) -> Any:
-        # StopIteration cannot cross into the awaiting task, so the end of the
-        # generator is reported with a sentinel instead.
-        if self.generator is None:
-            self.generator = cast(
-                Generator[Any, None, Any], self.event_handler(*self.latest_args)
-            )
-        try:
-            return next(self.generator)
-        except StopIteration:
-            return GENERATOR_DONE
+        return self.generator.next(lambda: self.event_handler(*self.latest_args))
+
+    async def close_generator(self) -> None:
+        """Closes the handler's generator, once the track has stopped."""
+        current_channel.set(self.channel)
+        current_context.set(self.context)
+        await run_in_thread(self.generator.close)
 
     async def recv(self):
         try:
@@ -701,7 +739,7 @@ class ServerToClientAudio(AudioStreamTrack):
         channel: DataChannel | None = None,
         set_additional_outputs: Callable | None = None,
     ) -> None:
-        self.generator: Generator[Any, None, Any] | None = None
+        self.generator = HandlerGenerator()
         self.event_handler = event_handler
         self.current_timestamp = 0
         self.latest_args: list[Any] = []
@@ -741,14 +779,14 @@ class ServerToClientAudio(AudioStreamTrack):
         current_context.set(self.context)
         LocalContext.stream_notifier.set(self.notifier)
         current_channel.set(self.channel)
-        if self.generator is None:
-            self.generator = self.event_handler(*self.latest_args)
-        if self.generator is not None:
-            try:
-                return next(self.generator)
-            except StopIteration:
-                pass
-        return GENERATOR_DONE
+        return self.generator.next(lambda: self.event_handler(*self.latest_args))
+
+    async def close_generator(self) -> None:
+        """Closes the handler's generator, once the track has stopped."""
+        current_context.set(self.context)
+        LocalContext.stream_notifier.set(self.notifier)
+        current_channel.set(self.channel)
+        await run_in_thread(self.generator.close)
 
     async def start(self):
         if not self.has_started:
