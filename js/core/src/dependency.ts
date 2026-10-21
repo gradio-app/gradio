@@ -717,7 +717,9 @@ export class DependencyManager {
 						}
 					}
 				} catch (error) {
-					await this.submissions.get(dep.id)?.acknowledge();
+					// This run's own: with trigger_mode="multiple" the latest one
+					// may be another run, which acknowledging would close
+					await active_submission?.acknowledge();
 					this.update_loading_status({
 						status: "error",
 						fn_index: dep.id,

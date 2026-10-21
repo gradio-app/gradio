@@ -1074,6 +1074,16 @@ async def test_cancelling_a_stream_wait_leaves_no_timer_behind():
     assert left == []
 
 
+@pytest.mark.asyncio
+async def test_a_batch_wait_tells_which_events_woke():
+    for _ in range(20):
+        events = [type("E", (), {"signal": asyncio.Event()})() for _ in range(4)]
+        events[2].signal.set()
+        awake, closed = await queueing.Queue.wait_for_batch(events, [0.01] * 4)
+        assert awake == [events[2]]
+        assert closed == [events[0], events[1], events[3]]
+
+
 def test_a_stream_event_dropped_by_its_session_frees_its_slot():
     demo, api, group = _launch_audio_stream(lambda x: "chunk")
     try:

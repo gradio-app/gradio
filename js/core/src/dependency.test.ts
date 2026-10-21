@@ -326,6 +326,57 @@ describe("DependencyManager.dispatch", () => {
 		expect(input_states).not.toContain("closed");
 	});
 
+	test("an error in one run of an event leaves its other runs alone", async () => {
+		const handler = dependency(0, "handler", [10]);
+		handler.trigger_mode = "multiple";
+		let fail!: () => void;
+		const failing = new Promise<void>((resolve) => (fail = resolve));
+		const runs: ReturnType<Client["submit"]>[] = [];
+		const client = {
+			submit: () => {
+				const first = runs.length === 0;
+				const run = submission(
+					(async function* () {
+						yield { type: "status", stage: "pending", queue: true };
+						if (first) {
+							await failing;
+							yield {
+								type: "status",
+								stage: "error",
+								queue: true,
+								message: "failed"
+							};
+						} else {
+							await new Promise(() => {});
+						}
+					})()
+				);
+				runs.push(run);
+				return run;
+			}
+		} as unknown as Client;
+		const dependency_manager = manager([handler], client);
+
+		const first = dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+		await vi.waitFor(() => expect(runs).toHaveLength(1));
+		void dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+		await vi.waitFor(() => expect(runs).toHaveLength(2));
+		fail();
+		await first;
+
+		// Acknowledging a run also closes it
+		expect(runs[0].acknowledge).toHaveBeenCalled();
+		expect(runs[1].acknowledge).not.toHaveBeenCalled();
+	});
+
 	test("settles the input components of a rejected stream event", async () => {
 		const validated = dependency(0, "validated", [10]);
 		validated.inputs = [11];

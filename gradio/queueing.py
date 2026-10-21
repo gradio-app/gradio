@@ -1077,7 +1077,7 @@ class Queue:
                 asyncio.create_task(Queue.wait_for_event_or_timeout(event, timeout))
             )
         try:
-            done, _ = await asyncio.wait(
+            await asyncio.wait(
                 tasks,
                 return_when=asyncio.ALL_COMPLETED,
             )
@@ -1085,10 +1085,11 @@ class Queue:
             # On /cancel, the waits must not outlive the event's task
             for task in tasks:
                 task.cancel()
-        done = [d.result() for d in done]
+        # In the order of `events`: the set that asyncio.wait returns has none
+        results = [task.result() for task in tasks]
         awake_events = []
         closed_events = []
-        for result, event in zip(done, events, strict=False):
+        for result, event in zip(results, events, strict=False):
             if result == "signal":
                 awake_events.append(event)
             else:
