@@ -26,6 +26,7 @@ from gradio.webrtc.utils import (
 
 if TYPE_CHECKING:
     from av import AudioFrame
+    from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 
@@ -170,6 +171,14 @@ class StreamHandlerBase:
     def reset(self) -> None:
         self.args_set.clear()
 
+    def copy(self) -> Self:
+        """Returns a new handler for a new connection."""
+        raise NotImplementedError(
+            f"{type(self).__name__} must implement copy() when an instance is "
+            "passed to WebRTC.stream(). Pass the class instead to create a new "
+            "handler per connection."
+        )
+
     def shutdown(self) -> None:
         """
         Called when the connection closes. Override to release resources. A
@@ -223,14 +232,6 @@ class StreamHandler(StreamHandlerBase, ABC):
         """
         pass
 
-    def copy(self) -> StreamHandler:
-        """Returns a new handler for a new connection."""
-        raise NotImplementedError(
-            f"{type(self).__name__} must implement copy() when an instance is "
-            "passed to WebRTC.stream(). Pass the class instead to create a new "
-            "handler per connection."
-        )
-
     def start_up(self) -> None:
         """Called once when the connection is established."""
         pass
@@ -249,14 +250,6 @@ class AsyncStreamHandler(StreamHandlerBase, ABC):
     @abstractmethod
     async def emit(self) -> AudioEmitType:
         pass
-
-    def copy(self) -> AsyncStreamHandler:
-        """Returns a new handler for a new connection."""
-        raise NotImplementedError(
-            f"{type(self).__name__} must implement copy() when an instance is "
-            "passed to WebRTC.stream(). Pass the class instead to create a new "
-            "handler per connection."
-        )
 
     async def start_up(self) -> None:
         """Called once when the connection is established."""
@@ -326,14 +319,6 @@ class VideoStreamHandler(StreamHandlerBase, ABC):
         """Returns the next video frame to send, as an RGB uint8 array, or None when none is ready yet."""
         pass
 
-    def copy(self) -> VideoStreamHandler:
-        """Returns a new handler for a new connection."""
-        raise NotImplementedError(
-            f"{type(self).__name__} must implement copy() when an instance is "
-            "passed to WebRTC.stream(). Pass the class instead to create a new "
-            "handler per connection."
-        )
-
     def start_up(self) -> None:
         """Called once when the connection is established."""
         pass
@@ -355,14 +340,6 @@ class AsyncVideoStreamHandler(StreamHandlerBase, ABC):
     @abstractmethod
     async def video_emit(self) -> VideoEmitType:
         pass
-
-    def copy(self) -> AsyncVideoStreamHandler:
-        """Returns a new handler for a new connection."""
-        raise NotImplementedError(
-            f"{type(self).__name__} must implement copy() when an instance is "
-            "passed to WebRTC.stream(). Pass the class instead to create a new "
-            "handler per connection."
-        )
 
     async def start_up(self) -> None:
         """Called once when the connection is established."""

@@ -592,6 +592,7 @@ describe("WebRTC send-receive video", () => {
 			visible: true
 		});
 		expect(error).toHaveBeenCalledWith({
+			type: "error",
 			message: "Bad frame",
 			title: "Oops",
 			duration: 5,
@@ -599,11 +600,24 @@ describe("WebRTC send-receive video", () => {
 		});
 		pc.receive({ type: "info", message: "Hi", title: null, duration: 10 });
 		expect(info).toHaveBeenCalledWith({
+			type: "info",
 			message: "Hi",
 			title: undefined,
 			duration: 10,
 			visible: undefined
 		});
+		// gr.Success: a "success" dispatch would run the component's
+		// `.success` listeners instead of showing a toast
+		const success = listen("success");
+		pc.receive({ type: "success", message: "Done", duration: 10 });
+		expect(info).toHaveBeenLastCalledWith({
+			type: "success",
+			message: "Done",
+			title: undefined,
+			duration: 10,
+			visible: undefined
+		});
+		expect(success).not.toHaveBeenCalled();
 
 		pc.receive({ type: "end_stream", data: "Time is up" });
 		expect(warning).toHaveBeenCalledWith("Time is up");

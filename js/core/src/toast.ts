@@ -7,6 +7,12 @@ const DEFAULT_TOAST_TITLES = {
 	success: "Success"
 } as const;
 
+type ToastType = keyof typeof DEFAULT_TOAST_TITLES;
+
+// "success" is not among them: a component may have a "success" event of its
+// own, so a success toast is dispatched as "info" with `type: "success"`
+const TOAST_EVENTS = ["error", "warning", "info"];
+
 export interface EventToast {
 	title: string;
 	message: string;
@@ -16,23 +22,27 @@ export interface EventToast {
 }
 
 /**
- * The toast for a component's "error", "warning", "info" or "success" event,
- * or null for any other event. `data` is a message, or a toast with its own
- * title, duration and visibility (e.g. a gr.Error raised by a gr.WebRTC
- * stream handler).
+ * The toast for a component's "error", "warning" or "info" event, or null for
+ * any other event. `data` is a message, or a toast with its own type, title,
+ * duration and visibility (e.g. a gr.Success from a gr.WebRTC stream handler).
  */
 export function event_toast(event: string, data: unknown): EventToast | null {
-	if (!Object.hasOwn(DEFAULT_TOAST_TITLES, event)) return null;
+	if (!TOAST_EVENTS.includes(event)) return null;
 	const toast =
 		typeof data === "string"
 			? { message: data }
 			: ((data ?? {}) as {
 					message?: string;
 					title?: string;
+					type?: string;
 					duration?: number | null;
 					visible?: boolean;
 				});
-	const type = event as keyof typeof DEFAULT_TOAST_TITLES;
+	const type = (
+		toast.type !== undefined && Object.hasOwn(DEFAULT_TOAST_TITLES, toast.type)
+			? toast.type
+			: event
+	) as ToastType;
 	return {
 		title: toast.title ?? DEFAULT_TOAST_TITLES[type],
 		message: toast.message ?? "",

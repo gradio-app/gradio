@@ -486,6 +486,7 @@ class WebRTC(Component):
                 outputs=[self],
                 api_visibility="private",
                 show_progress="hidden",
+                queue=False,
             )
         return Dependency(self, stream_fn.get_config(), stream_index, self._run_stream)
 
@@ -540,12 +541,20 @@ class WebRTC(Component):
             )
         elif not callable(fn) and not isinstance(fn, VideoOptions):
             raise ValueError("`fn` must be a callable or a VideoOptions.")
+        elif not is_handler:
+            function = fn.callable if isinstance(fn, VideoOptions) else fn
+            if inspect.iscoroutinefunction(function) or inspect.isasyncgenfunction(
+                function
+            ):
+                raise ValueError(
+                    "`fn` must be a regular function or generator, which runs in "
+                    "a worker thread; for async code, use an "
+                    'AsyncVideoStreamHandler (in mode="send-receive").'
+                )
 
-        if isinstance(fn, StreamHandlerBase) and getattr(type(fn), "copy", None) in (
-            StreamHandler.copy,
-            AsyncStreamHandler.copy,
-            VideoStreamHandler.copy,
-            AsyncVideoStreamHandler.copy,
+        if (
+            isinstance(fn, StreamHandlerBase)
+            and type(fn).copy is StreamHandlerBase.copy
         ):
             raise ValueError(
                 f"{type(fn).__name__} does not implement copy(), which is needed "

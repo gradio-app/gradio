@@ -68,12 +68,12 @@ export interface WebRTCEvents {
 	error: string | Toast;
 	warning: string | Toast;
 	info: Toast;
-	success: Toast;
 	clear_status: LoadingStatus;
 }
 
 /** A toast from the stream's handler, shown like an event's. */
 export interface Toast {
+	type?: "error" | "warning" | "info" | "success";
 	message: string;
 	title?: string;
 	duration?: number | null;

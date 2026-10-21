@@ -509,6 +509,28 @@ class TestWebRTC:
         with pytest.raises(AttributeError, match="Blocks context"):
             gr.WebRTC().stream(flip, inputs=[], outputs=[])
 
+    @pytest.mark.parametrize("mode", ["send-receive", "receive"])
+    @pytest.mark.parametrize("wrapped", [False, True])
+    def test_stream_rejects_async_functions(self, mode, wrapped):
+        async def process(frame):
+            return frame
+
+        async def generate():
+            yield None
+
+        fn = process if mode == "send-receive" else generate
+        with gr.Blocks():
+            button = gr.Button()
+            webrtc = gr.WebRTC(mode=mode)
+            # The tracks call the function in a worker thread
+            with pytest.raises(ValueError, match="AsyncVideoStreamHandler"):
+                webrtc.stream(
+                    VideoOptions(fn) if wrapped else fn,
+                    inputs=[webrtc] if mode == "send-receive" else None,
+                    outputs=[webrtc],
+                    trigger=button.click if mode == "receive" else None,
+                )
+
     @pytest.mark.parametrize("handler", [RecordingVideo, AsyncRecordingVideo])
     def test_video_streams_take_a_video_handler_class(self, handler):
         with gr.Blocks():
@@ -581,7 +603,10 @@ class TestWebRTC:
         assert [i._id for i in receive_stream.inputs] == [receive._id]
         assert receive_stream.concurrency_limit == "default"
         assert (receive._id, "tick") in triggers
-        assert triggers[(button._id, "click")].api_visibility == "private"
+        start = triggers[(button._id, "click")]
+        assert start.api_visibility == "private"
+        # Only sets the value that starts the stream, so it takes no worker slot
+        assert start.queue is False
 
         assert webrtc.get_config()["time_limit"] == 30
         manager = get_manager(webrtc._id)
@@ -1501,7 +1526,7 @@ class TestStreams:
         [{"handler": lambda frame, *args: CloseStream("done")}],
         indirect=True,
     )
-    async def test_close_stream_ends_a_send_receive_stream(self, launched):
+    async def test_close_stream_ends_a_send_receive_stream(self, launched, caplog):
         h = launched
         event_id = await h.start("one")
         pc = await make_offer(video=True)
@@ -1513,6 +1538,9 @@ class TestStreams:
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
         await h.wait_until(lambda: not h.event_running(event_id))
         await pc.close()
+        # The track tells aiortc's sender that it has ended, instead of giving
+        # it no frame to encode
+        assert "Traceback" not in caplog.text
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -2148,6 +2176,7 @@ class TestVideoTracks:
     @pytest.mark.asyncio
     async def test_receive_generator_does_not_block_the_event_loop(self):
         import numpy as np
+        from aiortc.mediastreams import MediaStreamError
 
         from gradio.webrtc.tracks import ServerToClientVideo
         from gradio.webrtc.utils import Context
@@ -2163,7 +2192,8 @@ class TestVideoTracks:
         assert frame is not None
         assert ticks >= 10
         assert await track.recv() is not None
-        assert await track.recv() is None
+        with pytest.raises(MediaStreamError):
+            await track.recv()
         assert track.readyState == "ended"
 
     @pytest.mark.asyncio
@@ -2214,6 +2244,86 @@ class TestVideoTracks:
         with pytest.raises(MediaStreamError):
             await track.recv()
         assert "Error in the stream handler" not in caplog.text
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "kind, end",
+        [
+            ("video-handler", "close"),
+            ("receive-video", "close"),
+            ("receive-video", "done"),
+            ("receive-audio", "close"),
+            ("receive-audio", "done"),
+        ],
+    )
+    async def test_a_track_that_ends_itself_raises_media_stream_error(self, kind, end):
+        import numpy as np
+        from aiortc.mediastreams import MediaStreamError
+
+        from gradio.webrtc.tracks import (
+            HandlerVideoTrack,
+            ServerToClientAudio,
+            ServerToClientVideo,
+        )
+        from gradio.webrtc.utils import Context
+
+        media = (
+            (24000, np.zeros(4800, dtype=np.int16))
+            if kind == "receive-audio"
+            else np.zeros((16, 16, 3), dtype=np.uint8)
+        )
+
+        def generate():
+            yield media
+            if end == "close":
+                yield CloseStream("bye")
+
+        class Handler(VideoStreamHandler):
+            def video_receive(self, frame):
+                pass
+
+            def video_emit(self):
+                return CloseStream("bye")
+
+        if kind == "video-handler":
+            track = HandlerVideoTrack(
+                VideoStreamTrack(),
+                event_handler=cast(Callable, Handler()),
+                context=Context("id"),
+            )
+            track.channel_set.set()
+        else:
+            track_class = (
+                ServerToClientVideo if kind == "receive-video" else ServerToClientAudio
+            )
+            track = track_class(generate, context=Context("id"))
+            track.set_args([])
+        # aiortc's sender would hand a None on to its encoder and log the
+        # error; MediaStreamError is how a track says it is over
+        with pytest.raises(MediaStreamError):
+            for _ in range(50):
+                assert await asyncio.wait_for(track.recv(), 2) is not None
+        assert track.readyState == "ended"
+
+    @pytest.mark.asyncio
+    async def test_stopping_receive_audio_wakes_a_waiting_recv(self):
+        import numpy as np
+        from aiortc.mediastreams import MediaStreamError
+
+        from gradio.webrtc.tracks import ServerToClientAudio
+        from gradio.webrtc.utils import Context
+
+        def generate():
+            yield (24000, np.zeros(480, dtype=np.int16))
+
+        # No inputs yet, so nothing reaches the queue
+        track = ServerToClientAudio(generate, context=Context("id"))
+        waiting = asyncio.create_task(track.recv())
+        await asyncio.sleep(0.05)
+        assert not waiting.done()
+        track.stop()
+        with pytest.raises(MediaStreamError):
+            await asyncio.wait_for(waiting, 1)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("kind", ["video", "audio"])

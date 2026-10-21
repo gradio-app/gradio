@@ -14,7 +14,7 @@ describe("event_toast", () => {
 
 	test("a toast object keeps its own title, duration and visibility", () => {
 		expect(
-			event_toast("success", {
+			event_toast("warning", {
 				message: "Saved",
 				title: "Done",
 				duration: null,
@@ -23,9 +23,19 @@ describe("event_toast", () => {
 		).toEqual({
 			title: "Done",
 			message: "Saved",
-			type: "success",
+			type: "warning",
 			duration: null,
 			visible: false
+		});
+	});
+
+	test("a success toast comes as an info event with its own type", () => {
+		expect(event_toast("info", { message: "Saved", type: "success" })).toEqual({
+			title: "Success",
+			message: "Saved",
+			type: "success",
+			duration: 10,
+			visible: true
 		});
 	});
 
@@ -43,6 +53,8 @@ describe("event_toast", () => {
 
 	test("other events, including Object.prototype keys, are not toasts", () => {
 		expect(event_toast("change", "x")).toBeNull();
+		// A component's own "success" event runs its listeners instead
+		expect(event_toast("success", "x")).toBeNull();
 		expect(event_toast("constructor", "x")).toBeNull();
 		expect(event_toast("toString", "x")).toBeNull();
 	});

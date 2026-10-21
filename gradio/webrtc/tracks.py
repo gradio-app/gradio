@@ -257,7 +257,7 @@ class VideoCallback(VideoStreamTrack):
             if isinstance(outputs, CloseStream):
                 send_to_page(self.channel, create_message("end_stream", outputs.msg))
                 self.stop()
-                return None
+                raise MediaStreamError
             if isinstance(outputs, AdditionalOutputs) and self.set_additional_outputs:
                 self.set_additional_outputs(outputs)
             if array is None and self.mode == "send":
@@ -389,7 +389,7 @@ class HandlerVideoTrack(VideoCallback):
                         self.channel, create_message("end_stream", outputs.msg)
                     )
                     self.stop()
-                    return
+                    raise MediaStreamError
                 if array is not None:
                     break
                 # No frame yet (e.g. the model is still starting up): ask again
@@ -537,7 +537,7 @@ class AudioCallback(AudioStreamTrack):
             if isinstance(frame, CloseStream):
                 send_to_page(self.channel, create_message("end_stream", frame.msg))
                 self.stop()
-                return
+                raise MediaStreamError
 
             data_time = frame.time
 
@@ -647,14 +647,14 @@ class ServerToClientVideo(VideoStreamTrack):
                 item = await run_in_thread(self._next_item)
                 if item is GENERATOR_DONE:
                     self.stop()
-                    return
+                    raise MediaStreamError
                 next_array, outputs = split_output(item)
                 if isinstance(outputs, CloseStream):
                     send_to_page(
                         self.channel, create_message("end_stream", outputs.msg)
                     )
                     self.stop()
-                    return
+                    raise MediaStreamError
                 if (
                     isinstance(outputs, AdditionalOutputs)
                     and self.set_additional_outputs
@@ -759,10 +759,10 @@ class ServerToClientAudio(AudioStreamTrack):
             if isinstance(data, CloseStream):
                 send_to_page(self.channel, create_message("end_stream", data.msg))
                 self.stop()
-                return
-            if data is None:
+                raise MediaStreamError
+            if data is None or data is _STOPPED:
                 self.stop()
-                return
+                raise MediaStreamError
 
             data_time = data.time
 
@@ -784,6 +784,7 @@ class ServerToClientAudio(AudioStreamTrack):
     def stop(self):
         logger.debug("audio-to-client stop callback")
         self.thread_quit.set()
+        self.queue.put_nowait(_STOPPED)
         super().stop()
 
 
