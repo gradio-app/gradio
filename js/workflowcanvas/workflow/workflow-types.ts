@@ -40,12 +40,32 @@ export function is_secret(node: unknown): boolean {
 	return (node as { type?: string } | null)?.type === "password";
 }
 
-const SECRET_PORT =
-	/(?:^|[^a-z0-9])(api[_-]?key|token|secret|password|passwd)(?:$|[^a-z0-9])/i;
+const SECRET_WORDS = new Set([
+	"token",
+	"secret",
+	"password",
+	"passwd",
+	"apikey"
+]);
+const KEY_QUALIFIERS = new Set(["api", "secret", "access", "private"]);
+// `max_token`, `num_token`, `use_auth_token` name a setting, not a credential.
+const NOT_SECRET = new Set(["max", "min", "num", "use"]);
 
-/** Matched by name only. */
+function is_secret_name(name: string): boolean {
+	const words = name
+		.replace(/([a-z])([A-Z])/g, "$1_$2")
+		.toLowerCase()
+		.split(/[^a-z0-9]+/)
+		.filter(Boolean);
+	if (words.some((w) => NOT_SECRET.has(w))) return false;
+	const last = words[words.length - 1];
+	const prev = words[words.length - 2];
+	return SECRET_WORDS.has(last) || (last === "key" && KEY_QUALIFIERS.has(prev));
+}
+
+/** Matched by name only: the credential word must end the name. */
 export function is_secret_port(port: { id?: string; label?: string }): boolean {
-	return SECRET_PORT.test(`${port.label ?? ""} ${port.id ?? ""}`);
+	return is_secret_name(port.label ?? "") || is_secret_name(port.id ?? "");
 }
 
 export interface Port {

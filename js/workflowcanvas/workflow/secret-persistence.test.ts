@@ -6,6 +6,7 @@ import {
 	save_secrets
 } from "./secret-persistence";
 import { sanitize_for_save } from "./workflow-store";
+import { is_secret_port } from "./workflow-types";
 import type { Workflow } from "./workflow-types";
 
 const graph = (key: string, inline: string, keyDefault?: string) =>
@@ -52,4 +53,33 @@ test("secrets round-trip through the viewer's storage", () => {
 	const restored = apply_secrets(graph("", ""), load_secrets("Test", storage));
 	expect(restored.references[0].data.out).toBe("sk-1");
 	expect(restored.operators[0].data.in_api_key).toBe("sk-2");
+});
+
+test("credential ports are matched by name, settings are not", () => {
+	const secret = (label: string) => is_secret_port({ label });
+	for (const name of [
+		"api_key",
+		"API Key",
+		"apiKey",
+		"hf_token",
+		"HF Token",
+		"token",
+		"access_token",
+		"password",
+		"secret",
+		"client_secret",
+		"secret_key"
+	])
+		expect(secret(name), name).toBe(true);
+	for (const name of [
+		"max_token",
+		"max_tokens",
+		"Max new tokens",
+		"token_count",
+		"use_auth_token",
+		"num_token",
+		"keyword",
+		"prompt"
+	])
+		expect(secret(name), name).toBe(false);
 });
