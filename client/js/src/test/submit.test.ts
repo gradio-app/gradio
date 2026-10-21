@@ -152,6 +152,35 @@ describe("submit iterator", () => {
 		}
 	);
 
+	test.skipIf(typeof window === "undefined")(
+		"saves a password textbox empty",
+		async () => {
+			const app = await Client.connect("hmb/hello_world");
+			app.stream_status.open = true;
+			const scope = {
+				app_id: app.config?.app_id,
+				username: app.config?.username
+			};
+			const dependency = app.config!.dependencies[0];
+			const input = app.config!.components.find(
+				(c) => c.id === dependency.inputs[0]
+			)!;
+			input.type = "textbox";
+			input.props.type = "password";
+			server.resetHandlers(
+				http.post(`${direct_space_url}/queue/join`, () =>
+					HttpResponse.json({ event_id: "password-event" })
+				)
+			);
+
+			const iterator = app.submit("/predict", ["sk-secret"]);
+			await iterator.wait_for_id();
+			const [run] = read_run_history(scope);
+			expect(run.inputs).toEqual([null]);
+			await iterator.return();
+		}
+	);
+
 	test("next() after the iterator is closed resolves to {done: true}", async () => {
 		const app = await Client.connect("hmb/hello_world");
 		// Avoid opening a real SSE stream — the test does not need one.
