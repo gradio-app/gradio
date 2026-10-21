@@ -182,6 +182,31 @@ describe("submit iterator", () => {
 		expect(app.acknowledged_events.has(event_id)).toBe(true);
 	});
 
+	test("a cancelled event ends its iterator before its completion arrives", async () => {
+		const app = await Client.connect("hmb/hello_world", {
+			resume_sessions: true
+		});
+		app.stream_status.open = true;
+		server.use(
+			http.post(/\/cancel$/, () => HttpResponse.json({ success: true })),
+			http.post(/\/reset$/, () => HttpResponse.json({ success: true }))
+		);
+
+		const iterator = app.submit("/predict", ["hi"]);
+		await iterator.wait_for_id();
+		await iterator.cancel();
+
+		const drained = (async () => {
+			for await (const _ of iterator) {
+			}
+			return "done";
+		})();
+		const timeout = new Promise((resolve) =>
+			setTimeout(() => resolve("still open"), 500)
+		);
+		expect(await Promise.race([drained, timeout])).toBe("done");
+	});
+
 	test("for-await loop terminates when data and complete arrive in the same SSE callback", async () => {
 		const app = await Client.connect("hmb/hello_world", {
 			events: ["data", "status"]

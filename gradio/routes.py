@@ -1396,8 +1396,9 @@ class App(FastAPI):
             if event.data is not None:
                 new_body.client_state = event.data.client_state
             # The browser does not send the event id with a chunk; the calls
-            # it triggers still belong to this event (gr.Info, progress)
-            new_body.event_id = event_id
+            # it triggers still belong to this event (gr.Info, progress),
+            # unless they serve a batch of events
+            new_body.event_id = None if event.fn.batch else event_id
             event.data = new_body
             event.signal.set()
             return {"msg": "success"}

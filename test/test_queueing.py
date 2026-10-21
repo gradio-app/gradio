@@ -717,30 +717,39 @@ def test_the_line_moves_up_when_someone_leaves_it(leave):
         demo.close()
 
 
-@pytest.mark.parametrize("generator", [False, True])
-def test_history_keeps_only_the_latest_output_of_a_stream(generator):
+def _history_session(demo):
+    """A session whose history is kept, and a stand-in for its events."""
     from types import SimpleNamespace
 
+    queue = demo._queue
+    queue.pending_messages_per_session["s"] = asyncio.Queue()
+    resumable = queue.resumable_sessions.setdefault(
+        "s", queueing.ResumableSession(acknowledges=True)
+    )
+
+    def event(event_id, types_generator):
+        return cast(
+            queueing.Event,
+            SimpleNamespace(
+                _id=event_id,
+                alive=True,
+                session_hash="s",
+                fn=SimpleNamespace(types_generator=types_generator),
+            ),
+        )
+
+    return queue, resumable, event
+
+
+@pytest.mark.parametrize("generator", [False, True])
+def test_history_keeps_only_the_latest_output_of_a_stream(generator):
     from gradio.server_messages import ProcessGeneratingMessage, ServerMessage
 
     with gr.Blocks() as demo:
         gr.Textbox()
     demo.launch(prevent_thread_lock=True)
     try:
-        queue = demo._queue
-        queue.pending_messages_per_session["s"] = asyncio.Queue()
-        resumable = queue.resumable_sessions.setdefault(
-            "s", queueing.ResumableSession(acknowledges=True)
-        )
-
-        def event(event_id, types_generator):
-            return SimpleNamespace(
-                _id=event_id,
-                alive=True,
-                session_hash="s",
-                fn=SimpleNamespace(types_generator=types_generator),
-            )
-
+        queue, resumable, event = _history_session(demo)
         stream = event("stream", generator)
         generating = event("generating", True)
         for i in range(3):
@@ -749,14 +758,14 @@ def test_history_keeps_only_the_latest_output_of_a_stream(generator):
                 (generating, ServerMessage.process_generating),
             ):
                 queue.send_message(
-                    cast(queueing.Event, e),
+                    e,
                     ProcessGeneratingMessage(
                         msg=msg, output={"i": i, "data": [f"value {i}"]}, success=True
                     ),
                 )
         # A wake-up with nothing new: every output skipped
         queue.send_message(
-            cast(queueing.Event, stream),
+            stream,
             ProcessGeneratingMessage(
                 msg=ServerMessage.process_streaming,
                 output={"i": 3, "data": [{"__type__": "update"}]},
@@ -770,13 +779,51 @@ def test_history_keeps_only_the_latest_output_of_a_stream(generator):
         else:
             # Each call of a stream sends whole values; a stream that runs for
             # hours must not fill the history, and a call that changed
-            # nothing does not replace the last output
+            # nothing keeps the last output
             assert kept == [
                 ("generating", 0),
                 ("generating", 1),
-                ("stream", 2),
                 ("generating", 2),
+                ("stream", 3),
             ]
+            assert cast(Any, resumable.history[-1]).output["data"] == [
+                {"__type__": "update", "value": "value 2"}
+            ]
+    finally:
+        demo.close()
+
+
+def test_history_of_a_stream_keeps_outputs_that_later_calls_skip():
+    from gradio.server_messages import ProcessGeneratingMessage, ServerMessage
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue, resumable, event = _history_session(demo)
+        stream = event("stream", False)
+        skip = {"__type__": "update"}
+        for output in (
+            {"data": ["text", skip]},
+            {"data": [skip, "image"], "state": {"n": 1}},
+            # Only the browser-held state changed
+            {"data": [skip, skip], "state": {"n": 2}},
+            {"data": [{"__type__": "update", "visible": False}, skip]},
+        ):
+            queue.send_message(
+                stream,
+                ProcessGeneratingMessage(
+                    msg=ServerMessage.process_streaming, output=output, success=True
+                ),
+            )
+        [kept] = resumable.history
+        assert cast(Any, kept).output == {
+            "data": [
+                {"__type__": "update", "value": "text", "visible": False},
+                {"__type__": "update", "value": "image"},
+            ],
+            "state": {"n": 2},
+        }
     finally:
         demo.close()
 

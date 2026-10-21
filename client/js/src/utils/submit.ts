@@ -264,6 +264,8 @@ export function submit(
 			// reopen it.
 			unclosed_events.delete(event_id_final);
 			delete event_callbacks[event_id_final];
+			// Nor can the completion end the iterator any more
+			close();
 			// Its late messages would otherwise wait for this callback forever
 			const acknowledged = that.acknowledged_events;
 			acknowledged.add(event_id_final);

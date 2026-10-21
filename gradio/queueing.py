@@ -286,28 +286,16 @@ class Queue:
         # with such a client: the history would otherwise grow without bound
         resumable = self.resumable_sessions.get(event.session_hash)
         if resumable is not None and resumable.acknowledges:
-            history = resumable.history
             # Each call of a stream event sends whole output values, unless its
-            # function is a generator (whose outputs are diffs), so only the
-            # latest is worth replaying. A stream can run for hours.
-            # A call that changed nothing (every output skipped, e.g. a wake-up
-            # with no new output) is not kept, so it cannot replace the last
-            # output that did.
+            # function is a generator (whose outputs are diffs), so a single
+            # message can stand for all of them. A stream can run for hours.
             if (
                 event_message.msg == ServerMessage.process_streaming
                 and not event.fn.types_generator
             ):
-                if _carries_values(event_message):
-                    for i in range(len(history) - 1, -1, -1):
-                        if (
-                            history[i].event_id == event_message.event_id
-                            and history[i].msg == ServerMessage.process_streaming
-                        ):
-                            del history[i]
-                            break
-                    history.append(event_message)
+                _merge_into_history(resumable.history, event_message)
             else:
-                history.append(event_message)
+                resumable.history.append(event_message)
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
 
@@ -1551,7 +1539,39 @@ def process_validation_response(
     ), validation_data
 
 
-def _carries_values(message: EventMessage) -> bool:
-    """Whether an output message changes anything, i.e. not every value is gr.skip()."""
-    data = cast(dict, getattr(message, "output", {})).get("data")
-    return bool(data) and any(value != {"__type__": "update"} for value in data)
+def _merge_into_history(history: list[EventMessage], message: EventMessage) -> None:
+    """
+    Replaces the event's last streamed output in the history with one message
+    that leaves the client where `message` does: values that `message` skips,
+    or updates only in part, keep what the earlier calls sent, and the client
+    state is the latest one sent.
+    """
+    for i in range(len(history) - 1, -1, -1):
+        previous = history[i]
+        if (
+            previous.event_id == message.event_id
+            and previous.msg == ServerMessage.process_streaming
+        ):
+            break
+    else:
+        history.append(message)
+        return
+    del history[i]
+    old = cast(dict, getattr(previous, "output", {}))
+    new = cast(dict, getattr(message, "output", {}))
+    old_data = old.get("data") or []
+    data = [
+        _merge_value(old_data[j], value) if j < len(old_data) else value
+        for j, value in enumerate(new.get("data") or [])
+    ]
+    # The message itself still goes to the client as it is
+    history.append(message.model_copy(update={"output": {**old, **new, "data": data}}))
+
+
+def _merge_value(old: Any, new: Any) -> Any:
+    """An output value as the client holds it after `old`, then `new`."""
+    if not (isinstance(new, dict) and new.get("__type__") == "update"):
+        return new
+    if isinstance(old, dict) and old.get("__type__") == "update":
+        return {**old, **new}
+    return new if "value" in new else {**new, "value": old}
