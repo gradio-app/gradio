@@ -74,6 +74,10 @@ class StreamHandlerBase:
     """
     Common state for stream handlers: the data channel to the client, the
     latest values of the extra input components, and audio format settings.
+    Each connection gets its own handler, created from the class or with
+    `copy()` on the server's event loop, so keep that cheap and do slow setup,
+    such as loading a model, in `start_up()` (which sync handlers run in a
+    worker thread).
 
     Parameters:
         expected_layout: channel layout the handler wants incoming audio in, "mono" or "stereo".

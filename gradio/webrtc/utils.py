@@ -26,6 +26,11 @@ from numpy.typing import NDArray
 logger = logging.getLogger(__name__)
 
 AUDIO_PTIME = 0.020
+# How long to wait before asking a handler again when it had nothing to send,
+# so that an emit() that returns None without awaiting does not spin
+EMPTY_EMIT_WAIT = 0.005
+# What a receive-mode generator gives once it is exhausted
+GENERATOR_DONE = object()
 
 WEBRTC_EXTRA_HINT = (
     "The `aiortc` package is required to stream with gr.WebRTC. "
@@ -400,14 +405,14 @@ async def player_worker_decode(
     queue: asyncio.Queue,
     thread_quit: asyncio.Event,
     set_additional_outputs: Callable | None,
-    quit_on_none: bool = False,
     sample_rate: int = 48000,
     frame_size: int = int(48000 * AUDIO_PTIME),
 ):
     """
     Pulls `(sample_rate, array[, layout])` chunks from `next_frame` and puts
     fixed-size `av.AudioFrame`s at `sample_rate` on `queue`, ready to be sent
-    over the peer connection.
+    over the peer connection. Puts None and returns when `next_frame` gives
+    `GENERATOR_DONE`.
     """
     import av
 
@@ -434,18 +439,18 @@ async def player_worker_decode(
 
     while not thread_quit.is_set():
         try:
-            frame, outputs = split_output(
-                await asyncio.wait_for(next_frame(), timeout=60)
-            )
+            item = await asyncio.wait_for(next_frame(), timeout=60)
+            if item is GENERATOR_DONE:
+                await queue.put(None)
+                break
+            frame, outputs = split_output(item)
             if isinstance(outputs, AdditionalOutputs) and set_additional_outputs:
                 set_additional_outputs(outputs)
 
             if frame is None:
                 if isinstance(outputs, CloseStream):
                     await queue.put(outputs)
-                if quit_on_none:
-                    await queue.put(None)
-                    break
+                await asyncio.sleep(EMPTY_EMIT_WAIT)
                 continue
 
             in_sample_rate, audio_array = check_audio(frame)
@@ -453,6 +458,7 @@ async def player_worker_decode(
                 # Nothing to play (e.g. TTS output for an empty sentence)
                 if isinstance(outputs, CloseStream):
                     await queue.put(outputs)
+                await asyncio.sleep(EMPTY_EMIT_WAIT)
                 continue
             layout = "mono" if audio_array.ndim == 1 else "stereo"
             # Planar float frames take (channels, samples)

@@ -65,6 +65,7 @@ from gradio.webrtc.tracks import (
 from gradio.webrtc.utils import (
     AdditionalOutputs,
     Context,
+    HandlerFailedError,
     StreamNotifier,
     bind_special_args,
     webrtc_error_handler,
@@ -108,10 +109,10 @@ _streams: weakref.WeakValueDictionary[str, ConnectionManager] = (
 )
 # Set when a stream is admitted, for an offer that arrives just before
 _admissions: defaultdict[str, asyncio.Event] = defaultdict(asyncio.Event)
-# ICE candidates that arrive before their peer connection exists: the browser
-# trickles them while its offer waits for the stream's turn. Each is kept with
-# the session that sent it. MAX_PENDING_CANDIDATE_IDS bounds it for the whole
-# app, not per component.
+# ICE candidates of an admitted stream that arrive before its peer connection
+# exists, while the offer is still on its way. Each is kept with the session
+# that sent it. MAX_PENDING_CANDIDATE_IDS bounds it for the whole app, not per
+# component.
 _pending_candidates: OrderedDict[str, list[tuple[str | None, RTCIceCandidate]]] = (
     OrderedDict()
 )
@@ -276,7 +277,8 @@ class ConnectionManager:
         while track.readyState != "ended":
             try:
                 await track.recv()
-            except MediaStreamError:
+            except (HandlerFailedError, MediaStreamError):
+                # A failed handler has already ended the stream
                 return
 
     def _spawn(self, coroutine: Any) -> asyncio.Task:
@@ -721,11 +723,11 @@ async def _add_ice_candidate(
     if not webrtc_id:
         return _failed("unknown_connection")
     manager = _streams.get(webrtc_id)
-    pc = manager.pcs.get(webrtc_id) if manager is not None else None
-    if pc is not None and not cast(ConnectionManager, manager).owns(
-        webrtc_id, session_hash
-    ):
+    # The page makes its connection only after the stream's turn, so a
+    # candidate for a stream not admitted for this session is not kept
+    if manager is None or not manager.owns(webrtc_id, session_hash):
         return _failed("unknown_connection")
+    pc = manager.pcs.get(webrtc_id)
     if pc is not None and pc.connectionState == "closed":
         return _failed("connection_closed")
     try:
@@ -734,8 +736,7 @@ async def _add_ice_candidate(
             logger.error("Invalid candidate format: %s", body["candidate"])
             return _failed("invalid_candidate_format")
         if pc is None:
-            # Kept until the offer creates the connection, within bounds: an id
-            # that never makes an offer is evicted eventually
+            # Kept until the offer creates the connection, within bounds
             pending = _pending_candidates.setdefault(webrtc_id, [])
             if len(pending) < MAX_PENDING_CANDIDATES:
                 pending.append((session_hash, candidate))

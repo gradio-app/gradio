@@ -13,7 +13,6 @@ import inspect
 import logging
 import math
 import time
-import traceback
 import weakref
 from collections.abc import Callable, Generator
 from typing import Any, Literal, cast
@@ -38,6 +37,8 @@ from gradio.webrtc.handlers import (
     VideoTrackHandler,
 )
 from gradio.webrtc.utils import (
+    EMPTY_EMIT_WAIT,
+    GENERATOR_DONE,
     AdditionalOutputs,
     CloseStream,
     Context,
@@ -53,7 +54,6 @@ from gradio.webrtc.utils import (
 
 logger = logging.getLogger(__name__)
 
-_GENERATOR_DONE = object()
 # Put on a track's queue when it stops, so that a recv() waiting on the queue
 # ends instead of waiting forever
 _STOPPED = object()
@@ -207,7 +207,7 @@ class VideoCallback(VideoStreamTrack):
 
     def accept_input_in_background(self):
         if not self.has_started:
-            asyncio.create_task(self.accept_input())
+            self.accept_input_task = asyncio.create_task(self.accept_input())
 
     async def recv(self):
         self.accept_input_in_background()
@@ -500,7 +500,6 @@ class AudioCallback(AudioStreamTrack):
                     self.queue,
                     self.thread_quit,
                     self.set_additional_outputs,
-                    False,
                     self.event_handler.output_sample_rate,
                     self.event_handler.output_frame_size,
                 )
@@ -541,11 +540,12 @@ class AudioCallback(AudioStreamTrack):
                 await asyncio.sleep(wait)
             self.last_timestamp = time.time()
             return frame
-        except MediaStreamError:
-            # How a track tells its reader (aiortc, or _drain) that it has ended
+        except (HandlerFailedError, MediaStreamError):
+            # MediaStreamError is how a track tells its reader (aiortc, or
+            # _drain) that it has ended
             raise
         except Exception as e:
-            logger.debug("exception %s\n%s", e, traceback.format_exc())
+            raise handler_failed(e) from e
 
     def stop(self):
         logger.debug("audio callback stop")
@@ -618,7 +618,7 @@ class ServerToClientVideo(VideoStreamTrack):
         try:
             return next(self.generator)
         except StopIteration:
-            return _GENERATOR_DONE
+            return GENERATOR_DONE
 
     async def recv(self):
         try:
@@ -626,21 +626,30 @@ class ServerToClientVideo(VideoStreamTrack):
             await self.args_set.wait()
             current_channel.set(self.channel)
             current_context.set(self.context)
-            # The generator does the handler's work, so advance it in a worker
-            # thread to keep the event loop free.
-            item = await run_in_thread(self._next_item)
-            if item is _GENERATOR_DONE:
-                self.stop()
-                return
-            next_array, outputs = split_output(item)
-            if isinstance(outputs, CloseStream):
-                cast(DataChannel, self.channel).send(
-                    create_message("end_stream", outputs.msg)
-                )
-                self.stop()
-                return
-            if isinstance(outputs, AdditionalOutputs) and self.set_additional_outputs:
-                self.set_additional_outputs(outputs)
+            while True:
+                # The generator does the handler's work, so advance it in a
+                # worker thread to keep the event loop free.
+                item = await run_in_thread(self._next_item)
+                if item is GENERATOR_DONE:
+                    self.stop()
+                    return
+                next_array, outputs = split_output(item)
+                if isinstance(outputs, CloseStream):
+                    cast(DataChannel, self.channel).send(
+                        create_message("end_stream", outputs.msg)
+                    )
+                    self.stop()
+                    return
+                if (
+                    isinstance(outputs, AdditionalOutputs)
+                    and self.set_additional_outputs
+                ):
+                    self.set_additional_outputs(outputs)
+                # A yield without a frame (None, or AdditionalOutputs alone)
+                # leaves this frame to the next one
+                if next_array is not None:
+                    break
+                await asyncio.sleep(EMPTY_EMIT_WAIT)
 
             next_frame = self.array_to_frame(next_array)
             next_frame.pts = pts
@@ -693,14 +702,14 @@ class ServerToClientAudio(AudioStreamTrack):
         self.latest_args = list(args)
         self.args_set.set()
 
-    async def next_in_thread(self) -> tuple[int, np.ndarray] | None:
+    async def next_in_thread(self) -> Any:
         # The inputs are awaited here rather than in the thread: a wait that
         # never ends (the client left before sending them) then holds no
         # thread, and the decode loop's timeout can cancel it
         await self.args_set.wait()
         return await run_in_thread(self.next)
 
-    def next(self) -> tuple[int, np.ndarray] | None:
+    def next(self) -> Any:
         current_context.set(self.context)
         LocalContext.stream_notifier.set(self.notifier)
         current_channel.set(self.channel)
@@ -710,18 +719,17 @@ class ServerToClientAudio(AudioStreamTrack):
             try:
                 return next(self.generator)
             except StopIteration:
-                self.thread_quit.set()
-        return None
+                pass
+        return GENERATOR_DONE
 
     async def start(self):
         if not self.has_started:
-            asyncio.create_task(
+            self.decode_task = asyncio.create_task(
                 player_worker_decode(
                     self.next_in_thread,
                     self.queue,
                     self.thread_quit,
                     self.set_additional_outputs,
-                    True,
                 )
             )
             self.has_started = True

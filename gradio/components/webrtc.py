@@ -241,6 +241,7 @@ class WebRTC(Component):
         # Set by stream()
         self.time_limit: float | None = None
         self._num_extra_outputs = 0
+        self._has_stream = False
         super().__init__(
             label=label,
             every=every,
@@ -368,6 +369,11 @@ class WebRTC(Component):
             raise AttributeError(
                 "Cannot call stream() outside of a gradio.Blocks context."
             )
+        if self._has_stream:
+            raise ValueError(
+                "stream() can only be called once per WebRTC component. Use "
+                "another gr.WebRTC component for another stream."
+            )
         if (
             utils.get_space() or utils.colab_check()
         ) and self._rtc_configuration is None:
@@ -410,6 +416,7 @@ class WebRTC(Component):
 
         self.time_limit = time_limit
         self._num_extra_outputs = len(extra_outputs)
+        self._has_stream = True
         manager = webrtc_connection.register_manager(
             self._id,
             handler=fn,

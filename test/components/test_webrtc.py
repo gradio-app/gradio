@@ -497,6 +497,9 @@ class TestWebRTC:
                     outputs=[receive_audio],
                     trigger=slider.change,
                 )
+            video.stream(flip, inputs=[video], outputs=[video])
+            with pytest.raises(ValueError, match="once per WebRTC component"):
+                video.stream(flip, inputs=[video], outputs=[video, slider])
         with pytest.raises(AttributeError, match="Blocks context"):
             gr.WebRTC().stream(flip, inputs=[], outputs=[])
 
@@ -1261,9 +1264,10 @@ class TestStreams:
             "offer",
             {
                 "type": "ice-candidate",
-                "webrtc_id": "missing",
+                "webrtc_id": "one",
                 "candidate": {"candidate": "not a candidate"},
             },
+            session_hash="one",
         )
         assert candidate["meta"]["error"] == "invalid_candidate_format"
         for pc in (first, second):
@@ -1591,27 +1595,34 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
-    async def test_candidates_sent_before_the_turn_are_kept(self, launched):
+    async def test_candidates_are_kept_only_for_an_admitted_stream(self, launched):
         h = launched
         first_event = await h.start("zero")
         await h.join("one")
-        # The browser trickles its candidates while its offer waits for the turn
-        candidate = await h.server_fn(
-            "offer",
-            {
-                "type": "ice-candidate",
-                "webrtc_id": "one",
-                "candidate": {
-                    "candidate": "candidate:1 1 udp 1 127.0.0.1 9 typ host",
-                    "sdpMid": "0",
-                    "sdpMLineIndex": 0,
+
+        async def send_candidate():
+            return await h.server_fn(
+                "offer",
+                {
+                    "type": "ice-candidate",
+                    "webrtc_id": "one",
+                    "candidate": {
+                        "candidate": "candidate:1 1 udp 1 127.0.0.1 9 typ host",
+                        "sdpMid": "0",
+                        "sdpMLineIndex": 0,
+                    },
                 },
-            },
-            session_hash="one",
-        )
-        assert candidate.get("status") == "success"
+                session_hash="one",
+            )
+
+        # Anyone can send an id that is not admitted yet, so nothing is kept
+        assert (await send_candidate())["meta"]["error"] == "unknown_connection"
+        assert "one" not in webrtc_connection._pending_candidates
         await h.http.post(f"{h.api}/stream/{first_event}/close")
         await h.wait_until(lambda: "one" in h.manager.sessions)
+        # After the turn, the offer can still be on its way
+        assert (await send_candidate()).get("status") == "success"
+        assert "one" in webrtc_connection._pending_candidates
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         assert "one" not in webrtc_connection._pending_candidates
@@ -2177,6 +2188,35 @@ class TestVideoTracks:
             await track.recv()
         assert "Error in the stream handler" not in caplog.text
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("kind", ["video", "audio"])
+    async def test_receive_generator_can_yield_without_media(self, kind):
+        import numpy as np
+
+        from gradio.webrtc.tracks import ServerToClientAudio, ServerToClientVideo
+        from gradio.webrtc.utils import AdditionalOutputs, Context
+
+        media = (
+            np.zeros((16, 16, 3), dtype=np.uint8)
+            if kind == "video"
+            else (24000, np.zeros(4800, dtype=np.int16))
+        )
+
+        def generate():
+            yield AdditionalOutputs("starting")
+            yield None
+            yield media
+
+        outputs = []
+        track_class = ServerToClientVideo if kind == "video" else ServerToClientAudio
+        track = track_class(
+            generate, context=Context("id"), set_additional_outputs=outputs.append
+        )
+        track.set_args([])
+        assert await asyncio.wait_for(track.recv(), 2) is not None
+        assert [o.args for o in outputs] == [("starting",)]
+        assert track.readyState == "live"
+
 
 class TestAudioArrays:
     """Audio goes in and out as (sample_rate, array), like gr.Audio's numpy values."""
@@ -2232,17 +2272,15 @@ class TestAudioArrays:
     async def decode(*returned):
         import av
 
-        from gradio.webrtc.utils import player_worker_decode
+        from gradio.webrtc.utils import GENERATOR_DONE, player_worker_decode
 
         queue: asyncio.Queue = asyncio.Queue()
-        items = [*returned, None]
+        items = [*returned, GENERATOR_DONE]
 
         async def next_frame():
             return items.pop(0)
 
-        await player_worker_decode(
-            next_frame, queue, asyncio.Event(), None, quit_on_none=True
-        )
+        await player_worker_decode(next_frame, queue, asyncio.Event(), None)
         frames = []
         while not queue.empty():
             frames.append(queue.get_nowait())
@@ -2276,6 +2314,44 @@ class TestAudioArrays:
             (24000, np.zeros(4800, dtype=np.float32)),
         )
         assert sum(f.samples for f in frames) > 0
+
+    @pytest.mark.asyncio
+    async def test_an_emit_with_nothing_ready_is_not_called_in_a_busy_loop(self):
+        from gradio.webrtc.utils import player_worker_decode
+
+        calls = 0
+
+        async def emit():
+            # Nothing is ready, every time
+            nonlocal calls
+            calls += 1
+
+        stop = asyncio.Event()
+        decoder = asyncio.create_task(
+            player_worker_decode(emit, asyncio.Queue(), stop, None)
+        )
+        await asyncio.sleep(0.1)
+        stop.set()
+        await asyncio.wait_for(decoder, 1)
+        # On Python 3.12+, such a loop would keep the event loop to itself
+        assert calls < 50
+
+    @pytest.mark.asyncio
+    async def test_a_failing_handler_ends_the_audio_track(self):
+        from gradio.webrtc.tracks import AudioCallback
+        from gradio.webrtc.utils import Context, HandlerFailedError
+
+        class SyncStartUp(EchoHandler):
+            def start_up(self):  # type: ignore
+                pass
+
+        handler = SyncStartUp()
+        handler.channel_set.set()
+        track = AudioCallback(
+            AudioStreamTrack(), event_handler=handler, context=Context("id")
+        )
+        with pytest.raises(HandlerFailedError):
+            await track.recv()
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("dtype", ["int32", "uint8", "int8", "uint16"])
