@@ -5,6 +5,7 @@ import time
 from unittest.mock import patch
 
 import gradio_client as grc
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -231,6 +232,78 @@ def test_heartbeat_task_cancelled_after_stream_completes():
                 "Heartbeat task was not cancelled after stream completed"
             )
     demo.close()
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="The readiness probe relies on run_time growing past 0, which the "
+    "coarse time.monotonic() on Windows may not register for this trivial "
+    "handler, and the disconnect case has the same heartbeat cancellation "
+    "issue as the test above.",
+)
+@pytest.mark.parametrize("end", ["close", "disconnect"])
+def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
+    calls = []
+
+    def on_chunk(chunk):
+        calls.append(chunk)
+        return f"got {chunk}"
+
+    with gr.Blocks() as demo:
+        mic = gr.Audio(sources=["microphone"], streaming=True)
+        chunk = gr.Textbox()
+        output = gr.Textbox()
+        mic.stream(on_chunk, chunk, output)
+
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    # A real client rather than TestClient, which would set the event's
+    # asyncio signal from another thread and cannot drop an endless response
+    client = httpx.Client(base_url=local_url.rstrip("/") + API_PREFIX, timeout=10)
+    try:
+        r = client.post(
+            "/queue/join",
+            json={
+                "data": ["a"],
+                "fn_index": 0,
+                "event_data": None,
+                "session_hash": "sess",
+                "trigger_id": None,
+            },
+        )
+        event_id = r.json()["event_id"]
+        # End once the first call has returned and the stream waits for its
+        # next chunk
+        for _ in range(50):
+            event = demo._queue.event_ids_to_events.get(event_id)
+            if event is not None and event.run_time > 0:
+                break
+            time.sleep(0.1)
+        assert event is not None and event.run_time > 0
+        if end == "close":
+            assert client.post(f"/stream/{event_id}/close").status_code == 200
+        else:
+            # The tab closes, so its heartbeat connection drops
+            with client.stream("GET", "/heartbeat/sess") as r:
+                next(r.iter_lines())
+        for _ in range(50):
+            if event_id not in demo._queue.event_ids_to_events:
+                break
+            time.sleep(0.1)
+        assert event_id not in demo._queue.event_ids_to_events
+        assert calls == ["a"]
+
+        if end == "close":
+            r = client.get("/queue/data", params={"session_hash": "sess"})
+            messages = [
+                json.loads(line[5:])
+                for line in r.iter_lines()
+                if line.startswith("data")
+            ]
+            completed = [m for m in messages if m["msg"] == "process_completed"]
+            assert [m["output"]["data"] for m in completed] == [["got a"]]
+    finally:
+        client.close()
+        demo.close()
 
 
 def test_cancel_removes_pending_event_from_queue():

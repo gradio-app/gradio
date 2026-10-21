@@ -7,7 +7,7 @@ Tags: DEPLOYMENT, MODAL
 
 Gradio is a great way to test and demo your machine learning apps using a simple and intuitive Python API. When combined with Modal's developer-first cloud infrastructure, you can leverage powerful GPUs to run larger models faster. And you don't need an account with a cloud provider or any config files.
 
-In this tutorial, we will walk you through setting up a Modal account, deploying a simple Gradio app on Modal, and discuss some of the nuance around Gradio's sticky session requirement and handling concurrency.
+In this tutorial, we will walk you through setting up a Modal account, deploying a simple Gradio app on Modal, and discuss Modal primitives you can use to automatically scale your Gradio apps.
 
 ## Deploying a simple Gradio app on Modal
 Let's deploy a Gradio-style "Hello, world" app that lets a user input their name and then responds with a short greeting. We're not going to use this code as-is in our app, but it's useful to see what the initial Gradio version looks like.
@@ -71,7 +71,7 @@ To get Modal to serve our `demo`, we can leverage Gradio and Modal's support for
 
 ```python
 with web_image.imports():
-	import gradio as gr
+    import gradio as gr
     from gradio.routes import mount_gradio_app
     from fastapi import FastAPI
      
@@ -84,9 +84,9 @@ with web_image.imports():
 def ui():
     """A simple Gradio interface for a greeting function."""
     def greet(name):
-	    return f"Hello {name}!"
-	
-	demo = gr.Interface(fn=greet, inputs="text", outputs="text")
+        return f"Hello {name}!"
+
+    demo = gr.Interface(fn=greet, inputs="text", outputs="text")
 
     return mount_gradio_app(app=FastAPI(), blocks=demo, path="/")
 ```
@@ -110,11 +110,64 @@ After the image builds Modal will print the URL to your webapp and to your Modal
 ## Important Considerations
 
 ### Sticky Sessions
-Modal Functions are serverless which means that each client request is considered independent. While this facilitates autoscaling, it can also mean that extra care should be taken if your application requires any sort of server-side statefulness.
-
-Gradio relies on a REST API, which is itself stateless. But it does require sticky sessions, meaning that every request from a particular client must be routed to the same container. However, Modal does not make any guarantees in this regard.
+Gradio relies on a REST API, which is itself stateless. But it does require sticky sessions, meaning that every request from a particular client must be routed to the same container.
 
 A simple way to satisfy this constraint is to set `max_containers = 1` in the `@app.function` decorator and setting the `max_inputs` argument of `@modal.concurrent` to a fairly large number - as we did above. This means that Modal won't spin up more than one container to serve requests to your app which effectively satisfies the sticky session requirement.
+
+For multi-container deployments that require scaling past one container, Modal's [Sticky Sessions](https://modal.com/docs/guide/sticky-sessions) built on [Modal Servers](https://modal.com/docs/guide/servers) provides strong affinity while still retaining serverless autoscaling. 
+
+A Modal Server runs a HTTP server that you start in a `@modal.enter()` method, so we can call `demo.launch()` directly instead of mounting the demo on a FastAPI app. You can enable sticky sessions for a Modal Server by adding the `@modal.sessioned()` decorator. 
+
+```python
+@app.server(
+    image=web_image,
+    port=8000,
+    max_concurrency=1, # sessions per container before Modal scales up
+    unauthenticated=true
+)
+@modal.sessioned()
+class GradioServer:
+    @modal.enter()
+    def start(self):
+        import gradio as gr
+
+        """A simple Gradio interface for a greeting function."""
+        def greet(name):
+            return f"Hello {name}!"
+
+        demo = gr.Interface(fn=greet, inputs="text", outputs="text")
+        demo.launch(server_name="0.0.0.0", server_port=8000, prevent_thread_lock=True)
+```
+
+Every request to a sessioned Server must carry a session token, so something needs to start a session for each new visitor. Starting a session is done through the SDK ([sessions.start()](https://modal.com/docs/sdk/py/latest/Server#sessionsstart)) or calling the HTTP endpoint (`$SERVER_URL/_modal/sessions/start`). This returns a `modal_session_token` that you can add as a query parameter `$SERVER_URL/?modal_session_token=$SESSION_TOKEN` to authorize and route the request to the right container. 
+
+Modal replaces the query parameter with a cookie so that all of Gradio's subsequent requests reach the same container. A small Modal Function can act as the entry point that starts a session and redirects the visitor to the Gradio app.
+
+```python
+@app.function(image=web_image)
+@modal.fastapi_endpoint()
+def ui():
+    from fastapi.responses import RedirectResponse
+
+    server = modal.Server.from_name("gradio-app", "GradioServer")
+    session = server.sessions.start(idle_timeout=600)
+    return RedirectResponse(f"{server.get_url()}/?modal_session_token={session.token}")
+```
+
+Deploy the Server with the same command used to deploy the FastAPI demo.
+
+```bash
+modal deploy <path-to-file>
+
+✓ Created objects.
+├── ✓ Uploaded <path-to-file>
+├── ✓ Created Function ui
+│   └── https://modal-labs--gradio-app-ui.modal.run (unauthenticated)
+└── ✓ Created Server GradioServer
+    └── https://modal-labs--gradio-app-gradioserver.modal.direct (unauthenticated)
+```
+
+Users can visit the `ui` endpoint's URL and are redirected to the Gradio app with their own sticky session. A session ends after it has had no in-flight requests for `idle_timeout` seconds.
 
 ### Concurrency and Queues
 
