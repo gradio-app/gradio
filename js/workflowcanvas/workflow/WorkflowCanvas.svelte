@@ -490,11 +490,21 @@
 		if (!active) return;
 		window.addEventListener("keydown", handleKeydown);
 		window.addEventListener("keyup", handle_keyup);
+		window.addEventListener("beforeunload", warn_if_dirty);
+		const root = document.documentElement;
+		const prev_overscroll = root.style.overscrollBehaviorX;
+		root.style.overscrollBehaviorX = "none";
 		return () => {
 			window.removeEventListener("keydown", handleKeydown);
 			window.removeEventListener("keyup", handle_keyup);
+			window.removeEventListener("beforeunload", warn_if_dirty);
+			root.style.overscrollBehaviorX = prev_overscroll;
 		};
 	});
+
+	function warn_if_dirty(e: BeforeUnloadEvent): void {
+		if (isDirty) e.preventDefault();
+	}
 
 	function handle_keyup(e: KeyboardEvent): void {
 		if (e.code === "Space") spaceHeld = false;
@@ -1209,9 +1219,11 @@
 
 	function onWheel(e: WheelEvent): void {
 		if (!canvasEl) return;
-		if (e.target instanceof Element && e.target.closest(".nowheel")) return;
+		const zooming = e.ctrlKey || e.metaKey;
+		if (!zooming && e.target instanceof Element && e.target.closest(".nowheel"))
+			return;
 		e.preventDefault();
-		if (e.ctrlKey || e.metaKey) {
+		if (zooming) {
 			const r = canvasEl.getBoundingClientRect();
 			const cx = e.clientX - r.left;
 			const cy = e.clientY - r.top;
@@ -2635,7 +2647,6 @@
 			selectedEdgeIds = new Set($workflow.edges.map((edge) => edge.id));
 		}
 		if (e.key === "0" && (e.metaKey || e.ctrlKey)) {
-			e.preventDefault();
 			viewport = { x: 0, y: 0, zoom: 1 };
 		}
 		if (e.key === "Escape") {
