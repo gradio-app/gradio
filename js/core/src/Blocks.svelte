@@ -452,9 +452,17 @@
 		if (!("parentIFrame" in window)) return;
 		const covered = "gradioCover" in document.documentElement.dataset;
 		if (covered && !stop_viewport_sizing) {
+			// Never taller than the parent's viewport, or scrolling a page with
+			// content below the frame would keep growing it.
 			stop_viewport_sizing = on_page_info((page) =>
 				window.parentIFrame?.size(
-					Math.max(page.scrollTop + page.clientHeight - page.offsetTop, 320)
+					Math.max(
+						Math.min(
+							page.scrollTop + page.clientHeight - page.offsetTop,
+							page.clientHeight
+						),
+						320
+					)
 				)
 			);
 		} else if (!covered && stop_viewport_sizing) {
