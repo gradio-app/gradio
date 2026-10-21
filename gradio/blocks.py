@@ -2750,13 +2750,15 @@ Received inputs:
                         )
                         # Diff state serves the later chunks of a run, which
                         # can only be fetched under an event id. A call without
-                        # one gets full values, which is what its clients
-                        # expect.
+                        # one, or a stream's call (never continued), gets full
+                        # values, which is what its clients expect.
                         data = self.handle_streaming_diffs(
                             block_fn,
                             data,
                             session_hash=session_hash,
-                            run=run if event_id is not None else None,
+                            run=run
+                            if event_id is not None and block_fn.connection != "stream"
+                            else None,
                             final=not is_generating,
                             simple_format=simple_format,
                         )

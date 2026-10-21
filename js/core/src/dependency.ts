@@ -774,12 +774,13 @@ export class DependencyManager {
 	}
 
 	/**
-	 * Reads what the server replays for a resumed event while it keeps coming:
-	 * how the event ended if it already had, "gone" when the server no longer
-	 * has it, or null when it is still running.
+	 * Reads what the server replays for a resumed event while it keeps coming,
+	 * showing its outputs: how the event ended if it already had, "gone" when
+	 * the server no longer has it, or null when it is still running.
 	 */
 	async replayed_outcome(
-		submission: ReturnType<Client["resume_jobs"]>[number]
+		submission: ReturnType<Client["resume_jobs"]>[number],
+		outputs: number[]
 	): Promise<"complete" | "error" | "gone" | null> {
 		const iterator = submission[Symbol.asyncIterator]();
 		// The replay starts once the stream to the server opens, then arrives
@@ -795,6 +796,10 @@ export class DependencyManager {
 			if (next === null || next.done) return null;
 			wait = 300;
 			const result = next.value;
+			if (result?.type === "data") {
+				await this.handle_data(outputs, result.data);
+				continue;
+			}
 			if (result?.type !== "status") continue;
 			if (result.stage === "complete") return "complete";
 			if (result.stage === "error") {
@@ -820,7 +825,7 @@ export class DependencyManager {
 					// reloaded, so the event would only hold its place in the
 					// concurrency limit until it timed out. End it, and leave the
 					// component to start a new stream.
-					const outcome = await this.replayed_outcome(submission);
+					const outcome = await this.replayed_outcome(submission, dep.outputs);
 					submission.close_stream();
 					await submission.acknowledge();
 					// The server no longer has it: nothing to follow up, as for

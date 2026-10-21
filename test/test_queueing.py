@@ -741,8 +741,7 @@ def _history_session(demo):
     return queue, resumable, event
 
 
-@pytest.mark.parametrize("generator", [False, True])
-def test_history_keeps_only_the_latest_output_of_a_stream(generator):
+def test_history_keeps_only_the_latest_output_of_a_stream():
     from gradio.server_messages import ProcessGeneratingMessage, ServerMessage
 
     with gr.Blocks() as demo:
@@ -750,7 +749,7 @@ def test_history_keeps_only_the_latest_output_of_a_stream(generator):
     demo.launch(prevent_thread_lock=True)
     try:
         queue, resumable, event = _history_session(demo)
-        stream = event("stream", generator)
+        stream = event("stream", True)
         generating = event("generating", True)
         for i in range(3):
             for e, msg in (
@@ -773,22 +772,18 @@ def test_history_keeps_only_the_latest_output_of_a_stream(generator):
             ),
         )
         kept = [(m.event_id, cast(Any, m).output["i"]) for m in resumable.history]
-        if generator:
-            # A generator's outputs are diffs, each needed to rebuild the value
-            assert len(kept) == 7
-        else:
-            # Each call of a stream sends whole values; a stream that runs for
-            # hours must not fill the history, and a call that changed
-            # nothing keeps the last output
-            assert kept == [
-                ("generating", 0),
-                ("generating", 1),
-                ("generating", 2),
-                ("stream", 3),
-            ]
-            assert cast(Any, resumable.history[-1]).output["data"] == [
-                {"__type__": "update", "value": "value 2"}
-            ]
+        # Each call of a stream sends whole values, even from a generator
+        # function; a stream that runs for hours must not fill the history,
+        # and a call that changed nothing keeps the last output
+        assert kept == [
+            ("generating", 0),
+            ("generating", 1),
+            ("generating", 2),
+            ("stream", 3),
+        ]
+        assert cast(Any, resumable.history[-1]).output["data"] == [
+            {"__type__": "update", "value": "value 2"}
+        ]
     finally:
         demo.close()
 
@@ -805,10 +800,14 @@ def test_history_of_a_stream_keeps_outputs_that_later_calls_skip():
         skip = {"__type__": "update"}
         for output in (
             {"data": ["text", skip]},
-            {"data": [skip, "image"], "state": {"n": 1}},
+            {"data": [skip, "image"], "state": {"n": 1, "m": 1}},
             # Only the browser-held state changed
             {"data": [skip, skip], "state": {"n": 2}},
             {"data": [{"__type__": "update", "visible": False}, skip]},
+            # A call that changed no state sends none
+            {"data": [skip, skip], "state": {}},
+            # None tells the client to drop its token
+            {"data": [skip, skip], "state": {"m": None}},
         ):
             queue.send_message(
                 stream,
@@ -822,7 +821,7 @@ def test_history_of_a_stream_keeps_outputs_that_later_calls_skip():
                 {"__type__": "update", "value": "text", "visible": False},
                 {"__type__": "update", "value": "image"},
             ],
-            "state": {"n": 2},
+            "state": {"n": 2, "m": None},
         }
     finally:
         demo.close()
@@ -1032,6 +1031,42 @@ def test_stream_chunks_keep_the_event_id():
             _wait_for(lambda: len(seen) == 2)
             # gr.Info, progress and the like rely on it in every call
             assert seen == [event_id, event_id]
+    finally:
+        demo.close()
+
+
+def test_each_chunk_calls_a_generator_stream_function_afresh():
+    calls = []
+
+    def respond(x):
+        calls.append(x)
+        yield "first"
+        yield "second"
+
+    demo, api, group = _launch_audio_stream(respond)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: len(calls) == 1)
+            http.post(
+                f"{api}/stream/{event_id}",
+                json={"data": [None], "fn_index": 0, "session_hash": "s"},
+            )
+            outputs = []
+            with http.stream(
+                "GET", f"{api}/queue/data", params={"session_hash": "s"}
+            ) as messages:
+                for line in messages.iter_lines():
+                    if line.startswith("data:"):
+                        message = json.loads(line[5:])
+                        if message.get("msg") == "process_streaming":
+                            outputs.append(message["output"]["data"])
+                            if len(outputs) == 2:
+                                break
+            # The second chunk runs the function with that chunk, instead of
+            # taking the next value from the first chunk's generator
+            assert len(calls) == 2
+            assert outputs == [["first"], ["first"]]
     finally:
         demo.close()
 

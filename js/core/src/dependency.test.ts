@@ -523,6 +523,29 @@ describe("DependencyManager.resume", () => {
 		expect((dependency_manager as any).submissions.has(0)).toBe(false);
 	});
 
+	test("a stream ended after a reload shows the outputs the server replays", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "status", stage: "streaming", fn_index: 0, queue: true };
+			// Sent while the page was reloading
+			yield { type: "data", data: ["latest"], fn_index: 0 };
+		}
+		const stream = dependency(0, "stream", [7]);
+		stream.connection = "stream";
+		const resumed = Object.assign(submission(events()), {
+			close_stream: vi.fn()
+		});
+		const client = {
+			resume_jobs: vi.fn(() => [resumed])
+		} as unknown as Client;
+		const dependency_manager = manager([stream], client);
+		const handle_data = vi
+			.spyOn(dependency_manager as any, "handle_data")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		expect(handle_data).toHaveBeenCalledWith([7], ["latest"]);
+	});
+
 	test("a stream that had failed before the reload runs its failure handlers", async () => {
 		async function* events(): AsyncGenerator<unknown> {
 			yield { type: "status", stage: "pending", fn_index: 0, queue: true };

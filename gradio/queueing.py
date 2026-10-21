@@ -286,13 +286,10 @@ class Queue:
         # with such a client: the history would otherwise grow without bound
         resumable = self.resumable_sessions.get(event.session_hash)
         if resumable is not None and resumable.acknowledges:
-            # Each call of a stream event sends whole output values, unless its
-            # function is a generator (whose outputs are diffs), so a single
-            # message can stand for all of them. A stream can run for hours.
-            if (
-                event_message.msg == ServerMessage.process_streaming
-                and not event.fn.types_generator
-            ):
+            # Each call of a stream event sends whole output values, so a
+            # single message can stand for all of them. A stream can run for
+            # hours.
+            if event_message.msg == ServerMessage.process_streaming:
                 _merge_into_history(resumable.history, event_message)
             else:
                 resumable.history.append(event_message)
@@ -1543,8 +1540,8 @@ def _merge_into_history(history: list[EventMessage], message: EventMessage) -> N
     """
     Replaces the event's last streamed output in the history with one message
     that leaves the client where `message` does: values that `message` skips,
-    or updates only in part, keep what the earlier calls sent, and the client
-    state is the latest one sent.
+    or updates only in part, keep what the earlier calls sent, and so do the
+    client state tokens that `message` does not change.
     """
     for i in range(len(history) - 1, -1, -1):
         previous = history[i]
@@ -1564,8 +1561,13 @@ def _merge_into_history(history: list[EventMessage], message: EventMessage) -> N
         _merge_value(old_data[j], value) if j < len(old_data) else value
         for j, value in enumerate(new.get("data") or [])
     ]
+    # A call's state holds only the tokens it changed
+    state = {**(old.get("state") or {}), **(new.get("state") or {})}
+    merged = {**old, **new, "data": data}
+    if state:
+        merged["state"] = state
     # The message itself still goes to the client as it is
-    history.append(message.model_copy(update={"output": {**old, **new, "data": data}}))
+    history.append(message.model_copy(update={"output": merged}))
 
 
 def _merge_value(old: Any, new: Any) -> Any:
