@@ -624,6 +624,76 @@ describe("DependencyManager.resume", () => {
 		);
 	});
 
+	test("a stream ended after a reload reads what the server sends to its end", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			// The client's own, before the connection to the server opens
+			yield { type: "status", stage: "pending", fn_index: 0, queue: true };
+			await new Promise((resolve) => setTimeout(resolve, 500));
+			yield { type: "data", data: ["sent during the reload"], fn_index: 0 };
+			yield { type: "status", stage: "error", fn_index: 0, queue: true };
+		}
+		const [run, then, on_success, on_failure] = chain();
+		run.connection = "stream";
+		run.outputs = [7];
+		const resumed = Object.assign(submission(events()), {
+			close_stream: vi.fn()
+		});
+		const client = {
+			resume_jobs: vi.fn(() => [resumed])
+		} as unknown as Client;
+		const dependency_manager = manager(
+			[run, then, on_success, on_failure],
+			client
+		);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+		const handle_data = vi
+			.spyOn(dependency_manager as any, "handle_data")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		// The server ends the stream and reports it, however slow the
+		// connection; the page acknowledges it only after that
+		expect(resumed.close_stream).toHaveBeenCalledWith({ read_to_end: true });
+		expect(handle_data).toHaveBeenCalledWith([7], ["sent during the reload"]);
+		expect(dispatch.mock.calls.map(([meta]) => (meta as any).fn_index)).toEqual(
+			[3]
+		);
+	});
+
+	test("a replayed stream runs the .change listeners of the state it changed", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield {
+				type: "status",
+				stage: "streaming",
+				fn_index: 0,
+				queue: true,
+				changed_state_ids: [42]
+			};
+			yield { type: "status", stage: "complete", fn_index: 0, queue: true };
+		}
+		const stream = dependency(0, "stream", []);
+		stream.connection = "stream";
+		const on_change = dependency(1, "on_change", []);
+		on_change.targets = [[42, "change"]];
+		const resumed = Object.assign(submission(events()), {
+			close_stream: vi.fn()
+		});
+		const client = {
+			resume_jobs: vi.fn(() => [resumed])
+		} as unknown as Client;
+		const dependency_manager = manager([stream, on_change], client);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+		expect(
+			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index)
+		).toContain(1);
+	});
+
 	test("runs the events chained to a stream it ends after a reload", async () => {
 		async function* events(): AsyncGenerator<unknown> {
 			yield { type: "status", stage: "streaming", fn_index: 0, queue: true };

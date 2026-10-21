@@ -776,33 +776,36 @@ export class DependencyManager {
 	}
 
 	/**
-	 * Reads what the server replays for a resumed event while it keeps coming,
-	 * showing its outputs: how the event ended if it already had, "gone" when
-	 * the server no longer has it, or null when it is still running.
+	 * Ends a resumed stream event and reads what the server sends for it up to
+	 * its end, showing its outputs and running the `.change` listeners of the
+	 * gr.State values it changed. Returns how the event ended, "gone" when the
+	 * server no longer has it, or null when no end came in time.
 	 */
-	async replayed_outcome(
+	async end_resumed_stream(
 		submission: ReturnType<Client["resume_jobs"]>[number],
 		outputs: number[]
 	): Promise<"complete" | "error" | "gone" | null> {
+		// Whether the stream had already ended, is still waiting in line or is
+		// still running, the server replays what it sent and then reports the
+		// end, so nothing depends on how fast the connection opens
+		submission.close_stream({ read_to_end: true });
 		const iterator = submission[Symbol.asyncIterator]();
-		// The replay starts once the stream to the server opens, then arrives
-		// all at once. A stream still waiting in line keeps getting position
-		// updates, hence the overall limit.
-		let wait = 2000;
-		const deadline = Date.now() + 3000;
+		const deadline = Date.now() + 5000;
 		while (Date.now() < deadline) {
 			const next = await Promise.race([
 				iterator.next(),
-				new Promise<null>((resolve) => setTimeout(() => resolve(null), wait))
+				new Promise<null>((resolve) =>
+					setTimeout(() => resolve(null), deadline - Date.now())
+				)
 			]);
 			if (next === null || next.done) return null;
-			wait = 300;
 			const result = next.value;
 			if (result?.type === "data") {
 				await this.handle_data(outputs, result.data);
 				continue;
 			}
 			if (result?.type !== "status") continue;
+			this.dispatch_state_change_events(result);
 			if (result.stage === "complete") return "complete";
 			if (result.stage === "error") {
 				return result.session_not_found ? "gone" : "error";
@@ -827,8 +830,10 @@ export class DependencyManager {
 					// reloaded, so the event would only hold its place in the
 					// concurrency limit until it timed out. End it, and leave the
 					// component to start a new stream.
-					const outcome = await this.replayed_outcome(submission, dep.outputs);
-					submission.close_stream();
+					const outcome = await this.end_resumed_stream(
+						submission,
+						dep.outputs
+					);
 					await submission.acknowledge();
 					// The server no longer has it: nothing to follow up, as for
 					// any other event

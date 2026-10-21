@@ -919,8 +919,10 @@ export function submit(
 			send_chunk: (payload: Record<string, unknown>) => {
 				post_to_event("", { ...payload, session_hash: this.session_hash });
 			},
-			close_stream: () => {
-				close();
+			close_stream: (options?: { read_to_end?: boolean }) => {
+				// With read_to_end, the messages keep coming until the server
+				// reports that the event is over
+				if (!options?.read_to_end) close();
 				post_to_event("/close", {});
 			},
 			event_id: () => event_id_final,

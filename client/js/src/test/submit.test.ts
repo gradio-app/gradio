@@ -155,6 +155,45 @@ describe("submit iterator", () => {
 		);
 	});
 
+	test("close_stream({ read_to_end: true }) keeps reading until the event ends", async () => {
+		const app = await Client.connect("hmb/hello_world", {
+			events: ["data", "status"]
+		});
+		app.stream_status.open = true;
+		const stream_paths: string[] = [];
+		server.use(
+			http.post(/\/stream\//, ({ request }) => {
+				stream_paths.push(new URL(request.url).pathname);
+				return HttpResponse.json({ msg: "success" });
+			})
+		);
+
+		const iterator = app.submit("/predict", ["hi"]);
+		const event_id = (await iterator.wait_for_id()) as string;
+		const events: any[] = [];
+		const consumer = (async () => {
+			for await (const event of iterator) events.push(event);
+		})();
+		await vi.waitFor(() => expect(events.length).toBeGreaterThan(0));
+
+		iterator.close_stream({ read_to_end: true });
+		await vi.waitFor(() =>
+			expect(stream_paths).toEqual([`/stream/${event_id}/close`])
+		);
+		// What the server sends once it has ended the stream
+		await app.event_callbacks[event_id]({
+			msg: "process_completed",
+			output: { data: ["last"] },
+			success: true
+		});
+		await race_with_timeout(consumer, 1000, "the iterator did not end");
+
+		expect(events.find((event) => event.type === "data")?.data).toEqual([
+			"last"
+		]);
+		expect(events.at(-1)).toMatchObject({ type: "status", stage: "complete" });
+	});
+
 	test("an acknowledged event no longer counts as open", async () => {
 		// A stream stopped on the page is acknowledged before the server
 		// completes it, and the server then drops its remaining messages. If
