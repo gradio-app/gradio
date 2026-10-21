@@ -1548,55 +1548,69 @@ def process_validation_response(
 
 def _merge_into_history(history: list[EventMessage], message: EventMessage) -> None:
     """
-    Replaces the event's last streamed output in the history with one message
-    that leaves the client where `message` does: values that `message` skips,
-    or updates only in part, keep what the earlier calls sent, and so do the
-    client state tokens that `message` does not change.
+    Adds a streamed output to the history, taking out of the event's earlier
+    outputs what `message` sets again, and dropping those left with nothing.
+    Every message keeps its place, so a replay applies the writes of events
+    that share an output in the order the client saw them.
     """
+    new = cast(dict, getattr(message, "output", None) or {})
     for i in range(len(history) - 1, -1, -1):
         previous = history[i]
         if (
-            previous.event_id == message.event_id
-            and previous.msg == ServerMessage.process_streaming
+            previous.event_id != message.event_id
+            or previous.msg != ServerMessage.process_streaming
         ):
-            break
-    else:
+            continue
+        old = cast(dict, getattr(previous, "output", None) or {})
+        rest = _output_without(old, new)
+        if not _sets_anything(rest):
+            del history[i]
+        elif rest != old:
+            # The message may still be waiting to go to the client as it is
+            history[i] = previous.model_copy(update={"output": rest})
+    if _sets_anything(new):
         history.append(message)
-        return
-    del history[i]
-    old = cast(dict, getattr(previous, "output", {}))
-    new = cast(dict, getattr(message, "output", {}))
-    old_data = old.get("data") or []
+
+
+def _output_without(old: dict, new: dict) -> dict:
+    """What applying `old` sets that applying `new` afterwards does not."""
+    new_data = new.get("data") or []
     data = [
-        _merge_value(old_data[j], value) if j < len(old_data) else value
-        for j, value in enumerate(new.get("data") or [])
+        _value_without(value, new_data[i]) if i < len(new_data) else value
+        for i, value in enumerate(old.get("data") or [])
     ]
     # A call's state holds only the tokens it changed, and its
     # changed_state_ids only the gr.State values it changed
-    state = {**(old.get("state") or {}), **(new.get("state") or {})}
-    changed = list(
-        dict.fromkeys(
-            [
-                *(old.get("changed_state_ids") or []),
-                *(new.get("changed_state_ids") or []),
-            ]
-        )
+    rest = {**old, "data": data}
+    if old.get("state"):
+        new_state = new.get("state") or {}
+        rest["state"] = {k: v for k, v in old["state"].items() if k not in new_state}
+    if old.get("changed_state_ids"):
+        new_changed = new.get("changed_state_ids") or []
+        rest["changed_state_ids"] = [
+            i for i in old["changed_state_ids"] if i not in new_changed
+        ]
+    if new.get("render_config") is not None:
+        rest["render_config"] = None
+    return rest
+
+
+def _value_without(old: Any, new: Any) -> Any:
+    """What an output value `old` sets that `new` afterwards does not."""
+    if isinstance(new, dict) and new.get("__type__") == "update":
+        keys = new.keys() - {"__type__"}
+    else:
+        # A plain value replaces only the value; props set before stay
+        keys = {"value"}
+    if isinstance(old, dict) and old.get("__type__") == "update":
+        return {k: v for k, v in old.items() if k not in keys}
+    return {"__type__": "update"} if "value" in keys else old
+
+
+def _sets_anything(output: dict) -> bool:
+    return bool(
+        any(value != {"__type__": "update"} for value in output.get("data") or [])
+        or output.get("state")
+        or output.get("changed_state_ids")
+        or output.get("render_config") is not None
     )
-    merged = {**old, **new, "data": data}
-    if state:
-        merged["state"] = state
-    if changed:
-        merged["changed_state_ids"] = changed
-    # The message itself still goes to the client as it is
-    history.append(message.model_copy(update={"output": merged}))
-
-
-def _merge_value(old: Any, new: Any) -> Any:
-    """An output value as the client holds it after `old`, then `new`."""
-    old_is_update = isinstance(old, dict) and old.get("__type__") == "update"
-    if not (isinstance(new, dict) and new.get("__type__") == "update"):
-        # A new value keeps the props that an earlier update set
-        return {**old, "value": new} if old_is_update else new
-    if old_is_update:
-        return {**old, **new}
-    return new if "value" in new else {**new, "value": old}

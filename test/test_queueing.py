@@ -774,18 +774,33 @@ def test_history_keeps_only_the_latest_output_of_a_stream():
         kept = [(m.event_id, cast(Any, m).output["i"]) for m in resumable.history]
         # Each call of a stream sends whole values, even from a generator
         # function; a stream that runs for hours must not fill the history,
-        # and a call that changed nothing keeps the last output
+        # and a call that changed nothing adds nothing
         assert kept == [
             ("generating", 0),
             ("generating", 1),
+            ("stream", 2),
             ("generating", 2),
-            ("stream", 3),
-        ]
-        assert cast(Any, resumable.history[-1]).output["data"] == [
-            {"__type__": "update", "value": "value 2"}
         ]
     finally:
         demo.close()
+
+
+def _replay(messages):
+    """What a page holds after applying the outputs of the messages in order."""
+    data, state, changed = {}, {}, []
+    for message in messages:
+        output = cast(Any, message).output
+        for i, value in enumerate(output["data"]):
+            held = data.get(i, {"__type__": "update"})
+            if isinstance(value, dict) and value.get("__type__") == "update":
+                data[i] = {**held, **value}
+            else:
+                data[i] = {**held, "value": value}
+        state.update(output.get("state") or {})
+        changed += [
+            i for i in output.get("changed_state_ids") or [] if i not in changed
+        ]
+    return data, state, changed
 
 
 def test_history_of_a_stream_keeps_outputs_that_later_calls_skip():
@@ -798,6 +813,7 @@ def test_history_of_a_stream_keeps_outputs_that_later_calls_skip():
         queue, resumable, event = _history_session(demo)
         stream = event("stream", False)
         skip = {"__type__": "update"}
+        sent = []
         for output in (
             {"data": ["text", skip]},
             {
@@ -815,21 +831,61 @@ def test_history_of_a_stream_keeps_outputs_that_later_calls_skip():
             # A new value keeps the props an earlier call set
             {"data": ["new text", skip]},
         ):
-            queue.send_message(
-                stream,
-                ProcessGeneratingMessage(
-                    msg=ServerMessage.process_streaming, output=output, success=True
-                ),
+            message = ProcessGeneratingMessage(
+                msg=ServerMessage.process_streaming, output=output, success=True
             )
-        [kept] = resumable.history
-        assert cast(Any, kept).output == {
-            "data": [
-                {"__type__": "update", "value": "new text", "visible": False},
-                {"__type__": "update", "value": "image"},
-            ],
-            "state": {"n": 2, "m": None},
-            # Each one runs the .change listeners of that gr.State
-            "changed_state_ids": [3, 4],
+            sent.append(message.model_copy(deep=True))
+            queue.send_message(stream, message)
+        assert (
+            _replay(resumable.history)
+            == _replay(sent)
+            == (
+                {
+                    0: {"__type__": "update", "value": "new text", "visible": False},
+                    1: {"__type__": "update", "value": "image"},
+                },
+                {"n": 2, "m": None},
+                # Each one runs the .change listeners of that gr.State
+                [3, 4],
+            )
+        )
+        assert len(resumable.history) < len(sent)
+        # The messages still waiting for the client are not changed
+        waiting = queue.pending_messages_per_session["s"]
+        assert [m.output for m in waiting._queue] == [m.output for m in sent]  # type: ignore
+    finally:
+        demo.close()
+
+
+def test_history_of_streams_keeps_the_order_of_writes_to_a_shared_output():
+    from gradio.server_messages import ProcessGeneratingMessage, ServerMessage
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue, resumable, event = _history_session(demo)
+        a, b = event("a", False), event("b", False)
+        sent = []
+        for e, value in (
+            (a, "old"),
+            (b, "new"),
+            # A quiet stream wakes with nothing new
+            (a, {"__type__": "update"}),
+            (a, {"__type__": "update", "visible": False}),
+            (b, {"__type__": "update", "visible": True}),
+            (a, "newest"),
+        ):
+            message = ProcessGeneratingMessage(
+                msg=ServerMessage.process_streaming,
+                output={"data": [value]},
+                success=True,
+            )
+            sent.append(message.model_copy(deep=True))
+            queue.send_message(e, message)
+            assert _replay(resumable.history) == _replay(sent)
+        assert _replay(sent)[0] == {
+            0: {"__type__": "update", "value": "newest", "visible": True}
         }
     finally:
         demo.close()
