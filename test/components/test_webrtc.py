@@ -772,6 +772,8 @@ class Harness:
         # The browser session each stream joined from, which the stream's
         # signalling and inputs then come from too
         self.sessions = {}
+        # Another streaming gr.WebRTC in the same app, if the test asked for one
+        self.second: gr.WebRTC | None = None
 
     async def join(self, webrtc_id, session_hash=None):
         session_hash = session_hash or webrtc_id
