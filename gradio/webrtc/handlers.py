@@ -139,9 +139,13 @@ class StreamHandlerBase:
 
     async def wait_for_args(self) -> None:
         """
-        Asks the client for the current values of the extra input components
-        and waits until they arrive in `latest_args`.
+        Waits until the values of the extra input components have arrived in
+        `latest_args`, asking the client for them the first time. Once they
+        have, it returns at once: each change of an input updates
+        `latest_args`, so it can be called with every frame.
         """
+        if self.args_set.is_set():
+            return
         await self.fetch_args()
         await self.args_set.wait()
 

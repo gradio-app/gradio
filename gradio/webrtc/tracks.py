@@ -63,11 +63,32 @@ logger = logging.getLogger(__name__)
 _STOPPED = object()
 
 
+class TrackHandlerFailedError(HandlerFailedError, MediaStreamError):
+    """
+    A handler's failure raised from a track's recv(). It has been reported
+    already, and aiortc's sender takes a MediaStreamError as the end of the
+    track instead of logging another traceback.
+    """
+
+
+def track_ended_by(error: BaseException) -> TrackHandlerFailedError:
+    failed = handler_failed(error)
+    if isinstance(failed, TrackHandlerFailedError):
+        return failed
+    return TrackHandlerFailedError(str(failed))
+
+
 def rgb_frame(array: Any) -> VideoFrame:
-    """A video frame from an RGB array of any dtype, scaled to uint8 as gr.Image does."""
-    return VideoFrame.from_ndarray(
-        processing_utils._convert(array, np.uint8, force_copy=False), format="rgb24"
-    )
+    """
+    A video frame from an image array as gr.Image takes it: RGB, RGBA (the
+    alpha channel is dropped) or grayscale, of any dtype (scaled to uint8).
+    """
+    array = processing_utils._convert(array, np.uint8, force_copy=False)
+    if array.ndim == 2:
+        array = np.repeat(array[..., None], 3, axis=2)
+    elif array.shape[-1] == 4:
+        array = np.ascontiguousarray(array[..., :3])
+    return VideoFrame.from_ndarray(array, format="rgb24")
 
 
 def _spawn(coroutine: Any) -> asyncio.Task:
@@ -210,10 +231,10 @@ class VideoCallback(VideoStreamTrack):
                 await self.recv()
             except TimeoutError:
                 continue
-            except MediaStreamError:
-                return
             except HandlerFailedError:
                 self.stop()
+                return
+            except MediaStreamError:
                 return
 
     async def start(self):
@@ -305,12 +326,12 @@ class VideoCallback(VideoStreamTrack):
                 new_frame.pts = pts
                 new_frame.time_base = time_base
             return new_frame
-        except (HandlerFailedError, MediaStreamError):
+        except MediaStreamError:
             # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
             # e.g. what the handler returned is not a video frame
-            raise handler_failed(e) from e
+            raise track_ended_by(e) from e
 
     async def next_timestamp(self) -> tuple[int, fractions.Fraction]:
         if self.readyState != "live":
@@ -437,11 +458,11 @@ class HandlerVideoTrack(VideoCallback):
             new_frame.pts = pts
             new_frame.time_base = time_base
             return new_frame
-        except (HandlerFailedError, MediaStreamError):
+        except MediaStreamError:
             # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
-            raise handler_failed(e) from e
+            raise track_ended_by(e) from e
 
 
 class AudioCallback(AudioStreamTrack):
@@ -520,11 +541,11 @@ class AudioCallback(AudioStreamTrack):
                             self.event_handler_receive,
                             (resampled.sample_rate, numpy_array),
                         )
-            except MediaStreamError:
-                logger.debug("MediaStreamError in process_input_frames")
-                break
             except HandlerFailedError:
                 self.stop()
+                break
+            except MediaStreamError:
+                logger.debug("MediaStreamError in process_input_frames")
                 break
 
     async def start(self):
@@ -590,12 +611,12 @@ class AudioCallback(AudioStreamTrack):
                 await asyncio.sleep(wait)
             self.last_timestamp = time.time()
             return frame
-        except (HandlerFailedError, MediaStreamError):
+        except MediaStreamError:
             # MediaStreamError is how a track tells its reader (aiortc, or
             # _drain) that it has ended
             raise
         except Exception as e:
-            raise handler_failed(e) from e
+            raise track_ended_by(e) from e
 
     def stop(self):
         logger.debug("audio callback stop")
@@ -748,11 +769,11 @@ class ServerToClientVideo(VideoStreamTrack):
             next_frame.pts = pts
             next_frame.time_base = time_base
             return next_frame
-        except (HandlerFailedError, MediaStreamError):
+        except MediaStreamError:
             # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
-            raise handler_failed(e) from e
+            raise track_ended_by(e) from e
 
 
 class ServerToClientAudio(AudioStreamTrack):
@@ -854,11 +875,11 @@ class ServerToClientAudio(AudioStreamTrack):
                     await asyncio.sleep(wait)
 
             return data
-        except (HandlerFailedError, MediaStreamError):
+        except MediaStreamError:
             # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
-            raise handler_failed(e) from e
+            raise track_ended_by(e) from e
 
     def stop(self):
         logger.debug("audio-to-client stop callback")

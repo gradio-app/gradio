@@ -205,6 +205,14 @@ def _failed(error: str, **meta: Any) -> dict[str, Any]:
     return {"status": "failed", "meta": {"error": error, **meta}}
 
 
+def _concurrency_limit(session: Session) -> int | None:
+    """How many streams of this kind the queue runs at once."""
+    group = session.queue.event_queue_per_concurrency_id.get(
+        session.event.concurrency_id
+    )
+    return group.concurrency_limit if group is not None else None
+
+
 def _parse_ice_candidate(candidate: dict[str, Any]) -> RTCIceCandidate | None:
     # Example: "candidate:2393089663 1 udp 2122260223 192.168.86.60 63692 typ host ..."
     line = candidate.get("candidate", "")
@@ -469,7 +477,9 @@ class ConnectionManager:
         # The queue frees an ended stream's place before its handler has shut
         # down. With concurrency_limit=1, a model that each handler loads must
         # not be in memory twice, so the next handler waits.
-        await self._wait_for_shutdowns()
+        session = self.sessions.get(webrtc_id)
+        if session is not None and _concurrency_limit(session) == 1:
+            await self._wait_for_shutdowns()
         session = self.sessions.get(webrtc_id)
         if session is None or session.ended or not self.owns(webrtc_id, session_hash):
             return _failed("not_admitted")

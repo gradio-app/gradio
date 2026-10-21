@@ -1497,6 +1497,22 @@ class TestStreams:
         )
 
     @pytest.mark.asyncio
+    async def test_wait_for_args_asks_the_page_only_until_values_arrive(self):
+        sent = []
+        handler = EchoHandler()
+        handler.set_channel(cast(Any, SimpleNamespace(send=sent.append)))
+        waiting = asyncio.create_task(handler.wait_for_args())
+        await asyncio.sleep(0.01)
+        assert len(sent) == 1 and not waiting.done()
+        handler.set_args([1])
+        await asyncio.wait_for(waiting, 1)
+        # Handlers may call it with every frame, as FastRTC's docs suggest;
+        # each change of an input updates latest_args anyway
+        for _ in range(3):
+            await asyncio.wait_for(handler.wait_for_args(), 1)
+        assert len(sent) == 1
+
+    @pytest.mark.asyncio
     async def test_a_wait_for_admission_outlives_another_that_gave_up(
         self, monkeypatch
     ):
@@ -1546,6 +1562,43 @@ class TestStreams:
             "shutdown begins",
             "shutdown ends",
             "created",
+        ]
+        await second.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched",
+        [
+            {
+                "modality": "audio",
+                "handler": SlowShutdown(),
+                "stream_kwargs": {"concurrency_limit": 2},
+            }
+        ],
+        indirect=True,
+    )
+    async def test_with_room_for_more_streams_the_next_one_does_not_wait(
+        self, launched
+    ):
+        h = launched
+        SlowShutdown.log.clear()
+        await h.start("one")
+        first = await make_offer(audio=True)
+        await h.connect(first, "one")
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await first.close()
+        await h.wait_until(lambda: "shutdown begins" in SlowShutdown.log)
+        await h.start("two")
+        second = await make_offer(audio=True)
+        await h.connect(second, "two")
+        await h.wait_until(lambda: "shutdown ends" in SlowShutdown.log)
+        # Waiting keeps a model per handler from being loaded twice when one
+        # stream runs at a time; with room for two it would only delay this one
+        assert SlowShutdown.log[:4] == [
+            "created",
+            "shutdown begins",
+            "created",
+            "shutdown ends",
         ]
         await second.close()
 
@@ -2232,6 +2285,46 @@ class TestVideoTracks:
         released.set()
         await asyncio.wait_for(processing, 2)
         assert received[0][0, -1 if mirror else 0, 0] == 255
+
+    @pytest.mark.parametrize("shape", [(16, 16), (16, 16, 4)])
+    def test_grayscale_and_rgba_frames_are_sent_as_rgb(self, shape):
+        import numpy as np
+
+        from gradio.webrtc.tracks import rgb_frame
+
+        array = np.zeros(shape, dtype=np.uint8)
+        array[0] = 255
+        # gr.Image takes both; the alpha channel is dropped
+        sent = rgb_frame(array).to_ndarray(format="rgb24")
+        assert sent.shape == (16, 16, 3)
+        assert sent[0, 0].tolist() == [255, 255, 255]
+        assert sent[-1, 0].tolist() == [0, 0, 0]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("receive", [False, True])
+    async def test_a_failed_handler_ends_the_track_for_aiortc(self, receive):
+        from aiortc.mediastreams import MediaStreamError
+
+        from gradio.webrtc.tracks import ServerToClientVideo
+        from gradio.webrtc.utils import Context, HandlerFailedError
+
+        def broken(*args):
+            raise ValueError("broken")
+
+        def generate():
+            yield broken()
+
+        if receive:
+            track = ServerToClientVideo(generate, context=Context("id"))
+            track.set_args([])
+        else:
+            track = self.callback(broken)
+            track.frame_queue.put_nowait(video_frame(0))
+        with pytest.raises(HandlerFailedError) as raised:
+            await asyncio.wait_for(track.recv(), 2)
+        # The error has been reported already; aiortc's sender takes a
+        # MediaStreamError as the end of the track instead of logging it again
+        assert isinstance(raised.value, MediaStreamError)
 
     @pytest.mark.asyncio
     async def test_a_receive_function_that_returns_a_frame_says_so(self):
