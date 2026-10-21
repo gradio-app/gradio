@@ -151,7 +151,8 @@ class StreamNotifier:
         self.show_error = show_error
         self.channel: Any = None
         self.pending: list[str] = []
-        self.failed = False
+        # The handler's error as error_payload() shows it, once it failed
+        self.failure: dict[str, Any] | None = None
         # fail() can be called from several handler threads at once
         self._fail_lock = threading.Lock()
 
@@ -205,13 +206,13 @@ class StreamNotifier:
         (the message of a `gr.Error`; others only with `show_error=True`), once,
         and ends the stream.
         """
-        with self._fail_lock:
-            if self.failed:
-                return
-            self.failed = True
         from gradio.utils import error_payload
 
         payload = error_payload(error, self.show_error)
+        with self._fail_lock:
+            if self.failure is not None:
+                return
+            self.failure = payload
         self.send(
             "error",
             cast(str | None, payload["error"]) or "",

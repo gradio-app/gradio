@@ -361,7 +361,7 @@ class WebRTC(Component):
             concurrency_limit: the maximum number of simultaneous streams of this component. Further streams wait in the queue, showing their position, until a stream ends. "default" uses the queue's default concurrency limit (1 unless set with `Blocks.queue(default_concurrency_limit=...)`), None means no limit.
             trigger: in mode="receive", the event that starts the stream, for example `button.click`.
         Returns:
-            The event that runs each stream. Pass it to `cancels=` of another event to stop the stream from there, for example with a button.
+            The event that runs each stream. Pass it to `cancels=` of another event to stop the stream from there, for example with a button. Its `.success()` listeners run when a stream ends, and its `.failure()` listeners when the handler raised an error.
         """
         try:
             from gradio.webrtc import connection as webrtc_connection
@@ -639,7 +639,16 @@ class WebRTC(Component):
                 # function is a new one whose manager never saw the stream
                 manager = stream_manager(stream_id) or manager
                 outputs = manager.take_outputs(stream_id)
-                manager.finish_if_drained(stream_id)
+                failure = manager.finish_if_drained(stream_id, outputs is not None)
+                if failure is not None:
+                    # The page has shown it already, over the data channel,
+                    # and the server has logged it
+                    raise Error(
+                        cast(str, failure["error"] or ""),
+                        title=cast(str, failure.get("title") or "Error"),
+                        visible=False,
+                        print_exception=False,
+                    )
                 if outputs is not None:
                     if len(outputs.args) != self._num_extra_outputs:
                         raise ValueError(

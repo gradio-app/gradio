@@ -779,7 +779,7 @@ export class DependencyManager {
 	 * Ends a resumed stream event and reads what the server sends for it up to
 	 * its end, showing its outputs and running the `.change` listeners of the
 	 * gr.State values it changed. Returns how the event ended, "gone" when the
-	 * server no longer has it, or null when no end came in time.
+	 * server no longer has it, or null when the messages stopped without an end.
 	 */
 	async end_resumed_stream(
 		submission: ReturnType<Client["resume_jobs"]>[number],
@@ -787,32 +787,22 @@ export class DependencyManager {
 	): Promise<"complete" | "error" | "gone" | null> {
 		// Whether the stream had already ended, is still waiting in line or is
 		// still running, the server replays what it sent and then reports the
-		// end, so nothing depends on how fast the connection opens
+		// end, so nothing depends on how fast the connection opens or how long
+		// the last call waits for a worker
 		submission.close_stream({ read_to_end: true });
-		const iterator = submission[Symbol.asyncIterator]();
-		let timer: ReturnType<typeof setTimeout> | undefined;
-		const timed_out = new Promise<null>((resolve) => {
-			timer = setTimeout(() => resolve(null), 5000);
-		});
-		try {
-			while (true) {
-				const next = await Promise.race([iterator.next(), timed_out]);
-				if (next === null || next.done) return null;
-				const result = next.value;
-				if (result?.type === "data") {
-					await this.handle_data(outputs, result.data);
-					continue;
-				}
-				if (result?.type !== "status") continue;
-				this.dispatch_state_change_events(result);
-				if (result.stage === "complete") return "complete";
-				if (result.stage === "error") {
-					return result.session_not_found ? "gone" : "error";
-				}
+		for await (const result of submission) {
+			if (result?.type === "data") {
+				await this.handle_data(outputs, result.data);
+				continue;
 			}
-		} finally {
-			clearTimeout(timer);
+			if (result?.type !== "status") continue;
+			this.dispatch_state_change_events(result);
+			if (result.stage === "complete") return "complete";
+			if (result.stage === "error") {
+				return result.session_not_found ? "gone" : "error";
+			}
 		}
+		return null;
 	}
 
 	async resume(
@@ -836,9 +826,9 @@ export class DependencyManager {
 						dep.outputs
 					);
 					await submission.acknowledge();
-					// The server no longer has it: nothing to follow up, as for
-					// any other event
-					if (outcome === "gone") return;
+					// The server no longer has it, or how it ended is unknown:
+					// nothing to follow up
+					if (outcome === "gone" || outcome === null) return;
 					// A stream that failed runs `.failure()`; one that completed,
 					// or that is ended here as when the user stops it, runs
 					// `.success()` and `.then()`

@@ -135,6 +135,7 @@ class Session:
     connected: bool = False
     ended: bool = False
     watcher: asyncio.Task | None = None
+    notifier: StreamNotifier | None = None
     # The page's rtc_configuration, resolved once per stream
     rtc_configuration: asyncio.Future | None = None
 
@@ -369,14 +370,26 @@ class ConnectionManager:
             session.wake()
         return outputs
 
-    def finish_if_drained(self, webrtc_id: str) -> None:
+    def finish_if_drained(
+        self, webrtc_id: str, delivered: bool
+    ) -> dict[str, Any] | None:
         """
         Lets the queue event of an ended stream finish once its outputs are
-        delivered. Called at the end of each of the event's calls.
+        delivered. Called at the end of each of the event's calls, `delivered`
+        saying whether the call delivers outputs. Returns the handler's error
+        (see `StreamNotifier.fail`) for the call that finishes the event of a
+        stream whose handler failed, which delivers nothing.
         """
         session = self.sessions.get(webrtc_id)
-        if session is not None and session.ended and not session.outputs:
-            session.event.closed = True
+        if session is None or not session.ended or session.outputs:
+            return None
+        failure = session.notifier.failure if session.notifier else None
+        if failure is not None and delivered:
+            # The next call reports the error
+            session.wake()
+            return None
+        session.event.closed = True
+        return failure
 
     def clean_up(self, webrtc_id: str) -> None:
         """
@@ -498,6 +511,7 @@ class ConnectionManager:
             show_error=show_error,
         )
         LocalContext.stream_notifier.set(notifier)
+        session.notifier = notifier
         pc = RTCPeerConnection(configuration=self.server_rtc_configuration)
         self.pcs[webrtc_id] = pc
         try:

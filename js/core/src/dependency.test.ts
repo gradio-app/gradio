@@ -662,32 +662,48 @@ describe("DependencyManager.resume", () => {
 		);
 	});
 
-	test("reading a resumed stream to its end leaves no timer behind", async () => {
+	test("a resumed stream that takes long to end still reports how it ended", async () => {
+		vi.useFakeTimers();
 		async function* events(): AsyncGenerator<unknown> {
-			for (let i = 0; i < 5; i++) {
-				yield { type: "status", stage: "streaming", fn_index: 0, queue: true };
-			}
-			yield { type: "status", stage: "complete", fn_index: 0, queue: true };
+			yield { type: "status", stage: "pending", fn_index: 0, queue: true };
+			// e.g. its last call waits for a free worker
+			await new Promise((resolve) => setTimeout(resolve, 6000));
+			yield { type: "data", data: ["last"], fn_index: 0 };
+			yield { type: "status", stage: "error", fn_index: 0, queue: true };
 		}
-		const stream = dependency(0, "stream", []);
-		stream.connection = "stream";
+		const [run, then, on_success, on_failure] = chain();
+		run.connection = "stream";
+		run.outputs = [7];
 		const resumed = Object.assign(submission(events()), {
 			close_stream: vi.fn()
 		});
 		const client = {
 			resume_jobs: vi.fn(() => [resumed])
 		} as unknown as Client;
-		const dependency_manager = manager([stream], client);
-		const set_timeout = vi.spyOn(globalThis, "setTimeout");
-		const clear_timeout = vi.spyOn(globalThis, "clearTimeout");
-
-		await dependency_manager.end_resumed_stream(resumed, []);
-		expect(set_timeout).toHaveBeenCalledTimes(1);
-		expect(clear_timeout).toHaveBeenCalledWith(
-			set_timeout.mock.results[0].value
+		const dependency_manager = manager(
+			[run, then, on_success, on_failure],
+			client
 		);
-		set_timeout.mockRestore();
-		clear_timeout.mockRestore();
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+		const handle_data = vi
+			.spyOn(dependency_manager as any, "handle_data")
+			.mockResolvedValue(undefined);
+
+		try {
+			const resuming = dependency_manager.resume([
+				{ event_id: "e", fn_index: 0 }
+			]);
+			await vi.advanceTimersByTimeAsync(6000);
+			await resuming;
+		} finally {
+			vi.useRealTimers();
+		}
+		expect(handle_data).toHaveBeenCalledWith([7], ["last"]);
+		expect(dispatch.mock.calls.map(([meta]) => (meta as any).fn_index)).toEqual(
+			[3]
+		);
 	});
 
 	test("a replayed stream runs the .change listeners of the state it changed", async () => {
@@ -725,6 +741,7 @@ describe("DependencyManager.resume", () => {
 	test("runs the events chained to a stream it ends after a reload", async () => {
 		async function* events(): AsyncGenerator<unknown> {
 			yield { type: "status", stage: "streaming", fn_index: 0, queue: true };
+			yield { type: "status", stage: "complete", fn_index: 0, queue: true };
 		}
 		const [run, then, on_success, on_failure] = chain();
 		run.connection = "stream";

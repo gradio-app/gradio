@@ -1015,7 +1015,39 @@ class TestStreams:
         assert message["message"] == "Bad frame"
         assert message["title"] == "Oops"
         await h.wait_until(lambda: "one" not in h.manager.pcs)
+        # The event fails too, for .failure() and a page that resumes it,
+        # without showing the error a second time
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m["msg"] == "process_completed")
+        assert completion["success"] is False
+        assert completion["output"]["error"] == "Bad frame"
+        assert completion["output"]["visible"] is False
         await pc.close()
+
+    @pytest.mark.asyncio
+    async def test_a_failed_stream_delivers_its_outputs_before_failing(self, launched):
+        from types import SimpleNamespace
+
+        manager = launched.manager
+        event = SimpleNamespace(closed=False, signal=asyncio.Event())
+        session = webrtc_connection.Session(
+            event=cast(Any, event),
+            queue=cast(Any, None),
+            ended=True,
+            notifier=cast(Any, SimpleNamespace(failure={"error": "Bad frame"})),
+        )
+        session.outputs.append(AdditionalOutputs(1))
+        manager.sessions["failed"] = session
+        try:
+            assert manager.take_outputs("failed") is not None
+            assert manager.finish_if_drained("failed", delivered=True) is None
+            assert not event.closed and event.signal.is_set()
+            assert manager.finish_if_drained("failed", delivered=False) == {
+                "error": "Bad frame"
+            }
+            assert event.closed
+        finally:
+            del manager.sessions["failed"]
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("show_error", [False, True])
