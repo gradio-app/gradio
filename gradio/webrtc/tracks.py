@@ -288,11 +288,12 @@ class VideoCallback(VideoStreamTrack):
                 raise MediaStreamError
             self._next_slot = max(time.monotonic(), self._next_slot) + self.frame_ptime
             await self.wait_for_channel()
+            # Until the values of the extra inputs arrive, the frame goes back
+            # unprocessed (mirrored if need be)
+            if self.latest_args is None and not self.mirror:
+                return frame
             frame_array = self.frame_to_array(frame)
             if self.latest_args is None:
-                # The values of the extra inputs have not arrived yet.
-                if not self.mirror:
-                    return frame
                 unprocessed = self.array_to_frame(frame_array)
                 unprocessed.pts = frame.pts
                 unprocessed.time_base = frame.time_base
@@ -800,6 +801,7 @@ class ServerToClientAudio(AudioStreamTrack):
         self.set_additional_outputs = set_additional_outputs
         self.has_started = False
         self._clock_start: float | None = None
+        self._last_sent = 0.0
         self.context = context
         # Set again in each next(), on the worker thread that runs it
         self.notifier = LocalContext.stream_notifier.get(None)
@@ -868,11 +870,16 @@ class ServerToClientAudio(AudioStreamTrack):
 
             # control playback rate
             if data_time is not None:
+                # After a pause of the generator, the clock starts again rather
+                # than sending what comes next at once to catch up with it
+                if time.time() - self._last_sent > 10 * data.samples / data.sample_rate:
+                    self._clock_start = None
                 if self._clock_start is None:
                     self._clock_start = time.time() - data_time
                 else:
                     wait = self._clock_start + data_time - time.time()
                     await asyncio.sleep(wait)
+                self._last_sent = time.time()
 
             return data
         except MediaStreamError:

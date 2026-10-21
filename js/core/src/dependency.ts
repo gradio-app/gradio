@@ -213,6 +213,8 @@ export class DependencyManager {
 	render_id_deps = new Map<number, Set<number>>();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
+	// Streams that the page ended and that are read to their end
+	page_ended: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
 	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
 		new Map();
 	client: Client;
@@ -445,6 +447,14 @@ export class DependencyManager {
 
 				const { success, failure, all } = dep.get_triggers();
 				let active_submission: ReturnType<Client["submit"]> | undefined;
+				const update_status = (status: LoadingStatusArgs): void => {
+					// A stream that the page ended had its status settled there,
+					// and a new stream of the same event may have started since
+					if (active_submission && this.page_ended.has(active_submission)) {
+						return;
+					}
+					this.update_loading_status(status);
+				};
 
 				try {
 					let target_id: number | null = null;
@@ -560,7 +570,7 @@ export class DependencyManager {
 									});
 									this.dispatch_state_change_events(result);
 									// @ts-ignore
-									this.update_loading_status({
+									update_status({
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
@@ -574,7 +584,7 @@ export class DependencyManager {
 								) {
 									this.dispatch_state_change_events(result);
 									// @ts-ignore
-									this.update_loading_status({
+									update_status({
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
@@ -587,7 +597,7 @@ export class DependencyManager {
 											this.connection_lost = true;
 											this.on_connection_lost_cb();
 										}
-										this.update_loading_status({
+										update_status({
 											status: "complete",
 											fn_index: dep.id,
 											stream_state: null
@@ -608,7 +618,7 @@ export class DependencyManager {
 										if (dep.connection_type === "stream") {
 											stream_state = "closed";
 										}
-										this.update_loading_status({
+										update_status({
 											status: "complete",
 											fn_index: dep.id,
 											stream_state,
@@ -674,7 +684,7 @@ export class DependencyManager {
 									throw new Error("Dependency function failed");
 								} else {
 									// @ts-ignore
-									this.update_loading_status({
+									update_status({
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
@@ -685,7 +695,7 @@ export class DependencyManager {
 							}
 
 							if (result.type === "render") {
-								this.update_loading_status({
+								update_status({
 									status: "complete",
 									fn_index: dep.id,
 									stream_state: null
@@ -720,7 +730,7 @@ export class DependencyManager {
 					// This run's own: with trigger_mode="multiple" the latest one
 					// may be another run, which acknowledging would close
 					await active_submission?.acknowledge();
-					this.update_loading_status({
+					update_status({
 						status: "error",
 						fn_index: dep.id,
 						eta: 0,
@@ -1170,7 +1180,11 @@ export class DependencyManager {
 			}
 			const submission = this.submissions.get(fn_id);
 			if (submission) {
-				submission.close_stream();
+				// The server still delivers the outputs pending for the stream
+				// and then reports how it ended, for its `.success()` /
+				// `.failure()` listeners. A new stream is a new event meanwhile.
+				this.page_ended.add(submission);
+				submission.close_stream({ read_to_end: true });
 				this.clear_submission(fn_id);
 			}
 

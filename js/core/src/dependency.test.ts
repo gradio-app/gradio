@@ -465,6 +465,77 @@ describe("DependencyManager.close_stream", () => {
 		expect(start_submission.close_stream).not.toHaveBeenCalled();
 		expect(submissions.has(1)).toBe(true);
 	});
+
+	test("a stream ended on the page still gets its last outputs and .success()", async () => {
+		const stream = dependency(0, "stream", [10]);
+		stream.connection = "stream";
+		stream.targets = [[5, "stream"]];
+		const on_success = dependency(1, "on_success", []);
+		on_success.trigger_after = 0;
+		on_success.trigger_only_on_success = true;
+		const then = dependency(2, "then", []);
+		then.trigger_after = 0;
+		let end!: () => void;
+		const ended = new Promise<void>((resolve) => (end = resolve));
+		const run = Object.assign(
+			submission(
+				(async function* () {
+					yield { type: "status", stage: "pending", queue: true };
+					yield {
+						type: "status",
+						stage: "streaming",
+						queue: true,
+						original_msg: "process_starts"
+					};
+					await ended;
+					// What the server still delivers once asked to end the stream
+					yield { type: "data", data: ["last"] };
+					yield { type: "status", stage: "complete", queue: true };
+				})()
+			),
+			{ close_stream: vi.fn(() => end()) }
+		);
+		const client = { submit: () => run } as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[stream, on_success, then],
+			client,
+			update_state
+		);
+		const handle_data = vi.spyOn(dependency_manager as any, "handle_data");
+
+		const running = dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+		await vi.waitFor(() =>
+			expect((dependency_manager as any).submissions.has(0)).toBe(true)
+		);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+		dependency_manager.close_stream(5);
+		update_state.mockClear();
+		await running;
+
+		expect(run.close_stream).toHaveBeenCalledWith({ read_to_end: true });
+		expect(handle_data).toHaveBeenCalledWith([10], ["last"]);
+		expect(
+			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
+		).toEqual([1, 2]);
+		// The page has already settled the component's status, and a new stream
+		// may have started since
+		const painted = update_state.mock.calls
+			.filter(([id, state]) => id === 10 && "loading_status" in state)
+			.map(([, state]) => state.loading_status);
+		expect(
+			painted.every(
+				(status) =>
+					status.status === "complete" && status.stream_state === "closed"
+			)
+		).toBe(true);
+	});
 });
 
 describe("DependencyManager.dispatch_load_events", () => {

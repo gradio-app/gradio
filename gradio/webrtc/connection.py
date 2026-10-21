@@ -799,8 +799,8 @@ async def stream_admitted(
     webrtc_id: str | None, session_hash: str | None, component_id: int
 ) -> Session | None:
     """
-    The stream, if its turn has come in the line of this component and it
-    belongs to this browser session. Waits a little for an admission that is
+    The stream, if its turn has come in the line of this component, has not
+    ended, and belongs to this browser session. Waits a little for an admission that is
     just under way.
     """
     if not webrtc_id:
@@ -809,6 +809,8 @@ async def stream_admitted(
     if manager is None or not manager.owns(webrtc_id, session_hash):
         return None
     session = manager.sessions[webrtc_id]
+    if session.ended:
+        return None
     targets = [tuple(target) for target in session.event.fn.targets]
     return session if (component_id, "stream") in targets else None
 

@@ -1492,6 +1492,9 @@ class TestStreams:
         await h.start("one")
         assert await ask("one", "one") == {}
         assert "error" in await ask("one", "intruder")
+        # Nor once the turn is over, while its event still finishes
+        h.manager.end("one")
+        assert "error" in await ask("one", "one")
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -3017,6 +3020,31 @@ class TestAudioArrays:
         # A decoder waiting for room in the queue still stops
         track.stop()
         await asyncio.wait_for(track.decode_task, 1)
+
+    @pytest.mark.asyncio
+    async def test_receive_audio_keeps_its_pace_after_a_pause(self):
+        import numpy as np
+
+        from gradio.webrtc.tracks import ServerToClientAudio
+        from gradio.webrtc.utils import Context
+
+        def generate():
+            for i in range(10):
+                if i == 5:
+                    # e.g. a model call between two sentences
+                    time.sleep(0.5)
+                yield (48000, np.zeros(960, dtype=np.int16))
+
+        track = ServerToClientAudio(generate, context=Context("id"))
+        track.set_args([])
+        returned = []
+        for _ in range(10):
+            await asyncio.wait_for(track.recv(), 2)
+            returned.append(time.monotonic())
+        track.stop()
+        # The audio after the pause plays in real time (20 ms a frame), not
+        # all at once to catch up with the clock
+        assert returned[9] - returned[5] > 0.06
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("audio", [None, 0, 4800])
