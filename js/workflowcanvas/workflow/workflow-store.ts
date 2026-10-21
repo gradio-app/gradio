@@ -15,7 +15,7 @@ import type {
 	WFEdge,
 	Workflow
 } from "./workflow-types";
-import { ports_compatible } from "./workflow-types";
+import { is_secret, is_secret_port, ports_compatible } from "./workflow-types";
 import { allNodes, findNode, isV2, migrateToV2 } from "./workflow-migration";
 
 function uuid(): string {
@@ -115,7 +115,17 @@ export function strip_session_media(
 }
 
 function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
-	const cleaned = strip_session_media(node.data);
+	const cleaned = is_secret(node) ? {} : strip_session_media(node.data);
+	for (const port of node.inputs) {
+		if (is_secret_port(port)) delete cleaned[port.id];
+	}
+
+	const scrub = (ports: Port[]): Port[] =>
+		ports.map((p) =>
+			(is_secret(node) || is_secret_port(p)) && p.default_value !== undefined
+				? { ...p, default_value: undefined }
+				: p
+		);
 	const {
 		x: _x,
 		y: _y,
@@ -126,7 +136,12 @@ function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
 	// Only operators carry a catalog, so it can't be destructured off the
 	// generic alongside the geometry.
 	delete (persisted as { endpoints?: unknown }).endpoints;
-	return { ...persisted, data: cleaned };
+	return {
+		...persisted,
+		inputs: scrub(node.inputs),
+		outputs: scrub(node.outputs),
+		data: cleaned
+	};
 }
 
 export function sanitize_for_save(wf: Workflow): SavedWorkflow {
@@ -270,7 +285,11 @@ export function addNode(
 			template.outputs?.[0]?.type ??
 			template.inputs?.[0]?.type ??
 			"any";
-		return addReference({ ...baseFields, asset_type }, x, y);
+		return addReference(
+			{ ...baseFields, asset_type, type: template.type },
+			x,
+			y
+		);
 	}
 
 	if (role === "operator") {
@@ -445,6 +464,16 @@ export function updateNodeData(
 	);
 }
 
+export function set_masked(nodeId: string, masked: boolean): void {
+	workflow.update((wf) =>
+		mapAllRoles(wf, (n) =>
+			n.id === nodeId
+				? ({ ...n, type: masked ? "password" : undefined } as AnyNode)
+				: n
+		)
+	);
+}
+
 export function removeNode(id: string): void {
 	workflow.update((wf) => {
 		const node = findNode(wf, id);
@@ -464,12 +493,21 @@ export function removeNode(id: string): void {
 }
 
 export function addEdge(e: Omit<WFEdge, "id">): void {
-	workflow.update((wf) =>
-		reconcileComponentRoles({
+	workflow.update((wf) => {
+		const port = findNode(wf, e.to_node_id)?.inputs.find(
+			(p) => p.id === e.to_port_id
+		);
+		const references = is_secret_port(port ?? {})
+			? wf.references.map((n) =>
+					n.id === e.from_node_id ? { ...n, type: "password" as const } : n
+				)
+			: wf.references;
+		return reconcileComponentRoles({
 			...wf,
+			references,
 			edges: [...wf.edges, { ...e, id: uuid() }]
-		})
-	);
+		});
+	});
 }
 
 export function removeEdge(id: string): void {
