@@ -596,6 +596,9 @@ class TestWebRTC:
         change = triggers[(slider._id, "change")]
         assert change.name == push.name == "_push_inputs"
         assert change.api_visibility == "private"
+        # They only hand values to a running stream, so they take no worker slot
+        assert push.queue is False
+        assert change.queue is False
         assert (webrtc._id, "state_change") not in triggers
 
         # In mode="receive" the stream event still carries the connection id
@@ -613,6 +616,28 @@ class TestWebRTC:
         assert manager is not None
         assert manager.time_limit == 30
         assert get_manager(receive._id).mode == "receive"
+
+    def test_config_has_stream_when_its_id_is_registered_by_another_render(self):
+        with gr.Blocks():
+            webrtc = gr.WebRTC()
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc], time_limit=30)
+        # As when a keyed @gr.render component of another session registers
+        # under the same id, and that render is gone
+        other = webrtc_connection.register_manager(
+            webrtc._id,
+            handler=flip,
+            mode="send-receive",
+            modality="video",
+            time_limit=None,
+            allow_extra_tracks=False,
+            server_rtc_configuration=None,
+        )
+        del other
+        gc.collect()
+        assert get_manager(webrtc._id) is None
+        config = webrtc.get_config()
+        assert config["has_stream"]
+        assert config["time_limit"] == 30
 
     def test_default_concurrency_limit_comes_from_the_queue(self):
         with gr.Blocks() as demo:
@@ -2498,6 +2523,36 @@ class TestAudioArrays:
             (24000, np.zeros(4800, dtype=np.float32)),
         )
         assert sum(f.samples for f in frames) > 0
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("audio", [None, 0, 4800])
+    async def test_close_stream_is_the_last_call_of_the_handler(self, audio):
+        import numpy as np
+
+        from gradio.webrtc.utils import player_worker_decode
+
+        chunk = (24000, np.zeros(4800, dtype=np.int16))
+        last = (
+            CloseStream("bye")
+            if audio is None
+            else ((24000, np.zeros(audio, dtype=np.int16)), CloseStream("bye"))
+        )
+        calls = 0
+
+        async def emit():
+            nonlocal calls
+            calls += 1
+            return last if calls == 1 else chunk
+
+        queue: asyncio.Queue = asyncio.Queue()
+        # Nothing reads the queue here, as when the track has not yet played
+        # what comes before the CloseStream
+        await asyncio.wait_for(
+            player_worker_decode(emit, queue, asyncio.Event(), None), 2
+        )
+        assert calls == 1
+        items = [queue.get_nowait() for _ in range(queue.qsize())]
+        assert isinstance(items[-1], CloseStream)
 
     @pytest.mark.asyncio
     async def test_an_emit_with_nothing_ready_is_not_called_in_a_busy_loop(self):

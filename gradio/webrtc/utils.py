@@ -483,9 +483,11 @@ async def player_worker_decode(
                 if isinstance(outputs, AdditionalOutputs) and set_additional_outputs:
                     set_additional_outputs(outputs)
 
+                # The handler is not called again after a CloseStream
                 if frame is None:
                     if isinstance(outputs, CloseStream):
                         await queue.put(outputs)
+                        break
                     await asyncio.sleep(EMPTY_EMIT_WAIT)
                     continue
 
@@ -494,6 +496,7 @@ async def player_worker_decode(
                     # Nothing to play (e.g. TTS output for an empty sentence)
                     if isinstance(outputs, CloseStream):
                         await queue.put(outputs)
+                        break
                     await asyncio.sleep(EMPTY_EMIT_WAIT)
                     continue
                 layout = "mono" if audio_array.ndim == 1 else "stereo"
@@ -519,6 +522,7 @@ async def player_worker_decode(
                 await put_resampled(resampler.resample(in_frame))
                 if isinstance(outputs, CloseStream):
                     await queue.put(outputs)
+                    break
             except HandlerFailedError:
                 raise
             except Exception as e:

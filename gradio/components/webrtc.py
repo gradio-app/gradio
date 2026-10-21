@@ -301,7 +301,8 @@ class WebRTC(Component):
         config["time_limit"] = manager.time_limit if manager else self.time_limit
         config["track_constraints"] = self._track_constraints()
         config["mirror_webcam"] = self.webcam_options.mirror
-        config["has_stream"] = manager is not None
+        # The registry can hold another render's manager for this id, or none
+        config["has_stream"] = manager is not None or self._has_stream
         options = self.stream_options
         config["stream_options"] = {
             # gr.I18n translations become markers that the frontend translates
@@ -466,6 +467,7 @@ class WebRTC(Component):
             api_visibility="private",
             concurrency_limit=None,
             trigger_mode="multiple",
+            queue=False,
         )
         for component in extra_inputs:
             if "change" in component.events:
@@ -478,6 +480,7 @@ class WebRTC(Component):
                     api_visibility="private",
                     concurrency_limit=None,
                     trigger_mode="always_last",
+                    queue=False,
                 )
         if self.mode == "receive":
             cast(Callable, trigger)(
