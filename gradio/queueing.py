@@ -291,6 +291,13 @@ class Queue:
             # hours.
             if event_message.msg == ServerMessage.process_streaming:
                 _merge_into_history(resumable.history, event_message)
+            elif event.fn.connection == "stream" and event_message.msg in (
+                ServerMessage.log,
+                ServerMessage.progress,
+            ):
+                # A resumed stream is only read to its end, so the logs and
+                # progress of every chunk would pile up for nothing
+                pass
             else:
                 resumable.history.append(event_message)
         messages = self.pending_messages_per_session[event.session_hash]

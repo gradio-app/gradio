@@ -727,14 +727,16 @@ def _history_session(demo):
         "s", queueing.ResumableSession(acknowledges=True)
     )
 
-    def event(event_id, types_generator):
+    def event(event_id, types_generator, connection="sse"):
         return cast(
             queueing.Event,
             SimpleNamespace(
                 _id=event_id,
                 alive=True,
                 session_hash="s",
-                fn=SimpleNamespace(types_generator=types_generator),
+                fn=SimpleNamespace(
+                    types_generator=types_generator, connection=connection
+                ),
             ),
         )
 
@@ -781,6 +783,43 @@ def test_history_keeps_only_the_latest_output_of_a_stream():
             ("stream", 2),
             ("generating", 2),
         ]
+    finally:
+        demo.close()
+
+
+def test_history_of_a_stream_keeps_no_logs_or_progress():
+    from gradio.server_messages import (
+        LogMessage,
+        ProcessGeneratingMessage,
+        ProgressMessage,
+        ServerMessage,
+    )
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue, resumable, event = _history_session(demo)
+        stream = event("stream", False, connection="stream")
+        other = event("other", True)
+        for i in range(3):
+            for e in (stream, other):
+                queue.send_message(
+                    e, LogMessage(log=f"chunk {i}", level="info", title="")
+                )
+                queue.send_message(e, ProgressMessage(progress_data=[]))
+            queue.send_message(
+                stream,
+                ProcessGeneratingMessage(
+                    msg=ServerMessage.process_streaming,
+                    output={"data": [f"value {i}"]},
+                    success=True,
+                ),
+            )
+        assert [m.msg for m in resumable.history if m.event_id == "stream"] == [
+            ServerMessage.process_streaming
+        ]
+        assert len([m for m in resumable.history if m.event_id == "other"]) == 6
     finally:
         demo.close()
 
