@@ -1053,14 +1053,16 @@ class Queue:
     ) -> Literal["signal", "timeout"]:
         t1 = asyncio.create_task(Queue.wait_for_event(event))
         t2 = asyncio.create_task(Queue.timeout(timeout))
-        done, pending = await asyncio.wait(
-            [t1, t2],
-            return_when=asyncio.FIRST_COMPLETED,
-        )
-        # A stream can be woken many times a second; each wake would otherwise
-        # leave a task sleeping for the whole timeout
-        for task in pending:
-            task.cancel()
+        try:
+            done, _ = await asyncio.wait(
+                [t1, t2],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+        finally:
+            # A stream can be woken many times a second, or cancelled; either
+            # would otherwise leave a task sleeping for the whole timeout
+            for task in (t1, t2):
+                task.cancel()
         done = [d.result() for d in done]
         event.signal.clear()
         return cast(Literal["signal", "timeout"], done[0])
@@ -1074,10 +1076,15 @@ class Queue:
             tasks.append(
                 asyncio.create_task(Queue.wait_for_event_or_timeout(event, timeout))
             )
-        done, _ = await asyncio.wait(
-            tasks,
-            return_when=asyncio.ALL_COMPLETED,
-        )
+        try:
+            done, _ = await asyncio.wait(
+                tasks,
+                return_when=asyncio.ALL_COMPLETED,
+            )
+        finally:
+            # On /cancel, the waits must not outlive the event's task
+            for task in tasks:
+                task.cancel()
         done = [d.result() for d in done]
         awake_events = []
         closed_events = []
@@ -1280,6 +1287,9 @@ class Queue:
                             awake_events = [
                                 event for event in awake_events if event.alive
                             ]
+                            # A batch may have only events that timed out left
+                            if not awake_events:
+                                break
                         # Re-read the event's fn, which may have been swapped out
                         # if the app was hot-reloaded while this event was generating
                         fn = awake_events[0].fn
@@ -1561,19 +1571,32 @@ def _merge_into_history(history: list[EventMessage], message: EventMessage) -> N
         _merge_value(old_data[j], value) if j < len(old_data) else value
         for j, value in enumerate(new.get("data") or [])
     ]
-    # A call's state holds only the tokens it changed
+    # A call's state holds only the tokens it changed, and its
+    # changed_state_ids only the gr.State values it changed
     state = {**(old.get("state") or {}), **(new.get("state") or {})}
+    changed = list(
+        dict.fromkeys(
+            [
+                *(old.get("changed_state_ids") or []),
+                *(new.get("changed_state_ids") or []),
+            ]
+        )
+    )
     merged = {**old, **new, "data": data}
     if state:
         merged["state"] = state
+    if changed:
+        merged["changed_state_ids"] = changed
     # The message itself still goes to the client as it is
     history.append(message.model_copy(update={"output": merged}))
 
 
 def _merge_value(old: Any, new: Any) -> Any:
     """An output value as the client holds it after `old`, then `new`."""
+    old_is_update = isinstance(old, dict) and old.get("__type__") == "update"
     if not (isinstance(new, dict) and new.get("__type__") == "update"):
-        return new
-    if isinstance(old, dict) and old.get("__type__") == "update":
+        # A new value keeps the props that an earlier update set
+        return {**old, "value": new} if old_is_update else new
+    if old_is_update:
         return {**old, **new}
     return new if "value" in new else {**new, "value": old}

@@ -800,14 +800,20 @@ def test_history_of_a_stream_keeps_outputs_that_later_calls_skip():
         skip = {"__type__": "update"}
         for output in (
             {"data": ["text", skip]},
-            {"data": [skip, "image"], "state": {"n": 1, "m": 1}},
+            {
+                "data": [skip, "image"],
+                "state": {"n": 1, "m": 1},
+                "changed_state_ids": [3],
+            },
             # Only the browser-held state changed
-            {"data": [skip, skip], "state": {"n": 2}},
+            {"data": [skip, skip], "state": {"n": 2}, "changed_state_ids": [4]},
             {"data": [{"__type__": "update", "visible": False}, skip]},
             # A call that changed no state sends none
-            {"data": [skip, skip], "state": {}},
+            {"data": [skip, skip], "state": {}, "changed_state_ids": []},
             # None tells the client to drop its token
             {"data": [skip, skip], "state": {"m": None}},
+            # A new value keeps the props an earlier call set
+            {"data": ["new text", skip]},
         ):
             queue.send_message(
                 stream,
@@ -818,10 +824,12 @@ def test_history_of_a_stream_keeps_outputs_that_later_calls_skip():
         [kept] = resumable.history
         assert cast(Any, kept).output == {
             "data": [
-                {"__type__": "update", "value": "text", "visible": False},
+                {"__type__": "update", "value": "new text", "visible": False},
                 {"__type__": "update", "value": "image"},
             ],
             "state": {"n": 2, "m": None},
+            # Each one runs the .change listeners of that gr.State
+            "changed_state_ids": [3, 4],
         }
     finally:
         demo.close()
@@ -989,6 +997,25 @@ async def test_waking_a_stream_leaves_no_timer_behind():
     # A stream woken many times a second must not leave a sleeping task each time
     timers = [t for t in asyncio.all_tasks() if "Queue.timeout" in repr(t)]
     assert timers == []
+
+
+@pytest.mark.asyncio
+async def test_cancelling_a_stream_wait_leaves_no_timer_behind():
+    event = type("E", (), {})()
+    event.signal = asyncio.Event()
+    waiting = asyncio.create_task(queueing.Queue.wait_for_batch([event], [3600]))
+    await asyncio.sleep(0.01)
+    # As /cancel does to the event's task
+    waiting.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await waiting
+    await asyncio.sleep(0)
+    left = [
+        t
+        for t in asyncio.all_tasks()
+        if "Queue.timeout" in repr(t) or "Queue.wait_for_event" in repr(t)
+    ]
+    assert left == []
 
 
 def test_a_stream_event_dropped_by_its_session_frees_its_slot():
