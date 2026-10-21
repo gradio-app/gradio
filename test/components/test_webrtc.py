@@ -2001,6 +2001,36 @@ class TestVideoTracks:
         assert cb.frame_queue.qsize() == (0 if skip_frames else 4)
 
     @pytest.mark.asyncio
+    async def test_fps_limits_how_often_a_function_runs(self):
+        from aiortc.mediastreams import MediaStreamError
+
+        calls = []
+        cb = self.callback(lambda frame: calls.append(1) or frame, fps=5)
+
+        async def camera():
+            # About 30 frames a second
+            for pts in range(20):
+                cb.frame_queue.put_nowait(video_frame(pts))
+                await asyncio.sleep(1 / 30)
+            cb.stop()
+
+        start = time.monotonic()
+        feeding = asyncio.create_task(camera())
+        returned = []
+        with pytest.raises(MediaStreamError):
+            while True:
+                frame = await asyncio.wait_for(cb.recv(), 2)
+                returned.append((time.monotonic(), frame.pts))
+        await feeding
+        elapsed = time.monotonic() - start
+        # At most 5 frames a second, each the newest one that had arrived
+        assert len(calls) <= elapsed * 5 + 1
+        assert len(calls) < 10
+        gaps = [b[0] - a[0] for a, b in zip(returned, returned[1:], strict=False)]
+        assert min(gaps) >= 0.15
+        assert [pts for _, pts in returned] == sorted(pts for _, pts in returned)
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("mirror", [True, False])
     async def test_mirrored_webcam_gives_the_handler_mirrored_frames(self, mirror):
         received = []

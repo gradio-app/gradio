@@ -165,6 +165,14 @@ class VideoCallback(VideoStreamTrack):
         self.context = context
         self._clock_start: float | None = None
         self._clock_timestamp: int | None = None
+        self._next_slot = 0.0
+
+    def _newest(self, frame: Any) -> Any:
+        """With skip_frames, the newest frame that has arrived instead of `frame`."""
+        if self.skip_frames:
+            while not self.frame_queue.empty():
+                frame = self.frame_queue.get_nowait()
+        return frame
 
     def set_channel(self, channel: DataChannel):
         self.channel = channel
@@ -232,12 +240,15 @@ class VideoCallback(VideoStreamTrack):
     async def recv(self):
         self.accept_input_in_background()
         try:
-            frame = await self.frame_queue.get()
-            if self.skip_frames:
-                while not self.frame_queue.empty():
-                    frame = self.frame_queue.get_nowait()
+            frame = self._newest(await self.frame_queue.get())
+            # The handler runs on at most `fps` frames a second
+            wait = self._next_slot - time.monotonic()
+            if frame is not _STOPPED and wait > 0:
+                await asyncio.sleep(wait)
+                frame = self._newest(frame)
             if frame is _STOPPED:
                 raise MediaStreamError
+            self._next_slot = max(time.monotonic(), self._next_slot) + self.frame_ptime
             await self.wait_for_channel()
             frame_array = self.frame_to_array(frame)
             if self.latest_args is None:
