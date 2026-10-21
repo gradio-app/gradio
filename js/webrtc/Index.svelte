@@ -270,6 +270,7 @@
 			{turn}
 			{queue_state}
 			{queue_detail}
+			waiting_label={button_labels.waiting}
 			onmessage={handle_message}
 			onreject={handle_reject}
 			onerror={(detail) => gradio.dispatch("error", detail)}
@@ -284,6 +285,7 @@
 			{turn}
 			{queue_state}
 			{queue_detail}
+			waiting_label={button_labels.waiting}
 			{icon}
 			{icon_button_color}
 			{pulse_color}

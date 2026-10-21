@@ -17,7 +17,7 @@ from gradio.components.base import Component, server
 from gradio.components.image_editor import WebcamOptions
 from gradio.context import LocalContext, get_blocks_context
 from gradio.data_classes import GradioRootModel
-from gradio.events import EventListenerMethod, Events
+from gradio.events import Dependency, EventListenerMethod, Events
 from gradio.exceptions import Error
 from gradio.helpers import skip, special_args
 from gradio.i18n import I18nData
@@ -348,7 +348,7 @@ class WebRTC(Component):
         time_limit: float | None = None,
         concurrency_limit: int | None | Literal["default"] = "default",
         trigger: Callable | None = None,
-    ) -> None:
+    ) -> Dependency:
         """
         Attaches the function or handler that processes the media of this component. For video streams, `fn` is called with each frame as an RGB numpy array of shape (height, width, 3), like the numpy value of `gr.Image`, followed by the values of the other inputs, and returns the frame to show in the same format. For audio streams, `fn` is a `StreamHandler` or `AsyncStreamHandler` subclass (or instance) from `gradio.webrtc`. A video stream that needs state or resources for its whole duration, for example one GPU allocation per stream on ZeroGPU, can instead use a `VideoStreamHandler` or `AsyncVideoStreamHandler` subclass in mode="send-receive". In mode="receive", `fn` is a generator that yields frames and takes the values of `inputs` as arguments. A handler can return `(frame, AdditionalOutputs(...))` or yield `AdditionalOutputs(...)` to update the other components in `outputs`, and `CloseStream()` to end the connection.
         Parameters:
@@ -358,6 +358,8 @@ class WebRTC(Component):
             time_limit: the maximum duration of a stream in seconds, counted from when its turn in the queue comes. The stream is closed when it is reached, and the next user in line gets the slot.
             concurrency_limit: the maximum number of simultaneous streams of this component. Further streams wait in the queue, showing their position, until a stream ends. "default" uses the queue's default concurrency limit (1 unless set with `Blocks.queue(default_concurrency_limit=...)`), None means no limit.
             trigger: in mode="receive", the event that starts the stream, for example `button.click`.
+        Returns:
+            The event that runs each stream. Pass it to `cancels=` of another event to stop the stream from there, for example with a button.
         """
         try:
             from gradio.webrtc import connection as webrtc_connection
@@ -433,7 +435,7 @@ class WebRTC(Component):
         # then delivers AdditionalOutputs until the stream ends. It takes only
         # the stream's id: the other inputs reach the handler through the
         # events below, so the event's wakes do not preprocess them again.
-        stream_fn, _ = root_block.set_event_trigger(
+        stream_fn, stream_index = root_block.set_event_trigger(
             [EventListenerMethod(self, "stream")],
             self._run_stream,
             inputs=[self],
@@ -485,6 +487,7 @@ class WebRTC(Component):
                 api_visibility="private",
                 show_progress="hidden",
             )
+        return Dependency(self, stream_fn.get_config(), stream_index, self._run_stream)
 
     def _check_handler(self, fn: HandlerType) -> None:
         def is_a(classes: tuple[type, ...]) -> bool:
@@ -517,6 +520,12 @@ class WebRTC(Component):
                     f'mode="send-receive" only; in mode="{self.mode}", pass a '
                     "function (or a VideoOptions)."
                 )
+        elif is_handler and self.modality == "audio":
+            raise ValueError(
+                'For modality="audio" in mode="receive", `fn` must be a generator '
+                "function that yields audio. Handler classes are for the modes "
+                'that take media from the page, "send" and "send-receive".'
+            )
         elif is_handler:
             raise ValueError(
                 f'For modality="{self.modality}" in mode="{self.mode}", `fn` must '

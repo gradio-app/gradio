@@ -49,6 +49,7 @@ from gradio.webrtc.utils import (
     current_context,
     handler_failed,
     player_worker_decode,
+    send_to_page,
     split_output,
 )
 
@@ -57,6 +58,24 @@ logger = logging.getLogger(__name__)
 # Put on a track's queue when it stops, so that a recv() waiting on the queue
 # ends instead of waiting forever
 _STOPPED = object()
+
+
+def _spawn(coroutine: Any) -> asyncio.Task:
+    """Starts a background task of a track, whose errors are logged when it ends."""
+    task = asyncio.create_task(coroutine)
+    task.add_done_callback(_log_task_error)
+    return task
+
+
+def _log_task_error(task: asyncio.Task) -> None:
+    # A handler's errors were reported where they happened (handler_failed)
+    if task.cancelled():
+        return
+    error = task.exception()
+    if error is not None and not isinstance(
+        error, HandlerFailedError | MediaStreamError
+    ):
+        logger.error("Error in a stream task", exc_info=error)
 
 
 _thread_limiters: weakref.WeakKeyDictionary[
@@ -207,7 +226,7 @@ class VideoCallback(VideoStreamTrack):
 
     def accept_input_in_background(self):
         if not self.has_started:
-            self.accept_input_task = asyncio.create_task(self.accept_input())
+            self.accept_input_task = _spawn(self.accept_input())
 
     async def recv(self):
         self.accept_input_in_background()
@@ -236,9 +255,7 @@ class VideoCallback(VideoStreamTrack):
                 await run_in_thread(self.event_handler, frame_array, *self.latest_args)
             )
             if isinstance(outputs, CloseStream):
-                cast(DataChannel, self.channel).send(
-                    create_message("end_stream", outputs.msg)
-                )
+                send_to_page(self.channel, create_message("end_stream", outputs.msg))
                 self.stop()
                 return None
             if isinstance(outputs, AdditionalOutputs) and self.set_additional_outputs:
@@ -345,8 +362,8 @@ class HandlerVideoTrack(VideoCallback):
     async def start(self):
         if not self.has_started:
             self.has_started = True
-            self.process_task = asyncio.create_task(self.process_frames())
-            self.start_up_task = asyncio.create_task(self.start_up())
+            self.process_task = _spawn(self.process_frames())
+            self.start_up_task = _spawn(self.start_up())
 
     async def recv(self):
         await self.start()
@@ -368,8 +385,8 @@ class HandlerVideoTrack(VideoCallback):
                 ):
                     self.set_additional_outputs(outputs)
                 if isinstance(outputs, CloseStream):
-                    cast(DataChannel, self.channel).send(
-                        create_message("end_stream", outputs.msg)
+                    send_to_page(
+                        self.channel, create_message("end_stream", outputs.msg)
                     )
                     self.stop()
                     return
@@ -492,9 +509,9 @@ class AudioCallback(AudioStreamTrack):
             else:
                 callable = functools.partial(run_in_thread, self.event_handler_emit)
                 start_up = run_in_thread(self.event_handler.start_up)
-            self.process_input_task = asyncio.create_task(self.process_input_frames())
-            self.start_up_task = asyncio.create_task(start_up)
-            self.decode_task = asyncio.create_task(
+            self.process_input_task = _spawn(self.process_input_frames())
+            self.start_up_task = _spawn(start_up)
+            self.decode_task = _spawn(
                 player_worker_decode(
                     callable,
                     self.queue,
@@ -518,9 +535,7 @@ class AudioCallback(AudioStreamTrack):
             if frame is _STOPPED:
                 raise MediaStreamError
             if isinstance(frame, CloseStream):
-                cast(DataChannel, self.channel).send(
-                    create_message("end_stream", frame.msg)
-                )
+                send_to_page(self.channel, create_message("end_stream", frame.msg))
                 self.stop()
                 return
 
@@ -635,8 +650,8 @@ class ServerToClientVideo(VideoStreamTrack):
                     return
                 next_array, outputs = split_output(item)
                 if isinstance(outputs, CloseStream):
-                    cast(DataChannel, self.channel).send(
-                        create_message("end_stream", outputs.msg)
+                    send_to_page(
+                        self.channel, create_message("end_stream", outputs.msg)
                     )
                     self.stop()
                     return
@@ -705,7 +720,7 @@ class ServerToClientAudio(AudioStreamTrack):
     async def next_in_thread(self) -> Any:
         # The inputs are awaited here rather than in the thread: a wait that
         # never ends (the client left before sending them) then holds no
-        # thread, and the decode loop's timeout can cancel it
+        # thread, and the decoder cancels it when the stream stops
         await self.args_set.wait()
         return await run_in_thread(self.next)
 
@@ -724,7 +739,7 @@ class ServerToClientAudio(AudioStreamTrack):
 
     async def start(self):
         if not self.has_started:
-            self.decode_task = asyncio.create_task(
+            self.decode_task = _spawn(
                 player_worker_decode(
                     self.next_in_thread,
                     self.queue,
@@ -742,9 +757,7 @@ class ServerToClientAudio(AudioStreamTrack):
             await self.start()
             data = await self.queue.get()
             if isinstance(data, CloseStream):
-                cast(DataChannel, self.channel).send(
-                    create_message("end_stream", data.msg)
-                )
+                send_to_page(self.channel, create_message("end_stream", data.msg))
                 self.stop()
                 return
             if data is None:

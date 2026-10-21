@@ -464,7 +464,7 @@ class TestWebRTC:
         ]
 
     def test_stream_validation(self):
-        with gr.Blocks():
+        with gr.Blocks() as demo:
             slider = gr.Slider()
             audio = gr.WebRTC(modality="audio")
             with pytest.raises(ValueError, match="StreamHandler"):
@@ -497,7 +497,13 @@ class TestWebRTC:
                     outputs=[receive_audio],
                     trigger=slider.change,
                 )
-            video.stream(flip, inputs=[video], outputs=[video])
+            with pytest.raises(ValueError, match="generator function"):
+                receive_audio.stream(
+                    EchoHandler, outputs=[receive_audio], trigger=slider.change
+                )
+            stream = video.stream(flip, inputs=[video], outputs=[video])
+            # What another event's `cancels=` takes to stop the stream
+            assert demo.fns[stream["id"]].connection == "stream"
             with pytest.raises(ValueError, match="once per WebRTC component"):
                 video.stream(flip, inputs=[video], outputs=[video, slider])
         with pytest.raises(AttributeError, match="Blocks context"):
@@ -1595,6 +1601,27 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    async def test_cancels_of_another_event_stops_a_stream(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        server_pc = h.manager.pcs["one"]
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        # What the page sends for `stop.click(None, cancels=[stream])`
+        await h.http.post(
+            f"{h.api}/cancel",
+            json={
+                "event_id": event_id,
+                "session_hash": "one",
+                "fn_index": h.stream_fn._id,
+            },
+        )
+        await h.wait_until(lambda: server_pc.connectionState == "closed")
+        await h.wait_until(lambda: not h.event_running(event_id))
+        await pc.close()
+
+    @pytest.mark.asyncio
     async def test_candidates_are_kept_only_for_an_admitted_stream(self, launched):
         h = launched
         first_event = await h.start("zero")
@@ -2268,6 +2295,53 @@ class TestAudioArrays:
         assert array.shape == shape
         assert array.dtype == np.int16
 
+    @pytest.mark.asyncio
+    async def test_receive_gets_a_chunk_per_frame_at_its_own_rate(self):
+        import fractions
+
+        import av
+        import numpy as np
+        from aiortc.mediastreams import MediaStreamError
+
+        from gradio.webrtc.tracks import AudioCallback
+        from gradio.webrtc.utils import Context
+
+        def frame(i):
+            incoming = av.AudioFrame.from_ndarray(
+                np.zeros((1, 960), dtype=np.int16), format="s16", layout="mono"
+            )
+            incoming.sample_rate = 48000
+            incoming.pts, incoming.time_base = 960 * i, fractions.Fraction(1, 48000)
+            return incoming
+
+        class FiveFrames(AudioStreamTrack):
+            frames = [frame(i) for i in range(5)]
+
+            async def recv(self):
+                if self.frames:
+                    return self.frames.pop(0)
+                raise MediaStreamError
+
+        received = []
+
+        class Handler(AsyncStreamHandler):
+            def __init__(self):
+                super().__init__(input_sample_rate=16000)
+
+            async def receive(self, frame):
+                received.append(frame[1].shape)
+
+            async def emit(self):
+                return None
+
+        track = AudioCallback(
+            FiveFrames(), event_handler=Handler(), context=Context("id")
+        )
+        await track.process_input_frames()
+        # 20 ms chunks as they come in, not 60 ms every third frame
+        assert len(received) >= 4
+        assert set(received) == {(320,)}
+
     @staticmethod
     async def decode(*returned):
         import av
@@ -2335,6 +2409,38 @@ class TestAudioArrays:
         await asyncio.wait_for(decoder, 1)
         # On Python 3.12+, such a loop would keep the event loop to itself
         assert calls < 50
+
+    @pytest.mark.asyncio
+    async def test_a_slow_emit_is_waited_for_until_the_stream_stops(self, monkeypatch):
+        from gradio.webrtc import utils
+        from gradio.webrtc.utils import GENERATOR_DONE, player_worker_decode
+
+        monkeypatch.setattr(utils, "SLOW_EMIT_WARNING", 0.05)
+        calls = 0
+
+        async def slow():
+            nonlocal calls
+            calls += 1
+            await asyncio.sleep(0.3)
+            return GENERATOR_DONE
+
+        await asyncio.wait_for(
+            player_worker_decode(slow, asyncio.Queue(), asyncio.Event(), None), 2
+        )
+        # A second call would run next to the first, which cannot be stopped
+        # when it runs in a worker thread
+        assert calls == 1
+
+        async def never():
+            await asyncio.Event().wait()
+
+        stop = asyncio.Event()
+        decoder = asyncio.create_task(
+            player_worker_decode(never, asyncio.Queue(), stop, None)
+        )
+        await asyncio.sleep(0.05)
+        stop.set()
+        await asyncio.wait_for(decoder, 1)
 
     @pytest.mark.asyncio
     async def test_a_failing_handler_ends_the_audio_track(self):

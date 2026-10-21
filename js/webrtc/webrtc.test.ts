@@ -8,8 +8,11 @@ import { START_STREAM } from "./types";
 import {
 	DISCONNECT_GRACE_MS,
 	RESTART_GUARD_MS,
+	SLOW_CONNECT_MS,
+	attach_remote_media,
 	new_webrtc_id,
-	on_connection_state
+	on_connection_state,
+	start
 } from "./shared/webrtc";
 
 type Listener = (event?: any) => void;
@@ -797,6 +800,21 @@ describe("WebRTC queue turn", () => {
 		);
 	});
 
+	test("a receive player shows the waiting label of stream_options", async () => {
+		const { getByText, set_data } = await render(WebRTC, {
+			...base_props,
+			mode: "receive",
+			stream_options: {
+				...base_props.stream_options,
+				button_labels: { waiting: "In line" }
+			},
+			server: make_server()
+		});
+		await set_data({ value: START_STREAM });
+		await queue_reports(set_data, "waiting");
+		await waitFor(() => expect(getByText(/^In line/)).toBeVisible());
+	});
+
 	test("a receive player can leave the queue while waiting", async () => {
 		const { getByRole, listen, set_data } = await render(WebRTC, {
 			...base_props,
@@ -1232,6 +1250,75 @@ describe("WebRTC connection", () => {
 		const failed = watch();
 		failed.pc.set_state("failed");
 		expect(failed.handlers.failed).toHaveBeenCalledTimes(1);
+	});
+
+	test("a connection that is slow to connect says so", () => {
+		vi.useFakeTimers();
+		const slow = vi.fn();
+		const stuck = new FakePeerConnection({});
+		on_connection_state(stuck as unknown as RTCPeerConnection, {
+			connected: vi.fn(),
+			ended: vi.fn(),
+			failed: vi.fn(),
+			slow
+		});
+		// The answer came back at once, but ICE cannot get through
+		stuck.set_state("connecting");
+		vi.advanceTimersByTime(SLOW_CONNECT_MS);
+		expect(slow).toHaveBeenCalledTimes(1);
+
+		const connects = new FakePeerConnection({});
+		const not_slow = vi.fn();
+		on_connection_state(connects as unknown as RTCPeerConnection, {
+			connected: vi.fn(),
+			ended: vi.fn(),
+			failed: vi.fn(),
+			slow: not_slow
+		});
+		connects.set_state("connected");
+		vi.advanceTimersByTime(SLOW_CONNECT_MS);
+		expect(not_slow).not.toHaveBeenCalled();
+	});
+
+	test("audio that comes back with the video is not muted", () => {
+		const pc = new FakePeerConnection({});
+		// The webcam preview, which plays the processed media once it is back
+		const node = document.createElement("video");
+		node.muted = true;
+		attach_remote_media(pc as unknown as RTCPeerConnection, node);
+		const stream = fake_stream("video");
+		for (const kind of ["video", "audio"]) {
+			const event = new Event("track");
+			Object.assign(event, { track: { kind }, streams: [stream] });
+			pc.dispatchEvent(event);
+		}
+		expect(node.srcObject).toBe(stream);
+		expect(node.muted).toBe(false);
+	});
+
+	test("the empty candidate that ends gathering is not sent", async () => {
+		const server = make_server();
+		const pc = new FakePeerConnection({});
+		await start({
+			stream: null,
+			pc: pc as unknown as RTCPeerConnection,
+			node: null,
+			offer: server.offer,
+			webrtc_id: "id",
+			modality: "video"
+		});
+		const candidate = (text: string) => ({
+			candidate: text,
+			toJSON: () => ({ candidate: text })
+		});
+		pc.onicecandidate?.({ candidate: candidate("candidate:1 1 udp 1 x 9") });
+		// As Firefox does
+		pc.onicecandidate?.({ candidate: candidate("") });
+		pc.onicecandidate?.({ candidate: null });
+		const sent = server.offer.mock.calls.filter(
+			([body]: any[]) => body.type === "ice-candidate"
+		);
+		expect(sent).toHaveLength(1);
 	});
 
 	test("stream ids are hard to guess", () => {

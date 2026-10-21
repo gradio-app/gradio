@@ -29,6 +29,8 @@ AUDIO_PTIME = 0.020
 # How long to wait before asking a handler again when it had nothing to send,
 # so that an emit() that returns None without awaiting does not spin
 EMPTY_EMIT_WAIT = 0.005
+# How long a handler call may take before a warning is logged
+SLOW_EMIT_WARNING = 60
 # What a receive-mode generator gives once it is exhausted
 GENERATOR_DONE = object()
 
@@ -62,6 +64,19 @@ class CloseStream:
 
 class DataChannel(Protocol):
     def send(self, message: str) -> None: ...
+
+
+def send_to_page(channel: DataChannel | None, message: str) -> None:
+    """
+    Sends a message over the stream's data channel, unless the channel is not
+    open: the page may have closed the stream first, which is no error.
+    """
+    if channel is None:
+        return
+    try:
+        channel.send(message)
+    except Exception:
+        logger.debug("Could not send %s", message, exc_info=True)
 
 
 MessageType = Literal[
@@ -437,57 +452,79 @@ async def player_worker_decode(
             audio_samples += processed_frame.samples
             await queue.put(processed_frame)
 
-    while not thread_quit.is_set():
-        try:
-            item = await asyncio.wait_for(next_frame(), timeout=60)
-            if item is GENERATOR_DONE:
-                await queue.put(None)
-                break
-            frame, outputs = split_output(item)
-            if isinstance(outputs, AdditionalOutputs) and set_additional_outputs:
-                set_additional_outputs(outputs)
+    # A call that is slow is waited for, not started again: a call in a worker
+    # thread cannot be stopped, and a second one would run next to it
+    pending: asyncio.Future | None = None
+    stopped = asyncio.ensure_future(thread_quit.wait())
+    try:
+        while not thread_quit.is_set():
+            try:
+                if pending is None:
+                    pending = asyncio.ensure_future(next_frame())
+                await asyncio.wait(
+                    {pending, stopped},
+                    timeout=SLOW_EMIT_WARNING,
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                if not pending.done():
+                    if not thread_quit.is_set():
+                        logger.warning(
+                            "The stream handler has not returned anything for %s "
+                            "seconds",
+                            SLOW_EMIT_WARNING,
+                        )
+                    continue
+                done, pending = pending, None
+                item = done.result()
+                if item is GENERATOR_DONE:
+                    await queue.put(None)
+                    break
+                frame, outputs = split_output(item)
+                if isinstance(outputs, AdditionalOutputs) and set_additional_outputs:
+                    set_additional_outputs(outputs)
 
-            if frame is None:
+                if frame is None:
+                    if isinstance(outputs, CloseStream):
+                        await queue.put(outputs)
+                    await asyncio.sleep(EMPTY_EMIT_WAIT)
+                    continue
+
+                in_sample_rate, audio_array = check_audio(frame)
+                if audio_array.size == 0:
+                    # Nothing to play (e.g. TTS output for an empty sentence)
+                    if isinstance(outputs, CloseStream):
+                        await queue.put(outputs)
+                    await asyncio.sleep(EMPTY_EMIT_WAIT)
+                    continue
+                layout = "mono" if audio_array.ndim == 1 else "stereo"
+                # Planar float frames take (channels, samples)
+                planar = np.ascontiguousarray(
+                    audio_to_float32(audio_array).reshape(len(audio_array), -1).T
+                )
+                in_frame = av.AudioFrame.from_ndarray(
+                    planar, format="fltp", layout=layout
+                )
+                in_frame.sample_rate = in_sample_rate
+
+                # av.AudioResampler requires every input frame to share one format,
+                # so a handler that changes sample rate or layout mid-stream gets a
+                # fresh resampler, after the old one is flushed.
+                key = (layout, in_sample_rate)
+                if resampler is None or key != resampler_key:
+                    if resampler is not None:
+                        await put_resampled(resampler.resample(None))
+                    resampler = new_resampler()
+                    resampler_key = key
+
+                await put_resampled(resampler.resample(in_frame))
                 if isinstance(outputs, CloseStream):
                     await queue.put(outputs)
-                await asyncio.sleep(EMPTY_EMIT_WAIT)
-                continue
-
-            in_sample_rate, audio_array = check_audio(frame)
-            if audio_array.size == 0:
-                # Nothing to play (e.g. TTS output for an empty sentence)
-                if isinstance(outputs, CloseStream):
-                    await queue.put(outputs)
-                await asyncio.sleep(EMPTY_EMIT_WAIT)
-                continue
-            layout = "mono" if audio_array.ndim == 1 else "stereo"
-            # Planar float frames take (channels, samples)
-            planar = np.ascontiguousarray(
-                audio_to_float32(audio_array).reshape(len(audio_array), -1).T
-            )
-            in_frame = av.AudioFrame.from_ndarray(planar, format="fltp", layout=layout)
-            in_frame.sample_rate = in_sample_rate
-
-            # av.AudioResampler requires every input frame to share one format,
-            # so a handler that changes sample rate or layout mid-stream gets a
-            # fresh resampler, after the old one is flushed.
-            key = (layout, in_sample_rate)
-            if resampler is None or key != resampler_key:
-                if resampler is not None:
-                    await put_resampled(resampler.resample(None))
-                resampler = new_resampler()
-                resampler_key = key
-
-            await put_resampled(resampler.resample(in_frame))
-            if isinstance(outputs, CloseStream):
-                await queue.put(outputs)
-        except (TimeoutError, asyncio.TimeoutError):
-            logger.warning(
-                "Timeout in frame processing cycle after %s seconds - resetting", 60
-            )
-            continue
-        except HandlerFailedError:
-            raise
-        except Exception as e:
-            # What the handler returned cannot be played
-            raise handler_failed(e) from e
+            except HandlerFailedError:
+                raise
+            except Exception as e:
+                # What the handler returned cannot be played
+                raise handler_failed(e) from e
+    finally:
+        stopped.cancel()
+        if pending is not None:
+            pending.cancel()

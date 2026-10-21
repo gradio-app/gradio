@@ -21,6 +21,7 @@ from gradio.webrtc.utils import (
     CloseStream,
     DataChannel,
     create_message,
+    send_to_page,
 )
 
 if TYPE_CHECKING:
@@ -133,8 +134,7 @@ class StreamHandlerBase:
         self.channel_set.set()
 
     async def fetch_args(self) -> None:
-        if self.channel:
-            self.channel.send(create_message("send_input", []))
+        send_to_page(self.channel, create_message("send_input", []))
 
     async def wait_for_args(self) -> None:
         """
@@ -153,8 +153,7 @@ class StreamHandlerBase:
 
     async def send_message(self, msg: str) -> None:
         """Sends a message over the data channel to the client."""
-        if self.channel:
-            self.channel.send(msg)
+        send_to_page(self.channel, msg)
 
     def send_message_sync(self, msg: str) -> None:
         """Synchronous version of `send_message()` for use in `StreamHandler`."""
@@ -187,7 +186,8 @@ class StreamHandlerBase:
                 format="s16",
                 layout=self.expected_layout,
                 rate=self.input_sample_rate,
-                frame_size=frame.samples,
+                # As long as the incoming frame, at the handler's rate
+                frame_size=frame.samples * self.input_sample_rate // frame.sample_rate,
             )
         yield from self._resampler.resample(frame)
 

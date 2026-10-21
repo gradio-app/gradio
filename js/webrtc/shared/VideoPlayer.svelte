@@ -27,6 +27,7 @@
 		turn,
 		queue_state = null,
 		queue_detail = null,
+		waiting_label = "",
 		onmessage,
 		onreject,
 		onerror,
@@ -39,6 +40,7 @@
 		turn: QueueTurn;
 		queue_state?: StreamState | null;
 		queue_detail?: string | null;
+		waiting_label?: string;
 		onmessage?: (msg: ControlMessage) => void;
 		onreject?: (response: Record<string, any>) => void;
 		onerror?: (error: string) => void;
@@ -119,13 +121,10 @@
 			failed: () => {
 				onerror?.("Connection failed!");
 				if (pc === connection) close_stream();
-			}
+			},
+			slow: () => onmessage?.({ type: "connection_timeout" })
 		});
 
-		const timeout = setTimeout(
-			() => onmessage?.({ type: "connection_timeout" }),
-			10000
-		);
 		try {
 			await start({
 				stream: null,
@@ -140,8 +139,6 @@
 		} catch (e) {
 			console.debug("WebRTC offer failed", e);
 			if (pc === connection) close_stream();
-		} finally {
-			clearTimeout(timeout);
 		}
 	}
 
@@ -159,7 +156,9 @@
 	{:else if stream_state === "waiting"}
 		<div class="waiting">
 			<span role="status">
-				{i18n("audio.waiting")}{queue_detail ? ` · ${queue_detail}` : ""}
+				{waiting_label || i18n("audio.waiting")}{queue_detail
+					? ` · ${queue_detail}`
+					: ""}
 			</span>
 			<button
 				class="cancel-waiting"

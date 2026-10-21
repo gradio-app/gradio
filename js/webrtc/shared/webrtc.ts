@@ -33,13 +33,23 @@ export const RESTART_GUARD_MS = 500;
 // "connected" by itself.
 export const DISCONNECT_GRACE_MS = 5000;
 
+// How long a connection may take to connect before `slow` is called. One that
+// cannot get through (a VPN, a strict NAT without TURN) never connects.
+export const SLOW_CONNECT_MS = 10000;
+
 export function on_connection_state(
 	pc: RTCPeerConnection,
 	{
 		connected,
 		ended,
-		failed
-	}: { connected: () => void; ended: () => void; failed: () => void }
+		failed,
+		slow
+	}: {
+		connected: () => void;
+		ended: () => void;
+		failed: () => void;
+		slow?: () => void;
+	}
 ): void {
 	let grace: ReturnType<typeof setTimeout> | null = null;
 	let was_connected = false;
@@ -47,10 +57,22 @@ export function on_connection_state(
 		if (grace !== null) clearTimeout(grace);
 		grace = null;
 	};
+	// Closing the connection on the page fires no event, hence the state check
+	let slow_timer: ReturnType<typeof setTimeout> | null = slow
+		? setTimeout(() => {
+				slow_timer = null;
+				if (["new", "connecting"].includes(pc.connectionState)) slow();
+			}, SLOW_CONNECT_MS)
+		: null;
+	const clear_slow = (): void => {
+		if (slow_timer !== null) clearTimeout(slow_timer);
+		slow_timer = null;
+	};
 	pc.addEventListener("connectionstatechange", () => {
 		switch (pc.connectionState) {
 			case "connected":
 				clear_grace();
+				clear_slow();
 				// A connection that comes back carries on with its stream
 				if (!was_connected) {
 					was_connected = true;
@@ -66,10 +88,12 @@ export function on_connection_state(
 				break;
 			case "closed":
 				clear_grace();
+				clear_slow();
 				ended();
 				break;
 			case "failed":
 				clear_grace();
+				clear_slow();
 				failed();
 				break;
 		}
@@ -81,13 +105,16 @@ export function attach_remote_media(
 	node: HTMLMediaElement | null
 ): void {
 	pc.addEventListener("track", (evt) => {
-		if (node && node.srcObject !== evt.streams[0]) {
+		if (!node) return;
+		// Checked on every track: an audio-video answer brings both tracks in one
+		// stream, and the element may be the muted webcam preview
+		if (evt.track.kind === "audio") {
+			node.volume = 1.0;
+			node.muted = false;
+			node.autoplay = true;
+		}
+		if (node.srcObject !== evt.streams[0]) {
 			node.srcObject = evt.streams[0];
-			if (evt.track.kind === "audio") {
-				node.volume = 1.0;
-				node.muted = false;
-				node.autoplay = true;
-			}
 			node.play().catch((e) => console.debug("Autoplay failed:", e));
 		}
 	});
@@ -138,7 +165,8 @@ export async function start({
 	}
 
 	pc.onicecandidate = ({ candidate }) => {
-		if (candidate) {
+		// Firefox ends gathering with an empty candidate, which is not one to send
+		if (candidate?.candidate) {
 			offer({
 				candidate: candidate.toJSON(),
 				webrtc_id,

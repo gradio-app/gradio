@@ -263,13 +263,10 @@
 			failed: () => {
 				onerror?.("Connection failed!");
 				if (pc === connection) close_stream();
-			}
+			},
+			slow: () => onmessage?.({ type: "connection_timeout" })
 		});
 
-		const timeout = setTimeout(
-			() => onmessage?.({ type: "connection_timeout" }),
-			10000
-		);
 		negotiated_time_limit = null;
 		try {
 			const response = await start({
@@ -290,8 +287,6 @@
 		} catch (e) {
 			console.debug("WebRTC offer failed", e);
 			if (pc === connection) await close_stream();
-		} finally {
-			clearTimeout(timeout);
 		}
 	}
 
