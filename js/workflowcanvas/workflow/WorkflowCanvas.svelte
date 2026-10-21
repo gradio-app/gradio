@@ -1249,6 +1249,8 @@
 	// no write access and marks nothing dirty.
 	function startNodeDrag(e: PointerEvent, nodeId: string): void {
 		if (e.button !== 0) return;
+		if ((e.target as HTMLElement).closest("input, select, textarea, label"))
+			return;
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
