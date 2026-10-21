@@ -1075,6 +1075,15 @@ async def test_cancelling_a_stream_wait_leaves_no_timer_behind():
 
 
 @pytest.mark.asyncio
+async def test_a_wait_woken_as_it_times_out_counts_as_woken():
+    for _ in range(20):
+        event = type("E", (), {"signal": asyncio.Event()})()
+        event.signal.set()
+        # Both the wake and the timeout are done by the time the wait returns
+        assert await queueing.Queue.wait_for_event_or_timeout(event, 0) == "signal"
+
+
+@pytest.mark.asyncio
 async def test_a_batch_wait_tells_which_events_woke():
     for _ in range(20):
         events = [type("E", (), {"signal": asyncio.Event()})() for _ in range(4)]

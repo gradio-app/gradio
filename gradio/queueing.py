@@ -1063,9 +1063,9 @@ class Queue:
             # would otherwise leave a task sleeping for the whole timeout
             for task in (t1, t2):
                 task.cancel()
-        done = [d.result() for d in done]
         event.signal.clear()
-        return cast(Literal["signal", "timeout"], done[0])
+        # Both may be done; asyncio.wait returns them as an unordered set
+        return "signal" if t1 in done else "timeout"
 
     @staticmethod
     async def wait_for_batch(

@@ -790,28 +790,29 @@ export class DependencyManager {
 		// end, so nothing depends on how fast the connection opens
 		submission.close_stream({ read_to_end: true });
 		const iterator = submission[Symbol.asyncIterator]();
-		const deadline = Date.now() + 5000;
-		while (Date.now() < deadline) {
-			const next = await Promise.race([
-				iterator.next(),
-				new Promise<null>((resolve) =>
-					setTimeout(() => resolve(null), deadline - Date.now())
-				)
-			]);
-			if (next === null || next.done) return null;
-			const result = next.value;
-			if (result?.type === "data") {
-				await this.handle_data(outputs, result.data);
-				continue;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const timed_out = new Promise<null>((resolve) => {
+			timer = setTimeout(() => resolve(null), 5000);
+		});
+		try {
+			while (true) {
+				const next = await Promise.race([iterator.next(), timed_out]);
+				if (next === null || next.done) return null;
+				const result = next.value;
+				if (result?.type === "data") {
+					await this.handle_data(outputs, result.data);
+					continue;
+				}
+				if (result?.type !== "status") continue;
+				this.dispatch_state_change_events(result);
+				if (result.stage === "complete") return "complete";
+				if (result.stage === "error") {
+					return result.session_not_found ? "gone" : "error";
+				}
 			}
-			if (result?.type !== "status") continue;
-			this.dispatch_state_change_events(result);
-			if (result.stage === "complete") return "complete";
-			if (result.stage === "error") {
-				return result.session_not_found ? "gone" : "error";
-			}
+		} finally {
+			clearTimeout(timer);
 		}
-		return null;
 	}
 
 	async resume(

@@ -662,6 +662,34 @@ describe("DependencyManager.resume", () => {
 		);
 	});
 
+	test("reading a resumed stream to its end leaves no timer behind", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			for (let i = 0; i < 5; i++) {
+				yield { type: "status", stage: "streaming", fn_index: 0, queue: true };
+			}
+			yield { type: "status", stage: "complete", fn_index: 0, queue: true };
+		}
+		const stream = dependency(0, "stream", []);
+		stream.connection = "stream";
+		const resumed = Object.assign(submission(events()), {
+			close_stream: vi.fn()
+		});
+		const client = {
+			resume_jobs: vi.fn(() => [resumed])
+		} as unknown as Client;
+		const dependency_manager = manager([stream], client);
+		const set_timeout = vi.spyOn(globalThis, "setTimeout");
+		const clear_timeout = vi.spyOn(globalThis, "clearTimeout");
+
+		await dependency_manager.end_resumed_stream(resumed, []);
+		expect(set_timeout).toHaveBeenCalledTimes(1);
+		expect(clear_timeout).toHaveBeenCalledWith(
+			set_timeout.mock.results[0].value
+		);
+		set_timeout.mockRestore();
+		clear_timeout.mockRestore();
+	});
+
 	test("a replayed stream runs the .change listeners of the state it changed", async () => {
 		async function* events(): AsyncGenerator<unknown> {
 			yield {
