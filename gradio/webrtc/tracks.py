@@ -39,6 +39,7 @@ from gradio.webrtc.handlers import (
 from gradio.webrtc.utils import (
     EMPTY_EMIT_WAIT,
     GENERATOR_DONE,
+    RECEIVE_AUDIO_BUFFER,
     AdditionalOutputs,
     CloseStream,
     Context,
@@ -694,7 +695,8 @@ class ServerToClientAudio(AudioStreamTrack):
         self.current_timestamp = 0
         self.latest_args: list[Any] = []
         self.args_set = asyncio.Event()
-        self.queue: asyncio.Queue = asyncio.Queue()
+        # The generator waits for playback instead of running far ahead of it
+        self.queue: asyncio.Queue = asyncio.Queue(maxsize=RECEIVE_AUDIO_BUFFER)
         self.thread_quit = asyncio.Event()
         self.channel = channel
         self.set_additional_outputs = set_additional_outputs
@@ -784,6 +786,8 @@ class ServerToClientAudio(AudioStreamTrack):
     def stop(self):
         logger.debug("audio-to-client stop callback")
         self.thread_quit.set()
+        # The queue is bounded; what it holds will not be played anyway
+        self.clear_queue()
         self.queue.put_nowait(_STOPPED)
         super().stop()
 

@@ -33,6 +33,15 @@ EMPTY_EMIT_WAIT = 0.005
 SLOW_EMIT_WARNING = 60
 # What a receive-mode generator gives once it is exhausted
 GENERATOR_DONE = object()
+# Frames of audio (20 ms each) a receive-mode generator may get ahead of
+# playback. Handlers' audio is not bounded: their clear_queue() drops what
+# emit() returned so far, and a bound would leave more of it in the handler.
+RECEIVE_AUDIO_BUFFER = 50
+
+
+class _DecoderStoppedError(Exception):
+    """The stream stopped while the decoder waited for room in its queue."""
+
 
 WEBRTC_EXTRA_HINT = (
     "The `aiortc` package is required to stream with gr.WebRTC. "
@@ -444,18 +453,47 @@ async def player_worker_decode(
             frame_size=frame_size,
         )
 
+    # A call that is slow is waited for, not started again: a call in a worker
+    # thread cannot be stopped, and a second one would run next to it
+    pending: asyncio.Future | None = None
+    stopped = asyncio.ensure_future(thread_quit.wait())
+
+    async def put(item: Any) -> None:
+        # A bounded queue makes the decoder wait for playback, which a stop
+        # must still end
+        if not queue.full():
+            queue.put_nowait(item)
+            return
+        putting = asyncio.ensure_future(queue.put(item))
+        await asyncio.wait({putting, stopped}, return_when=asyncio.FIRST_COMPLETED)
+        if not putting.done():
+            putting.cancel()
+            raise _DecoderStoppedError
+
     async def put_resampled(frames):
         nonlocal audio_samples
         for processed_frame in frames:
             processed_frame.pts = audio_samples
             processed_frame.time_base = audio_time_base
             audio_samples += processed_frame.samples
-            await queue.put(processed_frame)
+            await put(processed_frame)
 
-    # A call that is slow is waited for, not started again: a call in a worker
-    # thread cannot be stopped, and a second one would run next to it
-    pending: asyncio.Future | None = None
-    stopped = asyncio.ensure_future(thread_quit.wait())
+    async def end(item: Any) -> None:
+        # What the resampler still holds is the end of the audio. The encoder
+        # sends whole frames only, so the last one is padded with silence.
+        if resampler is not None:
+            frames = list(resampler.resample(None))
+            if frames and frames[-1].samples < frame_size:
+                last = frames[-1].to_ndarray()
+                padded = np.zeros((1, frame_size * 2), dtype=last.dtype)
+                padded[:, : last.shape[1]] = last
+                frames[-1] = av.AudioFrame.from_ndarray(
+                    padded, format="s16", layout="stereo"
+                )
+                frames[-1].sample_rate = sample_rate
+            await put_resampled(frames)
+        await put(item)
+
     try:
         while not thread_quit.is_set():
             try:
@@ -477,7 +515,7 @@ async def player_worker_decode(
                 done, pending = pending, None
                 item = done.result()
                 if item is GENERATOR_DONE:
-                    await queue.put(None)
+                    await end(None)
                     break
                 frame, outputs = split_output(item)
                 if isinstance(outputs, AdditionalOutputs) and set_additional_outputs:
@@ -486,7 +524,7 @@ async def player_worker_decode(
                 # The handler is not called again after a CloseStream
                 if frame is None:
                     if isinstance(outputs, CloseStream):
-                        await queue.put(outputs)
+                        await end(outputs)
                         break
                     await asyncio.sleep(EMPTY_EMIT_WAIT)
                     continue
@@ -495,7 +533,7 @@ async def player_worker_decode(
                 if audio_array.size == 0:
                     # Nothing to play (e.g. TTS output for an empty sentence)
                     if isinstance(outputs, CloseStream):
-                        await queue.put(outputs)
+                        await end(outputs)
                         break
                     await asyncio.sleep(EMPTY_EMIT_WAIT)
                     continue
@@ -521,13 +559,15 @@ async def player_worker_decode(
 
                 await put_resampled(resampler.resample(in_frame))
                 if isinstance(outputs, CloseStream):
-                    await queue.put(outputs)
+                    await end(outputs)
                     break
-            except HandlerFailedError:
+            except (HandlerFailedError, _DecoderStoppedError):
                 raise
             except Exception as e:
                 # What the handler returned cannot be played
                 raise handler_failed(e) from e
+    except _DecoderStoppedError:
+        pass
     finally:
         stopped.cancel()
         if pending is not None:

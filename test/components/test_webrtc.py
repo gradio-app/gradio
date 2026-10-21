@@ -2525,6 +2525,62 @@ class TestAudioArrays:
         assert sum(f.samples for f in frames) > 0
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("samples", [240, 480, 4800, 5000])
+    @pytest.mark.parametrize("end", ["done", "close", "close-with-audio"])
+    async def test_the_end_of_finite_audio_is_played(self, samples, end):
+        import av
+        import numpy as np
+
+        from gradio.webrtc.utils import GENERATOR_DONE, player_worker_decode
+
+        chunk = (24000, np.ones(samples, dtype=np.int16))
+        if end == "done":
+            items = [chunk, GENERATOR_DONE]
+        elif end == "close":
+            items = [chunk, CloseStream("bye")]
+        else:
+            items = [(chunk, CloseStream("bye"))]
+
+        async def next_frame():
+            return items.pop(0)
+
+        queue: asyncio.Queue = asyncio.Queue()
+        await asyncio.wait_for(
+            player_worker_decode(next_frame, queue, asyncio.Event(), None), 2
+        )
+        frames = [
+            f
+            for f in (queue.get_nowait() for _ in range(queue.qsize()))
+            if isinstance(f, av.AudioFrame)
+        ]
+        # Every sample, resampled to 48 kHz, in whole 20 ms frames (the encoder
+        # sends nothing shorter): a 10 ms clip is not silent
+        assert {f.samples for f in frames} == {960}
+        played = sum(f.samples for f in frames)
+        assert samples * 2 <= played < samples * 2 + 960
+
+    @pytest.mark.asyncio
+    async def test_receive_audio_buffers_a_bounded_amount_ahead(self):
+        import numpy as np
+
+        from gradio.webrtc.tracks import ServerToClientAudio
+        from gradio.webrtc.utils import RECEIVE_AUDIO_BUFFER, Context
+
+        def generate():
+            # Much faster than real time, and endless
+            while True:
+                yield (48000, np.zeros(960, dtype=np.int16))
+
+        track = ServerToClientAudio(generate, context=Context("id"))
+        track.set_args([])
+        await track.start()
+        await asyncio.sleep(0.2)
+        assert track.queue.qsize() <= RECEIVE_AUDIO_BUFFER
+        # A decoder waiting for room in the queue still stops
+        track.stop()
+        await asyncio.wait_for(track.decode_task, 1)
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("audio", [None, 0, 4800])
     async def test_close_stream_is_the_last_call_of_the_handler(self, audio):
         import numpy as np
