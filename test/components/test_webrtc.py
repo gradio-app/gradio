@@ -2261,6 +2261,56 @@ class TestVideoTracks:
         assert received == sorted(received)
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("handler_class", [False, True])
+    async def test_frames_that_will_be_skipped_are_not_kept(self, handler_class):
+        import threading
+
+        from gradio.webrtc.tracks import HandlerVideoTrack, VideoCallback
+        from gradio.webrtc.utils import Context
+
+        busy = threading.Event()
+        release = threading.Event()
+
+        def process(frame):
+            busy.set()
+            release.wait(3)
+            return frame
+
+        class Handler(VideoStreamHandler):
+            def video_receive(self, frame):
+                process(frame)
+
+            def video_emit(self):
+                pass
+
+        # 30 frames a second
+        camera = VideoStreamTrack()
+        if handler_class:
+            track = HandlerVideoTrack(
+                camera, event_handler=cast(Callable, Handler()), context=Context("id")
+            )
+            running = asyncio.create_task(track.process_frames())
+        else:
+            track = VideoCallback(camera, event_handler=process, context=Context("id"))
+            track.latest_args = []
+            running = asyncio.create_task(track.recv())
+        track.channel_set.set()
+        try:
+            deadline = time.monotonic() + 2
+            while not busy.is_set() and time.monotonic() < deadline:
+                await asyncio.sleep(0.005)
+            await asyncio.sleep(0.3)
+            # Of the frames that arrived while the handler was busy, only the
+            # newest will be used, so only that one is held
+            assert track.frame_queue.qsize() <= 1
+        finally:
+            release.set()
+            track.stop()
+            camera.stop()
+            await asyncio.gather(running, return_exceptions=True)
+            await asyncio.gather(track.accept_input_task, return_exceptions=True)
+
+    @pytest.mark.asyncio
     async def test_video_methods_of_audio_video_handlers_see_the_context(self):
         import numpy as np
         from aiortc.mediastreams import MediaStreamError

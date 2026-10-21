@@ -229,6 +229,14 @@ class VideoCallback(VideoStreamTrack):
         while not self.thread_quit.is_set():
             try:
                 frame = cast(VideoFrame, await self.track.recv())
+                if self.thread_quit.is_set():
+                    # Whatever is queued now ends with the stop marker
+                    return
+                if self.skip_frames:
+                    # Only the newest frame would be used; a busy handler must
+                    # not keep every older one in memory meanwhile
+                    while not self.frame_queue.empty():
+                        self.frame_queue.get_nowait()
                 self.frame_queue.put_nowait(frame)
             except MediaStreamError:
                 self.stop()
