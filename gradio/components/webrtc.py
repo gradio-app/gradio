@@ -555,6 +555,13 @@ class WebRTC(Component):
                     'AsyncVideoStreamHandler (in mode="send-receive").'
                 )
 
+        if is_a((AsyncStreamHandler, AsyncVideoStreamHandler)) and not (
+            inspect.iscoroutinefunction(fn.start_up)  # type: ignore[union-attr]  # is_a() narrowed fn to a handler
+        ):
+            raise ValueError(
+                f"{getattr(fn, '__name__', type(fn).__name__)}.start_up must be a "
+                "coroutine (async def) in an async handler."
+            )
         if (
             isinstance(fn, StreamHandlerBase)
             and type(fn).copy is StreamHandlerBase.copy

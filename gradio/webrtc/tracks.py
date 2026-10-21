@@ -336,11 +336,16 @@ class HandlerVideoTrack(VideoCallback):
         self.handler.set_args(args)
 
     async def process_frames(self):
+        # Frames that arrive while video_receive() runs wait in frame_queue,
+        # and only the newest of them is passed on, as with skip_frames
+        self.accept_input_task = _spawn(self.accept_input())
         while not self.thread_quit.is_set():
             try:
                 # Also sets the context that get_current_context() reads
                 await self.wait_for_channel()
-                frame = cast(VideoFrame, await self.track.recv())
+                frame = self._newest(await self.frame_queue.get())
+                if frame is _STOPPED:
+                    raise MediaStreamError
                 frame_array = self.frame_to_array(frame)
                 handler = self.handler
                 if isinstance(
@@ -358,15 +363,15 @@ class HandlerVideoTrack(VideoCallback):
         try:
             await self.wait_for_channel()
             if isinstance(handler, AsyncVideoStreamHandler):
-                start_up = handler.start_up()
-                if not inspect.isawaitable(start_up):
+                # Checked before the call: a plain def would run on the loop
+                if not inspect.iscoroutinefunction(handler.start_up):
                     raise handler_failed(
                         TypeError(
                             "In AsyncVideoStreamHandler, start_up must be a "
                             "coroutine (async def)"
                         )
                     )
-                await start_up
+                await handler.start_up()
             elif isinstance(handler, VideoStreamHandler):
                 await run_in_thread(handler.start_up)
         except (HandlerFailedError, MediaStreamError):
@@ -511,14 +516,15 @@ class AudioCallback(AudioStreamTrack):
             await self.wait_for_channel()
             if isinstance(self.event_handler, AsyncHandler):
                 callable = self.event_handler.emit
-                start_up = self.event_handler.start_up()
-                if not inspect.isawaitable(start_up):
+                # Checked before the call: a plain def would run on the loop
+                if not inspect.iscoroutinefunction(self.event_handler.start_up):
                     raise handler_failed(
                         TypeError(
                             "In AsyncStreamHandler, start_up must be a coroutine "
                             "(async def)"
                         )
                     )
+                start_up = self.event_handler.start_up()
             else:
                 callable = functools.partial(run_in_thread, self.event_handler_emit)
                 start_up = run_in_thread(self.event_handler.start_up)

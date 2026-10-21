@@ -6,7 +6,7 @@ import time
 from collections.abc import Callable
 from contextlib import closing
 from types import SimpleNamespace
-from typing import cast
+from typing import Any, cast
 
 import httpx2
 import pytest
@@ -429,6 +429,23 @@ class TestWebRTC:
         with pytest.raises(ValueError, match="video_bitrate"):
             gr.WebRTC(video_bitrate=video_bitrate)
 
+    def test_video_bitrate_is_skipped_when_aiortc_internals_change(
+        self, monkeypatch, caplog
+    ):
+        from aiortc.codecs import vpx
+
+        from gradio.webrtc.bitrate import limit_video_encoders
+
+        monkeypatch.delattr(vpx, "MAX_BITRATE")
+        sender = SimpleNamespace(track=object(), _RTCRtpSender__encoder=None)
+        transceiver = SimpleNamespace(
+            kind="video", sender=sender, _codecs=[SimpleNamespace(mimeType="video/VP8")]
+        )
+        pc = cast(Any, SimpleNamespace(getTransceivers=lambda: [transceiver]))
+        limit_video_encoders(pc, {"max": 2000})
+        assert sender._RTCRtpSender__encoder is None
+        assert "video_bitrate cannot be applied" in caplog.text
+
     def test_bitrate_hints_go_to_video_codecs_only(self):
         from gradio.webrtc.bitrate import add_bitrate_hints
 
@@ -530,6 +547,28 @@ class TestWebRTC:
                     outputs=[webrtc],
                     trigger=button.click if mode == "receive" else None,
                 )
+
+    @pytest.mark.parametrize("modality", ["video", "audio"])
+    def test_stream_rejects_a_sync_start_up_in_an_async_handler(self, modality):
+        from gradio.webrtc import AsyncStreamHandler
+
+        base = AsyncRecordingVideo if modality == "video" else AsyncStreamHandler
+
+        class Handler(base):  # type: ignore[valid-type, misc]
+            async def receive(self, frame):
+                pass
+
+            async def emit(self):
+                pass
+
+            def start_up(self):  # type: ignore[override]
+                pass
+
+        with gr.Blocks():
+            webrtc = gr.WebRTC(modality=modality)
+            # It would run on the event loop, holding up every other stream
+            with pytest.raises(ValueError, match="start_up must be a coroutine"):
+                webrtc.stream(Handler, inputs=[webrtc], outputs=[webrtc])
 
     @pytest.mark.parametrize("handler", [RecordingVideo, AsyncRecordingVideo])
     def test_video_streams_take_a_video_handler_class(self, handler):
@@ -1431,6 +1470,33 @@ class TestStreams:
         )
 
     @pytest.mark.asyncio
+    async def test_a_wait_for_admission_outlives_another_that_gave_up(
+        self, monkeypatch
+    ):
+        from gradio.queueing import Event
+
+        monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.3)
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC()
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        manager = get_manager(webrtc._id)
+        assert manager is not None
+        fn = next(fn for fn in demo.fns.values() if fn.name == "_run_stream")
+        wait = webrtc_connection._wait_for_admission
+        # Both the offer and get_rtc_configuration may wait for the turn
+        first = asyncio.create_task(wait("late"))
+        await asyncio.sleep(0.2)
+        second = asyncio.create_task(wait("late"))
+        assert await first is None
+        manager.admit("late", Event("late", fn, cast(Any, None), None), demo._queue)
+        try:
+            assert await second is manager
+        finally:
+            for task in list(manager.tasks):
+                task.cancel()
+            await asyncio.gather(*manager.tasks, return_exceptions=True)
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched", [{"modality": "audio", "handler": SlowShutdown()}], indirect=True
     )
@@ -2089,12 +2155,17 @@ class TestVideoTracks:
         from gradio.webrtc.tracks import HandlerVideoTrack
         from gradio.webrtc.utils import Context
 
+        released = asyncio.Event()
+
         class OneFrame(VideoStreamTrack):
             frames = [left_column_frame()]
 
             async def recv(self):
                 if self.frames:
                     return self.frames.pop()
+                # The track takes only the newest queued item, so an input that
+                # ended at once would end it before this frame is handled
+                await released.wait()
                 raise MediaStreamError
 
         received = []
@@ -2126,8 +2197,68 @@ class TestVideoTracks:
             mirror=mirror,
         )
         track.channel_set.set()
-        await track.process_frames()
+        processing = asyncio.create_task(track.process_frames())
+        deadline = time.monotonic() + 2
+        while not received and time.monotonic() < deadline:
+            await asyncio.sleep(0.01)
+        track.stop()
+        released.set()
+        await asyncio.wait_for(processing, 2)
         assert received[0][0, -1 if mirror else 0, 0] == 255
+
+    @pytest.mark.asyncio
+    async def test_a_slow_video_receive_gets_the_newest_frame(self):
+        import fractions
+
+        import numpy as np
+        from aiortc.mediastreams import MediaStreamError
+        from av import VideoFrame
+
+        from gradio.webrtc.tracks import HandlerVideoTrack
+        from gradio.webrtc.utils import Context
+
+        sent = 0
+        done = asyncio.Event()
+
+        class Camera(VideoStreamTrack):
+            async def recv(self):
+                nonlocal sent
+                if sent == 40:
+                    await done.wait()
+                    raise MediaStreamError
+                await asyncio.sleep(0.005)
+                sent += 1
+                array = np.full((16, 16, 3), sent, dtype=np.uint8)
+                frame = VideoFrame.from_ndarray(array, "rgb24")
+                frame.pts, frame.time_base = sent, fractions.Fraction(1, 90000)
+                return frame
+
+        received = []
+
+        class Handler(VideoStreamHandler):
+            def video_receive(self, frame):
+                received.append(int(frame[0, 0, 0]))
+                time.sleep(0.05)
+
+            def video_emit(self):
+                pass
+
+        track = HandlerVideoTrack(
+            Camera(), event_handler=cast(Callable, Handler()), context=Context("id")
+        )
+        track.channel_set.set()
+        processing = asyncio.create_task(track.process_frames())
+        deadline = time.monotonic() + 5
+        while 40 not in received and time.monotonic() < deadline:
+            await asyncio.sleep(0.01)
+        track.stop()
+        done.set()
+        await asyncio.wait_for(processing, 2)
+        # A handler slower than the camera skips to the newest frame instead
+        # of falling further behind
+        assert received[-1] == 40
+        assert len(received) < 20
+        assert received == sorted(received)
 
     @pytest.mark.asyncio
     async def test_video_methods_of_audio_video_handlers_see_the_context(self):

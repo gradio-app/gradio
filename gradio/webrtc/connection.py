@@ -24,7 +24,7 @@ import inspect
 import logging
 import time
 import weakref
-from collections import OrderedDict, defaultdict, deque
+from collections import Counter, OrderedDict, defaultdict, deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -109,6 +109,7 @@ _streams: weakref.WeakValueDictionary[str, ConnectionManager] = (
 )
 # Set when a stream is admitted, for an offer that arrives just before
 _admissions: defaultdict[str, asyncio.Event] = defaultdict(asyncio.Event)
+_admission_waiters: Counter[str] = Counter()
 # ICE candidates of an admitted stream that arrive before its peer connection
 # exists, while the offer is still on its way. Each is kept with the session
 # that sent it. MAX_PENDING_CANDIDATE_IDS bounds it for the whole app, not per
@@ -713,12 +714,19 @@ async def handle_signal(body: dict[str, Any], request: Any = None) -> dict[str, 
 
 async def _wait_for_admission(webrtc_id: str) -> ConnectionManager | None:
     if webrtc_id not in _streams:
+        _admission_waiters[webrtc_id] += 1
         try:
             await asyncio.wait_for(_admissions[webrtc_id].wait(), ADMISSION_WAIT)
         except (asyncio.TimeoutError, TimeoutError):
-            _admissions.pop(webrtc_id, None)
-            _pending_candidates.pop(webrtc_id, None)
-            return None
+            pass
+        finally:
+            _admission_waiters[webrtc_id] -= 1
+            # The others waiting for the same stream share its event
+            if not _admission_waiters[webrtc_id]:
+                del _admission_waiters[webrtc_id]
+                if webrtc_id not in _streams:
+                    _admissions.pop(webrtc_id, None)
+                    _pending_candidates.pop(webrtc_id, None)
     return _streams.get(webrtc_id)
 
 

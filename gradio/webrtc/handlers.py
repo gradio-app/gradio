@@ -267,7 +267,7 @@ class AudioVideoStreamHandler(StreamHandler):
 
     @abstractmethod
     def video_receive(self, frame: npt.NDArray[np.uint8]) -> None:
-        """Called with each incoming video frame as an RGB uint8 array."""
+        """Called with each incoming video frame as an RGB uint8 array. Frames that arrive while it runs are dropped except the newest."""
         pass
 
     @abstractmethod
@@ -297,7 +297,8 @@ class VideoStreamHandler(StreamHandlerBase, ABC):
     Base class for synchronous handlers of video-only streams that need state
     or resources for the whole stream, for example one GPU allocation per
     stream on ZeroGPU. `video_receive()` is called with every incoming frame
-    and `video_emit()` is polled for the next outgoing frame; `start_up()` is
+    (or, when it is slower than the camera, with the newest one that arrived
+    while it ran) and `video_emit()` is polled for the next outgoing frame; `start_up()` is
     called once when the connection is established (frames may already arrive
     while it runs) and `shutdown()` when it closes. Works in mode="send-receive". For a function called once per frame,
     pass the function (or a `VideoOptions`) to `WebRTC.stream()` instead.
@@ -311,7 +312,7 @@ class VideoStreamHandler(StreamHandlerBase, ABC):
 
     @abstractmethod
     def video_receive(self, frame: npt.NDArray[np.uint8]) -> None:
-        """Called with each incoming video frame as an RGB uint8 array."""
+        """Called with each incoming video frame as an RGB uint8 array. Frames that arrive while it runs are dropped except the newest."""
         pass
 
     @abstractmethod

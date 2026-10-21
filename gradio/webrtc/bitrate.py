@@ -97,9 +97,18 @@ def limit_video_encoders(pc: RTCPeerConnection, video_bitrate: dict[str, int]) -
     Call after setLocalDescription(): the codecs are negotiated by then and no
     frame has been encoded yet.
     """
+    # aiortc internals too, so a version that renames them leaves the bitrate
+    # alone rather than failing the stream
     encoders = {
-        "video/vp8": (vpx.Vp8Encoder, vpx),
-        "video/h264": (h264.H264Encoder, h264),
+        mime: (getattr(module, name), module)
+        for mime, module, name in (
+            ("video/vp8", vpx, "Vp8Encoder"),
+            ("video/h264", h264, "H264Encoder"),
+        )
+        if all(
+            hasattr(module, attr)
+            for attr in (name, "MIN_BITRATE", "DEFAULT_BITRATE", "MAX_BITRATE")
+        )
     }
     for transceiver in pc.getTransceivers():
         sender = transceiver.sender
