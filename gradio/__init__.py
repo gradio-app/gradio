@@ -124,6 +124,7 @@ from gradio.renderable import render
 from gradio.route_utils import Header
 from gradio.routes import Request, mount_gradio_app
 from gradio.server import Server
+from gradio.server import Server as App
 from gradio.templates import (
     Files,
     ImageMask,
@@ -148,6 +149,7 @@ __all__ = [
     "Accordion",
     "AnnotatedImage",
     "Server",
+    "App",
     "Annotatedimage",
     "Audio",
     "BarPlot",

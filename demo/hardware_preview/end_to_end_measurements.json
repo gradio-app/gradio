@@ -1,0 +1,39 @@
+[
+  {
+    "command": "Actual host",
+    "cold_seconds": 1.7961485830019228,
+    "warm_seconds": 0.8392673340131296,
+    "http_pid": 72101,
+    "last_run": null
+  },
+  {
+    "command": "MacBook Pro M3",
+    "cold_seconds": 2.898244124997291,
+    "warm_seconds": 1.053079749995959,
+    "http_pid": 72125,
+    "last_run": {
+      "execution_seconds": 1.0480891249899287,
+      "output_chunks": 20,
+      "metal_submissions": 60,
+      "metal_allocated_bytes": 1074200576,
+      "worker_pid": 72142,
+      "telemetry_scope": "This worker only; native subprocesses report separately on stderr.",
+      "wall_seconds": 1.0487072090036236
+    }
+  },
+  {
+    "command": "iPhone 18 Pro",
+    "cold_seconds": 3.9779188749962486,
+    "warm_seconds": 2.2265796670108102,
+    "http_pid": 72169,
+    "last_run": {
+      "execution_seconds": 2.2228820830059703,
+      "output_chunks": 20,
+      "metal_submissions": 60,
+      "metal_allocated_bytes": 1074200576,
+      "worker_pid": 72177,
+      "telemetry_scope": "This worker only; native subprocesses report separately on stderr.",
+      "wall_seconds": 2.2235421250079526
+    }
+  }
+]

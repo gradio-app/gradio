@@ -1,0 +1,406 @@
+{
+  "timestamp": "2026-10-20T21:18:15.996909+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "reference": {
+    "source": "https://github.com/ggml-org/llama.cpp/discussions/4167",
+    "device": "M3 MacBook Pro 14, 10 GPU cores, 16 GB RAM",
+    "submission": "https://github.com/ggml-org/llama.cpp/discussions/4167/pages?after=DC_kwDOJH_K4M4AdQN2&before=DC_kwDOJH_K4M4AeOEZ",
+    "commit": "f3b269813f6147c5b5cda082e6b45cf04a932e0d",
+    "Q4_0": {
+      "pp512": 186.75,
+      "tg128": 21.34
+    },
+    "Q8_0": {
+      "pp512": 187.52,
+      "tg128": 12.27
+    },
+    "limitations": "Published model hashes, OS, and all invocation flags are unavailable. Model identity is not byte-verified against the original run."
+  },
+  "binary_sha256": "7e7cb0b6e7934d7b542f9b01fe0dfbfe8a05b88ed5c4a0a993e31423739eba78",
+  "model_repository": "TheBloke/Llama-2-7B-GGUF",
+  "model_revision": "b4e04e128f421c93a5f1e34ac4d7ca9b0af47b80",
+  "memory_budget_gib": 10,
+  "models": {
+    "Q4_0": {
+      "filename": "llama-2-7b.Q4_0.gguf",
+      "sha256": "78b8f9777dd620ad29cd2cffb6653b17fa8a5b1fddc1b8821180d60eedd24d48"
+    }
+  },
+  "runs": [
+    {
+      "rate": "host",
+      "quantization": "Q4_0",
+      "command": [
+        "/tmp/gradio-llama-calibration/llama-bench",
+        "-m",
+        "/tmp/gradio-calibration-models/llama-2-7b.Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-ngl",
+        "99",
+        "-t",
+        "4",
+        "-b",
+        "512",
+        "-r",
+        "5",
+        "-o",
+        "json"
+      ],
+      "raw": [
+        {
+          "build_commit": "f3b269813",
+          "build_number": 1570,
+          "cuda": false,
+          "opencl": false,
+          "metal": true,
+          "gpu_blas": false,
+          "blas": true,
+          "cpu_info": "",
+          "gpu_info": "",
+          "model_filename": "/tmp/gradio-calibration-models/llama-2-7b.Q4_0.gguf",
+          "model_type": "llama 7B mostly Q4_0",
+          "model_size": 3825065984,
+          "model_n_params": 6738415616,
+          "n_batch": 512,
+          "n_threads": 4,
+          "f16_kv": true,
+          "n_gpu_layers": 99,
+          "main_gpu": 0,
+          "mul_mat_q": true,
+          "tensor_split": "0.00",
+          "n_prompt": 512,
+          "n_gen": 0,
+          "test_time": "2026-10-20T21:18:18Z",
+          "avg_ns": 2184117133,
+          "stddev_ns": 8257572,
+          "avg_ts": 234.422349,
+          "stddev_ts": 0.888283,
+          "samples_ns": [
+            2171293166,
+            2183984500,
+            2190765125,
+            2182571500,
+            2191971375
+          ],
+          "samples_ts": [
+            235.804,
+            234.434,
+            233.708,
+            234.586,
+            233.58
+          ]
+        },
+        {
+          "build_commit": "f3b269813",
+          "build_number": 1570,
+          "cuda": false,
+          "opencl": false,
+          "metal": true,
+          "gpu_blas": false,
+          "blas": true,
+          "cpu_info": "",
+          "gpu_info": "",
+          "model_filename": "/tmp/gradio-calibration-models/llama-2-7b.Q4_0.gguf",
+          "model_type": "llama 7B mostly Q4_0",
+          "model_size": 3825065984,
+          "model_n_params": 6738415616,
+          "n_batch": 512,
+          "n_threads": 4,
+          "f16_kv": true,
+          "n_gpu_layers": 99,
+          "main_gpu": 0,
+          "mul_mat_q": true,
+          "tensor_split": "0.00",
+          "n_prompt": 0,
+          "n_gen": 128,
+          "test_time": "2026-10-20T21:18:29Z",
+          "avg_ns": 4763046867,
+          "stddev_ns": 132984934,
+          "avg_ts": 26.889729,
+          "stddev_ts": 0.724151,
+          "samples_ns": [
+            4722755084,
+            4695191875,
+            4702490500,
+            4694730834,
+            5000066042
+          ],
+          "samples_ts": [
+            27.1028,
+            27.2619,
+            27.2196,
+            27.2646,
+            25.5997
+          ]
+        }
+      ],
+      "comparison": [
+        {
+          "task": "pp512",
+          "measured_tps": 234.422349,
+          "target_tps": 186.75,
+          "error_percent": 25.52736224899599
+        },
+        {
+          "task": "tg128",
+          "measured_tps": 26.889729,
+          "target_tps": 21.34,
+          "error_percent": 26.006227741330832
+        }
+      ]
+    },
+    {
+      "rate": "0.65",
+      "quantization": "Q4_0",
+      "command": [
+        "/tmp/gradio-llama-calibration/llama-bench",
+        "-m",
+        "/tmp/gradio-calibration-models/llama-2-7b.Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-ngl",
+        "99",
+        "-t",
+        "4",
+        "-b",
+        "512",
+        "-r",
+        "5",
+        "-o",
+        "json"
+      ],
+      "raw": [
+        {
+          "build_commit": "f3b269813",
+          "build_number": 1570,
+          "cuda": false,
+          "opencl": false,
+          "metal": true,
+          "gpu_blas": false,
+          "blas": true,
+          "cpu_info": "",
+          "gpu_info": "",
+          "model_filename": "/tmp/gradio-calibration-models/llama-2-7b.Q4_0.gguf",
+          "model_type": "llama 7B mostly Q4_0",
+          "model_size": 3825065984,
+          "model_n_params": 6738415616,
+          "n_batch": 512,
+          "n_threads": 4,
+          "f16_kv": true,
+          "n_gpu_layers": 99,
+          "main_gpu": 0,
+          "mul_mat_q": true,
+          "tensor_split": "0.00",
+          "n_prompt": 512,
+          "n_gen": 0,
+          "test_time": "2026-10-20T21:18:53Z",
+          "avg_ns": 2530448808,
+          "stddev_ns": 23577170,
+          "avg_ts": 202.349827,
+          "stddev_ts": 1.902249,
+          "samples_ns": [
+            2530870959,
+            2552707625,
+            2490830250,
+            2541639042,
+            2536196167
+          ],
+          "samples_ts": [
+            202.302,
+            200.571,
+            205.554,
+            201.445,
+            201.877
+          ]
+        },
+        {
+          "build_commit": "f3b269813",
+          "build_number": 1570,
+          "cuda": false,
+          "opencl": false,
+          "metal": true,
+          "gpu_blas": false,
+          "blas": true,
+          "cpu_info": "",
+          "gpu_info": "",
+          "model_filename": "/tmp/gradio-calibration-models/llama-2-7b.Q4_0.gguf",
+          "model_type": "llama 7B mostly Q4_0",
+          "model_size": 3825065984,
+          "model_n_params": 6738415616,
+          "n_batch": 512,
+          "n_threads": 4,
+          "f16_kv": true,
+          "n_gpu_layers": 99,
+          "main_gpu": 0,
+          "mul_mat_q": true,
+          "tensor_split": "0.00",
+          "n_prompt": 0,
+          "n_gen": 128,
+          "test_time": "2026-10-20T21:19:06Z",
+          "avg_ns": 5810789299,
+          "stddev_ns": 100266615,
+          "avg_ts": 22.033133,
+          "stddev_ts": 0.372721,
+          "samples_ns": [
+            5798911458,
+            5779876333,
+            5985242791,
+            5747722375,
+            5742193542
+          ],
+          "samples_ts": [
+            22.0731,
+            22.1458,
+            21.3859,
+            22.2697,
+            22.2911
+          ]
+        }
+      ],
+      "comparison": [
+        {
+          "task": "pp512",
+          "measured_tps": 202.349827,
+          "target_tps": 186.75,
+          "error_percent": 8.353321017402937
+        },
+        {
+          "task": "tg128",
+          "measured_tps": 22.033133,
+          "target_tps": 21.34,
+          "error_percent": 3.2480459231490233
+        }
+      ]
+    },
+    {
+      "rate": "0.35",
+      "quantization": "Q4_0",
+      "command": [
+        "/tmp/gradio-llama-calibration/llama-bench",
+        "-m",
+        "/tmp/gradio-calibration-models/llama-2-7b.Q4_0.gguf",
+        "-p",
+        "512",
+        "-n",
+        "128",
+        "-ngl",
+        "99",
+        "-t",
+        "4",
+        "-b",
+        "512",
+        "-r",
+        "5",
+        "-o",
+        "json"
+      ],
+      "raw": [
+        {
+          "build_commit": "f3b269813",
+          "build_number": 1570,
+          "cuda": false,
+          "opencl": false,
+          "metal": true,
+          "gpu_blas": false,
+          "blas": true,
+          "cpu_info": "",
+          "gpu_info": "",
+          "model_filename": "/tmp/gradio-calibration-models/llama-2-7b.Q4_0.gguf",
+          "model_type": "llama 7B mostly Q4_0",
+          "model_size": 3825065984,
+          "model_n_params": 6738415616,
+          "n_batch": 512,
+          "n_threads": 4,
+          "f16_kv": true,
+          "n_gpu_layers": 99,
+          "main_gpu": 0,
+          "mul_mat_q": true,
+          "tensor_split": "0.00",
+          "n_prompt": 512,
+          "n_gen": 0,
+          "test_time": "2026-10-20T21:19:36Z",
+          "avg_ns": 4638285900,
+          "stddev_ns": 66273984,
+          "avg_ts": 110.40396,
+          "stddev_ts": 1.605694,
+          "samples_ns": [
+            4521900458,
+            4647766208,
+            4680566125,
+            4675970042,
+            4665226667
+          ],
+          "samples_ts": [
+            113.227,
+            110.16,
+            109.388,
+            109.496,
+            109.748
+          ]
+        },
+        {
+          "build_commit": "f3b269813",
+          "build_number": 1570,
+          "cuda": false,
+          "opencl": false,
+          "metal": true,
+          "gpu_blas": false,
+          "blas": true,
+          "cpu_info": "",
+          "gpu_info": "",
+          "model_filename": "/tmp/gradio-calibration-models/llama-2-7b.Q4_0.gguf",
+          "model_type": "llama 7B mostly Q4_0",
+          "model_size": 3825065984,
+          "model_n_params": 6738415616,
+          "n_batch": 512,
+          "n_threads": 4,
+          "f16_kv": true,
+          "n_gpu_layers": 99,
+          "main_gpu": 0,
+          "mul_mat_q": true,
+          "tensor_split": "0.00",
+          "n_prompt": 0,
+          "n_gen": 128,
+          "test_time": "2026-10-20T21:19:59Z",
+          "avg_ns": 10935766250,
+          "stddev_ns": 447813988,
+          "avg_ts": 11.720695,
+          "stddev_ts": 0.488143,
+          "samples_ns": [
+            11321199667,
+            11389322500,
+            10823022917,
+            10865430834,
+            10279855333
+          ],
+          "samples_ts": [
+            11.3062,
+            11.2386,
+            11.8266,
+            11.7805,
+            12.4515
+          ]
+        }
+      ],
+      "comparison": [
+        {
+          "task": "pp512",
+          "measured_tps": 110.40396,
+          "target_tps": 186.75,
+          "error_percent": -40.88141365461847
+        },
+        {
+          "task": "tg128",
+          "measured_tps": 11.720695,
+          "target_tps": 21.34,
+          "error_percent": -45.076405810684165
+        }
+      ]
+    }
+  ]
+}
