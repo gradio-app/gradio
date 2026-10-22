@@ -170,4 +170,4 @@ While you develop, you can call the same Hugging Face endpoint with your own tok
 
 ## Conclusion
 
-You can use this app as a starting point to build real-time image applications with Gradio. Voice activity detection, turn taking and other building blocks for voice applications are available in the companion [FastRTC](https://fastrtc.org/) library.
+You can use this app as a starting point to build real-time image applications with Gradio.
