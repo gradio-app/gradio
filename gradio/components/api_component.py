@@ -16,15 +16,15 @@ class Api(Component):
 
     def __init__(
         self,
-        value: Any,
-        _api_info: dict[str, str],
+        value: Any = None,
+        _api_info: dict[str, str] | None = None,
         label: str = "API",
     ):
         """
         Parameters:
             value: default value.
         """
-        self._api_info = _api_info
+        self._api_info = _api_info or {}
         super().__init__(value=value, label=label)
 
     def preprocess(self, payload: Any) -> Any:

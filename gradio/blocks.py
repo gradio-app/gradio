@@ -6,6 +6,7 @@ import hashlib
 import inspect
 import json
 import os
+import pickle
 import random
 import re
 import secrets
@@ -1509,6 +1510,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         config: BlocksConfigDict,
         fns: list[Callable],
         proxy_url: str,
+        preserve_ids: bool = False,
     ) -> Blocks:
         """
         Factory method that creates a Blocks from a config and list of functions. Used
@@ -1518,6 +1520,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         config: a dictionary containing the configuration of the Blocks.
         fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
         proxy_url: an external url to use as a root URL when serving files for components in the Blocks.
+        preserve_ids: give each block and event the id it has in `config`, so that ids sent by a client of the original app (and tokens derived from them) mean the same thing here. Used by the process executor's gateway.
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
@@ -1542,6 +1545,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             postprocessed_value = block_config["props"].pop("value", None)
 
             constructor_args = cls.recover_kwargs(block_config["props"])
+            if preserve_ids:
+                Context.id = id
             block = cls(**constructor_args)
             block_proxy_url = block_config["props"]["proxy_url"]
             block.proxy_url = block_proxy_url
@@ -1578,6 +1583,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         derived_fields = ["types"]
 
+        if preserve_ids:
+            Context.id = config.get("layout", {}).get("id", Context.id)
         with Blocks(theme=config.get("theme", None)) as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = root_block = Context.root_block or blocks
@@ -1602,6 +1609,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     continue
                 for field in derived_fields:
                     dependency.pop(field, None)
+                if preserve_ids:
+                    root_block.default_config.fn_id = dependency["id"]
 
                 # older versions had a separate trigger field, but now it is part of the
                 # targets field
@@ -1611,11 +1620,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
                 # This assumes that you cannot combine multiple .then() events in a single
                 # gr.on() event, which is true for now. If this changes, we will need to
-                # update this code.
-                if not isinstance(_targets[0], int) and _targets[0][1] in [
-                    "then",
-                    "success",
-                ]:
+                # update this code. gr.api() endpoints have no targets at all.
+                if (
+                    _targets
+                    and not isinstance(_targets[0], int)
+                    and _targets[0][1] in ["then", "success"]
+                ):
                     if len(_targets) != 1:
                         raise ValueError(
                             "This logic assumes that .then() events are not combined with other events in a single gr.on() event"
@@ -1686,6 +1696,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 blocks.__name__ = "Interface"
                 blocks.api_mode = True
         blocks.proxy_urls = proxy_urls
+        if preserve_ids:
+            Context.id = max([Context.id, *original_mapping]) + 1
+            root_block.default_config.fn_id = (
+                max(root_block.default_config.fns, default=-1) + 1
+            )
         return blocks
 
     def __str__(self):
@@ -3106,6 +3121,7 @@ Received inputs:
         js: str | Literal[True] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
+        executor: Literal["thread", "process"] | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -3156,6 +3172,7 @@ Received inputs:
             js: Custom JavaScript provided as either a function or a raw code string. A function is automatically invoked; otherwise the code is executed directly when the page loads. To run JavaScript as a document-level `<script>` tag, use the `head` parameter.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
+            executor: Where the server runs relative to the app's functions. "thread" (the default) runs the server in this process, with functions in its threads. "process" runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. Can be set with the GRADIO_EXECUTOR environment variable.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -3185,6 +3202,9 @@ Received inputs:
         head_paths = (
             head_paths if head_paths is not None else self._deprecated_head_paths
         )
+        launch_kwargs = {
+            k: v for k, v in locals().items() if k not in ("self", "App", "executor")
+        }
 
         self.theme: Theme = utils.get_theme(theme)
         self.css = css
@@ -3290,6 +3310,16 @@ Received inputs:
         self._queue.max_thread_count = max_threads
         self.transpile_to_js(quiet=quiet)
         self.config = self.get_config_file()
+
+        if self._resolve_executor(executor) == "process":
+            from gradio.processing.worker import serve
+
+            return serve(  # type: ignore[return-value]
+                self,
+                self._gateway_launch_kwargs(launch_kwargs),
+                prevent_thread_lock=prevent_thread_lock,
+                app=_app,
+            )
 
         self.ssr_mode = self._resolve_ssr_mode(ssr_mode, disable_when_multi_page=False)
 
@@ -3933,10 +3963,74 @@ Received inputs:
         """
         self.server_app.stop_event.set()
 
+    @staticmethod
+    def _resolve_executor(executor: str | None) -> str:
+        if os.environ.get("GRADIO_PROCESS_GATEWAY"):
+            # This process is the gateway of an app launched with "process"
+            return "thread"
+        resolved = executor or os.environ.get("GRADIO_EXECUTOR") or "thread"
+        if resolved not in ("thread", "process"):
+            raise ValueError(
+                f"`executor` must be 'thread' or 'process', not {resolved!r}."
+            )
+        if resolved == "process" and os.getenv("GRADIO_WATCH_DIRS"):
+            raise ValueError(
+                "executor='process' does not support reload mode yet. Use "
+                "executor='thread' while developing with `gradio app.py`."
+            )
+        return resolved
+
+    @staticmethod
+    def _gateway_launch_kwargs(launch_kwargs: dict[str, Any]) -> dict[str, Any]:
+        """The launch() arguments the gateway process starts the server with.
+        They cross to another process, so callables (which would run there,
+        without this process's state) are refused rather than dropped."""
+        defaults = {
+            name: parameter.default
+            for name, parameter in inspect.signature(Blocks.launch).parameters.items()
+        }
+        gateway_kwargs = {}
+        for name, value in launch_kwargs.items():
+            # The gateway always serves in the background and reports back
+            if name in ("prevent_thread_lock", "debug", "_app"):
+                continue
+            if value is None or value is defaults.get(name):
+                continue
+            if isinstance(value, (bool, int, float, str)) and value == defaults.get(
+                name
+            ):
+                continue
+            if name == "mcp_server" or callable(value):
+                raise ValueError(
+                    f"`{name}` is not supported with executor='process' yet. Use "
+                    "executor='thread'."
+                )
+            try:
+                pickle.dumps(value)
+            except Exception as err:
+                raise ValueError(
+                    f"`{name}` cannot be sent to the gateway process of "
+                    f"executor='process': {err}"
+                ) from err
+            gateway_kwargs[name] = value
+        if os.environ.get("GRADIO_MCP_SERVER", "").lower() == "true":
+            raise ValueError(
+                "The MCP server is not supported with executor='process' yet. Use "
+                "executor='thread'."
+            )
+        return gateway_kwargs
+
     def close(self, verbose: bool = True) -> None:
         """
         Closes the Interface that was launched and frees the port.
         """
+        worker = getattr(self, "_process_worker", None)
+        if worker is not None:
+            worker.close()
+            self._queue = getattr(self._queue, "original", self._queue)
+            self._process_worker = None
+            self.is_running = False
+            return
         if not self.is_running:
             return
 

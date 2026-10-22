@@ -25,7 +25,7 @@ class TestServer:
         def state_check(request: Request):
             return PlainTextResponse(request.state.hello)
 
-        @server.api(executor="thread", name="echo")
+        @server.api(name="echo")
         def echo(x: str) -> str:
             return x
 
@@ -41,7 +41,7 @@ class TestServer:
     def test_server_launch_queue_and_api_predict(self):
         server = gr.Server()
 
-        @server.api(executor="thread", name="echo")
+        @server.api(name="echo")
         def echo(x: str) -> str:
             return x
 
@@ -63,7 +63,7 @@ class TestServer:
     def test_server_stream_can_resume_with_python_client(self):
         server = gr.Server()
 
-        @server.api(executor="thread", name="count")
+        @server.api(name="count")
         def count(limit: int) -> Iterator[str]:
             for value in range(limit):
                 time.sleep(0.02)
@@ -104,7 +104,7 @@ class TestServer:
     def test_server_launch_enables_mcp(self):
         server = gr.Server()
 
-        @server.api(executor="thread", name="double")
+        @server.api(name="double")
         def double(word: str) -> str:
             """
             Doubles the input word.
@@ -129,7 +129,7 @@ class TestServer:
     def test_server_api_appears_in_gradio_api_info(self):
         server = gr.Server()
 
-        @server.api(executor="thread", name="named_echo")
+        @server.api(name="named_echo")
         def named_echo(msg: str) -> str:
             return msg
 

@@ -171,32 +171,6 @@ class Server(App):
         super().__init__(**init_kwargs)
         self._deferred_apis: list[tuple[Callable, dict[str, Any]]] = []
         self._mcp = _MCPNamespace()
-        self._process_resources = []
-        self._process_functions = []
-        self._process_pools = {}
-
-    def resource(self, fn=None):
-        """Cache a synchronous resource factory once per persistent process.
-
-        Each worker initializes the registered factories when it starts. Use this
-        for model loading instead of performing it at module import time.
-        """
-        from gradio.processing.resource import resource
-
-        def decorate(func):
-            import inspect
-
-            if (
-                inspect.iscoroutinefunction(func)
-                or inspect.isgeneratorfunction(func)
-                or inspect.isasyncgenfunction(func)
-            ):
-                raise ValueError("Resource factories must be synchronous functions")
-            wrapped = resource(func)
-            self._process_resources.append(wrapped)
-            return wrapped
-
-        return decorate(fn) if fn is not None else decorate
 
     @property
     def mcp(self) -> _MCPNamespace:
@@ -207,7 +181,6 @@ class Server(App):
         self,
         fn: Callable | None = None,
         *,
-        executor: Literal["process", "thread"] = "process",
         name: str | None = None,
         description: str | None = None,
         concurrency_limit: int | None | Literal["default"] = "default",
@@ -221,16 +194,9 @@ class Server(App):
     ):
         """Decorator to register a function as a Gradio API endpoint.
 
-        Process execution uses a persistent child per endpoint and requires an
-        importable application file with one Server. Module-level code runs in
-        each child; arguments and results must be pickleable. Thread execution
-        preserves the existing Gradio execution path, including native async
-        execution for async functions.
+        Goes through Gradio's queue with concurrency control and SSE streaming.
+        `api()` is the same decorator.
         """
-        if executor not in ("process", "thread"):
-            raise ValueError("executor must be 'process' or 'thread'")
-        if executor == "process" and (not queue or batch):
-            raise ValueError("Process endpoints require queue=True and batch=False")
         kwargs = {
             "api_name": name,
             "api_description": description,
@@ -243,29 +209,15 @@ class Server(App):
             "time_limit": time_limit,
             "stream_every": stream_every,
         }
+        if fn is not None:
+            self._deferred_apis.append((fn, kwargs))
+            return fn
 
         def wrapper(func):
-            registered = func
-            if executor == "process":
-                import inspect
-
-                index = len(self._process_functions)
-                self._process_functions.append(func)
-                if not os.environ.get("GRADIO_PROCESS_WORKER"):
-                    from gradio.processing.pool import Pool
-
-                    path = inspect.getsourcefile(func)
-                    if not path or not Path(path).is_file():
-                        raise ValueError(
-                            "Process endpoints must be defined in an importable app file"
-                        )
-                    pool = Pool(path)
-                    self._process_pools[index] = pool
-                    registered = pool.wrap(func, index)
-            self._deferred_apis.append((registered, kwargs))
+            self._deferred_apis.append((func, kwargs))
             return func
 
-        return wrapper(fn) if fn is not None else wrapper
+        return wrapper
 
     api = queue
 
@@ -326,6 +278,7 @@ class Server(App):
         head_paths: str | Path | Sequence[str | Path] | None = None,
         num_workers: int | None = None,
         resume_sessions: bool | None = None,
+        executor: Literal["thread", "process"] | None = None,
     ) -> tuple[App, str, str]:
         """Launch the Gradio API server (Server mode).
 
@@ -334,26 +287,11 @@ class Server(App):
         Returns:
             Tuple of (fastapi_app, local_url, share_url).
         """
-        if os.environ.get("GRADIO_PROCESS_WORKER"):
-            return self, "", ""
-        if self._process_pools:
-            from contextlib import asynccontextmanager
-
-            app_kwargs = dict(app_kwargs or {})
-            original = app_kwargs.get("lifespan", self.router.lifespan_context)
-
-            @asynccontextmanager
-            async def lifespan(app):
-                try:
-                    async with original(app) as state:
-                        yield state
-                finally:
-                    for pool in self._process_pools.values():
-                        pool.close()
-
-            app_kwargs["lifespan"] = lifespan
         from gradio.blocks import Blocks
         from gradio.events import api as gr_api
+
+        if Blocks._resolve_executor(executor) == "process":
+            self._check_process_executor()
 
         with Blocks(mode="server") as blocks:
             for fn, api_kwargs in self._deferred_apis:
@@ -411,4 +349,28 @@ class Server(App):
             head_paths=head_paths,
             num_workers=num_workers,
             resume_sessions=resume_sessions,
+            executor=executor,
         )
+
+    def _check_process_executor(self) -> None:
+        """With executor="process" the gateway process serves HTTP, so anything
+        added to this FastAPI app (which lives in this process) would be lost."""
+        default_paths = {"/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc"}
+        custom = [
+            getattr(route, "path", repr(route))
+            for route in self.routes
+            if getattr(route, "path", None) not in default_paths
+        ]
+        reasons = []
+        if custom:
+            reasons.append(f"custom routes ({', '.join(custom)})")
+        if self.user_middleware:
+            reasons.append("middleware")
+        if type(self.router.lifespan_context).__name__ != "_DefaultLifespan":
+            reasons.append("a lifespan")
+        if reasons:
+            raise ValueError(
+                f"executor='process' does not support a Server with {' or '.join(reasons)} "
+                "yet, since they would not be served by the gateway process. Use "
+                "executor='thread'."
+            )

@@ -409,6 +409,13 @@ async def call_process_api(
     fn: BlockFunction,
     root_path: str,
 ):
+    link = getattr(app.get_blocks(), "_process_link", None)
+    if link is not None:
+        # This is the gateway of `executor="process"`: the app's process runs it
+        from gradio.processing.gateway import forward_event
+
+        return await forward_event(link, app, body, gr_request, fn, root_path)
+
     session_state, iterator = restore_session_state(app=app, body=body)
     # A batch mixes events from different sessions, so its state stays on the server
     client_state = body.client_state if not body.batched else None
