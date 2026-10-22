@@ -53,6 +53,7 @@ from typing import (
 )
 
 import anyio
+import anyio.to_thread
 import gradio_client.utils as client_utils
 import httpx2
 import orjson
@@ -110,29 +111,6 @@ def get_package_version() -> str:
         return version
     except Exception:
         return ""
-
-
-def safe_get_lock() -> asyncio.Lock:
-    """Get asyncio.Lock() without fear of getting an Exception.
-
-    Needed because in reload mode we import the Blocks object outside
-    the main thread.
-    """
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    return asyncio.Lock()
-
-
-def safe_get_stop_event() -> asyncio.Event:
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    return asyncio.Event()
 
 
 class DynamicBoolean(int):
@@ -606,7 +584,7 @@ def get_space() -> str | None:
 
 
 def is_zero_gpu_space() -> bool:
-    return os.getenv("SPACES_ZERO_GPU") == "true"
+    return os.getenv("SPACES_ZERO_GPU") in ("1", "true")
 
 
 def get_theme(theme: Theme | str | None) -> Theme:
