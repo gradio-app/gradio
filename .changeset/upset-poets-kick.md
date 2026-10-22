@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Add process and thread executors to Server queue endpoints
+feat:Add a process executor that runs the server in a separate gateway process
