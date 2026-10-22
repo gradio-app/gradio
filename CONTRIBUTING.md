@@ -99,7 +99,7 @@ scripts\run_frontend.bat
 
 -  Install test requirements (only required if you want to run tests locally)
 
-(Note that it is highly recommended to use a virtual environment running **Python 3.10** since the versions of Gradio's dependencies are pinned)
+(Note that it is highly recommended to use a virtual environment running **Python 3.11** since the versions of Gradio's dependencies are pinned)
 
 <table>
   <tr>

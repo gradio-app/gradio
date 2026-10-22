@@ -132,6 +132,13 @@ def get_pil_metadata(pil_image):
 
 
 def encode_pil_to_bytes(pil_image, format="png"):
+    if format.lower() == "png" and pil_image.mode == "I":
+        raise OSError(
+            "Cannot save a 32-bit integer (I-mode) image as PNG without losing data. "
+            "If all pixel values are between 0 and 65535, explicitly convert the "
+            "image with image.convert('I;16') before returning it. Otherwise, use "
+            "a format such as TIFF to preserve the 32-bit integer values."
+        )
     with BytesIO() as output_bytes:
         if format.lower() == "gif":
             frames = [frame.copy() for frame in ImageSequence.Iterator(pil_image)]

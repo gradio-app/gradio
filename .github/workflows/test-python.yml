@@ -50,7 +50,7 @@ jobs:
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@7.0-dev"
         with:
-          python_version: "3.10"
+          python_version: "3.11"
           os: "ubuntu-latest"
           test: true
           skip_docs_gen: true
@@ -120,7 +120,7 @@ jobs:
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@7.0-dev"
         with:
-          python_version: "3.10"
+          python_version: "3.11"
           os: ${{ matrix.os }}
           test: true
           skip_build: true
