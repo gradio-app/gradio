@@ -14,7 +14,6 @@ from .commands import (
     predict,
     print_environment_info,
     reload,
-    sketch,
     skills_app,
     upload_mcp,
 )
@@ -29,7 +28,6 @@ app.command(
     "deploy",
     help="Deploy a Gradio app to Spaces or Google Cloud Run. Must be called within the directory you would like to deploy.",
 )(deploy)
-app.command("sketch", help="Open the Sketch app to design a Gradio app.")(sketch)
 app.command(
     "info",
     help="Fetches the expected JSON payload for all of a Gradio app's endpoints.",
@@ -48,7 +46,6 @@ def cli():
         "deploy",
         "environment",
         "deploy-discord",
-        "sketch",
         "load",
         "skills",
         "info",
@@ -88,6 +85,7 @@ demo.launch()"""
             print(f"Created {demo_path} with default Gradio template.")
 
         print(
+            "\n⚠️  DEPRECATION WARNING: Vibe editor mode (`gradio --vibe`) is deprecated and will be removed in a future version of Gradio."
             "\n⚠️  WARNING: Vibe editor mode is enabled. Anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use with caution!\n"
         )
 

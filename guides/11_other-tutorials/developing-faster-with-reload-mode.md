@@ -1,4 +1,4 @@
-# Developing Faster with Reload Mode and Vibe Mode
+# Developing Faster with Reload Mode
 
 **Prerequisite**: This Guide requires you to know about Blocks. Make sure to [read the Guide to Blocks first](https://gradio.app/blocks-and-event-listeners).
 
@@ -135,7 +135,9 @@ if __name__ == "__main__":
 
 ## Vibe Mode
 
-You can also enable Gradio's **Vibe Mode**, which, which provides an in-browser chat that can be used to write or edit your Gradio app using natural language. To enable this, simply run use the `--vibe` flag with Gradio, e.g. `gradio --vibe app.py`.
+Note: Vibe Mode is deprecated and will be removed in a future version of Gradio.
+
+You can also enable Gradio's **Vibe Mode**, which provides an in-browser chat that can be used to write or edit your Gradio app using natural language. To enable this, use the `--vibe` flag with Gradio, e.g. `gradio --vibe app.py`.
 
 Vibe Mode lets you describe commands using natural language and have an LLM write or edit the code in your Gradio app. The LLM is powered by Hugging Face's [Inference Providers](https://huggingface.co/docs/inference-providers/en/index), so you must be logged into Hugging Face locally to use this. 
 
