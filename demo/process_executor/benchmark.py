@@ -20,7 +20,7 @@ from typing import Any
 import anyio
 import numpy as np
 
-from app import DEMOS, app
+from demo.process_executor.app import DEMOS, app
 
 ROOT = Path(__file__).resolve().parent
 

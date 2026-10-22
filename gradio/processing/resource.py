@@ -9,6 +9,9 @@ T = TypeVar("T")
 class Resource(Generic[T]):
     """A callable resource factory with a cache local to its worker process."""
 
+    __name__: str
+    __wrapped__: Callable[[], T]
+
     def __init__(self, fn: Callable[[], T]):
         functools.update_wrapper(self, fn)
         self._fn = fn
