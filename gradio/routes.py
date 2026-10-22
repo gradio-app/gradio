@@ -1988,7 +1988,7 @@ class App(FastAPI):
                                 session_hash
                             ]
                             message = await asyncio.wait_for(messages.get(), timeout=10)
-                        except (TimeoutError, asyncio.TimeoutError):
+                        except TimeoutError:
                             pass
 
                         if blocks._queue.stopped:
@@ -2231,7 +2231,7 @@ class App(FastAPI):
                 await asyncio.wait_for(
                     file_upload_statuses.is_tracked(upload_id), timeout=3
                 )
-            except (asyncio.TimeoutError, TimeoutError):
+            except TimeoutError:
                 return PlainTextResponse("Upload not found", status_code=404)
 
             return StreamingResponse(

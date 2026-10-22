@@ -4,13 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, cast
 
 import gradio_client.utils as client_utils
 from gradio_client import handle_file
 from gradio_client.documentation import document
 from pydantic import Field
-from typing_extensions import NotRequired
 
 from gradio.components.audio import MicrophoneOptions
 from gradio.components.base import Component, FormComponent

@@ -14,6 +14,7 @@ from typing import (
     Any,
     Literal,
     NewType,
+    NotRequired,
     Union,
 )
 
@@ -34,7 +35,7 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import TypedDict
 
 from gradio.i18n import I18nData
 

@@ -81,7 +81,7 @@ async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
             pyodide_pyfetch(url, method="POST", headers=headers, body=body),
             timeout=5,
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         pass  # do not push analytics if no network
 
 

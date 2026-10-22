@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import cast
 
 import pytest
@@ -138,7 +138,7 @@ class TestDateTimePostprocess:
     def test_postprocess_datetime_with_utc_timezone(self):
         """datetime objects with timezone info are formatted as-is."""
         dt = gr.DateTime(type="datetime", timezone="US/Pacific")
-        utc_dt = datetime(2020, 2, 1, 8, 10, 25, tzinfo=timezone.utc)
+        utc_dt = datetime(2020, 2, 1, 8, 10, 25, tzinfo=UTC)
         result = dt.postprocess(utc_dt)
         assert result == "2020-02-01 08:10:25"
 
@@ -264,5 +264,5 @@ class TestDateTimeInterface:
         """datetime objects with timezone info are accepted as default values."""
         gr.DateTime(
             type="datetime",
-            value=datetime.now(tz=timezone.utc),
+            value=datetime.now(tz=UTC),
         )
