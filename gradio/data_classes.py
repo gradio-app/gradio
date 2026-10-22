@@ -149,14 +149,6 @@ class ResetBody(BaseModel):
     event_id: str
 
 
-class VibeEditBody(BaseModel):
-    prompt: str
-
-
-class VibeCodeBody(BaseModel):
-    code: str
-
-
 class ComponentServerJSONBody(BaseModel):
     session_hash: str
     component_id: int
@@ -409,7 +401,6 @@ class BlocksConfigDict(TypedDict):
     resume_sessions: NotRequired[bool]
     session_user: NotRequired[str | None]
     dev_mode: bool
-    vibe_mode: bool
     analytics_enabled: bool
     components: list[dict[str, Any]]
     css: str | None
