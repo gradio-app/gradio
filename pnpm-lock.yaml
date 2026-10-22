@@ -1906,6 +1906,9 @@ importers:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
+      wavesurfer.js:
+        specifier: 7.11.0
+        version: 7.11.0
 
   js/nativeplot:
     dependencies:
