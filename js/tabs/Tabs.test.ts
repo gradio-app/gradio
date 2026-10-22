@@ -1,4 +1,5 @@
 import { test, describe, afterEach, expect } from "vitest";
+import { tick } from "svelte";
 import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
@@ -388,6 +389,8 @@ describe("Events: gradio_tab_select", () => {
 
 	test("fires when the selected tab changes via set_data", async () => {
 		const { listen, set_data } = await render(Tabs, default_props);
+		// let the mount-time request for the initially selected tab go out first
+		await tick();
 
 		const gradio_tab_select = listen("gradio_tab_select");
 

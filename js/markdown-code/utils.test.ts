@@ -1,5 +1,5 @@
 import { test, describe, expect } from "vitest";
-import { escapeTags } from "./utils";
+import { create_marked, escapeTags, track_open_elements } from "./utils";
 
 describe("escapeTags", () => {
 	test.each([
@@ -96,5 +96,53 @@ describe("escapeTags", () => {
 	test("allow_tags=false leaves content unchanged", () => {
 		const input = "<p><tool_call>x</tool_call></p>";
 		expect(escapeTags(input, false)).toBe(input);
+	});
+});
+
+describe("track_open_elements", () => {
+	const marked = create_marked({
+		header_links: false,
+		line_breaks: false,
+		latex_delimiters: []
+	});
+	const open_after = (
+		markdown: string,
+		allow_tags: string[] | boolean = false
+	): string[] => {
+		const open: string[] = [];
+		for (const token of marked.lexer(markdown)) {
+			track_open_elements(marked, token, open, allow_tags);
+		}
+		return open;
+	};
+
+	test.each([
+		[
+			"raw html block",
+			"<details>\n<summary>More</summary>\n\nInside",
+			["details"]
+		],
+		["closed raw html block", "<div>\n\nInside\n\n</div>", []],
+		["unknown inline tag in prose", "Use List<T> here.", []],
+		["inline span", "Some <span>text", []],
+		["inline formatting element", "Some <b>bold", ["b"]],
+		["inline element that closes the paragraph", "Some <div>text", ["div"]],
+		["inline tag in a list item", "- returns Promise<void>", []],
+		[
+			"tag-like text inside a script",
+			'<div>\n<script>const x = "</div>";</script>\n\nInside',
+			["div"]
+		]
+	])("%s", (_, markdown, expected) => {
+		expect(open_after(markdown)).toEqual(expected);
+	});
+
+	test.each([
+		["all custom tags", "<think>\nOkay\n\nMore", true, []],
+		["listed custom tag", "<think>\nOkay\n\nMore", ["think"], []],
+		["unlisted custom tag", "<think>\nOkay\n\nMore", ["answer"], ["think"]],
+		["standard tag", "<details>\nOkay\n\nMore", true, ["details"]]
+	])("tags escaped by allow_tags: %s", (_, markdown, allow_tags, expected) => {
+		expect(open_after(markdown, allow_tags)).toEqual(expected);
 	});
 });

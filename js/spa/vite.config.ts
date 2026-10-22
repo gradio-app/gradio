@@ -169,13 +169,16 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			// reload that fires once when this list is committed happens
 			// before iframes start running tests, so it's harmless. CI
 			// caches `node_modules/.vite` so even that one reload is rare.
+			// These deps belong to workspace packages and don't resolve from
+			// the repo root, hence the `parent > dep` form.
 			include: [
-				"katex/contrib/auto-render",
-				"mermaid",
-				"vega-embed",
-				"@babylonjs/viewer",
-				"extendable-media-recorder",
-				"extendable-media-recorder-wav-encoder"
+				"@gradio/markdown > @gradio/markdown-code > katex/contrib/auto-render",
+				"@gradio/markdown > @gradio/markdown-code > mermaid",
+				"@gradio/plot > vega-embed",
+				"@gradio/model3d > @babylonjs/viewer",
+				"@gradio/audio > extendable-media-recorder",
+				"@gradio/audio > extendable-media-recorder-wav-encoder",
+				"@gradio/paramviewer > prismjs/components/prism-typescript"
 			]
 		},
 		resolve: {
