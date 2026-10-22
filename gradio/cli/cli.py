@@ -62,6 +62,10 @@ def cli():
         except ValueError:
             console = Console()
             console.print_exception()
+    elif args[0] == "sketch":
+        raise ValueError(
+            "`gradio sketch` has been removed. Build your app in Python and run it with `gradio app.py`."
+        )
     elif args[0] in {"upload-mcp"}:
         upload_mcp(args[1], args[2])
     elif args[0] == "--vibe":
@@ -85,6 +89,7 @@ demo.launch()"""
             print(f"Created {demo_path} with default Gradio template.")
 
         print(
+            "\n⚠️  DEPRECATION WARNING: Vibe editor mode (`gradio --vibe`) is deprecated and will be removed in a future version of Gradio."
             "\n⚠️  WARNING: Vibe editor mode is enabled. Anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use with caution!\n"
         )
 
