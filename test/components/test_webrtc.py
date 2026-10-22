@@ -1248,6 +1248,45 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    async def test_closing_the_stream_delivers_every_pending_output(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        # Outputs the queue has not delivered yet, e.g. while workers are busy
+        h.manager.sessions["one"].outputs.extend(
+            AdditionalOutputs(n) for n in (1, 2, 3)
+        )
+        await h.http.post(f"{h.api}/stream/{event_id}/close")
+        messages = await h.messages("one", completed)
+        delivered = [
+            m["output"]["data"][1]
+            for m in messages
+            if m.get("msg") in ("process_streaming", "process_completed")
+            and isinstance(m["output"]["data"][1], int | float)
+        ]
+        assert delivered == [1, 2, 3]
+        assert messages[-1]["success"] is True
+        await pc.close()
+
+    @pytest.mark.asyncio
+    async def test_closing_a_stream_whose_handler_just_failed_fails_it(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        notifier = h.manager.sessions["one"].notifier
+        assert notifier is not None
+        # The handler failed, and the stream has not ended yet
+        notifier.failure = {"error": "Bad frame", "title": "Oops", "visible": False}
+        await h.http.post(f"{h.api}/stream/{event_id}/close")
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m["msg"] == "process_completed")
+        assert completion["success"] is False
+        assert completion["output"]["error"] == "Bad frame"
+        await pc.close()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched", [{"stream_kwargs": {"time_limit": 1}}], indirect=True
     )

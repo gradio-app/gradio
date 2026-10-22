@@ -795,6 +795,23 @@ def stream_manager(webrtc_id: str) -> ConnectionManager | None:
     return _streams.get(webrtc_id)
 
 
+def end_admitted_stream(event: Event) -> bool:
+    """
+    Ends the stream that the queue event admitted, for a page that closes it:
+    the event then delivers the outputs still pending and fails if the handler
+    did (see `finish_if_drained`). False if the event has no running stream.
+    """
+    webrtc_id = admitted_id(event)
+    if webrtc_id is None:
+        return False
+    manager = stream_manager(webrtc_id)
+    session = manager.sessions.get(webrtc_id) if manager is not None else None
+    if manager is None or session is None or session.event is not event:
+        return False
+    manager.end(webrtc_id)
+    return True
+
+
 async def stream_admitted(
     webrtc_id: str | None, session_hash: str | None, component_id: int
 ) -> Session | None:
