@@ -133,16 +133,6 @@ if __name__ == "__main__":
     demo.launch()
 ```
 
-## Vibe Mode
-
-Note: Vibe Mode is deprecated and will be removed in a future version of Gradio.
-
-You can also enable Gradio's **Vibe Mode**, which provides an in-browser chat that can be used to write or edit your Gradio app using natural language. To enable this, use the `--vibe` flag with Gradio, e.g. `gradio --vibe app.py`.
-
-Vibe Mode lets you describe commands using natural language and have an LLM write or edit the code in your Gradio app. The LLM is powered by Hugging Face's [Inference Providers](https://huggingface.co/docs/inference-providers/en/index), so you must be logged into Hugging Face locally to use this. 
-
-Note: When Vibe Mode is enabled, anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use only for local development.
-
 ## Jupyter Notebook Magic 🔮
 
 What about if you use Jupyter Notebooks (or Colab Notebooks, etc.) to develop code? We got something for you too!

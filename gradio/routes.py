@@ -40,7 +40,6 @@ import orjson
 from fastapi import (
     APIRouter,
     BackgroundTasks,
-    Body,
     Depends,
     FastAPI,
     HTTPException,
@@ -100,8 +99,6 @@ from gradio.data_classes import (
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
-    VibeCodeBody,
-    VibeEditBody,
 )
 from gradio.exceptions import Error, InvalidPathError
 from gradio.helpers import special_args
@@ -158,7 +155,6 @@ from gradio.utils import (
 if TYPE_CHECKING:
     from gradio.blocks import Block, BlockFunction
 
-import difflib
 import re
 import shutil
 import tempfile
@@ -244,9 +240,9 @@ file_upload_statuses = FileUploadProgress()
 # Cached so it only warns once: the app is created several times per launch,
 # and again on every reload
 @functools.cache
-def _warn_vibe_mode_deprecated() -> None:
+def _warn_vibe_mode_removed() -> None:
     warnings.warn(
-        "Vibe editor mode is deprecated and will be removed in a future version of Gradio.",
+        "GRADIO_VIBE_MODE is set, but the vibe editor has been removed from Gradio, so it has no effect.",
         UserWarning,
     )
 
@@ -431,6 +427,8 @@ class App(FastAPI):
         debug: bool = False,
         parent_app: fastapi.FastAPI | None = None,
     ) -> App:
+        if os.getenv("GRADIO_VIBE_MODE"):
+            _warn_vibe_mode_removed()
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
         mcp_subpath = App.setup_mcp_server(blocks, app_kwargs, mcp_server)
@@ -2524,303 +2522,6 @@ class App(FastAPI):
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
-        vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
-        vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
-        chat_history = {"history": ""}
-        hash_to_chat_history = {}
-
-        def limit_chat_history(history: str, max_pairs: int = 5) -> str:
-            """Limit chat history in the prompt to the last max_pairs user-assistant pairs."""
-            if not history.strip():
-                return ""
-
-            user_messages = history.split("\nUser: ")
-            if len(user_messages) <= max_pairs:
-                return history
-
-            recent_messages = user_messages[-max_pairs:]
-
-            if len(recent_messages) > 0:
-                if recent_messages[0].startswith("User: "):
-                    result = recent_messages[0]
-                else:
-                    result = "User: " + recent_messages[0]
-
-                for msg in recent_messages[1:]:
-                    result += "\nUser: " + msg
-
-                return result
-
-            return ""
-
-        control_token_re = re.compile(r"<\|[^>]*\|>")
-        final_start_re = re.compile(
-            r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
-        )
-        end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
-        reasoning_block_re = re.compile(
-            r"<\s*reasoning\s*>\s*(?P<body>.*?)\s*<\s*/\s*reasoning\s*>",
-            re.IGNORECASE | re.DOTALL,
-        )
-        think_block_re = re.compile(
-            r"<\s*think\s*>.*?<\s*/\s*think\s*>", re.IGNORECASE | re.DOTALL
-        )
-
-        # Remove analysis and weird markers from gpt-oss
-        def clean_out_markers(raw: str) -> str:
-            if not raw:
-                return raw
-
-            m = final_start_re.search(raw)
-            if m:
-                text = raw[m.end() :]
-                m_end = end_re.search(text)
-                if m_end:
-                    text = text[: m_end.start()]
-                return text.strip()
-
-            text = control_token_re.sub("", raw)
-            return text.strip()
-
-        def strip_think_blocks(text: str) -> str:
-            """Remove any <think> ... </think> blocks entirely"""
-            return think_block_re.sub("", text)
-
-        def split_reasoning_code(text: str) -> tuple[str, str]:
-            """
-            Extract all <reasoning>...</reasoning> and code. If multiple, concatenate with blank lines, de-duping exact copies.
-            """
-            reasoning_chunks = []
-            seen = set()
-            for m in reasoning_block_re.finditer(text):
-                body = m.group("body").strip()
-                if body and body not in seen:
-                    reasoning_chunks.append(body)
-                    seen.add(body)
-
-            reasoning_text = "\n\n".join(reasoning_chunks).strip()
-            code_text = reasoning_block_re.sub("", text).strip()
-
-            return reasoning_text, code_text
-
-        if blocks.vibe_mode:
-            _warn_vibe_mode_deprecated()
-            from huggingface_hub import InferenceClient
-
-            inference_client = InferenceClient()
-
-        @router.post("/vibe-edit/")
-        @router.post("/vibe-edit")
-        async def vibe_edit(body: VibeEditBody):
-            if not blocks.vibe_mode:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
-                )
-
-            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
-
-            with open(GRADIO_WATCH_DEMO_PATH) as f:
-                original_code = f.read()
-
-            snapshot_hash = secrets.token_hex(16)
-            snapshot_file = vibe_edit_history_dir / f"{snapshot_hash}.py"
-
-            with open(snapshot_file, "w") as f:
-                f.write(original_code)
-
-            hash_to_chat_history[snapshot_hash] = chat_history["history"]
-
-            content = ""
-            limited_history = limit_chat_history(chat_history["history"])
-
-            prompt = f"""
-You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
-Existing code:
-```python
-{original_code}
-```
-
-Prompt:
-{body.prompt}
-
-History:
-{limited_history if limited_history else "No chat history."}
-"""
-
-            system_prompt = load_system_prompt()
-            content = (
-                inference_client.chat_completion(
-                    model="openai/gpt-oss-120b",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt},
-                    ],
-                    max_tokens=10000,
-                )
-                .choices[0]
-                .message.content
-            )
-
-            if content is None:
-                raise HTTPException(status_code=500, detail="Error generating code")
-
-            content = clean_out_markers(content)
-            content = strip_think_blocks(content)
-
-            chat_history["history"] += f"\nUser: {body.prompt}\nAssistant: {content}\n"
-
-            reasoning, content = split_reasoning_code(content)
-
-            if "```python\n" in content:
-                start = content.index("```python\n") + len("```python\n")
-                end = content.find("\n```", start)
-                content = content[start:end] if end != -1 else content[start:]
-
-            # Calculate diff stats
-            original_lines = original_code.splitlines(keepends=True)
-            new_lines = content.splitlines(keepends=True)
-            diff = list(difflib.unified_diff(original_lines, new_lines, n=0))
-
-            lines_added = 0
-            lines_removed = 0
-            for line in diff:
-                if line.startswith("+") and not line.startswith("+++"):
-                    lines_added += 1
-                elif line.startswith("-") and not line.startswith("---"):
-                    lines_removed += 1
-
-            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
-                f.write(content)
-
-            return {
-                "hash": snapshot_hash,
-                "diff_stats": {
-                    "lines_added": lines_added,
-                    "lines_removed": lines_removed,
-                },
-                "reasoning": reasoning,
-            }
-
-        @router.post("/undo-vibe-edit/")
-        @router.post("/undo-vibe-edit")
-        async def undo_vibe_edit(hash: str = Body(..., embed=True)):
-            if not blocks.vibe_mode:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
-                )
-
-            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
-
-            snapshot_file = vibe_edit_history_dir / f"{hash}.py"
-
-            if not snapshot_file.exists():
-                raise HTTPException(status_code=404, detail="Snapshot not found")
-
-            # Restore the file from the snapshot
-            with open(snapshot_file) as f:
-                saved_content = f.read()
-
-            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
-                f.write(saved_content)
-
-            chat_history["history"] = hash_to_chat_history.get(hash, "")
-
-            return {"success": True}
-
-        @router.get("/vibe-code/")
-        @router.get("/vibe-code")
-        async def get_vibe_code():
-            if not blocks.vibe_mode:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
-                )
-
-            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
-
-            try:
-                with open(GRADIO_WATCH_DEMO_PATH) as f:
-                    code = f.read()
-                return {"code": code}
-            except FileNotFoundError:
-                raise HTTPException(
-                    status_code=404, detail="Demo file not found"
-                ) from None
-            except Exception as e:
-                raise HTTPException(
-                    status_code=500, detail=f"Error reading file: {str(e)}"
-                ) from e
-
-        @router.post("/vibe-code/")
-        @router.post("/vibe-code")
-        async def update_vibe_code(body: VibeCodeBody):
-            if not blocks.vibe_mode:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
-                )
-
-            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
-
-            try:
-                with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
-                    f.write(body.code)
-                return {"success": True}
-            except Exception as e:
-                raise HTTPException(
-                    status_code=500, detail=f"Error writing file: {str(e)}"
-                ) from e
-
-        @router.post("/vibe-starter-queries/")
-        @router.post("/vibe-starter-queries")
-        async def get_vibe_starter_queries():
-            if not blocks.vibe_mode:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
-                )
-
-            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
-
-            with open(GRADIO_WATCH_DEMO_PATH) as f:
-                code = f.read()
-
-            prompt = f"""
-You are a prompt generator for a gradio vibe editor. Given the following existing code, return a list of starter queries that can be used to generate a new code.
-Existing code:
-```python
-{code}
-```
-"""
-
-            system_prompt = load_system_prompt(starter_queries=True)
-            content = (
-                inference_client.chat_completion(
-                    model="openai/gpt-oss-120b",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt},
-                    ],
-                    max_tokens=10000,
-                )
-                .choices[0]
-                .message.content
-            )
-
-            if content is None:
-                raise HTTPException(status_code=500, detail="Error generating code")
-
-            content = strip_think_blocks(content)
-            content = clean_out_markers(content)
-
-            starter_queries = content.split("\n")
-
-            return {
-                "starter_queries": starter_queries,
-            }
-
         def cleanup_files(files):
             for file in files:
                 try:
@@ -2856,85 +2557,6 @@ Existing code:
 ########
 # Helper functions
 ########
-
-
-def load_system_prompt(starter_queries: bool = False):
-    prompt_rules = """Generate code for using the Gradio python library.
-
-The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
-
-RULES:
-Respond with code written in valid Python syntax, along with one coherent explanation surrounded by <reasoning> tags.
-Any text that is not code, should be surrounded by one large <reasoning> tag.
-Never include backticks in your response such as ``` or ```python.
-Do not include any code that is not necessary for the app to run.
-Respond with a full Gradio app.
-Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
-Do not add comments explaining the code, unless they are very necessary to understand the code.
-Make sure the code includes all necessary imports.
-Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag. Make sure it's easy to parse. Use markdown formatting when it makes sense, including bullet points if there are multiple changes.
-
-
-Here's an example of a valid response:
-
-<reasoning>
-I created a simple Gradio app that greets the user. It defines a function then creates a gradio interface and launches it.
-</reasoning>
-
-import gradio as gr
-
-def greet(name):
-    return "Hello " + name + "!"
-
-demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
-
-demo.launch()
-"""
-    if starter_queries:
-        prompt_rules = """
-        You are a prompt generator for a gradio vibe editor.
-
-        Given python code of a gradio app, return a list of starter queries that can be used to generate new code.
-        Make sure the queries are short, useful and actually possible with Gradio.
-        The queries should be really simple and easy to understand.
-        You should respond with at most three queries, each on a new line. Do not include any other text.
-        Make sure the features you suggest are actually supported by Gradio, and documented in the docs section below.
-        Never suggest a query with more than one gradio feature or concept.
-        You may suggest queries that are not related to Gradio, but they must be related to the existing code and app. Never suggest queries that require external packages or libraries other than gradio.
-        Don't suggest adding a clear button if the app is an Interface, because Interface already has a clear button.
-
-        Here's an example of a gradio app:
-
-        ```python
-        import gradio as gr
-
-        def greet(name):
-            return "Hello " + name + "!"
-
-        demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
-
-        demo.launch()
-        ```
-
-        Here's an example of a valid response:
-        Add a title to the app
-        Add examples
-        Rewrite this app using Blocks
-
-        Here's an example of another valid response:
-        Add another textbox for name
-        Change the theme
-        Greet the user in many languages
-
-        """
-    try:
-        with httpx2.Client() as client:
-            response = client.get("https://www.gradio.app/llms.txt")
-            system_prompt = response.text
-    except Exception:
-        system_prompt = ""
-    system_prompt = prompt_rules + system_prompt + prompt_rules
-    return system_prompt
 
 
 def get_types(cls_set: list[type]):
