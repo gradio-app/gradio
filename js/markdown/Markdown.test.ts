@@ -322,3 +322,190 @@ describe("Edge cases", () => {
 		expect(change).not.toHaveBeenCalled();
 	});
 });
+
+describe("Streaming updates", () => {
+	afterEach(() => cleanup());
+
+	test("keeps the DOM of finished blocks when the value grows", async () => {
+		const { set_data, container } = await render(Markdown, {
+			...default_props,
+			value: "First paragraph.\n\nSecond"
+		});
+
+		const first = await waitFor(() => {
+			const p = container.querySelector(".md p");
+			expect(p?.textContent).toBe("First paragraph.");
+			return p;
+		});
+
+		await set_data({ value: "First paragraph.\n\nSecond paragraph." });
+
+		await waitFor(() => {
+			const paragraphs = container.querySelectorAll(".md p");
+			expect(paragraphs[1]?.textContent).toBe("Second paragraph.");
+		});
+		expect(container.querySelector(".md p")).toBe(first);
+	});
+
+	test("streaming the value in chunks renders the same as setting it at once", async () => {
+		const value = [
+			"# Title",
+			"",
+			"See [the docs][docs] and $x^2$.",
+			"",
+			"## Section",
+			"",
+			"- one",
+			"- two",
+			"",
+			"## Section",
+			"",
+			"```python",
+			"def f():",
+			"",
+			"    return 1",
+			"```",
+			"",
+			"$$",
+			"y",
+			"",
+			"z",
+			"$$",
+			"",
+			"[docs]: https://www.gradio.app/docs",
+			""
+		].join("\n");
+		const props = {
+			...default_props,
+			header_links: true,
+			latex_delimiters: [
+				{ left: "$$", right: "$$", display: true },
+				{ left: "$", right: "$", display: false }
+			]
+		};
+
+		const oneshot = await render(Markdown, { ...props, value });
+		const expected = await waitFor(() => {
+			const html = oneshot.container.querySelector(".md")!.innerHTML;
+			expect(html).toContain("katex");
+			expect(html).toContain("token");
+			return html;
+		});
+		cleanup();
+
+		const { set_data, container } = await render(Markdown, {
+			...props,
+			value: ""
+		});
+		for (let i = 7; i < value.length + 7; i += 7) {
+			await set_data({ value: value.slice(0, i) });
+			await new Promise((resolve) => setTimeout(resolve, 20));
+		}
+		await waitFor(() =>
+			expect(container.querySelector(".md")!.innerHTML).toBe(expected)
+		);
+	});
+
+	test("renumbers duplicate heading ids when an earlier heading changes", async () => {
+		const { set_data, container } = await render(Markdown, {
+			...default_props,
+			header_links: true,
+			value: "## A\n\ntext\n\n## B"
+		});
+		await waitFor(() =>
+			expect(container.querySelectorAll("h2")[1]?.id).toBe("h-b")
+		);
+
+		await set_data({ value: "## B\n\ntext\n\n## B" });
+
+		await waitFor(() => {
+			const ids = Array.from(container.querySelectorAll("h2"), (h) => h.id);
+			expect(ids).toEqual(["h-b", "h-b-1"]);
+		});
+	});
+
+	test("keeps markdown inside a raw html element that spans several blocks", async () => {
+		const { container } = await render(Markdown, {
+			...default_props,
+			value:
+				"<details>\n<summary>More</summary>\n\n</span>\n\nInside **bold**.\n\n</details>\n\nAfter."
+		});
+
+		await waitFor(() =>
+			expect(container.querySelector(".md details p")?.textContent).toBe(
+				"Inside bold."
+			)
+		);
+		expect(container.querySelector(".md > p")?.textContent).toBe("After.");
+	});
+
+	test("re-renders a raw html element when its text moves between blocks", async () => {
+		const { set_data, container } = await render(Markdown, {
+			...default_props,
+			value: "<details>\n<summary>S</summary>\n\na\n\nbc\n\n</details>"
+		});
+		await waitFor(() =>
+			expect(container.querySelectorAll(".md details p")).toHaveLength(2)
+		);
+
+		await set_data({
+			value: "<details>\n<summary>S</summary>\n\nab\n\nc\n\n</details>"
+		});
+
+		await waitFor(() => {
+			const paragraphs = container.querySelectorAll(".md details p");
+			expect(Array.from(paragraphs, (p) => p.textContent)).toEqual(["ab", "c"]);
+		});
+	});
+
+	test("rebuilds the blocks when a rendered node was removed from outside", async () => {
+		const { set_data, container } = await render(Markdown, {
+			...default_props,
+			value: "A\n\nB\n\nC"
+		});
+		const paragraph_texts = (): (string | null)[] =>
+			Array.from(container.querySelectorAll(".md p"), (p) => p.textContent);
+		await waitFor(() => expect(paragraph_texts()).toEqual(["A", "B", "C"]));
+
+		// e.g. a page translation extension replacing a node
+		container.querySelectorAll(".md p")[2].remove();
+		await set_data({ value: "A\n\nB2\n\nC" });
+
+		await waitFor(() => expect(paragraph_texts()).toEqual(["A", "B2", "C"]));
+	});
+
+	test("re-renders unchanged text when the latex delimiters change", async () => {
+		const { set_data, container } = await render(Markdown, {
+			...default_props,
+			latex_delimiters: [],
+			value: "a $x$ b"
+		});
+		await waitFor(() =>
+			expect(container.querySelector(".md p")?.textContent).toBe("a $x$ b")
+		);
+
+		await set_data({
+			latex_delimiters: [{ left: "$", right: "$", display: false }]
+		});
+
+		await waitFor(() =>
+			expect(container.querySelector(".md .katex")).not.toBeNull()
+		);
+	});
+
+	test("does not parse a new document for every update", async () => {
+		const spy = vi.spyOn(DOMParser.prototype, "parseFromString");
+		try {
+			const { set_data, getByText } = await render(Markdown, {
+				...default_props,
+				value: "Hello"
+			});
+			await set_data({ value: "Hello **world**" });
+			await waitFor(() => expect(getByText("world").tagName).toBe("STRONG"));
+
+			expect(spy).not.toHaveBeenCalled();
+		} finally {
+			spy.mockRestore();
+		}
+	});
+});

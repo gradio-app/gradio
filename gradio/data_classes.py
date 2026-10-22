@@ -140,6 +140,9 @@ class PredictBodyInternal(PredictBody):
     )
     # The verified browser-held gr.State values for this event (a ClientState)
     client_state: Any = Field(default=None, exclude=True)
+    batch_trigger_ids: list[int | None] | None = (
+        None  # trigger_id of each event in a queued batch, in the order of data
+    )
 
 
 class ResetBody(BaseModel):

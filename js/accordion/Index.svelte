@@ -16,20 +16,22 @@
 			const old_open = this.props.open;
 			super.set_data(data);
 			if ("open" in data && data.open !== old_open) {
-				if (data.open) {
-					this.dispatch("expand");
-					// dispatching synchronously here races with the open state update
-					// this can leave the shared accordion rendering as closed until
-					// a subsequent state change flushes it.
-					tick().then(() => this.dispatch("gradio_expand"));
-				} else {
-					this.dispatch("collapse");
-				}
+				this.dispatch(data.open ? "expand" : "collapse");
 			}
 			this.shared.loading_status.status = "complete";
 		}
 	}
 	const gradio = new AccordionGradio(props);
+
+	// Children of a closed accordion are not rendered until it opens. Ask for
+	// them whenever the accordion is open, including when it mounts already
+	// open, whether that came from a header click or a backend update.
+	$effect(() => {
+		if (gradio.props.open) {
+			// wait for the open state to reach the DOM before rendering children
+			tick().then(() => gradio.dispatch("gradio_expand"));
+		}
+	});
 
 	let label = $derived(gradio.shared.label || "");
 	let elem_classes = $derived([
@@ -53,17 +55,14 @@
 
 	<Accordion
 		{label}
-		open={gradio.props.open}
+		bind:open={gradio.props.open}
 		height={gradio.props.height != null
 			? css_units(gradio.props.height)
 			: undefined}
 		max_height={gradio.props.max_height != null
 			? css_units(gradio.props.max_height)
 			: undefined}
-		onexpand={() => {
-			gradio.dispatch("expand");
-			gradio.dispatch("gradio_expand");
-		}}
+		onexpand={() => gradio.dispatch("expand")}
 		oncollapse={() => gradio.dispatch("collapse")}
 	>
 		<BaseColumn>
