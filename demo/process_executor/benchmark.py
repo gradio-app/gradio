@@ -15,6 +15,7 @@ import platform
 import statistics
 import time
 from pathlib import Path
+from typing import Any
 
 import anyio
 import numpy as np
@@ -74,7 +75,7 @@ async def main():
         ),
         ("streaming_echo · 8 chunks", 4, ("abcdefgh", []), 15),
     ]
-    report = {
+    report: dict[str, Any] = {
         "environment": {
             "python": platform.python_version(),
             "platform": platform.platform(),
@@ -127,7 +128,7 @@ async def main():
                     outputs.append(item)
                 return outputs if stream else outputs[-1], first if stream else None
 
-            row = {
+            row: dict[str, Any] = {
                 "name": label,
                 "repetitions_per_round": repetitions,
                 "rounds": 3,

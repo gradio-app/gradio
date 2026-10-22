@@ -201,3 +201,24 @@ def pid(value: str) -> str:
         gr.close_all()
     assert pool.closed
     assert process.poll() is not None
+
+
+def test_resource_caches_none_and_preserves_metadata():
+    import inspect
+
+    from gradio.processing.resource import resource
+
+    calls = []
+
+    @resource
+    def empty_model() -> None:
+        """An intentionally empty resource."""
+        calls.append(1)
+
+    assert empty_model() is None
+    assert empty_model() is None
+    assert empty_model.initializations == 1
+    assert calls == [1]
+    assert empty_model.__name__ == "empty_model"
+    assert empty_model.__doc__ == "An intentionally empty resource."
+    assert inspect.unwrap(empty_model) is empty_model.__wrapped__

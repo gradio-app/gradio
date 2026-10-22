@@ -1,20 +1,29 @@
 import functools
 import threading
+from collections.abc import Callable
+from typing import Generic, TypeVar, cast
+
+T = TypeVar("T")
 
 
-def resource(fn):
-    lock = threading.Lock()
-    missing = object()
-    value = missing
+class Resource(Generic[T]):
+    """A callable resource factory with a cache local to its worker process."""
 
-    @functools.wraps(fn)
-    def get():
-        nonlocal value
-        with lock:
-            if value is missing:
-                value = fn()
-                get.initializations += 1
-            return value
+    def __init__(self, fn: Callable[[], T]):
+        functools.update_wrapper(self, fn)
+        self._fn = fn
+        self._lock = threading.Lock()
+        self._missing = object()
+        self._value: T | object = self._missing
+        self.initializations = 0
 
-    get.initializations = 0
-    return get
+    def __call__(self) -> T:
+        with self._lock:
+            if self._value is self._missing:
+                self._value = self._fn()
+                self.initializations += 1
+            return cast(T, self._value)
+
+
+def resource(fn: Callable[[], T]) -> Resource[T]:
+    return Resource(fn)

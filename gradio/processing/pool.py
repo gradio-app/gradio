@@ -44,7 +44,9 @@ class Worker:
     def start(self, path, environment):
         auth = secrets.token_bytes(32)
         with Listener(("127.0.0.1", 0), authkey=auth) as listener:
-            listener._listener._socket.settimeout(1)
+            # CPython exposes no public Listener timeout API. Poll accept so
+            # child startup failures do not leave the parent blocked forever.
+            listener._listener._socket.settimeout(1)  # ty: ignore[unresolved-attribute]
             env = dict(
                 {**os.environ, **environment},
                 GRADIO_PROCESS_WORKER="1",
@@ -138,7 +140,7 @@ class Pool:
                     if self.closed:
                         worker.close()
                         return
-                    self.record("Replica ready", pid=worker.process.pid)
+                    self.record("Replica ready", pid=worker.info["pid"])
             except Exception as exc:  # noqa: BLE001 -- isolate arbitrary worker/provider failures
                 worker.close()
                 with self.condition:

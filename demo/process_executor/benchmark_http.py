@@ -6,6 +6,7 @@ import json
 import statistics
 import time
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import requests
@@ -28,6 +29,8 @@ def call(name, data):
     ) as response:
         response.raise_for_status()
         for line in response.iter_lines(chunk_size=1, decode_unicode=True):
+            if isinstance(line, bytes):
+                line = line.decode("utf-8")
             if line.startswith("event: "):
                 event = line[7:]
             elif line.startswith("data: ") and event == "error":
@@ -37,7 +40,7 @@ def call(name, data):
     raise RuntimeError("No completion event")
 
 
-report = {
+report: dict[str, Any] = {
     "method": "Sequential HTTP/SSE localhost, persistent client session, three rounds of 50 per mode; alternating order",
     "cases": [],
 }
@@ -45,7 +48,11 @@ for name, args, expected in [
     ("greet", ["Gradio"], ["Hello Gradio!"]),
     ("calculator", [144, "multiply", 2.5], [360.0]),
 ]:
-    row = {"name": name, "samples": {"thread": [], "process": []}, "first_call_ms": {}}
+    row: dict[str, Any] = {
+        "name": name,
+        "samples": {"thread": [], "process": []},
+        "first_call_ms": {},
+    }
     report["cases"].append(row)
     for mode in ("thread", "process"):
         endpoint = name + ("_thread" if mode == "thread" else "")
