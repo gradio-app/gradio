@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import dataclasses
+import functools
 import hashlib
 import inspect
 import io
@@ -238,6 +239,16 @@ _proxy_transport = httpx2.AsyncHTTPTransport(
 
 
 file_upload_statuses = FileUploadProgress()
+
+
+# Cached so it only warns once: the app is created several times per launch,
+# and again on every reload
+@functools.cache
+def _warn_vibe_mode_deprecated() -> None:
+    warnings.warn(
+        "Vibe editor mode is deprecated and will be removed in a future version of Gradio.",
+        UserWarning,
+    )
 
 
 class App(FastAPI):
@@ -2593,6 +2604,7 @@ class App(FastAPI):
             return reasoning_text, code_text
 
         if blocks.vibe_mode:
+            _warn_vibe_mode_deprecated()
             from huggingface_hub import InferenceClient
 
             inference_client = InferenceClient()

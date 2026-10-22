@@ -85,7 +85,6 @@ demo.launch()"""
             print(f"Created {demo_path} with default Gradio template.")
 
         print(
-            "\n⚠️  DEPRECATION WARNING: Vibe editor mode (`gradio --vibe`) is deprecated and will be removed in a future version of Gradio."
             "\n⚠️  WARNING: Vibe editor mode is enabled. Anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use with caution!\n"
         )
 
