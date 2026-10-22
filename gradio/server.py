@@ -171,6 +171,75 @@ class Server(App):
         super().__init__(**init_kwargs)
         self._deferred_apis: list[tuple[Callable, dict[str, Any]]] = []
         self._mcp = _MCPNamespace()
+        self._process_resources = []
+        self._process_functions = []
+        self._process_pools = {}
+
+    def resource(self, fn=None):
+        """Cache a synchronous resource factory once per persistent process.
+
+        Each worker initializes the registered factories when it starts. Use this
+        for model loading instead of performing it at module import time.
+        """
+        from gradio.processing.resource import resource
+
+        def decorate(func):
+            import inspect
+
+            if (
+                inspect.iscoroutinefunction(func)
+                or inspect.isgeneratorfunction(func)
+                or inspect.isasyncgenfunction(func)
+            ):
+                raise ValueError("Resource factories must be synchronous functions")
+            wrapped = resource(func)
+            self._process_resources.append(wrapped)
+            return wrapped
+
+        return decorate(fn) if fn is not None else decorate
+
+    def queue(
+        self, fn=None, *, executor="process", workers=1, concurrency_limit=1, **kwargs
+    ):
+        """Experimental queue endpoint with its own persistent child process.
+
+        Only one request executes in each endpoint's worker at a time. Other
+        endpoints have independent workers. Arguments and results must be
+        pickleable. The application must be defined in one importable Python
+        file; module-level code runs again in each child. Ordinary api(), get()
+        and post() routes keep their existing execution behavior.
+        """
+        if executor != "process" or workers != 1:
+            raise ValueError("This executor supports executor='process', workers=1")
+        if concurrency_limit not in (None, 1):
+            raise ValueError(
+                "One process per endpoint requires concurrency_limit=1 or None"
+            )
+        if kwargs.get("queue") is False or kwargs.get("batch"):
+            raise ValueError("Process endpoints require queue=True and batch=False")
+
+        def decorate(func):
+            import inspect
+            from pathlib import Path
+
+            index = len(self._process_functions)
+            self._process_functions.append(func)
+            registered = func
+            if not os.environ.get("GRADIO_PROCESS_WORKER"):
+                from gradio.processing.pool import Pool
+
+                path = inspect.getsourcefile(func)
+                if not path or not Path(path).is_file():
+                    raise ValueError(
+                        "Process endpoints must be defined in an importable app file"
+                    )
+                pool = Pool(path)
+                self._process_pools[index] = pool
+                registered = pool.wrap(func, index)
+            self.api(registered, concurrency_limit=concurrency_limit, **kwargs)
+            return func
+
+        return decorate(fn) if fn is not None else decorate
 
     @property
     def mcp(self) -> _MCPNamespace:
@@ -283,6 +352,24 @@ class Server(App):
         Returns:
             Tuple of (fastapi_app, local_url, share_url).
         """
+        if os.environ.get("GRADIO_PROCESS_WORKER"):
+            return self, "", ""
+        if self._process_pools:
+            from contextlib import asynccontextmanager
+
+            app_kwargs = dict(app_kwargs or {})
+            original = app_kwargs.get("lifespan", self.router.lifespan_context)
+
+            @asynccontextmanager
+            async def lifespan(app):
+                try:
+                    async with original(app) as state:
+                        yield state
+                finally:
+                    for pool in self._process_pools.values():
+                        pool.close()
+
+            app_kwargs["lifespan"] = lifespan
         from gradio.blocks import Blocks
         from gradio.events import api as gr_api
 

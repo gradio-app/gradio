@@ -146,6 +146,7 @@ __version__ = get_package_version()
 
 __all__ = [
     "Accordion",
+    "App",
     "AnnotatedImage",
     "Server",
     "Annotatedimage",
@@ -289,3 +290,6 @@ __all__ = [
     "Workflow",
     "WorkflowCanvas",
 ]
+
+# Experimental process-queue entry point.
+App = Server
