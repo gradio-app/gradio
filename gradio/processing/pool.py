@@ -22,7 +22,6 @@ class Worker:
         self.ready = False
         self.busy = False
         self.info = {}
-        self.completed = 0
 
     def close(self):
         if self.process and self.process.poll() is None:
@@ -44,8 +43,6 @@ class Worker:
     def start(self, path, environment):
         auth = secrets.token_bytes(32)
         with Listener(("127.0.0.1", 0), authkey=auth) as listener:
-            # CPython exposes no public Listener timeout API. Poll accept so
-            # child startup failures do not leave the parent blocked forever.
             listener._listener._socket.settimeout(1)  # ty: ignore[unresolved-attribute]
             env = dict(
                 {**os.environ, **environment},
@@ -81,57 +78,25 @@ class Worker:
                 return
             if self.process.poll() is not None:
                 raise RuntimeError("Worker exited during model initialization")
-        raise TimeoutError("Resource initialization exceeded 10 minutes")
+        raise TimeoutError("Worker initialization exceeded 10 minutes")
 
 
 class Pool:
-    def __init__(self, path, max_workers=1):
-        if max_workers != 1:
-            raise ValueError("The process executor supports exactly one worker")
+    def __init__(self, path):
         self.path = os.path.abspath(path)
         self.environment = {}
-        self.max_workers = 1
         self.condition = threading.Condition(threading.RLock())
         self.workers = []
         self.pending = 0
         self.closed = False
         self.starting = False
         self.failure = None
-        self.events = []
         atexit.register(self.close)
 
-    def record(self, reason, **extra):
-        if self.events and self.events[-1]["reason"] == reason:
-            return
-        self.events.append({"time": time.time(), "reason": reason, **extra})
-        self.events = self.events[-100:]
-
-    def status(self):
-        with self.condition:
-            return {
-                "policy_version": "process-only",
-                "pending": self.pending,
-                "failure": self.failure,
-                "starting": self.starting,
-                "max_workers": self.max_workers,
-                "events": list(self.events),
-                "workers": [
-                    {
-                        **w.info,
-                        "ready": w.ready,
-                        "busy": w.busy,
-                        "completed": w.completed,
-                    }
-                    for w in self.workers
-                ],
-            }
-
     def spawn(self):
-        # Caller holds condition. Only one worker may initialize at a time.
         self.starting = True
         worker = Worker()
         self.workers.append(worker)
-        self.record("Initializing replica", workers=len(self.workers))
 
         def initialize():
             try:
@@ -140,13 +105,11 @@ class Pool:
                     if self.closed:
                         worker.close()
                         return
-                    self.record("Replica ready", pid=worker.info["pid"])
             except Exception as exc:  # noqa: BLE001 -- isolate arbitrary worker/provider failures
                 worker.close()
                 with self.condition:
                     if worker in self.workers:
                         self.workers.remove(worker)
-                    self.record("Replica initialization failed", error=str(exc))
                     if not self.workers:
                         self.failure = str(exc) or repr(exc)
             finally:
@@ -196,14 +159,8 @@ class Pool:
                     yield value
                 elif kind == "done":
                     success = True
-                    with self.condition:
-                        worker.completed += 1
-                        worker.info["resource_initializations"] = value[
-                            "resource_initializations"
-                        ]
                     return
                 elif kind == "error":
-                    # Treat arbitrary user failures conservatively; don't replay them.
                     raise RuntimeError(value)
         finally:
             with self.condition:
@@ -217,8 +174,6 @@ class Pool:
                 self.condition.notify_all()
 
     async def events_stream(self, index, args, kwargs):
-        # One thread owns the entire generator. Scheduling each next() separately
-        # can deadlock when waiting requests exhaust asyncio's executor threads.
         cancelled = threading.Event()
         loop = asyncio.get_running_loop()
         queue = asyncio.Queue(maxsize=8)

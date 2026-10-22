@@ -198,58 +198,16 @@ class Server(App):
 
         return decorate(fn) if fn is not None else decorate
 
-    def queue(
-        self, fn=None, *, executor="process", workers=1, concurrency_limit=1, **kwargs
-    ):
-        """Experimental queue endpoint with its own persistent child process.
-
-        Only one request executes in each endpoint's worker at a time. Other
-        endpoints have independent workers. Arguments and results must be
-        pickleable. The application must be defined in one importable Python
-        file; module-level code runs again in each child. Ordinary api(), get()
-        and post() routes keep their existing execution behavior.
-        """
-        if executor != "process" or workers != 1:
-            raise ValueError("This executor supports executor='process', workers=1")
-        if concurrency_limit not in (None, 1):
-            raise ValueError(
-                "One process per endpoint requires concurrency_limit=1 or None"
-            )
-        if kwargs.get("queue") is False or kwargs.get("batch"):
-            raise ValueError("Process endpoints require queue=True and batch=False")
-
-        def decorate(func):
-            import inspect
-            from pathlib import Path
-
-            index = len(self._process_functions)
-            self._process_functions.append(func)
-            registered = func
-            if not os.environ.get("GRADIO_PROCESS_WORKER"):
-                from gradio.processing.pool import Pool
-
-                path = inspect.getsourcefile(func)
-                if not path or not Path(path).is_file():
-                    raise ValueError(
-                        "Process endpoints must be defined in an importable app file"
-                    )
-                pool = Pool(path)
-                self._process_pools[index] = pool
-                registered = pool.wrap(func, index)
-            self.api(registered, concurrency_limit=concurrency_limit, **kwargs)
-            return func
-
-        return decorate(fn) if fn is not None else decorate
-
     @property
     def mcp(self) -> _MCPNamespace:
         """MCP decorator namespace: server.mcp.tool(), server.mcp.resource(), server.mcp.prompt()."""
         return self._mcp
 
-    def api(
+    def queue(
         self,
         fn: Callable | None = None,
         *,
+        executor: Literal["process", "thread"] = "process",
         name: str | None = None,
         description: str | None = None,
         concurrency_limit: int | None | Literal["default"] = "default",
@@ -263,8 +221,16 @@ class Server(App):
     ):
         """Decorator to register a function as a Gradio API endpoint.
 
-        Goes through Gradio's queue with concurrency control and SSE streaming.
+        Process execution uses a persistent child per endpoint and requires an
+        importable application file with one Server. Module-level code runs in
+        each child; arguments and results must be pickleable. Thread execution
+        preserves the existing Gradio execution path, including native async
+        execution for async functions.
         """
+        if executor not in ("process", "thread"):
+            raise ValueError("executor must be 'process' or 'thread'")
+        if executor == "process" and (not queue or batch):
+            raise ValueError("Process endpoints require queue=True and batch=False")
         kwargs = {
             "api_name": name,
             "api_description": description,
@@ -277,15 +243,31 @@ class Server(App):
             "time_limit": time_limit,
             "stream_every": stream_every,
         }
-        if fn is not None:
-            self._deferred_apis.append((fn, kwargs))
-            return fn
 
         def wrapper(func):
-            self._deferred_apis.append((func, kwargs))
+            registered = func
+            if executor == "process":
+                import inspect
+
+                index = len(self._process_functions)
+                self._process_functions.append(func)
+                if not os.environ.get("GRADIO_PROCESS_WORKER"):
+                    from gradio.processing.pool import Pool
+
+                    path = inspect.getsourcefile(func)
+                    if not path or not Path(path).is_file():
+                        raise ValueError(
+                            "Process endpoints must be defined in an importable app file"
+                        )
+                    pool = Pool(path)
+                    self._process_pools[index] = pool
+                    registered = pool.wrap(func, index)
+            self._deferred_apis.append((registered, kwargs))
             return func
 
-        return wrapper
+        return wrapper(fn) if fn is not None else wrapper
+
+    api = queue
 
     def launch(
         self,

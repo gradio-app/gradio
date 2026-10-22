@@ -5,7 +5,6 @@ import inspect
 import os
 import runpy
 import sys
-import time
 import traceback
 from multiprocessing.connection import Client
 
@@ -28,24 +27,11 @@ def main():
                 "Process queue requires exactly one App/Server in the module"
             )
         app = next(iter(apps.values()))
-        started = time.monotonic()
         for resource in app._process_resources:
             resource()
-        connection.send(
-            (
-                "ready",
-                {
-                    "pid": os.getpid(),
-                    "load_seconds": time.monotonic() - started,
-                    "resource_initializations": [
-                        r.initializations for r in app._process_resources
-                    ],
-                },
-            )
-        )
+        connection.send(("ready", {"pid": os.getpid()}))
         while True:
             index, args, kwargs = connection.recv()
-            started = time.monotonic()
             try:
                 result = app._process_functions[index](*args, **kwargs)
                 if inspect.isawaitable(result):
@@ -62,17 +48,7 @@ def main():
                         connection.send(("output", item))
                 else:
                     connection.send(("output", result))
-                connection.send(
-                    (
-                        "done",
-                        {
-                            "seconds": time.monotonic() - started,
-                            "resource_initializations": [
-                                r.initializations for r in app._process_resources
-                            ],
-                        },
-                    )
-                )
+                connection.send(("done", None))
             except Exception:  # noqa: BLE001 -- propagate arbitrary user failures across IPC
                 connection.send(("error", traceback.format_exc()))
     except (EOFError, BrokenPipeError):
