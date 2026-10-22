@@ -1,5 +1,6 @@
 import { test, describe, afterEach, beforeEach, expect, vi } from "vitest";
 import type { Mock } from "vitest";
+import { tick } from "svelte";
 import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
@@ -759,6 +760,46 @@ describe("WebRTC queue turn", () => {
 		});
 		return { server, ...result };
 	}
+
+	test("a stopped negotiation cannot reopen the stream", async () => {
+		const { getByRole, set_data, server } = await ready_webcam();
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(server.offer).toHaveBeenCalledTimes(1));
+		const pc = FakePeerConnection.instances[0];
+		await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
+		await waitFor(() =>
+			expect(getByRole("button", { name: "start stream" })).toBeVisible()
+		);
+		// stop() closes the connection 500 ms later, so it can still connect
+		pc.set_state("connected");
+		await tick();
+		await tick();
+		expect(getByRole("button", { name: "start stream" })).toBeVisible();
+	});
+
+	test("an ended receive connection cannot stop its replacement", async () => {
+		const server = make_server();
+		const { set_data, getByTestId } = await render(WebRTC, {
+			...base_props,
+			mode: "receive",
+			server
+		});
+		await set_data({ value: START_STREAM });
+		await admit(set_data);
+		await waitFor(() => expect(server.offer).toHaveBeenCalledTimes(1));
+		const first = FakePeerConnection.instances[0];
+		first.set_state("connected");
+		await set_data({ value: START_STREAM });
+		await admit(set_data);
+		await waitFor(() => expect(server.offer).toHaveBeenCalledTimes(2));
+		FakePeerConnection.instances[1].set_state("connected");
+		await tick();
+		first.receive({ type: "end_stream", data: "" });
+		await tick();
+		await tick();
+		expect(getByTestId("webrtc-player")).toBeVisible();
+	});
 
 	test("a join that fails ends the wait", async () => {
 		const { getByRole, server, set_data } = await ready_webcam();

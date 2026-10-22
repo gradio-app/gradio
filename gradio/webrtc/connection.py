@@ -22,6 +22,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
+import math
 import time
 import weakref
 from collections import Counter, OrderedDict, defaultdict, deque
@@ -84,7 +85,8 @@ CONNECT_TIMEOUT = 30
 # Seconds an offer waits for its stream to be admitted. The browser learns that
 # its turn has come just before the event's first call admits the stream.
 ADMISSION_WAIT = 5
-# The queue ends a stream event that is not woken up within 30 seconds
+# The queue ends a stream event that is not woken up within 30 seconds, or
+# within its time limit
 KEEPALIVE_INTERVAL = 10
 WATCH_INTERVAL = 0.25
 MAX_PENDING_OUTPUTS = 64
@@ -272,6 +274,10 @@ class ConnectionManager:
         if other is not None and webrtc_id in other.sessions:
             return False
         _admitted[event] = webrtc_id
+        # The watcher keeps the time limit, from admission, and ends the stream
+        # through `end`. The queue's own cut would end the event before its
+        # last calls deliver what is pending.
+        event.run_time = -math.inf
         _streams[webrtc_id] = self
         session = Session(event=event, queue=queue)
         self.sessions[webrtc_id] = session
@@ -307,6 +313,9 @@ class ConnectionManager:
         not connect in time, keeps the event awake while the stream runs, and
         closes the connection once the event is over, however it ended.
         """
+        keepalive = KEEPALIVE_INTERVAL
+        if self.time_limit is not None:
+            keepalive = min(keepalive, self.time_limit / 2)
         try:
             while True:
                 await asyncio.sleep(WATCH_INTERVAL)
@@ -327,7 +336,7 @@ class ConnectionManager:
                 )
                 if timed_out or never_connected:
                     self.end(webrtc_id)
-                elif now - session.last_signal >= KEEPALIVE_INTERVAL:
+                elif now - session.last_signal >= keepalive:
                     session.wake()
         finally:
             pc = self.pcs.get(webrtc_id)
@@ -520,8 +529,10 @@ class ConnectionManager:
             if not isinstance(e, Error):
                 logger.exception("Could not set up the stream")
             await pc.close()
-            self.clean_up(webrtc_id)
             payload = error_payload(e, show_error)
+            # The page shows the error from the answer; the event fails too
+            notifier.failure = payload
+            self.clean_up(webrtc_id)
             return _failed(
                 "setup_failed", message=payload["error"] or "An error occurred."
             )

@@ -1303,6 +1303,26 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"stream_kwargs": {"time_limit": 1}}], indirect=True
+    )
+    async def test_a_stream_ended_by_its_time_limit_fails_if_its_handler_did(
+        self, launched
+    ):
+        h = launched
+        await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        notifier = h.manager.sessions["one"].notifier
+        assert notifier is not None
+        notifier.failure = {"error": "Bad frame", "visible": False}
+        # No frames wake the event, so the queue would end it at its time
+        # limit itself, without the call that reports the failure
+        messages = await h.messages("one", completed)
+        assert messages[-1]["success"] is False
+        await pc.close()
+
+    @pytest.mark.asyncio
     async def test_admitted_stream_that_never_connects_gives_up(
         self, launched, monkeypatch
     ):
@@ -1707,6 +1727,9 @@ class TestStreams:
             "message": "Model not found",
         }
         assert "one" not in h.manager.pcs
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m["msg"] == "process_completed")
+        assert completion["success"] is False
         await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
         await pc.close()
 
@@ -2172,6 +2195,18 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         # The media stops at the time limit, not when a worker frees up
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=4)
         assert time.monotonic() - started < 2.5
+        # Once a worker is free, the event still delivers every pending
+        # output, however long past its time limit, and reports the failure
+        session = h.manager.sessions["one"]
+        session.outputs.append(AdditionalOutputs(99))
+        assert session.notifier is not None
+        session.notifier.failure = {"error": "Bad frame", "visible": False}
+        messages = await h.messages("one", completed)
+        assert any(
+            m.get("msg") == "process_streaming" and m["output"]["data"][1] == 99
+            for m in messages
+        )
+        assert messages[-1]["success"] is False
         await pc.close()
         await h.http.aclose()
 

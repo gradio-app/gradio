@@ -112,6 +112,7 @@
 		pc = connection;
 		on_connection_state(connection, {
 			connected: () => {
+				if (pc !== connection) return;
 				stream_state = "open";
 				ontick?.();
 			},
@@ -133,7 +134,10 @@
 				offer: server.offer,
 				webrtc_id,
 				modality: "video",
-				on_message: handle_message,
+				// A stopped or replaced connection closes only 500 ms later
+				on_message: (msg) => {
+					if (pc === connection) handle_message(msg);
+				},
 				on_reject: (response) => onreject?.(response)
 			});
 		} catch (e) {

@@ -253,6 +253,7 @@
 		pc = connection;
 		on_connection_state(connection, {
 			connected: () => {
+				if (pc !== connection) return;
 				stream_state = "open";
 				active_time_limit = negotiated_time_limit ?? time_limit;
 				ontick?.();
@@ -277,7 +278,10 @@
 				webrtc_id,
 				modality: "audio",
 				rtp_params,
-				on_message: handle_message,
+				// A stopped or replaced connection closes only 500 ms later
+				on_message: (msg) => {
+					if (pc === connection) handle_message(msg);
+				},
 				on_reject: (response) => onreject?.(response)
 			});
 			negotiated_time_limit = response.time_limit ?? null;
