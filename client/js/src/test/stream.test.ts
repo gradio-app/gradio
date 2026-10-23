@@ -87,6 +87,25 @@ describe("open_stream", () => {
 		expect(app.stream).toHaveBeenCalledTimes(1);
 	});
 
+	it("drops the late messages of an acknowledged event", async () => {
+		await app.open_stream();
+		const stream = app.stream_instance;
+		if (!stream?.onmessage) throw new Error("stream instance is not defined");
+
+		// e.g. the completion of a stream that the page stopped
+		app.acknowledged_events.add("stopped");
+		await stream.onmessage({
+			data: JSON.stringify({ msg: "process_completed", event_id: "stopped" })
+		} as MessageEvent);
+		expect(app.pending_stream_messages).toEqual({});
+
+		// An event whose callback is about to be registered still gets them
+		await stream.onmessage({
+			data: JSON.stringify({ msg: "estimation", event_id: "new" })
+		} as MessageEvent);
+		expect(app.pending_stream_messages["new"]).toHaveLength(1);
+	});
+
 	it("should open another stream when jobs remain after a normal close", async () => {
 		const callback = vi.fn().mockResolvedValue(undefined);
 		app.event_callbacks["event-1"] = callback;

@@ -98,7 +98,8 @@ export type client_return = {
 	component_server: (
 		component_id: number,
 		fn_name: string,
-		data: unknown[]
+		data: unknown[],
+		options?: { zerogpu_headers?: boolean }
 	) => any;
 	view_api: (_fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };
@@ -113,7 +114,7 @@ export interface SubmitIterable<T> extends AsyncIterable<T> {
 	send_chunk: (payload: Record<string, unknown>) => void;
 	wait_for_id: () => Promise<string | null>;
 	acknowledge: () => Promise<void>;
-	close_stream: () => void;
+	close_stream: (options?: { read_to_end?: boolean }) => void;
 }
 
 export type PredictReturn<T = unknown> = {

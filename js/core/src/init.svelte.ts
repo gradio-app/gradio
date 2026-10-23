@@ -813,22 +813,26 @@ function load_components(node: ProcessedComponentMeta, api_url: string): void {
  * @param id the component id
  * @param server_fns the server function names
  * @param app the client instance
+ * @param zerogpu_server_fns the server functions whose calls carry the
+ * visitor's ZeroGPU headers
  * @returns the actual server functions
  */
 export function process_server_fn(
 	id: number,
 	server_fns: string[] | undefined,
-	app: client_return
+	app: client_return,
+	zerogpu_server_fns: string[] = []
 ): ServerFunctions {
 	if (!server_fns) {
 		return {};
 	}
 	return server_fns.reduce((acc, fn: string) => {
+		const options = { zerogpu_headers: zerogpu_server_fns.includes(fn) };
 		acc[fn] = async (...args: any[]) => {
 			if (args.length === 1) {
 				args = args[0];
 			}
-			const result = await app.component_server(id, fn, args);
+			const result = await app.component_server(id, fn, args, options);
 			return result;
 		};
 		return acc;
@@ -895,7 +899,12 @@ function gather_props(
 } {
 	const { shared_props: _shared_props, props: _props } =
 		create_props_shared_props(props);
-	_shared_props.server = process_server_fn(id, props.server_fns, client);
+	_shared_props.server = process_server_fn(
+		id,
+		props.server_fns,
+		client,
+		props.zerogpu_server_fns
+	);
 
 	for (const key in additional) {
 		if (allowed_shared_props.includes(key as keyof SharedProps)) {

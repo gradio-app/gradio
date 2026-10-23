@@ -205,6 +205,133 @@ describe("submit iterator", () => {
 		);
 	});
 
+	test("close_stream({ read_to_end: true }) keeps reading until the event ends", async () => {
+		const app = await Client.connect("hmb/hello_world", {
+			events: ["data", "status"]
+		});
+		app.stream_status.open = true;
+		const stream_paths: string[] = [];
+		server.use(
+			http.post(/\/stream\//, ({ request }) => {
+				stream_paths.push(new URL(request.url).pathname);
+				return HttpResponse.json({ msg: "success" });
+			})
+		);
+
+		const iterator = app.submit("/predict", ["hi"]);
+		const event_id = (await iterator.wait_for_id()) as string;
+		const events: any[] = [];
+		const consumer = (async () => {
+			for await (const event of iterator) events.push(event);
+		})();
+		await vi.waitFor(() => expect(events.length).toBeGreaterThan(0));
+
+		iterator.close_stream({ read_to_end: true });
+		await vi.waitFor(() =>
+			expect(stream_paths).toEqual([`/stream/${event_id}/close`])
+		);
+		// What the server sends once it has ended the stream
+		await app.event_callbacks[event_id]({
+			msg: "process_completed",
+			output: { data: ["last"] },
+			success: true
+		});
+		await race_with_timeout(consumer, 1000, "the iterator did not end");
+
+		expect(events.find((event) => event.type === "data")?.data).toEqual([
+			"last"
+		]);
+		expect(events.at(-1)).toMatchObject({ type: "status", stage: "complete" });
+	});
+
+	test("a stream taken out of the line ends as complete", async () => {
+		const app = await Client.connect("hmb/hello_world", {
+			events: ["data", "status"]
+		});
+		app.stream_status.open = true;
+		server.use(
+			http.post(/\/stream\//, () => HttpResponse.json({ msg: "success" }))
+		);
+
+		const iterator = app.submit("/predict", ["hi"]);
+		const event_id = (await iterator.wait_for_id()) as string;
+		const events: any[] = [];
+		const consumer = (async () => {
+			for await (const event of iterator) events.push(event);
+		})();
+
+		iterator.close_stream({ read_to_end: true });
+		// What the server sends for a stream that never started
+		await app.event_callbacks[event_id]({
+			msg: "process_completed",
+			output: {},
+			success: true
+		});
+		await race_with_timeout(consumer, 1000, "the iterator did not end");
+
+		expect(events.some((event) => event.stage === "error")).toBe(false);
+		expect(events.at(-1)).toMatchObject({ type: "status", stage: "complete" });
+	});
+
+	test("an acknowledged event no longer counts as open", async () => {
+		// A stream stopped on the page is acknowledged before the server
+		// completes it, and the server then drops its remaining messages. If
+		// the event stayed open, every later close of the message stream would
+		// reopen it, racing the deletion of the finished session.
+		const app = await Client.connect("hmb/hello_world", {
+			resume_sessions: true
+		});
+		app.stream_status.open = true;
+		server.use(
+			http.post(/\/stream\//, () => HttpResponse.json({ msg: "success" })),
+			http.post(/\/reset$/, () => HttpResponse.json({ success: true }))
+		);
+
+		const iterator = app.submit("/predict", ["hi"]);
+		const event_id = (await iterator.wait_for_id()) as string;
+		expect(app.unclosed_events.has(event_id)).toBe(true);
+		await app.event_callbacks[event_id]({
+			msg: "process_generating",
+			output: { data: ["partial"] },
+			success: true
+		});
+		expect(app.pending_diff_streams[event_id]).toBeDefined();
+
+		iterator.close_stream();
+		await iterator.acknowledge();
+
+		expect(app.unclosed_events.has(event_id)).toBe(false);
+		expect(app.event_callbacks[event_id]).toBeUndefined();
+		expect(app.pending_diff_streams[event_id]).toBeUndefined();
+		// Its messages still on the way are dropped, not kept for good
+		expect(app.acknowledged_events.has(event_id)).toBe(true);
+	});
+
+	test("a cancelled event ends its iterator before its completion arrives", async () => {
+		const app = await Client.connect("hmb/hello_world", {
+			resume_sessions: true
+		});
+		app.stream_status.open = true;
+		server.use(
+			http.post(/\/cancel$/, () => HttpResponse.json({ success: true })),
+			http.post(/\/reset$/, () => HttpResponse.json({ success: true }))
+		);
+
+		const iterator = app.submit("/predict", ["hi"]);
+		await iterator.wait_for_id();
+		await iterator.cancel();
+
+		const drained = (async () => {
+			for await (const _ of iterator) {
+			}
+			return "done";
+		})();
+		const timeout = new Promise((resolve) =>
+			setTimeout(() => resolve("still open"), 500)
+		);
+		expect(await Promise.race([drained, timeout])).toBe("done");
+	});
+
 	test("for-await loop terminates when data and complete arrive in the same SSE callback", async () => {
 		const app = await Client.connect("hmb/hello_world", {
 			events: ["data", "status"]

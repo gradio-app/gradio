@@ -1404,18 +1404,33 @@ class App(FastAPI):
             # updated by each chunk since) carry on from one chunk to the next.
             if event.data is not None:
                 new_body.client_state = event.data.client_state
+            # The browser does not send the event id with a chunk; the calls
+            # it triggers still belong to this event (gr.Info, progress),
+            # unless they serve a batch of events
+            new_body.event_id = None if event.fn.batch else event_id
             event.data = new_body
             event.signal.set()
             return {"msg": "success"}
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
-            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            queue = app.get_blocks()._queue
+            event = queue.event_ids_to_events.get(event_id)
             if event is None:
                 return Response(status_code=404)
+            if event.fn.close_stream is not None and event.fn.close_stream(event):
+                return {"msg": "success"}
             event.run_time = math.inf
             event.closed = True
             event.signal.set()
+            # A stream still waiting in line leaves it, instead of being
+            # started later only to end, and the ones behind it move up. One
+            # that the queue started meanwhile ends through `closed` instead.
+            if await queue.remove_from_queue(event_id):
+                # As for /cancel: the client hears that the event is over
+                queue.send_message(
+                    event, ProcessCompletedMessage(output={}, success=True)
+                )
             return {"msg": "success"}
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
@@ -2148,8 +2163,11 @@ class App(FastAPI):
         )
         async def component_server(
             request: fastapi.Request,
+            username: str = Depends(get_current_user),
         ):
             body = await get_item_or_file(request)
+            # The visitor's session and login, as event listeners get them
+            gr_request = Request(request, username, session_hash=body.session_hash)
             state = app.state_holder[body.session_hash]
             component_id = body.component_id
             block: Block
@@ -2166,7 +2184,7 @@ class App(FastAPI):
             processed_input, *_ = special_args(
                 fn,
                 [body.data],
-                request,  # type: ignore
+                gr_request,
                 None,
             )
             fn = utils.get_function_with_locals(
@@ -2174,7 +2192,7 @@ class App(FastAPI):
                 app.get_blocks(),
                 event_id=None,
                 in_event_listener=False,
-                request=request,  # type: ignore
+                request=gr_request,
                 state=state,
             )
             if inspect.iscoroutinefunction(fn):
