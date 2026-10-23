@@ -252,6 +252,7 @@ def test_running_event_and_server_are_visible_to_the_app():
 
     def fn():
         blocks = LocalContext.blocks.get()
+        assert blocks is not None and blocks.server is not None
         event_id = LocalContext.event_id.get()
         events = [e for job in blocks._queue.active_jobs for e in job or []]
         alive = [e.alive for e in events if e._id == event_id]
