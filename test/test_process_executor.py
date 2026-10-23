@@ -1,11 +1,13 @@
 """`launch(executor="process")`: a gateway process serves HTTP while this
 process, which built the app, runs its events."""
 
+import json
 import os
 import threading
 import time
 from contextlib import contextmanager
 
+import httpx2
 import pytest
 from gradio_client import Client
 
@@ -172,6 +174,75 @@ def test_gateway_keeps_component_and_event_ids():
     assert sorted(rebuilt.blocks) == sorted(demo.blocks)
     assert sorted(rebuilt.fns) == sorted(demo.fns)
     assert app_fingerprint(rebuilt) == app_fingerprint(demo)
+
+
+def test_gateway_config_keeps_listener_props_and_local_files():
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        o = gr.Textbox()
+        gr.Button().click(lambda x: x, t, o, show_progress_on=[o]).failure(
+            lambda: "failed", None, o
+        )
+        chatbot = gr.Chatbot()
+        chatbot.like(lambda: None)
+        chatbot.undo(lambda: None)
+        chatbot.retry(lambda: None)
+        image = gr.Image(value=gr.get_image("cheetah.jpg"))
+        gr.Examples([[gr.get_image("bus.png")]], [image])
+    with launched(demo) as client:
+        config = httpx2.get(f"{client.src}config").json()
+    props = {c["id"]: c["props"] for c in config["components"]}
+    assert props[chatbot._id]["_undoable"] is True
+    assert props[chatbot._id]["_retryable"] is True
+    assert props[chatbot._id]["likeable"] is True
+    deps = config["dependencies"]
+    assert [d["show_progress_on"] for d in deps if d["show_progress_on"]] == [[o._id]]
+    assert any(d["trigger_only_on_failure"] for d in deps)
+    # Files are served by the gateway itself, not through a proxy URL
+    assert "proxy=" not in json.dumps(config)
+
+
+def test_validator_runs_in_the_app_process():
+    def validate(x):
+        return gr.validate(x != "bad", f"bad input {os.getpid()}")
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        t.submit(lambda x: x, t, t, validator=validate, api_name="echo")
+    with launched(demo) as client:
+        assert client.predict("ok", api_name="/echo") == "ok"
+        with pytest.raises(Exception, match=f"bad input {os.getpid()}"):
+            client.predict("bad", api_name="/echo")
+
+
+def test_static_paths_are_served_by_the_gateway(tmp_path, monkeypatch):
+    from gradio.data_classes import _StaticFiles
+
+    monkeypatch.setattr(_StaticFiles, "all_paths", [])
+    static = tmp_path / "logo.txt"
+    static.write_text("hello")
+    gr.set_static_paths([tmp_path])
+    demo = gr.Interface(lambda x: x, "textbox", "textbox")
+    with launched(demo) as client:
+        response = httpx2.get(f"{client.src}gradio_api/file={static}")
+    assert response.status_code == 200
+    assert response.text == "hello"
+
+
+def test_examples_are_cached_before_the_gateway_serves(tmp_path, monkeypatch):
+    monkeypatch.setenv("GRADIO_EXAMPLES_CACHE", str(tmp_path))
+    calls = []
+
+    def fn(x):
+        calls.append(x)
+        return x
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        o = gr.Textbox()
+        gr.Examples([["a"], ["b"]], t, o, fn, cache_examples=True)
+    with launched(demo):
+        assert calls == ["a", "b"]
 
 
 def test_invalid_executor():

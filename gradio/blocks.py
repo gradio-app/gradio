@@ -1508,7 +1508,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         cls,
         config: BlocksConfigDict,
         fns: list[Callable],
-        proxy_url: str,
+        proxy_url: str | None,
         preserve_ids: bool = False,
     ) -> Blocks:
         """
@@ -1518,14 +1518,14 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         Parameters:
         config: a dictionary containing the configuration of the Blocks.
         fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
-        proxy_url: an external url to use as a root URL when serving files for components in the Blocks.
+        proxy_url: an external url to use as a root URL when serving files for components in the Blocks. None if the files are served by this server.
         preserve_ids: give each block and event the id it has in `config`, so that ids sent by a client of the original app (and tokens derived from them) mean the same thing here. Used by the process executor's gateway.
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: dict[int, Block] = {}
         proxy_urls: set[str] = set()
-        if httpx2.URL(proxy_url).host.endswith(".hf.space"):
+        if proxy_url is not None and httpx2.URL(proxy_url).host.endswith(".hf.space"):
             proxy_urls.add(proxy_url)
 
         def get_block_instance(id: int) -> Block:
@@ -1539,7 +1539,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the proxy_urls of the components in A need to be the
             # URL of C, not B. The else clause below handles this case.
-            if block_config["props"].get("proxy_url") is None:
+            if block_config["props"].get("proxy_url") is None and proxy_url is not None:
                 block_config["props"]["proxy_url"] = f"{proxy_url}/"
             postprocessed_value = block_config["props"].pop("value", None)
 
@@ -1551,10 +1551,20 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     c["name"] if isinstance(c, dict) else c
                     for c in constructor_args.get("components") or []
                 ]
+            # A Dataset processes its samples unless it has a proxy URL, but
+            # the config's samples are processed already
+            processed_samples = (
+                constructor_args.pop("samples", None)
+                if block_config["props"].get("name") == "dataset"
+                and block_config["props"].get("proxy_url") is None
+                else None
+            )
             if preserve_ids:
                 Context.id = id
             block = cls(**constructor_args)
-            block_proxy_url = block_config["props"]["proxy_url"]
+            if processed_samples is not None:
+                block.samples = block.raw_samples = processed_samples  # type: ignore
+            block_proxy_url = block_config["props"].get("proxy_url")
             block.proxy_url = block_proxy_url
             if postprocessed_value is not None:
                 block.value = processing_utils.move_files_to_cache(  # type: ignore
@@ -1562,12 +1572,22 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 )
             # Only add proxy URLs that point to known Hugging Face Space
             # hosts to prevent SSRF via malicious configs.
-            if httpx2.URL(block_proxy_url).host.endswith(".hf.space"):
+            if block_proxy_url is not None and httpx2.URL(
+                block_proxy_url
+            ).host.endswith(".hf.space"):
                 proxy_urls.add(block_proxy_url)
-            if (
-                _selectable := block_config["props"].pop("_selectable", None)
-            ) is not None:
-                block._selectable = _selectable  # type: ignore
+            # Set by registering listeners such as .select() or .like(),
+            # which the config describes but does not register here
+            for event_attribute in [
+                "_selectable",
+                "_undoable",
+                "_retryable",
+                "likeable",
+            ]:
+                if (
+                    attributable := block_config["props"].pop(event_attribute, None)
+                ) is not None:
+                    setattr(block, event_attribute, attributable)
 
             return block
 
@@ -1630,7 +1650,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if (
                     _targets
                     and not isinstance(_targets[0], int)
-                    and _targets[0][1] in ["then", "success"]
+                    and _targets[0][1] in ["then", "success", "failure"]
                 ):
                     if len(_targets) != 1:
                         raise ValueError(
@@ -1652,6 +1672,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     for o in dependency["outputs"]
                     if o in original_mapping
                 ]
+                if dependency.get("show_progress_on") is not None:
+                    dependency["show_progress_on"] = [
+                        original_mapping[i]
+                        for i in dependency["show_progress_on"]
+                        if i in original_mapping
+                    ]
                 dependency.pop("status_tracker", None)
                 dependency.pop("zerogpu", None)
                 dependency.pop("id", None)

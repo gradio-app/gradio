@@ -151,6 +151,8 @@ async def forward_event(
         "event",
         {
             "fn_index": fn.fn._process_fn_index,  # type: ignore[union-attr]
+            # The queue's check of the inputs, before the event itself
+            "validator": fn.is_validator_function,
             "body": body.model_copy(update={"request": None, "client_state": None}),
             "client_state": protocol.portable_client_state(client_state),
             "continuing": iterator is not None,
@@ -225,12 +227,25 @@ def make_proxy(dependency: dict, signature=None, metadata: dict | None = None):
     return proxy
 
 
+def make_validator_proxy(fn_id: int):
+    """Stands in for the validator of event `fn_id`, which lives in the app's
+    process."""
+
+    def validator(*_args):
+        pass
+
+    validator._process_fn_index = fn_id  # type: ignore[attr-defined]
+    return validator
+
+
 def build(bootstrap: dict) -> Blocks:
-    from gradio import client_state
+    from gradio import client_state, utils
     from gradio.blocks import Blocks
     from gradio.components import api_component  # noqa: F401 -- registers Api
 
     client_state._process_secret = bootstrap["state_secret"]
+    if bootstrap["static_paths"]:
+        utils.set_static_paths(bootstrap["static_paths"])
     config = bootstrap["config"]
     for component in config["components"]:
         props = component["props"]
@@ -253,17 +268,17 @@ def build(bootstrap: dict) -> Blocks:
     ]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        blocks = Blocks.from_config(config, fns, "http://127.0.0.1", preserve_ids=True)
-    # from_config is made for apps on other servers; these files are local
-    for block in blocks.blocks.values():
-        if hasattr(block, "proxy_url"):
-            block.proxy_url = None
-    blocks.proxy_urls = set()
+        # No proxy URL: the app's files are local, served by the gateway
+        blocks = Blocks.from_config(config, fns, None, preserve_ids=True)
     for fn_id, settings in bootstrap["fn_settings"].items():
         if fn_id in blocks.fns:
             for key, value in settings.items():
-                if key not in ("signature", "metadata"):
+                if key not in ("signature", "metadata", "has_validator"):
                     setattr(blocks.fns[fn_id], key, value)
+            if settings.get("has_validator"):
+                # The queue runs the validator first; the app's process runs
+                # the real one (see Worker.run_event)
+                blocks.fns[fn_id].validator = make_validator_proxy(fn_id)
     # Multipage apps: which page each block and event belongs to
     if config.get("pages"):
         blocks.pages = [tuple(page) for page in config["pages"]]

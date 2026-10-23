@@ -249,8 +249,11 @@ class Worker:
     async def run_event(self, p: dict) -> dict:
         """One event from the queue: exactly what a normal launch runs."""
         from gradio import route_utils
+        from gradio.queueing import create_validator_fn
 
         fn = self.blocks.fns[p["fn_index"]]
+        if p.get("validator"):
+            fn = create_validator_fn(fn)
         body = p["body"]
         body.client_state = protocol.restore_client_state(p["client_state"], fn)
         if body.event_id is not None:
@@ -378,10 +381,16 @@ class Worker:
 
     async def _main(self) -> None:
         from gradio import client_state
+        from gradio.data_classes import _StaticFiles
 
         self.loop = asyncio.get_running_loop()
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
         http_port = self.serve_http()
+        # What launch() runs once the server is up, e.g. caching examples. Here
+        # it runs before the gateway serves, whose first events would wait on it
+        if not self.app.startup_events_triggered:
+            await self.blocks.run_extra_startup_events()
+            self.app.startup_events_triggered = True
         bootstrap = {
             "config": self.portable_config(),
             "launch_kwargs": self.gateway_kwargs,
@@ -401,6 +410,7 @@ class Worker:
                     "metadata": protocol.portable_metadata(fn.fn)
                     if fn.fn is not None
                     else {},
+                    "has_validator": fn.validator is not None,
                 }
                 for fn_id, fn in self.blocks.fns.items()
             },
@@ -413,6 +423,9 @@ class Worker:
             "cwd": os.getcwd(),
             # Browser-held gr.State tokens are sealed on both sides
             "state_secret": client_state._process_secret,
+            # Files the app allowed with gr.set_static_paths(), and the icons
+            # its components display, which the gateway's file route serves
+            "static_paths": [str(p) for p in _StaticFiles.all_paths],
         }
         fd, path = tempfile.mkstemp(prefix="gradio-gateway-", suffix=".pkl")
         with os.fdopen(fd, "wb") as f:
