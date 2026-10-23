@@ -379,6 +379,8 @@ def adopt_environment(env: dict[str, str], cwd: str) -> None:
     os.environ.clear()
     os.environ.update(env)
     os.environ["GRADIO_PROCESS_GATEWAY"] = "1"
+    # The app's process reports its launch; the gateway's would count it twice
+    os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
     os.chdir(cwd)
     temp_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
         Path(tempfile.gettempdir()) / "gradio"
@@ -445,6 +447,7 @@ def main(path: str) -> None:
                     "local_api_url",
                     "share_api_url",
                     "ssr_mode",
+                    "share",
                 )
             },
         )

@@ -253,6 +253,13 @@ def restore_request(request, lifespan_state: dict | None = None):
     return rebuilt
 
 
+def jsonable(output: dict) -> dict:
+    """An event's output with its data as the client receives it, JSON types."""
+    from pydantic_core import to_jsonable_python
+
+    return {**output, "data": to_jsonable_python(output.get("data"), fallback=str)}
+
+
 def portable_client_state(client_state) -> dict | None:
     """The browser-held gr.State values of an event, without the gateway's components."""
     if client_state is None:

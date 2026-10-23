@@ -238,7 +238,8 @@ def test_server_with_middleware_is_refused():
 
     server = gr.Server()
     server.add_middleware(
-        BaseHTTPMiddleware, dispatch=lambda r, call_next: call_next(r)
+        BaseHTTPMiddleware,  # type: ignore[arg-type]
+        dispatch=lambda r, call_next: call_next(r),
     )
 
     @server.api(name="echo")
@@ -263,3 +264,15 @@ def test_server_queue_and_app_alias():
         assert client.predict("hi", api_name="/echo") == f"hi {os.getpid()}"
     finally:
         app.get_blocks().close()
+
+
+def test_render_is_refused():
+    with gr.Blocks() as demo:
+        n = gr.Number(value=1)
+
+        @gr.render(inputs=n)
+        def show(k):
+            gr.Textbox(value=str(k))
+
+    with pytest.raises(ValueError, match="gr.render is not supported"):
+        demo.launch(executor="process", prevent_thread_lock=True)

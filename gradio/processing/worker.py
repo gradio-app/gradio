@@ -15,9 +15,9 @@ import os
 import pickle
 import secrets
 import subprocess
+import sys
 import tempfile
 import threading
-import time
 from typing import TYPE_CHECKING, Any
 
 from gradio.processing import protocol
@@ -103,10 +103,20 @@ class Worker:
             auth_dependency=self.auth_dependency,
             app_kwargs=dict(launch_kwargs.get("app_kwargs") or {}),
             strict_cors=launch_kwargs.get("strict_cors", True),
-            # As a normal launch does, so `blocks.mcp_server_obj` exists; the
-            # gateway serves MCP clients, and this one serves only the gateway
-            mcp_server=launch_kwargs.get("mcp_server"),
+            # The gateway serves MCP clients (see below)
+            mcp_server=False,
         )
+        mcp_server = launch_kwargs.get("mcp_server")
+        if mcp_server is None:
+            mcp_server = os.environ.get("GRADIO_MCP_SERVER", "").lower() == "true"
+        if mcp_server:
+            # The server object a normal launch makes, unmounted: the gateway's
+            # MCP server is the one clients reach
+            with contextlib.suppress(Exception):
+                import gradio.mcp
+
+                blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(blocks)
+                blocks.mcp_server = True
         self.http_token = secrets.token_hex(16)
         self.app.add_middleware(
             GatewayFront,  # type: ignore
@@ -131,7 +141,11 @@ class Worker:
         """Writes a message from any thread (functions run in worker threads)."""
         if self.loop is None or self.writer is None:
             return
-        frame = protocol.encode(message)
+        self.send_frame(protocol.encode(message))
+
+    def send_frame(self, frame: bytes) -> None:
+        if self.loop is None or self.writer is None:
+            return
         try:
             running = asyncio.get_running_loop()
         except RuntimeError:
@@ -192,7 +206,14 @@ class Worker:
 
     async def respond(self, rid: int, run, payload: dict) -> None:
         try:
-            self.send(("result", rid, await run(payload)))
+            result = await run(payload)
+            try:
+                frame = protocol.encode(("result", rid, result))
+            except Exception:
+                # e.g. data models of classes defined inside a function: send
+                # what the client would receive, their JSON form
+                frame = protocol.encode(("result", rid, protocol.jsonable(result)))
+            self.send_frame(frame)
         except asyncio.CancelledError:
             pass
         except BaseException as exc:  # noqa: BLE001 -- user code can raise anything
@@ -245,6 +266,8 @@ class Worker:
         )
         output["has_iterator"] = self.app.iterators.get(body.event_id) is not None
         if not output["has_iterator"]:
+            # The queue removes a finished event's entry, as it does with threads
+            self.app.iterators.pop(body.event_id, None)
             self.event_sessions.pop(body.event_id, None)
         return output
 
@@ -252,7 +275,9 @@ class Worker:
         """`launch(auth=fn)`: the gateway's login route asks here."""
         import anyio
 
-        auth = self.blocks.auth
+        auth: Any = self.blocks.auth
+        if not callable(auth):
+            return False
         if inspect.iscoroutinefunction(auth):
             return bool(await auth(p["username"], p["password"]))
         return bool(await anyio.to_thread.run_sync(auth, p["username"], p["password"]))
@@ -262,7 +287,7 @@ class Worker:
         import anyio
 
         request = protocol.starlette_request(p, self.lifespan_state())
-        fn = self.auth_dependency
+        fn: Any = self.auth_dependency
         if fn is None:
             return None
         if inspect.iscoroutinefunction(fn):
@@ -321,6 +346,20 @@ class Worker:
             self.failure = f"executor='process' could not start: {err!r}"
         finally:
             self.done.set()
+            # The gateway is gone, so a blocked launch() returns
+            self.blocks.is_running = False
+
+    def api_info(self) -> dict[int, Any]:
+        """The types of gr.api() and Server endpoints' Api blocks. Without the
+        module imported there are none, and importing it is not needed."""
+        module = sys.modules.get("gradio.components.api_component")
+        if module is None:
+            return {}
+        return {
+            block._id: block._api_info
+            for block in self.blocks.blocks.values()
+            if isinstance(block, module.Api)
+        }
 
     def portable_config(self) -> dict:
         """The config without callables (e.g. a State's delete_callback): the
@@ -339,7 +378,6 @@ class Worker:
 
     async def _main(self) -> None:
         from gradio import client_state
-        from gradio.components.api_component import Api
 
         self.loop = asyncio.get_running_loop()
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
@@ -350,11 +388,7 @@ class Worker:
             "queue_kwargs": self.queue_kwargs,
             # Endpoints of gr.api() and Server mode describe their types here,
             # which their config does not carry
-            "api_info": {
-                block._id: block._api_info
-                for block in self.blocks.blocks.values()
-                if isinstance(block, Api)
-            },
+            "api_info": self.api_info(),
             # Queue settings the config does not carry, which the gateway's
             # queue applies
             "fn_settings": {
@@ -440,7 +474,6 @@ class Worker:
 def serve(
     blocks: Blocks,
     gateway_kwargs: dict[str, Any],
-    prevent_thread_lock: bool,
     app: App | None = None,
     launch_kwargs: dict[str, Any] | None = None,
 ) -> tuple[App, str, str | None]:
@@ -477,13 +510,4 @@ def serve(
     for key, value in worker.server_attributes.items():
         setattr(blocks, key, value)
     blocks.is_running = True
-    if not prevent_thread_lock:
-        # As Blocks.block_thread() does for a server in this process
-        try:
-            while not worker.done.is_set():
-                time.sleep(0.1)
-        except (KeyboardInterrupt, OSError):
-            print("Keyboard interruption in main thread... closing server.")
-        finally:
-            blocks.close()
     return worker.app, local_url, share_url

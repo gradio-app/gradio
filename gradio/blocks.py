@@ -1640,11 +1640,17 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
                 dependency.pop("backend_fn")
                 dependency.pop("documentation", None)
+                # An id missing from the config is a block of another Blocks,
+                # which a normal launch tolerates too
                 dependency["inputs"] = [
-                    original_mapping[i] for i in dependency["inputs"]
+                    original_mapping[i]
+                    for i in dependency["inputs"]
+                    if i in original_mapping
                 ]
                 dependency["outputs"] = [
-                    original_mapping[o] for o in dependency["outputs"]
+                    original_mapping[o]
+                    for o in dependency["outputs"]
+                    if o in original_mapping
                 ]
                 dependency.pop("status_tracker", None)
                 dependency.pop("zerogpu", None)
@@ -3326,13 +3332,43 @@ Received inputs:
         else:
             from gradio.processing.worker import serve
 
-            return serve(  # type: ignore[return-value]
+            if any(fn.renderable is not None for fn in self.fns.values()):
+                raise ValueError(
+                    "gr.render is not supported with executor='process' yet. Use "
+                    "launch(executor='thread') or GRADIO_EXECUTOR=thread."
+                )
+            # Decided here, where a notebook's IPython runs, not in the gateway
+            self.is_colab = utils.colab_check()
+            self.is_hosted_notebook = utils.is_hosted_notebook()
+            self._node_is_proxy = False
+            if share is None and (self.is_colab or self.is_hosted_notebook):
+                if not quiet:
+                    print(
+                        "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                launch_kwargs["share"] = True
+            serve(
                 self,
-                self._gateway_launch_kwargs(launch_kwargs),
-                prevent_thread_lock=prevent_thread_lock,
+                {
+                    **self._gateway_launch_kwargs(launch_kwargs),
+                    "inline": False,
+                    "inbrowser": False,
+                },
                 app=_app,
                 launch_kwargs=launch_kwargs,
             )
+            if inbrowser:
+                webbrowser.open(
+                    str(
+                        self.share_url
+                        if self.share and self.share_url
+                        else self.local_url
+                    )
+                )
+            self._after_launch(
+                inline, inbrowser, debug, prevent_thread_lock, head_paths
+            )
+            return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
 
         self.ssr_mode = self._resolve_ssr_mode(ssr_mode, disable_when_multi_page=False)
 
@@ -3722,6 +3758,19 @@ Received inputs:
             link = self.share_url if self.share and self.share_url else self.local_url
             webbrowser.open(link)
 
+        self._after_launch(inline, inbrowser, debug, prevent_thread_lock, head_paths)
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
+
+    def _after_launch(
+        self,
+        inline: bool | None,
+        inbrowser: bool,
+        debug: bool,
+        prevent_thread_lock: bool,
+        head_paths,
+    ) -> None:
+        """What launch() does once the server runs: display inline in notebooks,
+        report analytics, and block the main thread when running a script."""
         # Check if running in a Python notebook in which case, display inline
         if inline is None:
             inline = utils.ipython_check()
@@ -3824,8 +3873,6 @@ Received inputs:
             )
         ):
             self.block_thread()
-
-        return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
 
     def integrate(
         self,
@@ -4085,6 +4132,8 @@ Received inputs:
                 time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
+            if getattr(self, "_process_worker", None) is not None:
+                self.close()
             if self.server:
                 self.server.close()
             for tunnel in CURRENT_TUNNELS:
