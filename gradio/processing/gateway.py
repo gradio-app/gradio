@@ -231,6 +231,10 @@ def build(bootstrap: dict) -> Blocks:
         if hasattr(block, "proxy_url"):
             block.proxy_url = None
     blocks.proxy_urls = set()
+    for fn_id, settings in bootstrap["fn_settings"].items():
+        if fn_id in blocks.fns:
+            for key, value in settings.items():
+                setattr(blocks.fns[fn_id], key, value)
     if config.get("mode"):
         blocks.mode = config["mode"]
     for key in ("css", "js", "head", "title", "fill_height", "fill_width"):

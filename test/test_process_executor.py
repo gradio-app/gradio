@@ -108,6 +108,31 @@ def test_streaming_logs_progress_and_errors():
         assert client.predict("c d", api_name="/chat") == "cd"
 
 
+def test_event_concurrency_settings_reach_the_gateway():
+    running = []
+    peak = []
+    lock = threading.Lock()
+
+    def slow(x):
+        with lock:
+            running.append(x)
+            peak.append(len(running))
+        time.sleep(0.5)
+        with lock:
+            running.remove(x)
+        return x
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        # The app-wide default (1) would run these one at a time
+        gr.Button().click(slow, t, t, api_name="slow", concurrency_limit=3)
+
+    with launched(demo) as client:
+        jobs = [client.submit(str(i), api_name="/slow") for i in range(3)]
+        assert sorted(job.result() for job in jobs) == ["0", "1", "2"]
+    assert max(peak) == 3
+
+
 def test_cancelled_generator_is_closed_in_the_app_process():
     closed = threading.Event()
 

@@ -248,6 +248,15 @@ class Worker:
                 for block in self.blocks.blocks.values()
                 if isinstance(block, Api)
             },
+            # Queue settings the config does not carry, which the gateway's
+            # queue applies
+            "fn_settings": {
+                fn_id: {
+                    "concurrency_limit": fn.concurrency_limit,
+                    "concurrency_id": fn.concurrency_id,
+                }
+                for fn_id, fn in self.blocks.fns.items()
+            },
             "port": server.sockets[0].getsockname()[1],
             "token": self.token,
             "worker_pid": os.getpid(),
