@@ -1,9 +1,7 @@
 ---
 "@gradio/client": minor
 "@gradio/core": minor
-"@gradio/multimodaltextbox": minor
 "@gradio/webrtc": minor
-"@self/spa": minor
 "gradio": minor
 "website": minor
 ---
