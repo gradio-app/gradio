@@ -1678,6 +1678,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         "trigger_only_on_failure", False
                     )
                     dependency["no_target"] = True
+                elif [list(t) for t in _targets] == [[None, "unload"]]:
+                    # demo.unload() targets no block (see Blocks.unload)
+                    targets = [EventListenerMethod(None, "unload")]
                 else:
                     targets = [
                         EventListenerMethod(
@@ -4017,7 +4020,13 @@ Received inputs:
                 name
             ):
                 continue
-            if name == "mcp_server" or callable(value):
+            if name in ("auth", "auth_dependency") and callable(value):
+                # Called in the app's process; the gateway asks it
+                from gradio.processing.protocol import FORWARDED
+
+                gateway_kwargs[name] = FORWARDED
+                continue
+            if callable(value):
                 raise ValueError(
                     f"`{name}` is not supported with executor='process' yet. Use "
                     "executor='thread'."
@@ -4030,11 +4039,6 @@ Received inputs:
                     f"executor='process': {err}"
                 ) from err
             gateway_kwargs[name] = value
-        if os.environ.get("GRADIO_MCP_SERVER", "").lower() == "true":
-            raise ValueError(
-                "The MCP server is not supported with executor='process' yet. Use "
-                "executor='thread'."
-            )
         return gateway_kwargs
 
     def close(self, verbose: bool = True) -> None:

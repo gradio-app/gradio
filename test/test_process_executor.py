@@ -180,28 +180,72 @@ def test_invalid_executor():
         demo.launch(executor="fork", prevent_thread_lock=True)  # type: ignore
 
 
-def test_callables_are_refused_rather_than_dropped():
-    demo = gr.Interface(lambda x: x, "textbox", "textbox")
-    with pytest.raises(ValueError, match="`auth` is not supported"):
-        demo.launch(
-            executor="process",
-            prevent_thread_lock=True,
-            auth=lambda user, password: True,
+def test_auth_function_runs_in_the_app_process():
+    seen = []
+
+    def auth(username, password):
+        seen.append(os.getpid())
+        return (username, password) == ("admin", "secret")
+
+    demo = gr.Interface(lambda x: x, "textbox", "textbox", api_name="echo")
+    _, local_url, _ = demo.launch(
+        executor="process", prevent_thread_lock=True, auth=auth
+    )
+    try:
+        import httpx2
+
+        bad = httpx2.post(f"{local_url}login", data={"username": "a", "password": "b"})
+        assert bad.status_code == 400
+        good = httpx2.post(
+            f"{local_url}login", data={"username": "admin", "password": "secret"}
         )
+        assert good.status_code == 200
+        assert seen == [os.getpid(), os.getpid()]
+    finally:
+        demo.close()
 
 
-def test_server_with_custom_routes_is_refused():
-    server = gr.Server()
+def test_server_custom_routes_and_lifespan_work():
+    from contextlib import asynccontextmanager
+
+    import httpx2
+
+    @asynccontextmanager
+    async def lifespan(_):
+        yield {"model": "loaded"}
+
+    server = gr.Server(lifespan=lifespan)
 
     @server.get("/health")
     def health():
-        return {"ok": True}
+        return {"pid": os.getpid()}
 
     @server.api(name="echo")
     def echo(x: str) -> str:
         return x
 
-    with pytest.raises(ValueError, match="custom routes"):
+    _, local_url, _ = server.launch(executor="process", prevent_thread_lock=True)
+    try:
+        assert httpx2.get(f"{local_url}health").json() == {"pid": os.getpid()}
+        client = Client(local_url, verbose=False)
+        assert client.predict("hi", api_name="/echo") == "hi"
+    finally:
+        server.get_blocks().close()
+
+
+def test_server_with_middleware_is_refused():
+    from starlette.middleware.base import BaseHTTPMiddleware
+
+    server = gr.Server()
+    server.add_middleware(
+        BaseHTTPMiddleware, dispatch=lambda r, call_next: call_next(r)
+    )
+
+    @server.api(name="echo")
+    def echo(x: str) -> str:
+        return x
+
+    with pytest.raises(ValueError, match="middleware"):
         server.launch(executor="process", prevent_thread_lock=True)
 
 

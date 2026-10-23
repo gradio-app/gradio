@@ -143,7 +143,8 @@ class TestRoutes:
                 api_name="details_endpoint",
             )
 
-        app, _, _ = demo.launch(prevent_thread_lock=True)
+        # Checks the server's API-info cache, which lives in this process with threads
+        app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
         try:
             client = TestClient(app)
             full_config = client.get("/config").json()
@@ -2509,7 +2510,8 @@ def test_api_name_set_for_all_events(connect):
         btn8.click(part, i, o)
 
     with closing(demo) as io:
-        app, _, _ = io.launch(prevent_thread_lock=True)
+        # Checks that the server raises in this process, as it does with threads
+        app, _, _ = io.launch(prevent_thread_lock=True, executor="thread")
         client = TestClient(app)
         assert client.post(
             f"{API_PREFIX}/api/greet", json={"data": ["freddy"], "session_hash": "foo"}

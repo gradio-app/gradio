@@ -136,6 +136,76 @@ def restore_signature(portable: tuple | None):
     )
 
 
+FORWARDED = "__gradio_forwarded_to_the_app_process__"
+
+
+def request_snapshot(request) -> dict:
+    """What a Starlette request carries, for code in the app's process."""
+    return {
+        "method": request.method,
+        "url": str(request.url),
+        "headers": [
+            (k.decode("latin-1"), v.decode("latin-1")) for k, v in request.headers.raw
+        ],
+        "client": (request.client.host, request.client.port)
+        if request.client
+        else None,
+        "path_params": dict(request.path_params),
+    }
+
+
+def starlette_request(snapshot: dict, state: dict | None = None):
+    from urllib.parse import urlsplit
+
+    from starlette.requests import Request as StarletteRequest
+
+    url = urlsplit(snapshot["url"])
+    return StarletteRequest(
+        {
+            "type": "http",
+            "method": snapshot.get("method", "GET"),
+            "scheme": url.scheme or "http",
+            "server": (url.hostname or "", url.port or 80),
+            "path": url.path or "/",
+            "raw_path": (url.path or "/").encode(),
+            "root_path": "",
+            "query_string": url.query.encode(),
+            "headers": [
+                (k.lower().encode("latin-1"), v.encode("latin-1"))
+                for k, v in snapshot["headers"]
+            ],
+            "client": snapshot.get("client"),
+            "path_params": snapshot.get("path_params") or {},
+            "state": dict(state or {}),
+        }
+    )
+
+
+def portable_metadata(fn) -> dict:
+    """What tools such as the MCP server read off an event's function."""
+    metadata = {
+        name: getattr(fn, name)
+        for name in ("__name__", "__qualname__", "__doc__")
+        if isinstance(getattr(fn, name, None), str)
+    }
+    for name in dir(fn):
+        if name.startswith("_mcp_") and _portable(getattr(fn, name, None)):
+            metadata[name] = getattr(fn, name)
+    return metadata
+
+
+def portable_request(request):
+    """A request as it can cross: a gr.Request pickles itself, while a raw
+    Starlette request (the MCP server passes one) crosses as a snapshot."""
+    from starlette.requests import Request as StarletteRequest
+
+    if isinstance(request, list):
+        return [portable_request(r) for r in request]
+    if isinstance(request, StarletteRequest):
+        return ("starlette", request_snapshot(request))
+    return request
+
+
 def restore_request(request, lifespan_state: dict | None = None):
     """A gr.Request that crossed from the gateway, rebuilt over a Starlette
     request so that headers, cookies, query parameters and `state` behave as
@@ -148,6 +218,8 @@ def restore_request(request, lifespan_state: dict | None = None):
 
     if isinstance(request, list):
         return [restore_request(r, lifespan_state) for r in request]
+    if isinstance(request, tuple) and request[:1] == ("starlette",):
+        return starlette_request(request[1], lifespan_state)
     if not isinstance(request, Request) or request.request is not None:
         return request
     kwargs = request.kwargs

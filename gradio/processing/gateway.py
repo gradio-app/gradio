@@ -195,7 +195,7 @@ async def forward_event(
     return output
 
 
-def make_proxy(dependency: dict, signature=None):
+def make_proxy(dependency: dict, signature=None, metadata: dict | None = None):
     """Stands in for a function that lives in the app's process. Its shape
     (generator or not) is what the config reports to clients, and its
     signature is the real one's, which API docs and clients read."""
@@ -214,6 +214,14 @@ def make_proxy(dependency: dict, signature=None):
     proxy._process_fn_index = dependency["id"]  # type: ignore[attr-defined]
     if signature is not None:
         proxy.__signature__ = signature  # type: ignore[attr-defined]
+        # get_type_hints() reads these, e.g. to find a gr.OAuthToken parameter
+        proxy.__annotations__ = {
+            p.name: p.annotation
+            for p in signature.parameters.values()
+            if p.annotation is not p.empty
+        }
+    for name, value in (metadata or {}).items():
+        setattr(proxy, name, value)
     return proxy
 
 
@@ -239,6 +247,7 @@ def build(bootstrap: dict) -> Blocks:
             protocol.restore_signature(
                 settings.get(dependency["id"], {}).get("signature")
             ),
+            settings.get(dependency["id"], {}).get("metadata"),
         )
         for dependency in config["dependencies"]
     ]
@@ -253,8 +262,18 @@ def build(bootstrap: dict) -> Blocks:
     for fn_id, settings in bootstrap["fn_settings"].items():
         if fn_id in blocks.fns:
             for key, value in settings.items():
-                if key != "signature":
+                if key not in ("signature", "metadata"):
                     setattr(blocks.fns[fn_id], key, value)
+    # Multipage apps: which page each block and event belongs to
+    if config.get("pages"):
+        blocks.pages = [tuple(page) for page in config["pages"]]
+        for page, contents in (config.get("page") or {}).items():
+            for block_id in contents.get("components", []):
+                if block_id in blocks.blocks:
+                    blocks.blocks[block_id].page = page
+            for fn_id in contents.get("dependencies", []):
+                if fn_id in blocks.fns:
+                    blocks.fns[fn_id].page = page
     if config.get("mode"):
         blocks.mode = config["mode"]
     for key in ("css", "js", "head", "title", "fill_height", "fill_width"):
@@ -290,7 +309,7 @@ def build(bootstrap: dict) -> Blocks:
                 "continuing": iterator is not None,
                 "trigger_id": getattr(getattr(event_data, "target", None), "_id", None),
                 "event_data": getattr(event_data, "_data", None),
-                "request": request,
+                "request": protocol.portable_request(request),
                 "in_event_listener": in_event_listener,
                 "simple_format": simple_format,
                 "explicit_call": explicit_call,
@@ -392,10 +411,26 @@ def main(path: str) -> None:
     blocks.queue(**bootstrap["queue_kwargs"])
     link: Link = blocks._process_link  # type: ignore[attr-defined]
     link.connect()
-    app, local_url, share_url = blocks.launch(
-        prevent_thread_lock=True, **bootstrap["launch_kwargs"]
-    )
+    launch_kwargs = dict(bootstrap["launch_kwargs"])
+    if launch_kwargs.get("auth") == protocol.FORWARDED:
+
+        async def auth(username: str, password: str) -> bool:
+            return await link.call("auth", {"username": username, "password": password})
+
+        launch_kwargs["auth"] = auth
+    if launch_kwargs.get("auth_dependency") == protocol.FORWARDED:
+
+        async def auth_dependency(request) -> str | None:
+            return await link.call(
+                "auth_dependency", protocol.request_snapshot(request)
+            )
+
+        launch_kwargs["auth_dependency"] = auth_dependency
+    app, local_url, share_url = blocks.launch(prevent_thread_lock=True, **launch_kwargs)
     add_forwarded_routes(app, bootstrap)
+    app.session_listener = lambda session_hash, closed: link.send(
+        ("session", session_hash, closed)
+    )
     link.send(
         (
             "ready",

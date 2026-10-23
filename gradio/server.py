@@ -353,24 +353,12 @@ class Server(App):
         )
 
     def _check_process_executor(self) -> None:
-        """With executor="process" the gateway process serves HTTP, so anything
-        added to this FastAPI app (which lives in this process) would be lost."""
-        default_paths = {"/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc"}
-        custom = [
-            getattr(route, "path", repr(route))
-            for route in self.routes
-            if getattr(route, "path", None) not in default_paths
-        ]
-        reasons = []
-        if custom:
-            reasons.append(f"custom routes ({', '.join(custom)})")
+        """With executor="process" the gateway serves Gradio's routes and
+        forwards this app's own routes here, so middleware added to this app
+        would not wrap Gradio's routes as it does with threads."""
         if self.user_middleware:
-            reasons.append("middleware")
-        if type(self.router.lifespan_context).__name__ != "_DefaultLifespan":
-            reasons.append("a lifespan")
-        if reasons:
             raise ValueError(
-                f"executor='process' does not support a Server with {' or '.join(reasons)} "
-                "yet, since they would not be served by the gateway process. Use "
-                "executor='thread'."
+                "executor='process' does not support a Server with middleware yet, "
+                "since it would not wrap Gradio's routes, which the gateway "
+                "process serves. Use executor='thread'."
             )

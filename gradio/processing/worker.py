@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import inspect
 import os
 import pickle
 import secrets
@@ -95,12 +96,16 @@ class Worker:
         # gr.State caches, built as a normal launch builds it (onto a Server,
         # if this is one). It runs the app's lifespan and serves the requests
         # the gateway forwards; any other request is sent on to the gateway.
+        self.auth_dependency = launch_kwargs.get("auth_dependency")
         self.app = App.create_app(
             blocks,
             app=app,
+            auth_dependency=self.auth_dependency,
             app_kwargs=dict(launch_kwargs.get("app_kwargs") or {}),
             strict_cors=launch_kwargs.get("strict_cors", True),
-            mcp_server=False,
+            # As a normal launch does, so `blocks.mcp_server_obj` exists; the
+            # gateway serves MCP clients, and this one serves only the gateway
+            mcp_server=launch_kwargs.get("mcp_server"),
         )
         self.http_token = secrets.token_hex(16)
         self.app.add_middleware(
@@ -113,6 +118,8 @@ class Worker:
         self.loop: asyncio.AbstractEventLoop | None = None
         self.writer: asyncio.StreamWriter | None = None
         self.tasks: dict[int, asyncio.Task] = {}
+        # The session of each running event, for cleaning up after it
+        self.event_sessions: dict[str, str | None] = {}
         self.gateway: subprocess.Popen | None = None
         self.ready = threading.Event()
         self.done = threading.Event()
@@ -155,9 +162,14 @@ class Worker:
             while True:
                 message = await protocol.read(reader)
                 kind = message[0]
-                if kind in ("event", "process_api"):
+                if kind in ("event", "process_api", "auth", "auth_dependency"):
                     _, rid, payload = message
-                    run = self.run_event if kind == "event" else self.run_process_api
+                    run = {
+                        "event": self.run_event,
+                        "process_api": self.run_process_api,
+                        "auth": self.run_auth,
+                        "auth_dependency": self.run_auth_dependency,
+                    }[kind]
                     self.tasks[rid] = asyncio.create_task(
                         self.respond(rid, run, payload)
                     )
@@ -165,6 +177,8 @@ class Worker:
                     task = self.tasks.pop(message[1], None)
                     if task:
                         task.cancel()
+                elif kind == "session":
+                    self.session_changed(message[1], message[2])
                 elif kind == "close_iterator":
                     await self.close_iterator(message[1])
                 elif kind == "ready":
@@ -186,11 +200,28 @@ class Worker:
         finally:
             self.tasks.pop(rid, None)
 
+    def session_changed(self, session_hash: str, closed: bool) -> None:
+        """The gateway, which sees the page, saw a session close or reopen."""
+        from gradio import caching
+
+        if not closed:
+            self.app.reopen_session(session_hash)
+            return
+        self.app.mark_session_closed(session_hash)
+        caching.clear_session_caches(session_hash)
+        for run in self.blocks.pending_streams.pop(session_hash, {}).values():
+            for stream in run.values():
+                stream.end_stream()
+
     async def close_iterator(self, event_id: str) -> None:
         from gradio.utils import safe_aclose_iterator
 
         iterator = self.app.iterators.pop(event_id, None)
+        session_hash = self.event_sessions.pop(event_id, None)
         if iterator is not None:
+            # The run ended early (its client left, or it was cancelled):
+            # what it kept for streaming is dropped, as the queue does
+            self.blocks._drop_run_streams(session_hash, iterator)
             with contextlib.suppress(Exception):
                 await safe_aclose_iterator(iterator)
 
@@ -201,6 +232,8 @@ class Worker:
         fn = self.blocks.fns[p["fn_index"]]
         body = p["body"]
         body.client_state = protocol.restore_client_state(p["client_state"], fn)
+        if body.event_id is not None:
+            self.event_sessions[body.event_id] = body.session_hash
         if not p["continuing"] and body.event_id in self.app.iterators:
             await self.close_iterator(body.event_id)
         output = await route_utils.call_process_api(
@@ -211,7 +244,33 @@ class Worker:
             root_path=p["root_path"],
         )
         output["has_iterator"] = self.app.iterators.get(body.event_id) is not None
+        if not output["has_iterator"]:
+            self.event_sessions.pop(body.event_id, None)
         return output
+
+    async def run_auth(self, p: dict) -> bool:
+        """`launch(auth=fn)`: the gateway's login route asks here."""
+        import anyio
+
+        auth = self.blocks.auth
+        if inspect.iscoroutinefunction(auth):
+            return bool(await auth(p["username"], p["password"]))
+        return bool(await anyio.to_thread.run_sync(auth, p["username"], p["password"]))
+
+    async def run_auth_dependency(self, p: dict) -> str | None:
+        """`launch(auth_dependency=fn)`, called for a request to the gateway."""
+        import anyio
+
+        request = protocol.starlette_request(p, self.lifespan_state())
+        fn = self.auth_dependency
+        if fn is None:
+            return None
+        if inspect.iscoroutinefunction(fn):
+            return await fn(request)
+        user = await anyio.to_thread.run_sync(fn, request)
+        if inspect.isawaitable(user):
+            user = await user
+        return user
 
     async def run_process_api(self, p: dict) -> dict:
         """A direct `Blocks.process_api` call (e.g. the MCP server's fast path)."""
@@ -305,6 +364,9 @@ class Worker:
                     "signature": protocol.portable_signature(fn.fn)
                     if fn.fn is not None
                     else None,
+                    "metadata": protocol.portable_metadata(fn.fn)
+                    if fn.fn is not None
+                    else {},
                 }
                 for fn_id, fn in self.blocks.fns.items()
             },
