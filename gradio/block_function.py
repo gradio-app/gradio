@@ -17,6 +17,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.renderable import Renderable
 
     from .blocks import BlockContext
+    from .queueing import Event
 
 
 class BlockFunction:
@@ -114,6 +115,9 @@ class BlockFunction:
         self.time_limit = time_limit
         self.stream_every = stream_every
         self.connection = connection
+        # For a connection="stream" function that ends a running stream itself
+        # when the page closes it. Returns False to leave it to the queue.
+        self.close_stream: Callable[[Event], bool] | None = None
         self.event_specific_args = event_specific_args
         self.component_prop_inputs = component_prop_inputs or []
         self.input_keyword_names = input_keyword_names or []

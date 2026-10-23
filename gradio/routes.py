@@ -1418,13 +1418,8 @@ class App(FastAPI):
             event = queue.event_ids_to_events.get(event_id)
             if event is None:
                 return Response(status_code=404)
-            # A running gr.WebRTC stream ends through its connection manager,
-            # so that its event still delivers every pending output
-            if getattr(event.fn, "webrtc_manager", None) is not None:
-                from gradio.webrtc.connection import end_admitted_stream
-
-                if end_admitted_stream(event):
-                    return {"msg": "success"}
+            if event.fn.close_stream is not None and event.fn.close_stream(event):
+                return {"msg": "success"}
             event.run_time = math.inf
             event.closed = True
             event.signal.set()

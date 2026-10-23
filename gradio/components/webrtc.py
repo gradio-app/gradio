@@ -432,6 +432,12 @@ class WebRTC(Component):
             video_bitrate=self.video_bitrate,
         )
 
+        # The event holds this stream()'s own manager, and keeps it alive for as
+        # long as the app (or the render that created it) has the event, since
+        # the registry holds managers weakly
+        async def run_stream(webrtc_id: str | None) -> Any:
+            return await self._run_stream(manager, webrtc_id)
+
         # Each stream is one queue event: the frontend fires "stream" when the
         # user starts it, waits for its turn, and only then connects. The event
         # then delivers AdditionalOutputs until the stream ends. It takes only
@@ -439,7 +445,7 @@ class WebRTC(Component):
         # events below, so the event's wakes do not preprocess them again.
         stream_fn, stream_index = root_block.set_event_trigger(
             [EventListenerMethod(self, "stream")],
-            self._run_stream,
+            run_stream,
             inputs=[self],
             outputs=cast(list, [self, *extra_outputs]),
             # The component shows the place in line and the wait itself,
@@ -452,10 +458,9 @@ class WebRTC(Component):
             connection="stream",
             time_limit=time_limit,
         )
-        # The registry holds managers weakly; the stream event keeps its own
-        # alive for as long as the app (or the render that created it) has it.
-        # BlockFunction declares no field for it, hence the ignore.
-        stream_fn.webrtc_manager = manager  # type: ignore
+        # A running stream that the page closes ends through its manager, so
+        # that the event still delivers every pending output
+        stream_fn.close_stream = webrtc_connection.end_admitted_stream
         # The frontend fires "tick" when the handler asks for the inputs, and
         # every extra input pushes its new value as soon as it changes.
         push_inputs = cast(list, [self, *extra_inputs])
@@ -603,11 +608,15 @@ class WebRTC(Component):
             request = LocalContext.request.get(None)
             set_input(webrtc_id, getattr(request, "session_hash", None), *args)
 
-    async def _run_stream(self, webrtc_id: str | None) -> Any:
+    async def _run_stream(
+        self, manager: ConnectionManager, webrtc_id: str | None
+    ) -> Any:
         """
         The queue event of one stream. Its first call admits the stream, and
         each later call delivers the next AdditionalOutputs. The value of this
-        component itself is never changed.
+        component itself is never changed. `manager` is the one of the
+        `stream()` call: the one registered for this component id may belong to
+        another session's render, or to a later render of it.
         """
         from gradio.webrtc.connection import admitted_id, stream_manager
 
@@ -619,12 +628,7 @@ class WebRTC(Component):
             if queue is not None
             else None
         )
-        # The event's own manager: the one registered for this component id may
-        # belong to another session's render, or to a later render of it
-        manager: ConnectionManager | None = getattr(
-            getattr(event, "fn", None), "webrtc_manager", None
-        )
-        if manager is not None and queue is not None and event is not None:
+        if queue is not None and event is not None:
             # A later call carries whatever id a chunk sent, so it only
             # serves the stream that the first call admitted
             stream_id = admitted_id(event)

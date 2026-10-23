@@ -691,7 +691,7 @@ class TestWebRTC:
             webrtc = gr.WebRTC()
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
         demo.queue(default_concurrency_limit=3)
-        stream = next(fn for fn in demo.fns.values() if fn.name == "_run_stream")
+        stream = next(fn for fn in demo.fns.values() if fn.name == "run_stream")
         demo._queue.create_event_queue_for_fn(stream)
         event_queue = demo._queue.event_queue_per_concurrency_id[stream.concurrency_id]
         assert event_queue.concurrency_limit == 3
@@ -705,10 +705,8 @@ class TestWebRTC:
             alive = True
             closed = False
 
-            def __init__(self, manager):
+            def __init__(self):
                 self.signal = asyncio.Event()
-                # Each call serves the stream through its event's own manager
-                self.fn = SimpleNamespace(webrtc_manager=manager)
 
         with gr.Blocks() as demo:
             webrtc = gr.WebRTC()
@@ -716,18 +714,19 @@ class TestWebRTC:
             text = gr.Textbox()
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc, number, text])
         manager = get_manager(webrtc._id)
-        event = FakeEvent(manager)
+        assert manager is not None
+        event = FakeEvent()
         queue = SimpleNamespace(event_ids_to_events={"event": event})
         demo._queue = queue  # type: ignore
         blocks_token = LocalContext.blocks.set(demo)
         event_token = LocalContext.event_id.set("event")
         try:
             skip = gr.skip()
-            assert await webrtc._run_stream("abc") == (skip, skip, skip)
+            assert await webrtc._run_stream(manager, "abc") == (skip, skip, skip)
             assert manager.sessions["abc"].event is event
             # A hot reload gives the event a new function, whose manager never
             # saw the stream; the stream stays with the one that admitted it
-            event.fn = SimpleNamespace(webrtc_manager=TestCleanUp.manager())
+            reloaded = TestCleanUp.manager()
 
             # Every output is delivered, oldest first, one per call; a call
             # that leaves outputs behind wakes the event again
@@ -735,17 +734,17 @@ class TestWebRTC:
             set_outputs(AdditionalOutputs(1, "a"))
             set_outputs(AdditionalOutputs(2, "b"))
             event.signal.clear()
-            assert await webrtc._run_stream("abc") == (skip, 1, "a")
+            assert await webrtc._run_stream(reloaded, "abc") == (skip, 1, "a")
             assert event.signal.is_set()
             event.signal.clear()
-            assert await webrtc._run_stream("abc") == (skip, 2, "b")
+            assert await webrtc._run_stream(reloaded, "abc") == (skip, 2, "b")
             assert not event.signal.is_set()
-            assert await webrtc._run_stream("abc") == (skip, skip, skip)
+            assert await webrtc._run_stream(reloaded, "abc") == (skip, skip, skip)
 
             # A later call (a chunk) cannot admit another stream through the
             # same event, and still serves the stream it admitted
             set_outputs(AdditionalOutputs(3, "c"))
-            assert await webrtc._run_stream("other") == (skip, 3, "c")
+            assert await webrtc._run_stream(reloaded, "other") == (skip, 3, "c")
             assert "other" not in manager.sessions
 
             # A stream that ends still delivers what it emitted before, and
@@ -754,23 +753,23 @@ class TestWebRTC:
             set_outputs(AdditionalOutputs(6, "f"))
             manager.end("abc")
             assert not event.closed
-            assert await webrtc._run_stream("abc") == (skip, 5, "e")
+            assert await webrtc._run_stream(reloaded, "abc") == (skip, 5, "e")
             assert not event.closed
-            assert await webrtc._run_stream("abc") == (skip, 6, "f")
+            assert await webrtc._run_stream(reloaded, "abc") == (skip, 6, "f")
             assert event.closed
 
             set_outputs(AdditionalOutputs(4))
             with pytest.raises(ValueError, match="2 outputs besides"):
-                await webrtc._run_stream("abc")
+                await webrtc._run_stream(reloaded, "abc")
 
             # Another queue event that joins with an id already in use ends at
             # once instead of holding a place it can never use
-            other = FakeEvent(manager)
+            other = FakeEvent()
             other._id = "other"
             queue.event_ids_to_events["other"] = other
             other_token = LocalContext.event_id.set("other")
             try:
-                assert await webrtc._run_stream("abc") == (skip, skip, skip)
+                assert await webrtc._run_stream(manager, "abc") == (skip, skip, skip)
             finally:
                 LocalContext.event_id.reset(other_token)
             assert other.closed
@@ -1618,7 +1617,7 @@ class TestStreams:
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
         manager = get_manager(webrtc._id)
         assert manager is not None
-        fn = next(fn for fn in demo.fns.values() if fn.name == "_run_stream")
+        fn = next(fn for fn in demo.fns.values() if fn.name == "run_stream")
         wait = webrtc_connection._wait_for_admission
         # Both the offer and get_rtc_configuration may wait for the turn
         first = asyncio.create_task(wait("late"))
