@@ -3,11 +3,16 @@
 
 	let {
 		kind = "webcam",
+		disabled = false,
 		onclick
-	}: { kind?: "webcam" | "microphone"; onclick?: () => void } = $props();
+	}: {
+		kind?: "webcam" | "microphone";
+		disabled?: boolean;
+		onclick?: () => void;
+	} = $props();
 </script>
 
-<button style:height="100%" {onclick}>
+<button style:height="100%" {disabled} {onclick}>
 	<div class="wrap">
 		<span class="icon-wrap">
 			{#if kind === "microphone"}

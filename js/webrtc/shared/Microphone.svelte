@@ -45,6 +45,7 @@
 		track_constraints = {},
 		rtp_params = {},
 		time_limit = null,
+		disabled = false,
 		button_labels = { start: "", stop: "", waiting: "" },
 		icon = null,
 		icon_button_color = "var(--color-accent)",
@@ -68,6 +69,8 @@
 		track_constraints?: Record<string, any>;
 		rtp_params?: Record<string, any>;
 		time_limit?: number | null;
+		// Not interactive: no new stream, but a running one can be stopped
+		disabled?: boolean;
 		button_labels?: { start: string; stop: string; waiting: string };
 		icon?: string | null;
 		icon_button_color?: string;
@@ -212,6 +215,7 @@
 			await close_stream();
 			return;
 		}
+		if (disabled) return;
 		if (performance.now() - stopped_at < RESTART_GUARD_MS) return;
 		if (!mic_accessed) return;
 		const token = attempts.begin();
@@ -324,7 +328,7 @@
 			title="grant microphone access"
 			style="height: 100%; width: 100%"
 		>
-			<Permissions kind="microphone" onclick={() => access_mic()} />
+			<Permissions kind="microphone" {disabled} onclick={() => access_mic()} />
 		</div>
 	{:else}
 		<AudioWave
@@ -361,6 +365,7 @@
 				<button
 					onclick={toggle_stream}
 					aria-label={stream_state === "open" ? "stop stream" : "start stream"}
+					disabled={disabled && stream_state === "closed"}
 				>
 					{#if stream_state === "open"}
 						<div class="icon-with-text">

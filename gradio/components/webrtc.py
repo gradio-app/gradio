@@ -198,7 +198,7 @@ class WebRTC(Component):
             container: if True, will place the component in a container - providing some extra padding around the border.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            interactive: if not provided, this is inferred based on whether the component is used as an input or output. The stream controls themselves depend on `mode`: the user starts and stops the stream in "send" and "send-receive", and `trigger` starts it in "receive".
+            interactive: if False, the user cannot start a stream in "send" and "send-receive" (a running stream can still be stopped). If not provided, this is inferred based on whether the component is used as an input or output. In "receive", `trigger` starts the stream, and this has no effect.
             visible: if False, component will be hidden.
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: an optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.

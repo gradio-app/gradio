@@ -192,6 +192,70 @@ run_shared_prop_tests({
 	has_validation_error: false
 });
 
+describe("WebRTC interactive", () => {
+	test.each(["video", "audio"] as const)(
+		"a stream cannot start while the component is not interactive (%s)",
+		async (modality) => {
+			const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
+				...base_props,
+				modality,
+				server: make_server()
+			});
+			await fireEvent.click(
+				getByText(
+					modality === "video"
+						? "Click to Access Webcam"
+						: "Click to Access Microphone"
+				)
+			);
+			await waitFor(() =>
+				expect(getByRole("button", { name: "start stream" })).toBeVisible()
+			);
+			const stream = listen("stream");
+			await set_data({ interactive: false });
+			await fireEvent.click(getByRole("button", { name: "start stream" }));
+			await new Promise((resolve) => setTimeout(resolve, 50));
+			expect(stream).not.toHaveBeenCalled();
+			await set_data({ interactive: true });
+			await fireEvent.click(getByRole("button", { name: "start stream" }));
+			await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
+		}
+	);
+
+	test("a running stream can still be stopped", async () => {
+		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
+			...base_props,
+			server: make_server()
+		});
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() =>
+			expect(getByRole("button", { name: "start stream" })).toBeVisible()
+		);
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(FakePeerConnection.instances).toHaveLength(1));
+		FakePeerConnection.instances[0].set_state("connected");
+		await waitFor(() =>
+			expect(getByRole("button", { name: "stop stream" })).toBeVisible()
+		);
+		const close_stream = listen("close_stream");
+		await set_data({ interactive: false });
+		await fireEvent.click(getByRole("button", { name: "stop stream" }));
+		await waitFor(() => expect(close_stream).toHaveBeenCalled());
+	});
+
+	test("devices cannot be opened while the component is not interactive", async () => {
+		const { getByText } = await render(WebRTC, {
+			...base_props,
+			interactive: false,
+			server: make_server()
+		});
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
+	});
+});
+
 describe("WebRTC send-receive video", () => {
 	test("starting joins the queue, and the offer goes out once the turn comes", async () => {
 		const server = make_server();

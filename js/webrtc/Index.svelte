@@ -307,6 +307,7 @@
 			mirror_webcam={gradio.props.mirror_webcam}
 			rtp_params={gradio.props.rtp_params}
 			time_limit={gradio.props.time_limit}
+			disabled={gradio.shared.interactive === false}
 			{button_labels}
 			{icon}
 			{icon_button_color}
@@ -332,6 +333,7 @@
 			track_constraints={gradio.props.track_constraints}
 			rtp_params={gradio.props.rtp_params}
 			time_limit={gradio.props.time_limit}
+			disabled={gradio.shared.interactive === false}
 			{button_labels}
 			{icon}
 			{icon_button_color}
