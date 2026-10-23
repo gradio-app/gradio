@@ -249,15 +249,18 @@ def test_heartbeat_task_cancelled_after_stream_completes():
 def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
     calls = []
 
-    def on_chunk(chunk):
+    def on_chunk(chunk, count):
         calls.append(chunk)
-        return f"got {chunk}"
+        return f"got {chunk}", count + 1
 
     with gr.Blocks() as demo:
         mic = gr.Audio(sources=["microphone"], streaming=True)
         chunk = gr.Textbox()
         output = gr.Textbox()
-        mic.stream(on_chunk, chunk, output)
+        count = gr.State(0)
+        mic.stream(on_chunk, [chunk, count], [output, count])
+        # Only a gr.State with .change listeners has its changes reported
+        count.change(lambda c: None, count, None)
 
     _, local_url, _ = demo.launch(prevent_thread_lock=True)
     # A real client rather than TestClient, which would set the event's
@@ -267,7 +270,7 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
         r = client.post(
             "/queue/join",
             json={
-                "data": ["a"],
+                "data": ["a", None],
                 "fn_index": 0,
                 "event_data": None,
                 "session_hash": "sess",
@@ -306,7 +309,15 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
                 if line.startswith("data")
             ]
             completed = [m for m in messages if m["msg"] == "process_completed"]
-            assert [m["output"]["data"] for m in completed] == [["got a"]]
+            assert [m["output"]["data"][0] for m in completed] == ["got a"]
+            # The page runs the gr.State's .change listeners for each report,
+            # and the last chunk's change went out with that chunk
+            reports = [
+                m["output"].get("changed_state_ids") or []
+                for m in messages
+                if m["msg"] in ("process_streaming", "process_completed")
+            ]
+            assert sum(count._id in ids for ids in reports) == 1
     finally:
         client.close()
         demo.close()

@@ -1300,6 +1300,11 @@ class Queue:
                                 [cast(float, fn.time_limit or 30) - first_iteration]
                                 * len(awake_events),
                             )
+                            # The last response went out with its chunk. A
+                            # stream that ends now ends with it, but does not
+                            # report its gr.State changes again, since the page
+                            # runs their .change listeners for each report.
+                            response = {**response, "changed_state_ids": []}
                             for closed_event in closed_events:
                                 self.send_message(
                                     closed_event,
