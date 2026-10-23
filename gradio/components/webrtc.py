@@ -37,7 +37,7 @@ from gradio.webrtc.handlers import (
 from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
 
 if TYPE_CHECKING:
-    from gradio.blocks import Block, BlocksConfig
+    from gradio.blocks import Block
     from gradio.components import Timer
     from gradio.webrtc.connection import ConnectionManager
 
@@ -250,6 +250,7 @@ class WebRTC(Component):
         self.width = width
         # Set by stream()
         self.time_limit: float | None = None
+        self._num_extra_outputs = 0
         self._has_stream = False
         super().__init__(
             label=label,
@@ -390,7 +391,7 @@ class WebRTC(Component):
                 "component created outside it. Create the gr.WebRTC component "
                 "inside the render function too, or call stream() outside it."
             )
-        if self._stream_event_in(root_block):
+        if self._has_stream:
             raise ValueError(
                 "stream() can only be called once per WebRTC component. Use "
                 "another gr.WebRTC component for another stream."
@@ -436,8 +437,8 @@ class WebRTC(Component):
         self._check_handler(fn)
 
         self.time_limit = time_limit
+        self._num_extra_outputs = len(extra_outputs)
         self._has_stream = True
-        num_extra_outputs = len(extra_outputs)
         manager = webrtc_connection.register_manager(
             self._id,
             handler=fn,
@@ -453,7 +454,7 @@ class WebRTC(Component):
         # long as the app (or the render that created it) has the event, since
         # the registry holds managers weakly
         async def run_stream(webrtc_id: str | None) -> Any:
-            return await self._run_stream(manager, webrtc_id, num_extra_outputs)
+            return await self._run_stream(manager, webrtc_id)
 
         # Each stream is one queue event: the frontend fires "stream" when the
         # user starts it, waits for its turn, and only then connects. The event
@@ -515,27 +516,6 @@ class WebRTC(Component):
                 queue=False,
             )
         return Dependency(self, stream_fn.get_config(), stream_index, fn)
-
-    def _stream_event_in(self, blocks_config: BlocksConfig) -> bool:
-        """
-        Whether `blocks_config` has a stream event of this component already.
-        Every session runs a @gr.render into its own copy of the config, and a
-        keyed component keeps its id from one run to the next, while the
-        previous run's events are removed only after the render function
-        returns.
-        """
-        renderable = LocalContext.renderable.get(None)
-        for fn in blocks_config.fns.values():
-            if (self._id, "stream") not in [tuple(t) for t in fn.targets]:
-                continue
-            if (
-                renderable is not None
-                and fn.rendered_in is renderable
-                and fn.render_iteration != renderable.render_iteration
-            ):
-                continue
-            return True
-        return False
 
     def _check_handler(self, fn: HandlerType) -> None:
         def is_a(classes: tuple[type, ...]) -> bool:
@@ -645,10 +625,7 @@ class WebRTC(Component):
             set_input(webrtc_id, getattr(request, "session_hash", None), *args)
 
     async def _run_stream(
-        self,
-        manager: ConnectionManager,
-        webrtc_id: str | None,
-        num_extra_outputs: int,
+        self, manager: ConnectionManager, webrtc_id: str | None
     ) -> Any:
         """
         The queue event of one stream. Its first call admits the stream, and
@@ -659,7 +636,7 @@ class WebRTC(Component):
         """
         from gradio.webrtc.connection import admitted_id, stream_manager
 
-        nothing = [skip()] * (1 + num_extra_outputs)
+        nothing = [skip()] * (1 + self._num_extra_outputs)
         blocks = LocalContext.blocks.get(None)
         queue = blocks._queue if blocks is not None else None
         event = (
@@ -693,10 +670,10 @@ class WebRTC(Component):
                         print_exception=False,
                     )
                 if outputs is not None:
-                    if len(outputs.args) != num_extra_outputs:
+                    if len(outputs.args) != self._num_extra_outputs:
                         raise ValueError(
                             f"AdditionalOutputs has {len(outputs.args)} values, "
-                            f"but stream() has {num_extra_outputs} outputs "
+                            f"but stream() has {self._num_extra_outputs} outputs "
                             "besides the WebRTC component."
                         )
                     nothing = [skip(), *outputs.args]

@@ -782,7 +782,7 @@ class TestWebRTC:
         event_token = LocalContext.event_id.set("event")
         try:
             skip = gr.skip()
-            assert await webrtc._run_stream(manager, "abc", 2) == (skip, skip, skip)
+            assert await webrtc._run_stream(manager, "abc") == (skip, skip, skip)
             assert manager.sessions["abc"].event is event
             # A hot reload gives the event a new function, whose manager never
             # saw the stream; the stream stays with the one that admitted it
@@ -794,17 +794,17 @@ class TestWebRTC:
             set_outputs(AdditionalOutputs(1, "a"))
             set_outputs(AdditionalOutputs(2, "b"))
             event.signal.clear()
-            assert await webrtc._run_stream(reloaded, "abc", 2) == (skip, 1, "a")
+            assert await webrtc._run_stream(reloaded, "abc") == (skip, 1, "a")
             assert event.signal.is_set()
             event.signal.clear()
-            assert await webrtc._run_stream(reloaded, "abc", 2) == (skip, 2, "b")
+            assert await webrtc._run_stream(reloaded, "abc") == (skip, 2, "b")
             assert not event.signal.is_set()
-            assert await webrtc._run_stream(reloaded, "abc", 2) == (skip, skip, skip)
+            assert await webrtc._run_stream(reloaded, "abc") == (skip, skip, skip)
 
             # A later call (a chunk) cannot admit another stream through the
             # same event, and still serves the stream it admitted
             set_outputs(AdditionalOutputs(3, "c"))
-            assert await webrtc._run_stream(reloaded, "other", 2) == (skip, 3, "c")
+            assert await webrtc._run_stream(reloaded, "other") == (skip, 3, "c")
             assert "other" not in manager.sessions
 
             # A stream that ends still delivers what it emitted before, and
@@ -813,14 +813,14 @@ class TestWebRTC:
             set_outputs(AdditionalOutputs(6, "f"))
             manager.end("abc")
             assert not event.closed
-            assert await webrtc._run_stream(reloaded, "abc", 2) == (skip, 5, "e")
+            assert await webrtc._run_stream(reloaded, "abc") == (skip, 5, "e")
             assert not event.closed
-            assert await webrtc._run_stream(reloaded, "abc", 2) == (skip, 6, "f")
+            assert await webrtc._run_stream(reloaded, "abc") == (skip, 6, "f")
             assert event.closed
 
             set_outputs(AdditionalOutputs(4))
             with pytest.raises(ValueError, match="2 outputs besides"):
-                await webrtc._run_stream(reloaded, "abc", 2)
+                await webrtc._run_stream(reloaded, "abc")
 
             # Another queue event that joins with an id already in use ends at
             # once instead of holding a place it can never use
@@ -829,7 +829,7 @@ class TestWebRTC:
             queue.event_ids_to_events["other"] = other
             other_token = LocalContext.event_id.set("other")
             try:
-                assert await webrtc._run_stream(manager, "abc", 2) == (skip, skip, skip)
+                assert await webrtc._run_stream(manager, "abc") == (skip, skip, skip)
             finally:
                 LocalContext.event_id.reset(other_token)
             assert other.closed
