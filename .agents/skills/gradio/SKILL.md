@@ -11,6 +11,7 @@ Gradio is a Python library for building interactive web UIs and ML demos. This s
 - `references/examples.md` -  Illustrative examples showcasing the core Gradio API.
 - `references/api-signatures.md` - API signatures of commonly used components.
 - `references/event-listeners.md` - API signatures of events supported by each component.
+- `references/workflows.md` - Writing `workflow.json` by hand: the schema, model and Space node rules, and the two pipeline shapes (comparison and chaining).
 
 ## Guides
 
@@ -86,6 +87,10 @@ gr.Workflow(
     edges=[("clean", "tag")],
 ).launch()
 ```
+
+A workflow earns its place when more than one model is in the graph — several racing
+the same input (comparison), or one feeding the next (chaining). One model with many
+parameters is a `gr.Interface`. To write the graph directly rather than build it on the canvas, see `references/workflows.md`.
 
 ## Custom HTML Components
 
