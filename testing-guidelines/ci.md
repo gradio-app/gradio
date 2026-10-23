@@ -212,7 +212,7 @@ These actions are called by different jobs with slightly different inputs. These
 
 By default all checks run in Linux, but we run certain Pyhon checks in windows. Sadly, Windows action runners are very slow and the windows tests are mostly there to handle a few edge cases. In order to ensure that we have good test coverage but don't slow down contributors with long CI runs, we only run the Windows check in the release pull request. If a pull request is specifically targeting a Windows issue, then maintainers can add the `windows` label which will make the Windows test run in that pull request as well.
 
-We only run our Python tests for a single Python version, the oldest we support (3.8), for practical reasons.
+We only run our Python tests for a single Python version, the oldest we support (3.11), for practical reasons.
 
 ##### Checking out branches
 

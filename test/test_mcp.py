@@ -1,11 +1,13 @@
+import base64
+import contextlib
 import copy
 import json
 import os
 import tempfile
 
 import pytest
-from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
+from mcp import Client, ClientSession
+from mcp.client.streamable_http import streamable_http_client
 from PIL import Image
 from starlette.requests import Request
 
@@ -87,7 +89,7 @@ def test_postprocess_output_data(test_mcp_app):
         result = server.postprocess_output_data(test_data, fake_root_url)
         assert len(result) == 2
         assert result[0].type == "image"
-        assert result[0].mimeType == "image/png"  # type: ignore
+        assert result[0].mime_type == "image/png"  # type: ignore
         assert result[1].type == "text"
         assert url in result[1].text  # type: ignore
     finally:
@@ -105,7 +107,7 @@ def test_postprocess_output_data(test_mcp_app):
     result = server.postprocess_output_data(test_data, fake_root_url)
     assert len(result) == 2
     assert result[0].type == "image"
-    assert result[0].mimeType == "image/svg+xml"  # type: ignore
+    assert result[0].mime_type == "image/svg+xml"  # type: ignore
     assert result[1].type == "text"
     assert "Image URL:" in result[1].text  # type: ignore
     assert "/gradio_api/file=" in result[1].text  # type: ignore
@@ -306,7 +308,7 @@ async def test_mcp_streamable_http_client():
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
-        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
 
@@ -352,7 +354,7 @@ async def test_mcp_streamable_http_client_with_progress_callback():
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
-        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
 
@@ -372,7 +374,7 @@ async def test_mcp_streamable_http_client_with_progress_callback():
                     tool.name,
                     arguments={"text": "test"},
                     progress_callback=progress_callback,
-                    meta={"progressToken": "test-token-123"},
+                    meta={"progress_token": "test-token-123"},
                 )
 
                 assert len(result.content) == 1  # type: ignore
@@ -389,7 +391,7 @@ async def test_mcp_streamable_http_client_with_stateful_app(stateful_mcp_app):
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
-        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
 
@@ -439,7 +441,7 @@ async def test_x_gradio_user_mcp_gets_set():
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
-        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
 
@@ -457,6 +459,106 @@ async def test_x_gradio_user_mcp_gets_set():
                 )
     finally:
         app.close()
+
+
+@contextlib.asynccontextmanager
+async def mcp_client(mcp_url: str, protocol: str):
+    """
+    Connects to an MCP server either with a 2025-era `initialize` handshake (as most
+    MCP clients in the wild still do), or with the 2026-07-28 protocol that the
+    mcp v2 `Client` negotiates by default.
+    """
+    if protocol == "legacy":
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                yield session
+    else:
+        async with Client(mcp_url) as client:
+            yield client
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+@pytest.mark.parametrize("protocol", ["legacy", "modern"])
+async def test_mcp_tools_resources_and_prompts(protocol):
+    def add(a: int, b: int) -> int:
+        """Add two numbers"""
+        return a + b
+
+    def fail(x: str) -> str:
+        """Always fails"""
+        raise gr.Error("this tool always fails")
+
+    @gr.mcp.resource("greeting://{name}")
+    def get_greeting(name: str) -> str:
+        """Get a personalized greeting"""
+        return f"Hello, {name}!"
+
+    @gr.mcp.resource("config://app", mime_type="application/octet-stream")
+    def get_config() -> str:
+        """Get the app config as binary data"""
+        return base64.b64encode(b"\x00config").decode("ascii")
+
+    @gr.mcp.prompt()
+    def greet_user(name: str, style: str = "friendly") -> str:
+        """Generate a greeting prompt"""
+        return f"Please write a {style} greeting for someone named {name}."
+
+    demo = gr.TabbedInterface(
+        [
+            gr.Interface(
+                add, [gr.Number(precision=0), gr.Number(precision=0)], "number"
+            ),
+            gr.Interface(fail, "text", "text"),
+            gr.Interface(get_greeting, "text", "text"),
+            gr.Interface(get_config, None, "text"),
+            gr.Interface(greet_user, ["text", "text"], "text"),
+        ]
+    )
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with mcp_client(mcp_url, protocol) as client:
+            tools = {tool.name: tool for tool in (await client.list_tools()).tools}
+            assert set(tools) == {"add", "fail"}
+            assert tools["add"].input_schema["required"] == ["a", "b"]
+
+            result = await client.call_tool("add", arguments={"a": 2, "b": 3})
+            assert not result.is_error
+            assert result.content[0].text == "5"  # type: ignore
+
+            result = await client.call_tool("fail", arguments={"x": "hi"})
+            assert result.is_error
+            assert "this tool always fails" in result.content[0].text  # type: ignore
+
+            resources = (await client.list_resources()).resources
+            assert [r.uri for r in resources] == ["config://app"]
+            templates = (await client.list_resource_templates()).resource_templates
+            assert [t.uri_template for t in templates] == ["greeting://{name}"]
+
+            contents = (await client.read_resource("greeting://Gradio")).contents
+            assert contents[0].text == "Hello, Gradio!"  # type: ignore
+            assert contents[0].mime_type == "text/plain"
+            contents = (await client.read_resource("config://app")).contents
+            assert base64.b64decode(contents[0].blob) == b"\x00config"  # type: ignore
+
+            prompts = (await client.list_prompts()).prompts
+            assert [p.name for p in prompts] == ["greet_user"]
+            assert [(a.name, a.required) for a in prompts[0].arguments or []] == [
+                ("name", True),
+                ("style", False),
+            ]
+            prompt = await client.get_prompt(
+                "greet_user", arguments={"name": "Gradio", "style": "formal"}
+            )
+            assert (
+                prompt.messages[0].content.text  # type: ignore
+                == "Please write a formal greeting for someone named Gradio."
+            )
+    finally:
+        demo.close()
 
 
 @pytest.mark.asyncio

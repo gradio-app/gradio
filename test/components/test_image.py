@@ -49,7 +49,7 @@ class TestImage:
             "interactive": None,
             "format": "webp",
             "proxy_url": None,
-            "webcam_options": {"constraints": None, "mirror": True},
+            "webcam_options": {"constraints": None, "mirror": "auto"},
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],

@@ -12,6 +12,7 @@
 
     let obj = get_object("audio");
     let waveform_obj = get_object("waveformoptions");
+    let microphone_obj = get_object("microphoneoptions");
     let validator_obj = get_object("is_audio_correct_length")
 </script>
 
@@ -76,6 +77,23 @@ gradio.WaveformOptions(···)
 <!--- Initialization -->
 #### Initialization
 <ParamTable parameters={waveform_obj.parameters} anchor_links={waveform_obj.name}/>
+
+<!--- Title -->
+### MicrophoneOptions
+
+
+<!--- Usage -->
+```python
+gradio.MicrophoneOptions(···)
+```
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(microphone_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={microphone_obj.parameters} anchor_links={microphone_obj.name}/>
 
 <!--- Title -->
 ### is_audio_correct_length

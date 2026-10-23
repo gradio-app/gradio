@@ -219,6 +219,7 @@
 			i18n={gradio.i18n}
 			{waveform_settings}
 			waveform_options={gradio.props.waveform_options}
+			microphone_options={gradio.props.microphone_options}
 			{trim_region_settings}
 			stream_every={gradio.props.stream_every}
 			stream_state={gradio.shared.loading_status.stream_state}

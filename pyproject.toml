@@ -11,7 +11,7 @@ name = "gradio"
 dynamic = ["version", "dependencies", "optional-dependencies", "readme"]
 description = "Python library for easily interacting with trained machine learning models"
 license = "Apache-2.0"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
   { name = "Abubakar Abid", email = "gradio-team@huggingface.co" },
   { name = "Ali Abid", email = "gradio-team@huggingface.co" },
@@ -30,7 +30,6 @@ classifiers = [
   'Operating System :: OS Independent',
   'Programming Language :: Python :: 3',
   'Programming Language :: Python :: 3 :: Only',
-  'Programming Language :: Python :: 3.10',
   'Programming Language :: Python :: 3.11',
   'Programming Language :: Python :: 3.12',
   'Programming Language :: Python :: 3.13',
@@ -112,7 +111,7 @@ exclude = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = {hf-gradio = false, gradio-client = false, starlette = false}
+exclude-newer-package = {hf-gradio = false, gradio-client = false, starlette = false, safehttpx = false, pillow = false}
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py", "gradio/_vendor/*"]

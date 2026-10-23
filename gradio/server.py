@@ -274,6 +274,7 @@ class Server(App):
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         num_workers: int | None = None,
+        resume_sessions: bool | None = None,
     ) -> tuple[App, str, str]:
         """Launch the Gradio API server (Server mode).
 
@@ -340,4 +341,5 @@ class Server(App):
             head=head,
             head_paths=head_paths,
             num_workers=num_workers,
+            resume_sessions=resume_sessions,
         )

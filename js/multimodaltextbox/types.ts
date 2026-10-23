@@ -2,7 +2,7 @@ import type { FileData } from "@gradio/client";
 import type { SelectData } from "@gradio/utils";
 import type { ILoadingStatus as LoadingStatus } from "@gradio/statustracker";
 import type { InputHTMLAttributes } from "./shared/types";
-import type { WaveformOptions } from "js/audio/shared/types";
+import type { WaveformOptions, MicrophoneOptions } from "js/audio/shared/types";
 
 export interface MultimodalTextboxEvents {
 	change: { text: string; files: FileData[] };
@@ -36,5 +36,6 @@ export interface MultimodalTextboxProps {
 	max_plain_text_length: number;
 	sources: ("microphone" | "upload")[];
 	waveform_options: WaveformOptions;
+	microphone_options?: MicrophoneOptions;
 	html_attributes: InputHTMLAttributes | null;
 }

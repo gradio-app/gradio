@@ -17,7 +17,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
+import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
@@ -485,7 +485,7 @@ class TestServerSideRecording:
             with (
                 patch("gradio.history.resolve_token", return_value="tok"),
                 patch("gradio.history.HfApi", return_value=hub),
-                httpx.Client(base_url=local_url, timeout=30) as client,
+                httpx2.Client(base_url=local_url, timeout=30) as client,
             ):
                 with open("test/test_files/audio_sample.wav", "rb") as f:
                     (path,) = client.post(
@@ -606,7 +606,7 @@ class TestServerSideRecording:
         ):
             _, local_url, _ = demo.launch(prevent_thread_lock=True)
             try:
-                with httpx.Client(base_url=local_url, timeout=30) as client:
+                with httpx2.Client(base_url=local_url, timeout=30) as client:
 
                     def join(text, session_hash, headers=None):
                         body = {
@@ -674,7 +674,7 @@ class TestServerSideRecording:
         ):
             _, local_url, _ = demo.launch(prevent_thread_lock=True)
             try:
-                with httpx.Client(base_url=local_url, timeout=30) as client:
+                with httpx2.Client(base_url=local_url, timeout=30) as client:
 
                     def join(text, trigger_id):
                         body = {

@@ -8,7 +8,7 @@ import numpy as np
 import PIL.Image
 
 from gradio import components
-from gradio.components.audio import WaveformOptions
+from gradio.components.audio import MicrophoneOptions, WaveformOptions
 from gradio.components.image_editor import Brush, Eraser, LayerOptions, WebcamOptions
 from gradio.components.textbox import InputHTMLAttributes
 from gradio.i18n import I18nData
@@ -478,6 +478,7 @@ class Microphone(components.Audio):
         buttons: list[Literal["download", "share"]] | None = None,
         editable: bool = True,
         waveform_options: WaveformOptions | dict | None = None,
+        microphone_options: MicrophoneOptions | dict | None = None,
         loop: bool = False,
         recording: bool = False,
         subtitles: str | Path | None = None,
@@ -508,6 +509,7 @@ class Microphone(components.Audio):
             buttons=buttons,  # type: ignore
             editable=editable,
             waveform_options=waveform_options,
+            microphone_options=microphone_options,
             loop=loop,
             recording=recording,
             subtitles=subtitles,

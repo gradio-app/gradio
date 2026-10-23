@@ -70,7 +70,7 @@ from gradio.components import (
     WorkflowCanvas,
     component,
 )
-from gradio.components.audio import WaveformOptions
+from gradio.components.audio import MicrophoneOptions, WaveformOptions
 from gradio.components.image_editor import (
     Brush,
     Eraser,
@@ -219,6 +219,7 @@ __all__ = [
     "MessageDict",
     "Mic",
     "Microphone",
+    "MicrophoneOptions",
     "Model3D",
     "MultimodalTextbox",
     "NO_RELOAD",

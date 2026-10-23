@@ -27,17 +27,7 @@ reload_thread = threading.local()
 
 
 def _handle_interrupt():
-    """Handle interrupt signals and logout based on user preference"""
-
-    if os.getenv("GRADIO_VIBE_MODE") and os.getenv("GRADIO_AUTO_LOGOUT") == "true":
-        try:
-            from huggingface_hub import logout
-
-            logout()
-            print("\n\nLogged out of Hugging Face")
-        except Exception as e:
-            print(f"\n\nError logging out of Hugging Face: {e}")
-
+    """Handle interrupt signals"""
     sys.exit(0)
 
 
@@ -136,9 +126,6 @@ def main(
         GRADIO_WATCH_DEMO_PATH=str(path),
         GRADIO_WATCH_ENCODING=encoding,
     )
-
-    if "GRADIO_VIBE_MODE" in os.environ:
-        env_vars["GRADIO_VIBE_MODE"] = os.environ["GRADIO_VIBE_MODE"]
 
     # Everything after `--` belongs to the user's script, e.g.
     # `gradio app.py -- --name Gretel` for a script that uses argparse.

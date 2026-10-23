@@ -2,7 +2,7 @@ import asyncio
 import time
 
 from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
+from mcp.client.streamable_http import streamable_http_client
 
 import gradio as gr
 
@@ -22,7 +22,7 @@ mcp_url = f"{url}gradio_api/mcp/"
 async def make_serial_requests():
     times = []
 
-    async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+    async with streamable_http_client(mcp_url) as (read_stream, write_stream):
         async with ClientSession(read_stream, write_stream) as session:
             await session.initialize()
 
@@ -46,7 +46,7 @@ async def make_serial_requests_with_progress():
     times = []
     progress_counts = []
 
-    async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+    async with streamable_http_client(mcp_url) as (read_stream, write_stream):
         async with ClientSession(read_stream, write_stream) as session:
             await session.initialize()
 
@@ -64,7 +64,7 @@ async def make_serial_requests_with_progress():
                     tool_name,
                     arguments={"word": "Hello"},
                     progress_callback=progress_callback,
-                    meta={"progressToken": f"progress-token-{_}"}
+                    meta={"progress_token": f"progress-token-{_}"}
                 )
                 end = time.time()
                 times.append(end - start)
@@ -82,7 +82,7 @@ async def make_parallel_requests():
     results = []
 
     async def make_request():
-        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
                 tools = await session.list_tools()

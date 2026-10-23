@@ -77,7 +77,9 @@ export class FileData {
 	mime_type?: string;
 	alt_text?: string;
 	b64?: string;
-	readonly meta = { _type: "gradio.FileData" };
+	readonly meta: { _type: "gradio.FileData"; mirrored?: boolean } = {
+		_type: "gradio.FileData"
+	};
 
 	constructor({
 		path,

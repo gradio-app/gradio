@@ -2,16 +2,18 @@
 
 import asyncio
 import functools
+import gzip
 import inspect
 import io
 import json
 import math
 import os
 import pickle
+import subprocess
 import sys
 import tempfile
 import time
-from contextlib import asynccontextmanager, closing
+from contextlib import asynccontextmanager, closing, contextmanager
 from pathlib import Path, PurePosixPath
 from threading import Event, Thread
 from types import SimpleNamespace
@@ -20,7 +22,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 import gradio_client as grc
 import gradio_client.utils as client_utils
-import httpx
+import httpx2
 import numpy as np
 import pandas as pd
 import pytest
@@ -232,6 +234,65 @@ class TestRoutes:
             }
         finally:
             demo.close()
+
+    def test_session_keeps_values_after_a_props_only_update(self):
+        # Deep links are built from the session's component values
+        with Blocks() as demo:
+            name = Textbox()
+            greeting = Textbox(label="Greeting")
+            name.submit(lambda name: f"Hello {name}", name, greeting, api_name="greet")
+            gr.Button().click(
+                lambda: Textbox(label="Greeted"), None, greeting, api_name="relabel"
+            )
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        try:
+            client = TestClient(app)
+            client.post(
+                f"{API_PREFIX}/api/greet/",
+                json={"data": ["Grace"], "session_hash": "s"},
+            )
+            # An update that only changes props keeps the value, and values
+            # set after it are kept too.
+            client.post(
+                f"{API_PREFIX}/api/relabel/",
+                json={"data": [], "session_hash": "s"},
+            )
+            client.post(
+                f"{API_PREFIX}/api/greet/",
+                json={"data": ["Ada"], "session_hash": "s"},
+            )
+            props = {
+                component["id"]: component["props"]
+                for component in app.state_holder["s"].components
+            }
+            assert props[name._id]["value"] == "Ada"
+            assert props[greeting._id]["value"] == "Hello Ada"
+            assert props[greeting._id]["label"] == "Greeted"
+        finally:
+            demo.close()
+
+    def test_app_key_is_the_same_in_every_process(self, tmp_path):
+        # Browsers key a session's saved outputs and an app's run history on
+        # it, so a restart or another replica must not change it.
+        app_file = tmp_path / "app.py"
+        app_file.write_text(
+            "import gradio as gr\n"
+            "with gr.Blocks() as demo:\n"
+            "    t = gr.Textbox()\n"
+            "    t.submit(lambda x: x, t, t)\n"
+            "print(demo.get_config_file()['app_key'])\n"
+        )
+        keys = {
+            subprocess.run(
+                [sys.executable, str(app_file)],
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+            for _ in range(2)
+        }
+        assert len(keys) == 1 and keys != {""}
 
     @pytest.mark.parametrize(
         "deep_link",
@@ -943,8 +1004,8 @@ class TestRoutes:
         gr.set_static_paths(paths=[path])
         with gr.Blocks() as demo:
             pass
-        async with httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=demo.app), base_url="http://test"
+        async with httpx2.AsyncClient(
+            transport=httpx2.ASGITransport(app=demo.app), base_url="http://test"
         ) as client:
             response = await asyncio.wait_for(
                 client.get(
@@ -975,8 +1036,8 @@ class TestRoutes:
         gr.set_static_paths(paths=[path])
         with gr.Blocks() as demo:
             pass
-        async with httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=demo.app), base_url="http://test"
+        async with httpx2.AsyncClient(
+            transport=httpx2.ASGITransport(app=demo.app), base_url="http://test"
         ) as client:
             response = await asyncio.wait_for(
                 client.get(
@@ -1484,6 +1545,58 @@ class TestRoutes:
             assert resp.status_code == 403
             assert "location" not in resp.headers
 
+    @pytest.mark.parametrize(
+        "path,decoded",
+        [
+            ("data.json", True),
+            # A stored compressed file mislabelled with `Content-Encoding: gzip`
+            # is served as-is, as browsers do.
+            ("archive.tar.gz", False),
+        ],
+    )
+    def test_file_endpoint_url_is_not_served_compressed(
+        self, monkeypatch, path, decoded
+    ):
+        body = b'{"hello": "world"}'
+        compressed = gzip.compress(body)
+        upstream_headers = {}
+
+        async def stream(data: bytes):
+            yield data
+
+        def compressing_host(request: httpx2.Request) -> httpx2.Response:
+            upstream_headers.update(request.headers)
+            return httpx2.Response(
+                200,
+                headers={
+                    "content-type": "application/json",
+                    "content-encoding": "gzip",
+                },
+                content=stream(compressed),
+            )
+
+        async def resolve(host):
+            return "93.184.216.34"
+
+        monkeypatch.setattr(route_utils.safehttpx, "async_validate_url", resolve)
+        monkeypatch.setattr(
+            route_utils.safehttpx,
+            "AsyncSecureTransport",
+            lambda ip: httpx2.MockTransport(compressing_host),
+        )
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        client = TestClient(routes.App.create_app(io))
+
+        resp = client.get(
+            f"{API_PREFIX}/file=https://example.com/{path}",
+            headers={"Range": "bytes=0-", "If-Range": '"v1"'},
+        )
+        assert resp.status_code == 200
+        assert resp.content == (body if decoded else compressed)
+        assert upstream_headers["accept-encoding"] == "identity"
+        assert upstream_headers["range"] == "bytes=0-"
+        assert upstream_headers["if-range"] == '"v1"'
+
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):
             num_files = 0
@@ -1675,7 +1788,7 @@ class TestRoutes:
 
         _, local_url, _ = demo.launch(prevent_thread_lock=True)
         try:
-            with httpx.Client(base_url=local_url, timeout=30) as client:
+            with httpx2.Client(base_url=local_url, timeout=30) as client:
                 join = client.post(
                     f"{API_PREFIX}/queue/join",
                     json={"data": [], "fn_index": 0, "session_hash": "s"},
@@ -1717,7 +1830,7 @@ class TestRoutes:
 
         _, local_url, _ = demo.launch(prevent_thread_lock=True)
         try:
-            with httpx.Client(base_url=local_url, timeout=30) as client:
+            with httpx2.Client(base_url=local_url, timeout=30) as client:
                 join = client.post(
                     f"{API_PREFIX}/queue/join",
                     json={"data": [], "fn_index": 0, "session_hash": "s"},
@@ -1909,6 +2022,28 @@ class TestAuthenticatedRoutes:
         response = client.get("/monitoring/summary")
         assert response.status_code == 401
 
+    def test_queue_reset_route(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+        body = {"event_id": "event"}
+
+        try:
+            response = client.post(f"{API_PREFIX}/reset", json=body)
+            assert response.status_code == 401
+
+            client.post(
+                "/login",
+                data={"username": "test", "password": "correct_password"},
+            )
+            response = client.post(f"{API_PREFIX}/reset", json=body)
+            assert response.status_code == 200
+        finally:
+            io.close()
+
 
 class TestConfigUsername:
     """`/config` reports who is logged in. Resolving the user is async, so a
@@ -1953,6 +2088,58 @@ class TestQueueRoutes:
         client.predict("test")
 
         assert io._queue.server_app == io.server_app
+
+
+def test_a_reloaded_page_keeps_its_session_but_a_closed_one_does_not():
+    unloads = []
+
+    with gr.Blocks() as demo:
+        demo.unload(lambda: unloads.append(True))
+
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    demo._queue.close_grace_period = 0.5
+
+    @contextmanager
+    def page(session_hash):
+        url = f"{local_url.rstrip('/')}{API_PREFIX}/heartbeat/{session_hash}"
+        with httpx2.stream("GET", url, timeout=10) as response:
+            # Keep a reference: the connection closes once this is collected.
+            lines = response.iter_lines()
+            next(lines)
+            yield
+
+    def closed(session_hash):
+        return demo.server_app.state_holder.session_data[session_hash].is_closed
+
+    def wait_for_unloads(count):
+        deadline = time.monotonic() + 10
+        while len(unloads) < count and time.monotonic() < deadline:
+            time.sleep(0.1)
+        time.sleep(1)
+        assert len(unloads) == count
+
+    try:
+        demo.server_app.state_holder["reloaded"]
+        with page("reloaded"):
+            pass
+        # The refreshed page reconnects before the grace period is over.
+        with page("reloaded"):
+            time.sleep(1.5)
+            assert unloads == []
+            assert not closed("reloaded")
+        wait_for_unloads(1)
+        assert closed("reloaded")
+
+        # A page closed right after a refresh is only closed once.
+        demo.server_app.state_holder["closed"]
+        with page("closed"):
+            pass
+        with page("closed"):
+            pass
+        wait_for_unloads(2)
+        assert closed("closed")
+    finally:
+        demo.close()
 
 
 class TestDevMode:
@@ -3139,12 +3326,12 @@ def test_attacker_cannot_change_root_in_config(
     def attacker(url):
         """Simulates the attacker sending a request with a malicious header."""
         for _ in range(max_attempts):
-            httpx.get(url + "config", headers={"X-Forwarded-Host": "evil"})
+            httpx2.get(url + "config", headers={"X-Forwarded-Host": "evil"})
 
     def victim(url, results):
         """Simulates the victim making a normal request and checking the response."""
         for _ in range(max_attempts):
-            res = httpx.get(url)
+            res = httpx2.get(url)
             config = json.loads(
                 res.text.split("window.gradio_config =", 1)[1].split(";</script>", 1)[0]
             )
@@ -3341,19 +3528,19 @@ def test_get_api_call_path_generic_call(server, path, expected):
             {},
             ("localhost", 7860),
             "/gradio_api/predict",
-            httpx.URL("http://localhost:7860"),
+            httpx2.URL("http://localhost:7860"),
         ),
         (
             {"x-forwarded-host": "example.com"},
             ("localhost", 7860),
             "/gradio_api/predict",
-            httpx.URL("http://example.com"),
+            httpx2.URL("http://example.com"),
         ),
         (
             {"x-forwarded-host": "example.com", "x-forwarded-proto": "https"},
             ("localhost", 7860),
             "/gradio_api/predict",
-            httpx.URL("https://example.com"),
+            httpx2.URL("https://example.com"),
         ),
         (
             {
@@ -3362,7 +3549,7 @@ def test_get_api_call_path_generic_call(server, path, expected):
             },
             ("localhost", 7860),
             "/gradio_api/predict",
-            httpx.URL("https://example.com"),
+            httpx2.URL("https://example.com"),
         ),
     ],
 )

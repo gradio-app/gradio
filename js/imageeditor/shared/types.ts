@@ -14,7 +14,7 @@ export type Source = "upload" | "webcam" | "clipboard";
 export type Transform = "crop" | "resize";
 
 export interface WebcamOptions {
-	mirror: boolean;
+	mirror: boolean | "auto";
 	constraints: Record<string, any>;
 }
 

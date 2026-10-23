@@ -11,6 +11,10 @@ export type WaveformOptions = {
 	sample_rate?: number;
 };
 
+export type MicrophoneOptions = {
+	constraints?: MediaTrackConstraints | null;
+};
+
 export interface SubtitleData {
 	start: number;
 	end: number;
@@ -31,6 +35,7 @@ export interface AudioProps {
 	loop: boolean;
 	subtitles: FileData | SubtitleData[] | null;
 	waveform_options: WaveformOptions;
+	microphone_options?: MicrophoneOptions;
 	editable: boolean;
 	pending: boolean;
 	streaming: boolean;

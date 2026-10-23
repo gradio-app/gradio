@@ -10,7 +10,7 @@ import urllib.parse
 import warnings
 from typing import Any
 
-import httpx
+import httpx2
 from huggingface_hub.utils._telemetry import _send_telemetry_in_thread
 from packaging.version import Version
 
@@ -81,14 +81,16 @@ async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
             pyodide_pyfetch(url, method="POST", headers=headers, body=body),
             timeout=5,
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         pass  # do not push analytics if no network
 
 
 def version_check():
     try:
         current_pkg_version = get_package_version()
-        latest_pkg_version = httpx.get(url=PKG_VERSION_URL, timeout=3).json()["version"]
+        latest_pkg_version = httpx2.get(url=PKG_VERSION_URL, timeout=3).json()[
+            "version"
+        ]
         if Version(latest_pkg_version) > Version(current_pkg_version):
             warnings.warn(
                 f"IMPORTANT: You are using gradio version {current_pkg_version}, "
@@ -222,19 +224,6 @@ def custom_component_analytics(
 
     _do_analytics_request(
         topic="gradio/custom-components",
-        data=data,
-    )
-
-
-def vibe_analytics() -> None:
-    data = {
-        "command": "vibe",
-    }
-    if not analytics_enabled():
-        return
-
-    _do_analytics_request(
-        topic="gradio/vibe",
         data=data,
     )
 
