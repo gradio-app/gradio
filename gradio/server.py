@@ -279,6 +279,7 @@ class Server(App):
         num_workers: int | None = None,
         resume_sessions: bool | None = None,
         executor: Literal["thread", "process"] | None = None,
+        replicas: int | Literal["auto"] | None = None,
     ) -> tuple[App, str, str]:
         """Launch the Gradio API server (Server mode).
 
@@ -350,6 +351,7 @@ class Server(App):
             num_workers=num_workers,
             resume_sessions=resume_sessions,
             executor=executor,
+            replicas=replicas,
         )
 
     def _check_process_executor(self) -> None:

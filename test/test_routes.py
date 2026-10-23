@@ -3438,6 +3438,7 @@ def test_mount_gradio_app_args_match_launch_args():
         "num_workers",
         # A mounted app runs in the user's own server, so always with threads
         "executor",
+        "replicas",
     }
 
     missing_params = []
