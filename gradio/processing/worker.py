@@ -14,9 +14,9 @@ import os
 import pickle
 import secrets
 import subprocess
-import sys
 import tempfile
 import threading
+import time
 from typing import TYPE_CHECKING, Any
 
 from gradio.processing import protocol
@@ -35,6 +35,11 @@ class ForwardingQueue:
     def __init__(self, worker: Worker, original: Any):
         self.worker = worker
         self.original = original
+        self.server_app = worker.app
+
+    def __getattr__(self, name: str) -> Any:
+        # Settings such as max_size live on the queue the app configured
+        return getattr(self.original, name)
 
     def log_message(self, event_id, log, title, level, duration=10, visible=True):
         self.worker.send(
@@ -77,16 +82,29 @@ class Worker:
         gateway_kwargs: dict[str, Any],
         queue_kwargs: dict,
         app: App | None = None,
+        launch_kwargs: dict[str, Any] | None = None,
     ):
+        from gradio.processing.proxy import GatewayFront
         from gradio.routes import App
 
+        launch_kwargs = launch_kwargs or {}
         self.blocks = blocks
         self.gateway_kwargs = gateway_kwargs
         self.queue_kwargs = queue_kwargs
-        # Holds this process's sessions, iterators and gr.State caches. It
-        # serves no routes: a Server passes itself so `server.blocks` works.
-        self.app = app if app is not None else App()
-        self.app.configure_app(blocks)
+        # A real Gradio app over this process's blocks, sessions, iterators and
+        # gr.State caches, built as a normal launch builds it (onto a Server,
+        # if this is one). It runs the app's lifespan and serves the requests
+        # the gateway forwards; any other request is sent on to the gateway.
+        self.app = App.create_app(
+            blocks,
+            app=app,
+            app_kwargs=dict(launch_kwargs.get("app_kwargs") or {}),
+            strict_cors=launch_kwargs.get("strict_cors", True),
+            mcp_server=False,
+        )
+        self.http_token = secrets.token_hex(16)
+        self.app.add_middleware(GatewayFront, token=self.http_token, worker=self)
+        self.http_server: Any = None
         self.token = secrets.token_hex(16)
         self.loop: asyncio.AbstractEventLoop | None = None
         self.writer: asyncio.StreamWriter | None = None
@@ -95,6 +113,7 @@ class Worker:
         self.ready = threading.Event()
         self.done = threading.Event()
         self.urls: tuple[str, str | None] = ("", None)
+        self.server_attributes: dict[str, Any] = {}
         self.failure: str | None = None
 
     def send(self, message: Any) -> None:
@@ -146,6 +165,7 @@ class Worker:
                     await self.close_iterator(message[1])
                 elif kind == "ready":
                     self.urls = (message[1], message[2])
+                    self.server_attributes = message[3]
                     self.ready.set()
         except (asyncio.IncompleteReadError, ConnectionError):
             pass
@@ -182,7 +202,7 @@ class Worker:
         output = await route_utils.call_process_api(
             app=self.app,
             body=body,
-            gr_request=p["request"],
+            gr_request=protocol.restore_request(p["request"], self.lifespan_state()),
             fn=fn,
             root_path=p["root_path"],
         )
@@ -211,7 +231,7 @@ class Worker:
             block_fn=p["fn_index"],
             inputs=p["inputs"],
             state=state,
-            request=p["request"],
+            request=protocol.restore_request(p["request"], self.lifespan_state()),
             iterator=iterator,
             session_hash=session_hash,
             event_id=event_id,
@@ -232,13 +252,37 @@ class Worker:
         return output
 
     async def main(self) -> None:
+        try:
+            await self._main()
+        except Exception as err:  # noqa: BLE001 -- reported to the launching thread
+            self.failure = f"executor='process' could not start: {err!r}"
+        finally:
+            self.done.set()
+
+    def portable_config(self) -> dict:
+        """The config without callables (e.g. a State's delete_callback): the
+        gateway never calls them, and they may not pickle."""
+        config = dict(self.blocks.config)
+        config["components"] = [
+            {
+                **component,
+                "props": {
+                    k: v for k, v in component["props"].items() if not callable(v)
+                },
+            }
+            for component in config["components"]
+        ]
+        return config
+
+    async def _main(self) -> None:
         from gradio import client_state
         from gradio.components.api_component import Api
 
         self.loop = asyncio.get_running_loop()
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
+        http_port = self.serve_http()
         bootstrap = {
-            "config": self.blocks.config,
+            "config": self.portable_config(),
             "launch_kwargs": self.gateway_kwargs,
             "queue_kwargs": self.queue_kwargs,
             # Endpoints of gr.api() and Server mode describe their types here,
@@ -254,22 +298,28 @@ class Worker:
                 fn_id: {
                     "concurrency_limit": fn.concurrency_limit,
                     "concurrency_id": fn.concurrency_id,
+                    "signature": protocol.portable_signature(fn.fn)
+                    if fn.fn is not None
+                    else None,
                 }
                 for fn_id, fn in self.blocks.fns.items()
             },
             "port": server.sockets[0].getsockname()[1],
             "token": self.token,
+            "http_port": http_port,
+            "http_token": self.http_token,
             "worker_pid": os.getpid(),
+            "env": dict(os.environ),
+            "cwd": os.getcwd(),
             # Browser-held gr.State tokens are sealed on both sides
             "state_secret": client_state._process_secret,
         }
         fd, path = tempfile.mkstemp(prefix="gradio-gateway-", suffix=".pkl")
         with os.fdopen(fd, "wb") as f:
             pickle.dump(bootstrap, f)
-        env = {**os.environ, "GRADIO_PROCESS_GATEWAY": "1"}
-        self.gateway = subprocess.Popen(
-            [sys.executable, "-m", "gradio.processing.gateway", path], env=env
-        )
+        from gradio.processing import spare
+
+        self.gateway = spare.start_gateway(path)
         async with server:
             while not self.done.is_set():
                 if self.gateway.poll() is not None:
@@ -277,7 +327,40 @@ class Worker:
                 await asyncio.sleep(0.2)
         self.done.set()
 
+    def lifespan_state(self) -> dict:
+        """What the app's lifespan yielded, which requests see as `request.state`."""
+        lifespan = getattr(self.http_server, "lifespan", None)
+        return dict(getattr(lifespan, "state", None) or {})
+
+    def serve_http(self) -> int:
+        """Serves `self.app` on a private loopback port for the gateway."""
+        import socket
+
+        import uvicorn
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(("127.0.0.1", 0))
+        sock.listen(128)
+        self.http_server = uvicorn.Server(
+            uvicorn.Config(
+                self.app, log_level="warning", access_log=False, lifespan="on"
+            )
+        )
+        self.http_thread = threading.Thread(
+            target=asyncio.run,
+            args=(self.http_server.serve(sockets=[sock]),),
+            daemon=True,
+            name="gradio-worker-http",
+        )
+        self.http_thread.start()
+        return sock.getsockname()[1]
+
     def close(self) -> None:
+        if self.http_server is not None:
+            # Its lifespan's shutdown (e.g. delete_cache) runs before this returns
+            self.http_server.should_exit = True
+            self.http_thread.join(timeout=10)
         gateway = self.gateway
         if gateway is not None and gateway.poll() is None:
             gateway.terminate()
@@ -293,13 +376,15 @@ def serve(
     gateway_kwargs: dict[str, Any],
     prevent_thread_lock: bool,
     app: App | None = None,
+    launch_kwargs: dict[str, Any] | None = None,
 ) -> tuple[App, str, str | None]:
     original_queue = blocks._queue
     queue_kwargs = {
         "max_size": original_queue.max_size,
         "default_concurrency_limit": original_queue.default_concurrency_limit,
+        "api_open": blocks.api_open,
     }
-    worker = Worker(blocks, gateway_kwargs, queue_kwargs, app)
+    worker = Worker(blocks, gateway_kwargs, queue_kwargs, app, launch_kwargs)
     blocks._queue = ForwardingQueue(worker, original_queue)  # type: ignore[assignment]
     blocks._process_worker = worker  # type: ignore[attr-defined]
     blocks.has_launched = True
@@ -320,15 +405,18 @@ def serve(
             )
 
     local_url, share_url = worker.urls
-    blocks.server_app = worker.app
+    blocks.server_app = blocks.app = worker.app
     blocks.local_url = local_url
     blocks.share_url = share_url
+    for key, value in worker.server_attributes.items():
+        setattr(blocks, key, value)
     blocks.is_running = True
     if not prevent_thread_lock:
+        # As Blocks.block_thread() does for a server in this process
         try:
-            while not worker.done.wait(0.1):
-                pass
-        except KeyboardInterrupt:
+            while not worker.done.is_set():
+                time.sleep(0.1)
+        except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
         finally:
             blocks.close()

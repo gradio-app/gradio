@@ -41,6 +41,146 @@ def restore_error(payload: tuple) -> BaseException:
     return RuntimeError(f"{payload[1]}: {payload[2]}")
 
 
+# Modules every gateway can import, so annotations naming only their types
+# can cross. Gradio reads some (gr.Request, gr.OAuthToken, gr.Progress...) to
+# tell injected parameters from inputs.
+PORTABLE_MODULES = {
+    "builtins",
+    "typing",
+    "typing_extensions",
+    "operator",
+    "_operator",
+    "types",
+    "collections",
+    "datetime",
+    "pathlib",
+    "gradio",
+    "gradio_client",
+    "fastapi",
+    "starlette",
+    "pydantic",
+    "numpy",
+    "PIL",
+    "pandas",
+}
+
+
+class _PortableUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module.split(".")[0] not in PORTABLE_MODULES:
+            raise pickle.UnpicklingError(module)
+        return super().find_class(module, name)
+
+
+def _as_typing(annotation):
+    """`X | None` (types.UnionType) does not pickle; typing.Union does."""
+    import types
+    import typing
+
+    if isinstance(annotation, types.UnionType):
+        return typing.Union[annotation.__args__]  # noqa: UP007
+    return annotation
+
+
+def _portable(value) -> bool:
+    """Whether `value` pickles to something only PORTABLE_MODULES can load."""
+    import io
+
+    try:
+        data = pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
+        _PortableUnpickler(io.BytesIO(data)).load()
+        return True
+    except Exception:
+        return False
+
+
+def portable_signature(fn) -> tuple | None:
+    """A function's signature as it can cross to the gateway: annotations only
+    when they name types every gateway can import, simple defaults only."""
+    import inspect
+
+    try:
+        signature = inspect.signature(fn, eval_str=True)
+    except Exception:
+        try:
+            signature = inspect.signature(fn)
+        except (TypeError, ValueError):
+            return None
+    empty = inspect.Parameter.empty
+    parameters = []
+    for p in signature.parameters.values():
+        default = p.default
+        if default is not empty and not _portable(default):
+            default = None
+        annotation = _as_typing(p.annotation)
+        annotation = annotation if _portable(annotation) else empty
+        parameters.append((p.name, int(p.kind), default, annotation))
+    returns = _as_typing(signature.return_annotation)
+    return parameters, returns if _portable(returns) else empty
+
+
+def restore_signature(portable: tuple | None):
+    import inspect
+
+    if portable is None:
+        return None
+    parameters, returns = portable
+    return inspect.Signature(
+        [
+            inspect.Parameter(
+                name, inspect._ParameterKind(kind), default=default, annotation=ann
+            )
+            for name, kind, default, ann in parameters
+        ],
+        return_annotation=returns,
+    )
+
+
+def restore_request(request, lifespan_state: dict | None = None):
+    """A gr.Request that crossed from the gateway, rebuilt over a Starlette
+    request so that headers, cookies, query parameters and `state` behave as
+    they do when the function runs in the server's process."""
+    from urllib.parse import urlsplit
+
+    from starlette.requests import Request as StarletteRequest
+
+    from gradio.route_utils import Request
+
+    if isinstance(request, list):
+        return [restore_request(r, lifespan_state) for r in request]
+    if not isinstance(request, Request) or request.request is not None:
+        return request
+    kwargs = request.kwargs
+    url = urlsplit(str(kwargs.get("url", "")))
+    client = kwargs.get("client") or {}
+    state = dict(lifespan_state or {})
+    request_state = getattr(request.__dict__.get("state"), "_state", None)
+    state.update(request_state or {})
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "scheme": url.scheme or "http",
+        "server": (url.hostname or "", url.port or 80),
+        "path": url.path or "/",
+        "raw_path": (url.path or "/").encode(),
+        "root_path": "",
+        "query_string": url.query.encode(),
+        "headers": [
+            (str(k).lower().encode("latin-1"), str(v).encode("latin-1"))
+            for k, v in (kwargs.get("headers") or {}).items()
+        ],
+        "client": (client.get("host"), client.get("port")),
+        "path_params": kwargs.get("path_params") or {},
+        "state": state,
+    }
+    rebuilt = Request(
+        StarletteRequest(scope),
+        username=request.username,
+        session_hash=request.session_hash,
+    )
+    return rebuilt
+
+
 def portable_client_state(client_state) -> dict | None:
     """The browser-held gr.State values of an event, without the gateway's components."""
     if client_state is None:

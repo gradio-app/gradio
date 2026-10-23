@@ -16,6 +16,8 @@ import time
 import warnings
 from typing import TYPE_CHECKING, Any
 
+from starlette.requests import Request
+
 from gradio.processing import protocol
 
 if TYPE_CHECKING:
@@ -193,9 +195,10 @@ async def forward_event(
     return output
 
 
-def make_proxy(dependency: dict):
+def make_proxy(dependency: dict, signature=None):
     """Stands in for a function that lives in the app's process. Its shape
-    (generator or not) is what the config reports to clients."""
+    (generator or not) is what the config reports to clients, and its
+    signature is the real one's, which API docs and clients read."""
     if not dependency.get("backend_fn"):
         return None
     if (dependency.get("types") or {}).get("generator"):
@@ -209,6 +212,8 @@ def make_proxy(dependency: dict):
             pass
 
     proxy._process_fn_index = dependency["id"]  # type: ignore[attr-defined]
+    if signature is not None:
+        proxy.__signature__ = signature  # type: ignore[attr-defined]
     return proxy
 
 
@@ -227,7 +232,16 @@ def build(bootstrap: dict) -> Blocks:
             props.pop("delete_callback", None)
         if props.get("name") == "api":
             props["_api_info"] = bootstrap["api_info"].get(component["id"])
-    fns = [make_proxy(dependency) for dependency in config["dependencies"]]
+    settings = bootstrap["fn_settings"]
+    fns = [
+        make_proxy(
+            dependency,
+            protocol.restore_signature(
+                settings.get(dependency["id"], {}).get("signature")
+            ),
+        )
+        for dependency in config["dependencies"]
+    ]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         blocks = Blocks.from_config(config, fns, "http://127.0.0.1", preserve_ids=True)
@@ -239,7 +253,8 @@ def build(bootstrap: dict) -> Blocks:
     for fn_id, settings in bootstrap["fn_settings"].items():
         if fn_id in blocks.fns:
             for key, value in settings.items():
-                setattr(blocks.fns[fn_id], key, value)
+                if key != "signature":
+                    setattr(blocks.fns[fn_id], key, value)
     if config.get("mode"):
         blocks.mode = config["mode"]
     for key in ("css", "js", "head", "title", "fill_height", "fill_width"):
@@ -301,10 +316,75 @@ def watch_app_process(pid: int) -> None:
         time.sleep(1)
 
 
+# Routes that need the app's process: its code (component server functions,
+# a Server's own routes) or its per-session state (deep links, media streams)
+FORWARDED_ROUTES = [
+    ("/component_server", ["POST"]),
+    ("/component_server/", ["POST"]),
+    ("/deep_link", ["GET"]),
+    ("/stream/{session_hash}/{run}/{component_id}/{rest:path}", ["GET", "HEAD"]),
+]
+METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
+
+
+def add_forwarded_routes(app, bootstrap: dict) -> None:
+    from fastapi.routing import APIRoute
+
+    from gradio.processing.proxy import TOKEN_HEADER, forward
+    from gradio.route_utils import API_PREFIX
+
+    target = f"http://127.0.0.1:{bootstrap['http_port']}"
+    token = [(TOKEN_HEADER, bootstrap["http_token"].encode())]
+
+    async def to_app(request: Request):
+        return await forward(request, target, token)
+
+    routes = [
+        APIRoute(API_PREFIX + path, to_app, methods=methods, include_in_schema=False)
+        for path, methods in FORWARDED_ROUTES
+    ]
+    app.router.routes[:0] = routes
+    # Anything the gateway does not serve may be one of a Server's own routes
+    app.router.routes.append(
+        APIRoute("/{path:path}", to_app, methods=METHODS, include_in_schema=False)
+    )
+
+
+def adopt_environment(env: dict[str, str], cwd: str) -> None:
+    """Takes the app's environment and working directory, and recomputes the
+    settings that Gradio's modules read from the environment at import time
+    (a forked gateway imported them earlier, for another app)."""
+    import tempfile
+    from pathlib import Path
+
+    os.environ.clear()
+    os.environ.update(env)
+    os.environ["GRADIO_PROCESS_GATEWAY"] = "1"
+    os.chdir(cwd)
+    temp_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
+        Path(tempfile.gettempdir()) / "gradio"
+    )
+    for name in ("route_utils", "mcp", "screen_recording_utils"):
+        module = sys.modules.get(f"gradio.{name}")
+        if module is not None:
+            module.DEFAULT_TEMP_DIR = temp_dir  # type: ignore[attr-defined]
+    port = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
+    server_name = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+    if (module := sys.modules.get("gradio.http_server")) is not None:
+        module.INITIAL_PORT_VALUE = port  # type: ignore[attr-defined]
+        module.TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))  # type: ignore[attr-defined]
+        module.LOCALHOST_NAME = server_name  # type: ignore[attr-defined]
+    if (module := sys.modules.get("gradio.node_server")) is not None:
+        module.INITIAL_PORT_VALUE = port  # type: ignore[attr-defined]
+        module.TRY_NUM_PORTS = int(os.getenv("GRADIO_NODE_NUM_PORTS", "100"))  # type: ignore[attr-defined]
+        module.LOCALHOST_NAME = os.getenv("GRADIO_NODE_SERVER_NAME", server_name)  # type: ignore[attr-defined]
+
+
 def main(path: str) -> None:
     with open(path, "rb") as f:
         bootstrap = pickle.load(f)
     os.unlink(path)
+    adopt_environment(bootstrap["env"], bootstrap["cwd"])
     threading.Thread(
         target=watch_app_process, args=(bootstrap["worker_pid"],), daemon=True
     ).start()
@@ -312,12 +392,35 @@ def main(path: str) -> None:
     blocks.queue(**bootstrap["queue_kwargs"])
     link: Link = blocks._process_link  # type: ignore[attr-defined]
     link.connect()
-    _, local_url, share_url = blocks.launch(
+    app, local_url, share_url = blocks.launch(
         prevent_thread_lock=True, **bootstrap["launch_kwargs"]
     )
-    link.send(("ready", local_url, share_url))
+    add_forwarded_routes(app, bootstrap)
+    link.send(
+        (
+            "ready",
+            local_url,
+            share_url,
+            {
+                key: getattr(blocks, key, None)
+                for key in (
+                    "server_name",
+                    "server_port",
+                    "protocol",
+                    "local_api_url",
+                    "share_api_url",
+                    "ssr_mode",
+                )
+            },
+        )
+    )
     blocks.block_thread()
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    if sys.argv[1] == "--zygote":
+        from gradio.processing.spare import run_zygote
+
+        run_zygote(int(sys.argv[2]))
+    else:
+        main(sys.argv[1])

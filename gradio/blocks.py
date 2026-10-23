@@ -3316,7 +3316,11 @@ Received inputs:
         self.transpile_to_js(quiet=quiet)
         self.config = self.get_config_file()
 
-        if self._resolve_executor(executor) == "process":
+        if self._resolve_executor(executor) != "process":
+            from gradio.processing import spare
+
+            spare.discard()
+        else:
             from gradio.processing.worker import serve
 
             return serve(  # type: ignore[return-value]
@@ -3324,6 +3328,7 @@ Received inputs:
                 self._gateway_launch_kwargs(launch_kwargs),
                 prevent_thread_lock=prevent_thread_lock,
                 app=_app,
+                launch_kwargs=launch_kwargs,
             )
 
         self.ssr_mode = self._resolve_ssr_mode(ssr_mode, disable_when_multi_page=False)
@@ -3973,12 +3978,16 @@ Received inputs:
         if os.environ.get("GRADIO_PROCESS_GATEWAY"):
             # This process is the gateway of an app launched with "process"
             return "thread"
-        resolved = executor or os.environ.get("GRADIO_EXECUTOR") or "thread"
+        explicit = executor or os.environ.get("GRADIO_EXECUTOR")
+        resolved = explicit or "process"
         if resolved not in ("thread", "process"):
             raise ValueError(
                 f"`executor` must be 'thread' or 'process', not {resolved!r}."
             )
         if resolved == "process" and os.getenv("GRADIO_WATCH_DIRS"):
+            if not explicit:
+                # TODO: remove once reload mode supports the process executor
+                return "thread"
             raise ValueError(
                 "executor='process' does not support reload mode yet. Use "
                 "executor='thread' while developing with `gradio app.py`."
@@ -4001,6 +4010,9 @@ Received inputs:
                 continue
             if value is None or value is defaults.get(name):
                 continue
+            if name == "app_kwargs" and "lifespan" in value:
+                # The lifespan runs in the app's process, with the app's code
+                value = {k: v for k, v in value.items() if k != "lifespan"}
             if isinstance(value, (bool, int, float, str)) and value == defaults.get(
                 name
             ):
