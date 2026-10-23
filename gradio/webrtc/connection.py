@@ -90,7 +90,7 @@ ADMISSION_WAIT = 5
 KEEPALIVE_INTERVAL = 10
 WATCH_INTERVAL = 0.25
 MAX_PENDING_OUTPUTS = 64
-MAX_PENDING_CANDIDATES = 32
+MAX_PENDING_CANDIDATES = 128
 MAX_PENDING_CANDIDATE_IDS = 256
 # Seconds a new stream waits for the handlers of ended streams to shut down
 SHUTDOWN_WAIT = 5
@@ -804,6 +804,13 @@ async def _add_ice_candidate(
             pending = _pending_candidates.setdefault(webrtc_id, [])
             if len(pending) < MAX_PENDING_CANDIDATES:
                 pending.append((session_hash, candidate))
+            else:
+                logger.warning(
+                    "Dropped an ICE candidate of stream %s: %s are already "
+                    "waiting for its offer",
+                    webrtc_id,
+                    MAX_PENDING_CANDIDATES,
+                )
             while len(_pending_candidates) > MAX_PENDING_CANDIDATE_IDS:
                 _pending_candidates.popitem(last=False)
             return {"status": "success"}

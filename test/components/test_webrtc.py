@@ -2051,7 +2051,9 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
-    async def test_candidates_are_kept_only_for_an_admitted_stream(self, launched):
+    async def test_candidates_are_kept_only_for_an_admitted_stream(
+        self, launched, monkeypatch, caplog
+    ):
         h = launched
         first_event = await h.start("zero")
         await h.join("one")
@@ -2076,9 +2078,16 @@ class TestStreams:
         assert "one" not in webrtc_connection._pending_candidates
         await h.http.post(f"{h.api}/stream/{first_event}/close")
         await h.wait_until(lambda: "one" in h.manager.sessions)
-        # After the turn, the offer can still be on its way
-        assert (await send_candidate()).get("status") == "success"
-        assert "one" in webrtc_connection._pending_candidates
+        # After the turn, the offer can still be on its way. A browser with
+        # several networks and TURN URLs can send many candidates meanwhile.
+        for _ in range(40):
+            assert (await send_candidate()).get("status") == "success"
+        assert len(webrtc_connection._pending_candidates["one"]) == 40
+        # Past the bound, a candidate is dropped, but not silently
+        monkeypatch.setattr(webrtc_connection, "MAX_PENDING_CANDIDATES", 40)
+        await send_candidate()
+        assert len(webrtc_connection._pending_candidates["one"]) == 40
+        assert "ICE candidate" in caplog.text
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         assert "one" not in webrtc_connection._pending_candidates
