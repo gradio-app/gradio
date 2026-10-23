@@ -479,7 +479,8 @@ class TestServerSideRecording:
             out = gr.Textbox()
             mic.stream(on_chunk, [mic, threshold], out)
 
-        app, local_url, _ = demo.launch(prevent_thread_lock=True)
+        # Mocks the Hub in this process, where run history is written with threads
+        app, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
         completed = None
         try:
             with (

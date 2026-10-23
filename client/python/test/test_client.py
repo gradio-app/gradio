@@ -103,7 +103,9 @@ class TestClientInitialization:
         import datetime
 
         start = datetime.datetime.now()
-        with connect(many_endpoint_demo):
+        # Times loading a big config, not starting the process executor's
+        # gateway (a fixed cost per launch, mostly importing Gradio again)
+        with connect(many_endpoint_demo, executor="thread"):
             pass
         assert (datetime.datetime.now() - start).seconds < 5
 

@@ -494,8 +494,7 @@ class Queue:
                 if isinstance(result, BaseException):
                     print(f"An unload event of session {session_hash} failed:")
                     traceback.print_exception(result)
-        if session_hash in app.state_holder.session_data:
-            app.state_holder.session_data[session_hash].is_closed = True
+        app.mark_session_closed(session_hash)
         caching.clear_session_caches(session_hash)
         for event_id in self.pending_event_ids_session.get(session_hash, set()):
             pending_event = self.event_ids_to_events.get(event_id)

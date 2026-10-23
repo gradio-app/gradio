@@ -6,6 +6,7 @@ import hashlib
 import inspect
 import json
 import os
+import pickle
 import random
 import re
 import secrets
@@ -1507,7 +1508,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         cls,
         config: BlocksConfigDict,
         fns: list[Callable],
-        proxy_url: str,
+        proxy_url: str | None,
+        preserve_ids: bool = False,
     ) -> Blocks:
         """
         Factory method that creates a Blocks from a config and list of functions. Used
@@ -1516,13 +1518,14 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         Parameters:
         config: a dictionary containing the configuration of the Blocks.
         fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
-        proxy_url: an external url to use as a root URL when serving files for components in the Blocks.
+        proxy_url: an external url to use as a root URL when serving files for components in the Blocks. None if the files are served by this server.
+        preserve_ids: give each block and event the id it has in `config`, so that ids sent by a client of the original app (and tokens derived from them) mean the same thing here. Used by the process executor's gateway.
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: dict[int, Block] = {}
         proxy_urls: set[str] = set()
-        if httpx2.URL(proxy_url).host.endswith(".hf.space"):
+        if proxy_url is not None and httpx2.URL(proxy_url).host.endswith(".hf.space"):
             proxy_urls.add(proxy_url)
 
         def get_block_instance(id: int) -> Block:
@@ -1536,13 +1539,32 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the proxy_urls of the components in A need to be the
             # URL of C, not B. The else clause below handles this case.
-            if block_config["props"].get("proxy_url") is None:
+            if block_config["props"].get("proxy_url") is None and proxy_url is not None:
                 block_config["props"]["proxy_url"] = f"{proxy_url}/"
             postprocessed_value = block_config["props"].pop("value", None)
 
             constructor_args = cls.recover_kwargs(block_config["props"])
+            if block_config["props"].get("name") == "dataset":
+                # A Dataset's config describes its components as
+                # {"name", "class_id"}; the constructor takes their names
+                constructor_args["components"] = [
+                    c["name"] if isinstance(c, dict) else c
+                    for c in constructor_args.get("components") or []
+                ]
+            # A Dataset processes its samples unless it has a proxy URL, but
+            # the config's samples are processed already
+            processed_samples = (
+                constructor_args.pop("samples", None)
+                if block_config["props"].get("name") == "dataset"
+                and block_config["props"].get("proxy_url") is None
+                else None
+            )
+            if preserve_ids:
+                Context.id = id
             block = cls(**constructor_args)
-            block_proxy_url = block_config["props"]["proxy_url"]
+            if processed_samples is not None:
+                block.samples = block.raw_samples = processed_samples  # type: ignore
+            block_proxy_url = block_config["props"].get("proxy_url")
             block.proxy_url = block_proxy_url
             if postprocessed_value is not None:
                 block.value = processing_utils.move_files_to_cache(  # type: ignore
@@ -1550,12 +1572,22 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 )
             # Only add proxy URLs that point to known Hugging Face Space
             # hosts to prevent SSRF via malicious configs.
-            if httpx2.URL(block_proxy_url).host.endswith(".hf.space"):
+            if block_proxy_url is not None and httpx2.URL(
+                block_proxy_url
+            ).host.endswith(".hf.space"):
                 proxy_urls.add(block_proxy_url)
-            if (
-                _selectable := block_config["props"].pop("_selectable", None)
-            ) is not None:
-                block._selectable = _selectable  # type: ignore
+            # Set by registering listeners such as .select() or .like(),
+            # which the config describes but does not register here
+            for event_attribute in [
+                "_selectable",
+                "_undoable",
+                "_retryable",
+                "likeable",
+            ]:
+                if (
+                    attributable := block_config["props"].pop(event_attribute, None)
+                ) is not None:
+                    setattr(block, event_attribute, attributable)
 
             return block
 
@@ -1577,6 +1609,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         derived_fields = ["types"]
 
+        if preserve_ids:
+            Context.id = config.get("layout", {}).get("id", Context.id)
         with Blocks(theme=config.get("theme", None)) as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = root_block = Context.root_block or blocks
@@ -1601,6 +1635,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     continue
                 for field in derived_fields:
                     dependency.pop(field, None)
+                if preserve_ids:
+                    root_block.default_config.fn_id = dependency["id"]
 
                 # older versions had a separate trigger field, but now it is part of the
                 # targets field
@@ -1610,11 +1646,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
                 # This assumes that you cannot combine multiple .then() events in a single
                 # gr.on() event, which is true for now. If this changes, we will need to
-                # update this code.
-                if not isinstance(_targets[0], int) and _targets[0][1] in [
-                    "then",
-                    "success",
-                ]:
+                # update this code. gr.api() endpoints have no targets at all.
+                if (
+                    _targets
+                    and not isinstance(_targets[0], int)
+                    and _targets[0][1] in ["then", "success", "failure"]
+                ):
                     if len(_targets) != 1:
                         raise ValueError(
                             "This logic assumes that .then() events are not combined with other events in a single gr.on() event"
@@ -1623,12 +1660,24 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
                 dependency.pop("backend_fn")
                 dependency.pop("documentation", None)
+                # An id missing from the config is a block of another Blocks,
+                # which a normal launch tolerates too
                 dependency["inputs"] = [
-                    original_mapping[i] for i in dependency["inputs"]
+                    original_mapping[i]
+                    for i in dependency["inputs"]
+                    if i in original_mapping
                 ]
                 dependency["outputs"] = [
-                    original_mapping[o] for o in dependency["outputs"]
+                    original_mapping[o]
+                    for o in dependency["outputs"]
+                    if o in original_mapping
                 ]
+                if dependency.get("show_progress_on") is not None:
+                    dependency["show_progress_on"] = [
+                        original_mapping[i]
+                        for i in dependency["show_progress_on"]
+                        if i in original_mapping
+                    ]
                 dependency.pop("status_tracker", None)
                 dependency.pop("zerogpu", None)
                 dependency.pop("id", None)
@@ -1647,7 +1696,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         api_visibility = "public"
                     else:
                         api_visibility = "undocumented"
-                    dependency["api_visibility"] = api_visibility
+                dependency["api_visibility"] = api_visibility
 
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
@@ -1661,6 +1710,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         "trigger_only_on_failure", False
                     )
                     dependency["no_target"] = True
+                elif [list(t) for t in _targets] == [[None, "unload"]]:
+                    # demo.unload() targets no block (see Blocks.unload)
+                    targets = [EventListenerMethod(None, "unload")]
                 else:
                     targets = [
                         EventListenerMethod(
@@ -1685,6 +1737,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 blocks.__name__ = "Interface"
                 blocks.api_mode = True
         blocks.proxy_urls = proxy_urls
+        if preserve_ids:
+            Context.id = max([Context.id, *original_mapping]) + 1
+            root_block.default_config.fn_id = (
+                max(root_block.default_config.fns, default=-1) + 1
+            )
         return blocks
 
     def __str__(self):
@@ -3104,6 +3161,7 @@ Received inputs:
         js: str | Literal[True] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
+        executor: Literal["thread", "process"] | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -3154,6 +3212,7 @@ Received inputs:
             js: Custom JavaScript provided as either a function or a raw code string. A function is automatically invoked; otherwise the code is executed directly when the page loads. To run JavaScript as a document-level `<script>` tag, use the `head` parameter.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
+            executor: Where the server runs relative to the app's functions. "thread" (the default) runs the server in this process, with functions in its threads. "process" runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. Can be set with the GRADIO_EXECUTOR environment variable.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -3183,6 +3242,9 @@ Received inputs:
         head_paths = (
             head_paths if head_paths is not None else self._deprecated_head_paths
         )
+        launch_kwargs = {
+            k: v for k, v in locals().items() if k not in ("self", "App", "executor")
+        }
 
         self.theme: Theme = utils.get_theme(theme)
         self.css = css
@@ -3288,6 +3350,51 @@ Received inputs:
         self._queue.max_thread_count = max_threads
         self.transpile_to_js(quiet=quiet)
         self.config = self.get_config_file()
+
+        if self._resolve_executor(executor) != "process":
+            from gradio.processing import spare
+
+            spare.discard()
+        else:
+            from gradio.processing.worker import serve
+
+            if any(fn.renderable is not None for fn in self.fns.values()):
+                raise ValueError(
+                    "gr.render is not supported with executor='process' yet. Use "
+                    "launch(executor='thread') or GRADIO_EXECUTOR=thread."
+                )
+            # Decided here, where a notebook's IPython runs, not in the gateway
+            self.is_colab = utils.colab_check()
+            self.is_hosted_notebook = utils.is_hosted_notebook()
+            self._node_is_proxy = False
+            if share is None and (self.is_colab or self.is_hosted_notebook):
+                if not quiet:
+                    print(
+                        "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                launch_kwargs["share"] = True
+            serve(
+                self,
+                {
+                    **self._gateway_launch_kwargs(launch_kwargs),
+                    "inline": False,
+                    "inbrowser": False,
+                },
+                app=_app,
+                launch_kwargs=launch_kwargs,
+            )
+            if inbrowser:
+                webbrowser.open(
+                    str(
+                        self.share_url
+                        if self.share and self.share_url
+                        else self.local_url
+                    )
+                )
+            self._after_launch(
+                inline, inbrowser, debug, prevent_thread_lock, head_paths
+            )
+            return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
 
         self.ssr_mode = self._resolve_ssr_mode(ssr_mode, disable_when_multi_page=False)
 
@@ -3677,6 +3784,19 @@ Received inputs:
             link = self.share_url if self.share and self.share_url else self.local_url
             webbrowser.open(link)
 
+        self._after_launch(inline, inbrowser, debug, prevent_thread_lock, head_paths)
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
+
+    def _after_launch(
+        self,
+        inline: bool | None,
+        inbrowser: bool,
+        debug: bool,
+        prevent_thread_lock: bool,
+        head_paths,
+    ) -> None:
+        """What launch() does once the server runs: display inline in notebooks,
+        report analytics, and block the main thread when running a script."""
         # Check if running in a Python notebook in which case, display inline
         if inline is None:
             inline = utils.ipython_check()
@@ -3779,8 +3899,6 @@ Received inputs:
             )
         ):
             self.block_thread()
-
-        return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
 
     def integrate(
         self,
@@ -3931,10 +4049,83 @@ Received inputs:
         """
         self.server_app.stop_event.set()
 
+    @staticmethod
+    def _resolve_executor(executor: str | None) -> str:
+        if os.environ.get("GRADIO_PROCESS_GATEWAY"):
+            # This process is the gateway of an app launched with "process"
+            return "thread"
+        explicit = executor or os.environ.get("GRADIO_EXECUTOR")
+        resolved = explicit or "process"
+        if resolved not in ("thread", "process"):
+            raise ValueError(
+                f"`executor` must be 'thread' or 'process', not {resolved!r}."
+            )
+        if resolved == "process" and os.getenv("GRADIO_WATCH_DIRS"):
+            if not explicit:
+                # TODO: remove once reload mode supports the process executor
+                return "thread"
+            raise ValueError(
+                "executor='process' does not support reload mode yet. Use "
+                "executor='thread' while developing with `gradio app.py`."
+            )
+        return resolved
+
+    @staticmethod
+    def _gateway_launch_kwargs(launch_kwargs: dict[str, Any]) -> dict[str, Any]:
+        """The launch() arguments the gateway process starts the server with.
+        They cross to another process, so callables (which would run there,
+        without this process's state) are refused rather than dropped."""
+        defaults = {
+            name: parameter.default
+            for name, parameter in inspect.signature(Blocks.launch).parameters.items()
+        }
+        gateway_kwargs = {}
+        for name, value in launch_kwargs.items():
+            # The gateway always serves in the background and reports back
+            if name in ("prevent_thread_lock", "debug", "_app"):
+                continue
+            if value is None or value is defaults.get(name):
+                continue
+            if name == "app_kwargs" and "lifespan" in value:
+                # The lifespan runs in the app's process, with the app's code
+                value = {k: v for k, v in value.items() if k != "lifespan"}
+            if isinstance(value, (bool, int, float, str)) and value == defaults.get(
+                name
+            ):
+                continue
+            if name in ("auth", "auth_dependency") and callable(value):
+                # Called in the app's process; the gateway asks it
+                from gradio.processing.protocol import FORWARDED
+
+                gateway_kwargs[name] = FORWARDED
+                continue
+            if callable(value):
+                raise ValueError(
+                    f"`{name}` is not supported with executor='process' yet. Use "
+                    "executor='thread'."
+                )
+            try:
+                pickle.dumps(value)
+            except Exception as err:
+                raise ValueError(
+                    f"`{name}` cannot be sent to the gateway process of "
+                    f"executor='process': {err}"
+                ) from err
+            gateway_kwargs[name] = value
+        return gateway_kwargs
+
     def close(self, verbose: bool = True) -> None:
         """
         Closes the Interface that was launched and frees the port.
         """
+        worker = getattr(self, "_process_worker", None)
+        if worker is not None:
+            worker.close()
+            self._queue = getattr(self._queue, "original", self._queue)
+            self._process_worker = None
+            self.server = None
+            self.is_running = False
+            return
         if not self.is_running:
             return
 
@@ -3968,6 +4159,8 @@ Received inputs:
                 time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
+            if getattr(self, "_process_worker", None) is not None:
+                self.close()
             if self.server:
                 self.server.close()
             for tunnel in CURRENT_TUNNELS:
