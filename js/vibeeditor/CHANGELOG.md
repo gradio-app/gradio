@@ -1,5 +1,14 @@
 # @gradio/vibeeditor
 
+## 0.3.14
+
+### Dependency updates
+
+- @gradio/statustracker@0.16.0
+- @gradio/utils@0.15.0
+- @gradio/client@2.7.2
+- @gradio/atoms@0.26.3
+
 ## 0.3.13
 
 ### Dependency updates
