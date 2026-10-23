@@ -17,6 +17,7 @@ import warnings
 from typing import TYPE_CHECKING, Any
 
 from gradio.processing import protocol
+from gradio.processing.autoscale import Autoscaler
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
@@ -29,9 +30,14 @@ class Link:
     that the server's loop only awaits futures; results arrive as soon as they
     are written whatever the server is doing."""
 
-    def __init__(self, bootstrap: dict, blocks: Blocks):
-        self.bootstrap = bootstrap
+    def __init__(self, endpoint: dict, blocks: Blocks, primary: bool = True):
+        self.endpoint = endpoint
         self.blocks = blocks
+        # The process that built the app; the gateway lives and dies with it.
+        # Replicas may come and go.
+        self.primary = primary
+        self.on_message: Any = None
+        self.on_close: Any = None
         self.ids = itertools.count()
         self.pending: dict[int, asyncio.Future] = {}
         self.writer: asyncio.StreamWriter | None = None
@@ -48,9 +54,9 @@ class Link:
         from gradio.client_state import app_fingerprint
 
         reader, writer = await asyncio.open_connection(
-            "127.0.0.1", self.bootstrap["port"]
+            "127.0.0.1", self.endpoint["port"]
         )
-        writer.write(protocol.encode(self.bootstrap["token"]))
+        writer.write(protocol.encode(self.endpoint["token"]))
         writer.write(protocol.encode({"fingerprint": app_fingerprint(self.blocks)}))
         self.writer = writer
         self.loop.create_task(self.read_loop(reader))
@@ -71,10 +77,22 @@ class Link:
                 elif kind in ("log", "progress") and self.server_loop is not None:
                     # The queue's events belong to the server's loop
                     self.server_loop.call_soon_threadsafe(self.deliver, message)
+                elif self.on_message is not None:
+                    self.on_message(message)
         except (asyncio.IncompleteReadError, ConnectionError):
             pass
-        # The app's process exited, or refused this gateway
-        os._exit(0)
+        if self.primary:
+            # The app's process exited, or refused this gateway
+            os._exit(0)
+        self.writer = None
+        for future in self.pending.values():
+            if not future.done():
+                future.set_exception(
+                    RuntimeError("The replica running this event exited")
+                )
+        self.pending.clear()
+        if self.on_close is not None:
+            self.on_close(self)
 
     def deliver(self, message: tuple) -> None:
         from gradio.server_messages import ProgressMessage, ProgressUnit
@@ -117,6 +135,89 @@ class Link:
         return await asyncio.wrap_future(future)
 
 
+class Pool:
+    """The app's processes. A session stays on the process that first served it,
+    since its gr.State and generators live there; new sessions go to the
+    process with the fewest events in flight. A draining process (one being
+    retired) gets no new sessions and is removed once its events finish."""
+
+    def __init__(self, links: list[Link]):
+        self.links = list(links)
+        self.lock = threading.Lock()
+        self.affinity: dict[str, Link] = {}
+        # Events running on each process, counted on the server's loop when
+        # they are assigned, so that concurrent events spread out at once
+        self.active: dict[Link, set[str | None]] = {link: set() for link in links}
+        self.completed: dict[Link, int] = dict.fromkeys(links, 0)
+        self.started_at: dict[tuple[Link, str | None], float] = {}
+        self.draining: dict[Link, Any] = {}
+        self.on_finish: Any = None
+
+    def serving(self) -> list[Link]:
+        return [link for link in self.links if link not in self.draining]
+
+    def pick(self, session_hash: str | None) -> Link:
+        with self.lock:
+            link = self.affinity.get(session_hash) if session_hash else None
+            if link is None or link not in self.active or link in self.draining:
+                link = min(self.serving(), key=lambda link: len(self.active[link]))
+                if session_hash is not None:
+                    self.affinity[session_hash] = link
+            return link
+
+    def start(self, link: Link, event_id: str | None) -> None:
+        with self.lock:
+            if event_id not in self.active.get(link, set()):
+                self.started_at[(link, event_id)] = time.monotonic()
+            self.active.setdefault(link, set()).add(event_id)
+
+    def finish(self, link: Link, event_id: str | None, success: bool = True) -> None:
+        drained = None
+        with self.lock:
+            self.active.get(link, set()).discard(event_id)
+            started = self.started_at.pop((link, event_id), None)
+            if link in self.completed and success:
+                self.completed[link] += 1
+            if link in self.draining and not self.active.get(link):
+                drained = self.draining.pop(link)
+        if success and started is not None and self.on_finish is not None:
+            self.on_finish(link, time.monotonic() - started)
+        if drained is not None:
+            drained()
+
+    def add(self, link: Link) -> None:
+        with self.lock:
+            self.links.append(link)
+            self.active[link] = set()
+            self.completed[link] = 0
+
+    def remove(self, link: Link) -> None:
+        with self.lock:
+            if link in self.links:
+                self.links.remove(link)
+            self.active.pop(link, None)
+            self.completed.pop(link, None)
+            self.draining.pop(link, None)
+            self.affinity = {k: v for k, v in self.affinity.items() if v is not link}
+
+    def drain(self, link: Link, drained) -> None:
+        """Stops sending new sessions to `link`; calls `drained` once it is idle."""
+        with self.lock:
+            self.affinity = {k: v for k, v in self.affinity.items() if v is not link}
+            if self.active.get(link):
+                self.draining[link] = drained
+                return
+        drained()
+
+    def connect(self) -> None:
+        for link in self.links:
+            link.connect()
+
+    def send_all(self, message: Any) -> None:
+        for link in self.links:
+            link.send(message)
+
+
 class RemoteIterator:
     """What the gateway's `app.iterators` holds for a generator that is running
     in the app's process. Closing it (reset, cancel) closes the real one."""
@@ -130,7 +231,7 @@ class RemoteIterator:
 
 
 async def forward_event(
-    link: Link,
+    pool: Pool,
     app: App,
     body: PredictBodyInternal,
     gr_request: Any,
@@ -143,20 +244,28 @@ async def forward_event(
     from gradio.client_state import get_sealer
 
     session_state, iterator = route_utils.restore_session_state(app=app, body=body)
+    link = pool.pick(body.session_hash)
+    pool.start(link, body.event_id)
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
-    output = await link.call(
-        "event",
-        {
-            "fn_index": fn.fn._process_fn_index,  # type: ignore[union-attr]
-            "body": body.model_copy(update={"request": None, "client_state": None}),
-            "client_state": protocol.portable_client_state(client_state),
-            "continuing": iterator is not None,
-            "request": gr_request,
-            "root_path": root_path,
-        },
-    )
+    try:
+        output = await link.call(
+            "event",
+            {
+                "fn_index": fn.fn._process_fn_index,  # type: ignore[union-attr]
+                "body": body.model_copy(update={"request": None, "client_state": None}),
+                "client_state": protocol.portable_client_state(client_state),
+                "continuing": iterator is not None,
+                "request": gr_request,
+                "root_path": root_path,
+            },
+        )
+    except BaseException:
+        pool.finish(link, body.event_id, success=False)
+        raise
     has_iterator = output.pop("has_iterator")
+    if not has_iterator:
+        pool.finish(link, body.event_id)
     if body.event_id is not None:
         app.iterators[body.event_id] = (  # type: ignore[assignment]
             RemoteIterator(link, body.event_id) if has_iterator else None
@@ -177,6 +286,7 @@ async def forward_event(
                     update["ref"],
                     issued_at,
                 )
+    # The app's process has no run history; the gateway records it
     route_utils.record_run_history(
         app,
         fn=fn,
@@ -246,7 +356,12 @@ def build(bootstrap: dict) -> Blocks:
         if config.get(key) is not None and hasattr(blocks, key):
             setattr(blocks, key, config[key])
 
-    link = Link(bootstrap, blocks)
+    pool = Pool(
+        [
+            Link(endpoint, blocks, primary=i == 0)
+            for i, endpoint in enumerate(bootstrap["workers"])
+        ]
+    )
 
     async def process_api(
         block_fn,
@@ -265,6 +380,7 @@ def build(bootstrap: dict) -> Blocks:
     ):
         if isinstance(block_fn, int):
             block_fn = blocks.fns[block_fn]
+        link = pool.pick(session_hash)
         output = await link.call(
             "process_api",
             {
@@ -288,7 +404,7 @@ def build(bootstrap: dict) -> Blocks:
         return output
 
     blocks.process_api = process_api  # type: ignore[method-assign]
-    blocks._process_link = link  # type: ignore[attr-defined]
+    blocks._process_link = pool  # type: ignore[attr-defined]
     return blocks
 
 
@@ -310,12 +426,15 @@ def main(path: str) -> None:
     ).start()
     blocks = build(bootstrap)
     blocks.queue(**bootstrap["queue_kwargs"])
-    link: Link = blocks._process_link  # type: ignore[attr-defined]
-    link.connect()
-    _, local_url, share_url = blocks.launch(
+    pool: Pool = blocks._process_link  # type: ignore[attr-defined]
+    pool.connect()
+    autoscaler = Autoscaler(pool, blocks, enabled=bootstrap["autoscale"])
+    app, local_url, share_url = blocks.launch(
         prevent_thread_lock=True, **bootstrap["launch_kwargs"]
     )
-    link.send(("ready", local_url, share_url))
+    autoscaler.add_status_route(app)
+    autoscaler.start()
+    pool.send_all(("ready", local_url, share_url))
     blocks.block_thread()
 
 

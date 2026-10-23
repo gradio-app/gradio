@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import json
 import os
 import pickle
 import secrets
@@ -17,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 from typing import TYPE_CHECKING, Any
 
 from gradio.processing import protocol
@@ -77,6 +79,7 @@ class Worker:
         gateway_kwargs: dict[str, Any],
         queue_kwargs: dict,
         app: App | None = None,
+        replicas: int | str = 1,
     ):
         from gradio.routes import App
 
@@ -92,6 +95,10 @@ class Worker:
         self.writer: asyncio.StreamWriter | None = None
         self.tasks: dict[int, asyncio.Task] = {}
         self.gateway: subprocess.Popen | None = None
+        # Copies of the app beyond this one: a fixed number, or "auto" for the
+        # gateway's autoscaler to start and retire (see processing/autoscale.py)
+        self.replica_setting = replicas
+        self.replicas: dict[int, subprocess.Popen] = {}
         self.ready = threading.Event()
         self.done = threading.Event()
         self.urls: tuple[str, str | None] = ("", None)
@@ -147,6 +154,10 @@ class Worker:
                 elif kind == "ready":
                     self.urls = (message[1], message[2])
                     self.ready.set()
+                elif kind == "spawn_replica":
+                    asyncio.create_task(self.answer_spawn())
+                elif kind == "retire_replica":
+                    self.retire_replica(message[1])
         except (asyncio.IncompleteReadError, ConnectionError):
             pass
         finally:
@@ -232,11 +243,36 @@ class Worker:
         return output
 
     async def main(self) -> None:
+        try:
+            await self._main()
+        except Exception as err:  # noqa: BLE001 -- reported to the launching thread
+            self.failure = f"executor='process' could not start: {err}"
+        finally:
+            self.done.set()
+
+    async def _main(self) -> None:
         from gradio import client_state
         from gradio.components.api_component import Api
 
         self.loop = asyncio.get_running_loop()
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
+        endpoint = {
+            "port": server.sockets[0].getsockname()[1],
+            "token": self.token,
+            "pid": os.getpid(),
+        }
+        replica_file = os.environ.get("GRADIO_PROCESS_REPLICA")
+        if replica_file:
+            # A replica: the primary process gives this endpoint to its gateway
+            with open(replica_file + ".tmp", "w") as f:
+                json.dump(endpoint, f)
+            os.replace(replica_file + ".tmp", replica_file)
+            parent = os.getppid()
+            async with server:
+                while not self.done.is_set() and os.getppid() == parent:
+                    await asyncio.sleep(0.2)
+            return
+        fixed = self.replica_setting if isinstance(self.replica_setting, int) else 1
         bootstrap = {
             "config": self.blocks.config,
             "launch_kwargs": self.gateway_kwargs,
@@ -257,8 +293,11 @@ class Worker:
                 }
                 for fn_id, fn in self.blocks.fns.items()
             },
-            "port": server.sockets[0].getsockname()[1],
-            "token": self.token,
+            "workers": [
+                endpoint,
+                *[await self.spawn_replica() for _ in range(fixed - 1)],
+            ],
+            "autoscale": self.replica_setting == "auto",
             "worker_pid": os.getpid(),
             # Browser-held gr.State tokens are sealed on both sides
             "state_secret": client_state._process_secret,
@@ -275,16 +314,53 @@ class Worker:
                 if self.gateway.poll() is not None:
                     break
                 await asyncio.sleep(0.2)
-        self.done.set()
+
+    async def spawn_replica(self) -> dict:
+        """Starts another copy of the app and returns its endpoint. A replica
+        re-runs this script, so it loads its own copy of the models."""
+        from gradio import client_state
+
+        path = os.path.join(
+            tempfile.gettempdir(), f"gradio-replica-{secrets.token_hex(8)}.json"
+        )
+        env = {
+            **os.environ,
+            "GRADIO_PROCESS_REPLICA": path,
+            "GRADIO_PROCESS_STATE_SECRET": client_state._process_secret.hex(),
+        }
+        replica = subprocess.Popen([sys.executable, *sys.argv], env=env)
+        self.replicas[replica.pid] = replica
+        deadline = time.monotonic() + STARTUP_TIMEOUT
+        while not os.path.exists(path):
+            if replica.poll() is not None or time.monotonic() > deadline:
+                self.retire_replica(replica.pid)
+                raise RuntimeError("the replica exited before it started serving")
+            await asyncio.sleep(0.1)
+        with open(path) as f:
+            endpoint = json.load(f)
+        os.unlink(path)
+        return endpoint
+
+    async def answer_spawn(self) -> None:
+        try:
+            self.send(("replica_ready", await self.spawn_replica()))
+        except Exception as err:  # noqa: BLE001 -- reported to the autoscaler
+            self.send(("replica_failed", str(err)))
+
+    def retire_replica(self, pid: int) -> None:
+        replica = self.replicas.pop(pid, None)
+        if replica is not None and replica.poll() is None:
+            replica.terminate()
 
     def close(self) -> None:
-        gateway = self.gateway
-        if gateway is not None and gateway.poll() is None:
-            gateway.terminate()
+        for process in [self.gateway, *self.replicas.values()]:
+            if process is None or process.poll() is not None:
+                continue
+            process.terminate()
             try:
-                gateway.wait(timeout=5)
+                process.wait(timeout=5)
             except subprocess.TimeoutExpired:
-                gateway.kill()
+                process.kill()
         self.done.set()
 
 
@@ -293,19 +369,34 @@ def serve(
     gateway_kwargs: dict[str, Any],
     prevent_thread_lock: bool,
     app: App | None = None,
+    replicas: int | str = 1,
 ) -> tuple[App, str, str | None]:
     original_queue = blocks._queue
     queue_kwargs = {
         "max_size": original_queue.max_size,
         "default_concurrency_limit": original_queue.default_concurrency_limit,
     }
-    worker = Worker(blocks, gateway_kwargs, queue_kwargs, app)
+    if replicas != 1 and not os.path.isfile(sys.argv[0] if sys.argv else ""):
+        raise ValueError(
+            "replicas other than 1 need the app to be run as a script "
+            "(`python app.py`), since each replica runs it again."
+        )
+    worker = Worker(blocks, gateway_kwargs, queue_kwargs, app, replicas)
     blocks._queue = ForwardingQueue(worker, original_queue)  # type: ignore[assignment]
     blocks._process_worker = worker  # type: ignore[attr-defined]
     blocks.has_launched = True
     threading.Thread(
         target=asyncio.run, args=(worker.main(),), daemon=True, name="gradio-worker"
     ).start()
+
+    if os.environ.get("GRADIO_PROCESS_REPLICA"):
+        from gradio import client_state
+
+        client_state._process_secret = bytes.fromhex(
+            os.environ["GRADIO_PROCESS_STATE_SECRET"]
+        )
+        worker.done.wait()
+        return worker.app, "", None
 
     deadline = STARTUP_TIMEOUT / 0.1
     while not worker.ready.wait(0.1):

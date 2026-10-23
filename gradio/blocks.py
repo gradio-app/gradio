@@ -3127,6 +3127,7 @@ Received inputs:
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         executor: Literal["thread", "process"] | None = None,
+        replicas: int | Literal["auto"] | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -3178,6 +3179,7 @@ Received inputs:
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             executor: Where the server runs relative to the app's functions. "thread" (the default) runs the server in this process, with functions in its threads. "process" runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. Can be set with the GRADIO_EXECUTOR environment variable.
+            replicas: With executor="process", how many copies of the app's process serve events (1 by default). Each replica runs the app script again, so it loads its own copy of the models, and a session stays on one replica. "auto" starts with one and adds a second when events keep waiting and memory allows it, keeping it only if throughput improves (experimental). An endpoint's `concurrency_limit` applies to each replica. Can be set with the GRADIO_PROCESS_REPLICAS environment variable.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -3208,7 +3210,9 @@ Received inputs:
             head_paths if head_paths is not None else self._deprecated_head_paths
         )
         launch_kwargs = {
-            k: v for k, v in locals().items() if k not in ("self", "App", "executor")
+            k: v
+            for k, v in locals().items()
+            if k not in ("self", "App", "executor", "replicas")
         }
 
         self.theme: Theme = utils.get_theme(theme)
@@ -3324,6 +3328,7 @@ Received inputs:
                 self._gateway_launch_kwargs(launch_kwargs),
                 prevent_thread_lock=prevent_thread_lock,
                 app=_app,
+                replicas=self._resolve_replicas(replicas),
             )
 
         self.ssr_mode = self._resolve_ssr_mode(ssr_mode, disable_when_multi_page=False)
@@ -3984,6 +3989,25 @@ Received inputs:
                 "executor='thread' while developing with `gradio app.py`."
             )
         return resolved
+
+    @staticmethod
+    def _resolve_replicas(replicas: int | str | None) -> int | str:
+        resolved = (
+            replicas
+            if replicas is not None
+            else os.environ.get("GRADIO_PROCESS_REPLICAS", "1")
+        )
+        if resolved == "auto":
+            return resolved
+        try:
+            count = int(resolved)
+        except (TypeError, ValueError):
+            count = 0
+        if count < 1:
+            raise ValueError(
+                f"`replicas` must be 'auto' or at least 1, not {resolved!r}."
+            )
+        return count
 
     @staticmethod
     def _gateway_launch_kwargs(launch_kwargs: dict[str, Any]) -> dict[str, Any]:
