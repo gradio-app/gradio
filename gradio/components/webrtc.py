@@ -381,6 +381,15 @@ class WebRTC(Component):
             raise AttributeError(
                 "Cannot call stream() outside of a gradio.Blocks context."
             )
+        renderable = LocalContext.renderable.get(None)
+        if renderable is not None and self.rendered_in is not renderable:
+            # The page learns that the component has a stream from its config,
+            # which a render sends only for the components it creates
+            raise ValueError(
+                "stream() was called inside a @gr.render function on a WebRTC "
+                "component created outside it. Create the gr.WebRTC component "
+                "inside the render function too, or call stream() outside it."
+            )
         if self._stream_event_in(root_block):
             raise ValueError(
                 "stream() can only be called once per WebRTC component. Use "
@@ -509,11 +518,11 @@ class WebRTC(Component):
 
     def _stream_event_in(self, blocks_config: BlocksConfig) -> bool:
         """
-        Whether `blocks_config` has a stream event of this component already. A
-        component created outside a @gr.render can get its stream() in the
-        render, which every session runs into its own copy of the config, and
-        runs again on each change. The previous run's events are removed only
-        after the render function returns.
+        Whether `blocks_config` has a stream event of this component already.
+        Every session runs a @gr.render into its own copy of the config, and a
+        keyed component keeps its id from one run to the next, while the
+        previous run's events are removed only after the render function
+        returns.
         """
         renderable = LocalContext.renderable.get(None)
         for fn in blocks_config.fns.values():

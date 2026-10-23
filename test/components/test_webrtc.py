@@ -700,17 +700,22 @@ class TestWebRTC:
         assert config["has_stream"]
         assert config["time_limit"] == 30
 
-    def test_stream_in_a_render_of_a_component_created_outside_it(self):
+    def test_stream_in_a_render(self):
         import copy
 
         from gradio.context import LocalContext
 
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC()
+            outside = gr.WebRTC()
             count = gr.Number(0)
 
             @gr.render(inputs=[count])
             def _(n):
+                if n < 0:
+                    outside.stream(flip, inputs=[outside], outputs=[outside])
+                    return
+                # A keyed component keeps its id from one render to the next
+                webrtc = gr.WebRTC(key="camera")
                 texts = [gr.Textbox() for _ in range(int(n))]
                 webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc, *texts])
                 if n == 9:
@@ -726,8 +731,7 @@ class TestWebRTC:
                 LocalContext.blocks_config.reset(token)
             return next(fn for fn in config.fns.values() if fn.name == "run_stream")
 
-        # Every session renders into its own copy of the config, which shares
-        # the components created outside the render
+        # Every session renders into its own copy of the config
         first = copy.copy(demo.default_config)
         render(first, 0)
         # A re-render in the same session, and another session's first render
@@ -737,6 +741,10 @@ class TestWebRTC:
         assert len(second_stream.outputs) == 3
         with pytest.raises(ValueError, match="once per WebRTC component"):
             render(copy.copy(demo.default_config), 9)
+        # The page learns that a component has a stream from its own config,
+        # which a render sends only for the components it creates
+        with pytest.raises(ValueError, match="inside the render function"):
+            render(copy.copy(demo.default_config), -1)
 
     def test_default_concurrency_limit_comes_from_the_queue(self):
         with gr.Blocks() as demo:
