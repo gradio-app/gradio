@@ -514,6 +514,61 @@ describe("DependencyManager.dispatch", () => {
 
 		await vi.waitFor(() => expect(submitted).toContainEqual([1, 5]));
 	});
+
+	test.each(["ends", "completes"])(
+		"a cancelled run runs .then() and .failure() once when its iterator %s",
+		async (ending) => {
+			const run = dependency(0, "run", []);
+			const then = dependency(1, "then", []);
+			then.trigger_after = 0;
+			const on_success = dependency(2, "on_success", []);
+			on_success.trigger_after = 0;
+			on_success.trigger_only_on_success = true;
+			const on_failure = dependency(3, "on_failure", []);
+			on_failure.trigger_after = 0;
+			on_failure.trigger_only_on_failure = true;
+			let cancelled!: () => void;
+			const cancelling = new Promise<void>((resolve) => (cancelled = resolve));
+			const running_run = Object.assign(
+				submission(
+					(async function* () {
+						yield { type: "status", stage: "pending", queue: true };
+						await cancelling;
+						// The server's completion of a cancelled event, if it
+						// arrives before the client acknowledges the event; once it
+						// does, the iterator just ends
+						if (ending === "completes") {
+							yield { type: "status", stage: "complete", queue: true };
+						}
+					})()
+				),
+				{ cancel: vi.fn(async () => cancelled()) }
+			);
+			const client = { submit: () => running_run } as unknown as Client;
+			const dependency_manager = manager(
+				[run, then, on_success, on_failure],
+				client
+			);
+
+			const running = dependency_manager.dispatch({
+				type: "fn",
+				fn_index: 0,
+				event_data: null
+			});
+			await vi.waitFor(() =>
+				expect(dependency_manager.submissions.has(0)).toBe(true)
+			);
+			const dispatch = vi
+				.spyOn(dependency_manager, "dispatch")
+				.mockResolvedValue(undefined);
+			await dependency_manager.cancel([0]);
+			await running;
+
+			expect(
+				dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
+			).toEqual([1, 3]);
+		}
+	);
 });
 
 describe("DependencyManager.close_stream", () => {

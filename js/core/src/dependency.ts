@@ -211,6 +211,8 @@ export class DependencyManager {
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
 	// Streams that the page ended and that are read to their end
 	page_ended: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
+	// Runs cancelled through `cancels=`, whose chain `cancel()` runs
+	cancelled: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
 	submission_trigger_ids: Map<number, number | null> = new Map();
 	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
 		new Map();
@@ -546,16 +548,21 @@ export class DependencyManager {
 									// A stream that the page ended before its turn came never
 									// ran: as a cancelled event, it runs `.failure()` (and
 									// `.then()`) instead of `.success()`
-									const cancelled =
+									const stopped_in_line =
 										this.page_ended.has(dep_submission.data) &&
 										stream_state !== "open";
+									const chained = this.cancelled.has(dep_submission.data)
+										? []
+										: stopped_in_line
+											? failure
+											: success;
 									// Only a stream closes: for any other event, a "closed"
 									// stream_state would reach its input components and end
 									// a stream one of them is running
 									if (dep.connection_type === "stream") {
 										stream_state = "closed";
 									}
-									(cancelled ? failure : success).forEach((dep_id) => {
+									chained.forEach((dep_id) => {
 										this.dispatch({
 											type: "fn",
 											fn_index: dep_id,
@@ -705,14 +712,18 @@ export class DependencyManager {
 							}
 						}
 						await dep_submission.data.acknowledge();
-						all.forEach((dep_id) => {
-							this.dispatch({
-								type: "fn",
-								fn_index: dep_id,
-								event_data: null,
-								target_id: target_id as number | undefined
+						// Acknowledging a cancelled run ends its iterator, and
+						// `cancel()` runs its chain
+						if (!this.cancelled.has(dep_submission.data)) {
+							all.forEach((dep_id) => {
+								this.dispatch({
+									type: "fn",
+									fn_index: dep_id,
+									event_data: null,
+									target_id: target_id as number | undefined
+								});
 							});
-						});
+						}
 						unset_args.forEach((fn) => fn());
 						this.clear_submission(dep.id, dep_submission.data);
 
@@ -1110,6 +1121,7 @@ export class DependencyManager {
 		for (const id of ids) {
 			const submission = this.submissions.get(id);
 			if (submission) {
+				this.cancelled.add(submission);
 				await submission.cancel();
 				this.update_loading_status({
 					status: "complete",
