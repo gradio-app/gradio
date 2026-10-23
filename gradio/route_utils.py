@@ -415,7 +415,9 @@ async def call_process_api(
         # This is the gateway of `executor="process"`: the app's process runs it
         from gradio.processing.gateway import forward_event
 
-        return await forward_event(link, app, body, gr_request, fn, root_path)
+        return await forward_event(
+            link, app, body, gr_request, fn, root_path, record_history
+        )
 
     session_state, iterator = restore_session_state(app=app, body=body)
     # A batch mixes events from different sessions, so its state stays on the server

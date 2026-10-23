@@ -136,12 +136,13 @@ async def forward_event(
     gr_request: Any,
     fn: BlockFunction,
     root_path: str,
+    record_history: bool = True,
 ) -> dict[str, Any]:
     """`route_utils.call_process_api`, run in the app's process."""
     from gradio import history, route_utils
     from gradio.client_state import get_sealer
 
-    _, iterator = route_utils.restore_session_state(app=app, body=body)
+    session_state, iterator = route_utils.restore_session_state(app=app, body=body)
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
     output = await link.call(
@@ -176,14 +177,18 @@ async def forward_event(
                     update["ref"],
                     issued_at,
                 )
-    route_utils._record_run_history(
+    route_utils.record_run_history(
         app,
         fn=fn,
         gr_request=gr_request,
         inputs=body.data,
         outputs=output.get("data"),
         started_at=started_at,
-        is_final=not output.get("is_generating"),
+        fns=session_state.blocks_config.fns,
+        trigger_id=body.trigger_id,
+        is_final=record_history and not output.get("is_generating"),
+        batched=bool(body.batched and fn.batch),
+        batch_trigger_ids=body.batch_trigger_ids,
     )
     return output
 
