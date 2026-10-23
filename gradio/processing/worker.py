@@ -103,7 +103,11 @@ class Worker:
             mcp_server=False,
         )
         self.http_token = secrets.token_hex(16)
-        self.app.add_middleware(GatewayFront, token=self.http_token, worker=self)
+        self.app.add_middleware(
+            GatewayFront,  # type: ignore
+            token=self.http_token,
+            worker=self,
+        )
         self.http_server: Any = None
         self.token = secrets.token_hex(16)
         self.loop: asyncio.AbstractEventLoop | None = None

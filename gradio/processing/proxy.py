@@ -11,6 +11,7 @@ which serves it like any client's.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 import httpx2
@@ -25,7 +26,7 @@ SKIPPED_RESPONSE_HEADERS = {b"content-length", b"connection", b"transfer-encodin
 
 
 async def forward(
-    request: Request, target: str, extra_headers: list[tuple[bytes, bytes]] = ()
+    request: Request, target: str, extra_headers: Sequence[tuple[bytes, bytes]] = ()
 ) -> StreamingResponse:
     """Streams `request` to `target` (an origin) and its response back."""
     # A client per request: TestClient may call an app from a new event loop
