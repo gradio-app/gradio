@@ -993,6 +993,18 @@ describe("WebRTC queue turn", () => {
 		expect(server.offer).not.toHaveBeenCalled();
 	});
 
+	test("a configuration request that fails is reported instead of connecting without it", async () => {
+		const { getByRole, listen, set_data, server } = await ready_webcam();
+		// What a server function call resolves to when the request failed
+		server.get_rtc_configuration.mockResolvedValueOnce(undefined as any);
+		const error = listen("error");
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(error).toHaveBeenCalled());
+		expect(FakePeerConnection.instances).toHaveLength(0);
+		expect(server.offer).not.toHaveBeenCalled();
+	});
+
 	test("a receive player unmounted while its configuration loads does not connect", async () => {
 		const server = make_server();
 		let resolve_config: (config: Record<string, any>) => void = () => {};

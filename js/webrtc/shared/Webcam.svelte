@@ -20,6 +20,7 @@
 		new_webrtc_id,
 		close_on_pagehide,
 		on_connection_state,
+		get_rtc_configuration,
 		RESTART_GUARD_MS
 	} from "./webrtc";
 	import { StreamAttempts } from "./attempts.svelte";
@@ -290,10 +291,7 @@
 
 		const [mic, rtc_configuration] = await Promise.all([
 			include_audio ? open_mic() : Promise.resolve(null),
-			server
-				.get_rtc_configuration({ webrtc_id })
-				.then((config) => config ?? {})
-				.catch((e): Record<string, any> => ({ error: String(e) }))
+			get_rtc_configuration(server, webrtc_id)
 		]);
 		// Stopped (or unmounted) while the microphone or the configuration
 		// was loading

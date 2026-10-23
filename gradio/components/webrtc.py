@@ -37,7 +37,7 @@ from gradio.webrtc.handlers import (
 from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
 
 if TYPE_CHECKING:
-    from gradio.blocks import Block
+    from gradio.blocks import Block, BlocksConfig
     from gradio.components import Timer
     from gradio.webrtc.connection import ConnectionManager
 
@@ -115,6 +115,15 @@ class StreamOptions:
                 'button_labels takes the keys "start", "stop" and "waiting", '
                 f"got {sorted(unknown)}"
             )
+
+
+def _is_async(fn: Any) -> bool:
+    """Whether `fn` is async, also when it is an object with an async `__call__`."""
+    call = type(fn).__call__ if callable(fn) else None
+    return any(
+        inspect.iscoroutinefunction(f) or inspect.isasyncgenfunction(f)
+        for f in (fn, call)
+    )
 
 
 def _to_list(blocks: Block | Sequence[Block] | set[Block] | None) -> list[Block]:
@@ -241,7 +250,6 @@ class WebRTC(Component):
         self.width = width
         # Set by stream()
         self.time_limit: float | None = None
-        self._num_extra_outputs = 0
         self._has_stream = False
         super().__init__(
             label=label,
@@ -373,7 +381,7 @@ class WebRTC(Component):
             raise AttributeError(
                 "Cannot call stream() outside of a gradio.Blocks context."
             )
-        if self._has_stream:
+        if self._stream_event_in(root_block):
             raise ValueError(
                 "stream() can only be called once per WebRTC component. Use "
                 "another gr.WebRTC component for another stream."
@@ -419,8 +427,8 @@ class WebRTC(Component):
         self._check_handler(fn)
 
         self.time_limit = time_limit
-        self._num_extra_outputs = len(extra_outputs)
         self._has_stream = True
+        num_extra_outputs = len(extra_outputs)
         manager = webrtc_connection.register_manager(
             self._id,
             handler=fn,
@@ -436,7 +444,7 @@ class WebRTC(Component):
         # long as the app (or the render that created it) has the event, since
         # the registry holds managers weakly
         async def run_stream(webrtc_id: str | None) -> Any:
-            return await self._run_stream(manager, webrtc_id)
+            return await self._run_stream(manager, webrtc_id, num_extra_outputs)
 
         # Each stream is one queue event: the frontend fires "stream" when the
         # user starts it, waits for its turn, and only then connects. The event
@@ -497,7 +505,28 @@ class WebRTC(Component):
                 show_progress="hidden",
                 queue=False,
             )
-        return Dependency(self, stream_fn.get_config(), stream_index, self._run_stream)
+        return Dependency(self, stream_fn.get_config(), stream_index, fn)
+
+    def _stream_event_in(self, blocks_config: BlocksConfig) -> bool:
+        """
+        Whether `blocks_config` has a stream event of this component already. A
+        component created outside a @gr.render can get its stream() in the
+        render, which every session runs into its own copy of the config, and
+        runs again on each change. The previous run's events are removed only
+        after the render function returns.
+        """
+        renderable = LocalContext.renderable.get(None)
+        for fn in blocks_config.fns.values():
+            if (self._id, "stream") not in [tuple(t) for t in fn.targets]:
+                continue
+            if (
+                renderable is not None
+                and fn.rendered_in is renderable
+                and fn.render_iteration != renderable.render_iteration
+            ):
+                continue
+            return True
+        return False
 
     def _check_handler(self, fn: HandlerType) -> None:
         def is_a(classes: tuple[type, ...]) -> bool:
@@ -552,9 +581,7 @@ class WebRTC(Component):
             raise ValueError("`fn` must be a callable or a VideoOptions.")
         elif not is_handler:
             function = fn.callable if isinstance(fn, VideoOptions) else fn
-            if inspect.iscoroutinefunction(function) or inspect.isasyncgenfunction(
-                function
-            ):
+            if _is_async(function):
                 raise ValueError(
                     "`fn` must be a regular function or generator, which runs in "
                     "a worker thread; for async code, use an "
@@ -609,7 +636,10 @@ class WebRTC(Component):
             set_input(webrtc_id, getattr(request, "session_hash", None), *args)
 
     async def _run_stream(
-        self, manager: ConnectionManager, webrtc_id: str | None
+        self,
+        manager: ConnectionManager,
+        webrtc_id: str | None,
+        num_extra_outputs: int,
     ) -> Any:
         """
         The queue event of one stream. Its first call admits the stream, and
@@ -620,7 +650,7 @@ class WebRTC(Component):
         """
         from gradio.webrtc.connection import admitted_id, stream_manager
 
-        nothing = [skip()] * (1 + self._num_extra_outputs)
+        nothing = [skip()] * (1 + num_extra_outputs)
         blocks = LocalContext.blocks.get(None)
         queue = blocks._queue if blocks is not None else None
         event = (
@@ -654,10 +684,10 @@ class WebRTC(Component):
                         print_exception=False,
                     )
                 if outputs is not None:
-                    if len(outputs.args) != self._num_extra_outputs:
+                    if len(outputs.args) != num_extra_outputs:
                         raise ValueError(
                             f"AdditionalOutputs has {len(outputs.args)} values, "
-                            f"but stream() has {self._num_extra_outputs} outputs "
+                            f"but stream() has {num_extra_outputs} outputs "
                             "besides the WebRTC component."
                         )
                     nothing = [skip(), *outputs.args]
@@ -674,9 +704,16 @@ class WebRTC(Component):
         # Same injection as event listeners, so that the function can e.g.
         # issue TURN credentials with the visitor's gr.OAuthToken
         args, *_ = special_args(config, [], request)
-        if inspect.iscoroutinefunction(config):
-            return await config(*args)
-        return await anyio.to_thread.run_sync(config, *args)
+        if _is_async(config):
+            result = await config(*args)
+        else:
+            result = await anyio.to_thread.run_sync(config, *args)
+        if not isinstance(result, dict):
+            raise TypeError(
+                "The rtc_configuration function must return a dict, but it "
+                f"returned a {type(result).__name__}."
+            )
+        return result
 
     async def _rtc_configuration_for(
         self, request: Request | None = None

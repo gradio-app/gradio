@@ -549,6 +549,9 @@ class ConnectionManager:
             return
         _, still_running = await asyncio.wait(pending, timeout=SHUTDOWN_WAIT)
         if still_running:
+            # Waited for once: one that never ends must not delay every later
+            # stream. `self.tasks` still holds them.
+            self.shutdowns.difference_update(still_running)
             logger.warning(
                 "A stream handler's shutdown() is still running after %s s; "
                 "starting the next stream anyway",

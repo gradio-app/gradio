@@ -529,6 +529,8 @@ class TestWebRTC:
             stream = video.stream(flip, inputs=[video], outputs=[video])
             # What another event's `cancels=` takes to stop the stream
             assert demo.fns[stream["id"]].connection == "stream"
+            # Calling it calls the handler, as for any event listener
+            assert stream.fn is flip
             with pytest.raises(ValueError, match="once per WebRTC component"):
                 video.stream(flip, inputs=[video], outputs=[video, slider])
         with pytest.raises(AttributeError, match="Blocks context"):
@@ -536,14 +538,26 @@ class TestWebRTC:
 
     @pytest.mark.parametrize("mode", ["send-receive", "receive"])
     @pytest.mark.parametrize("wrapped", [False, True])
-    def test_stream_rejects_async_functions(self, mode, wrapped):
+    @pytest.mark.parametrize("as_object", [False, True])
+    def test_stream_rejects_async_functions(self, mode, wrapped, as_object):
         async def process(frame):
             return frame
 
         async def generate():
             yield None
 
-        fn = process if mode == "send-receive" else generate
+        class Process:
+            async def __call__(self, frame):
+                return frame
+
+        class Generate:
+            async def __call__(self):
+                yield None
+
+        if as_object:
+            fn = Process() if mode == "send-receive" else Generate()
+        else:
+            fn = process if mode == "send-receive" else generate
         with gr.Blocks():
             button = gr.Button()
             webrtc = gr.WebRTC(mode=mode)
@@ -686,6 +700,44 @@ class TestWebRTC:
         assert config["has_stream"]
         assert config["time_limit"] == 30
 
+    def test_stream_in_a_render_of_a_component_created_outside_it(self):
+        import copy
+
+        from gradio.context import LocalContext
+
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC()
+            count = gr.Number(0)
+
+            @gr.render(inputs=[count])
+            def _(n):
+                texts = [gr.Textbox() for _ in range(int(n))]
+                webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc, *texts])
+                if n == 9:
+                    webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+
+        renderable = demo.renderables[0]
+
+        def render(config, n):
+            token = LocalContext.blocks_config.set(config)
+            try:
+                renderable.apply(n)
+            finally:
+                LocalContext.blocks_config.reset(token)
+            return next(fn for fn in config.fns.values() if fn.name == "run_stream")
+
+        # Every session renders into its own copy of the config, which shares
+        # the components created outside the render
+        first = copy.copy(demo.default_config)
+        render(first, 0)
+        # A re-render in the same session, and another session's first render
+        first_stream = render(first, 1)
+        second_stream = render(copy.copy(demo.default_config), 2)
+        assert len(first_stream.outputs) == 2
+        assert len(second_stream.outputs) == 3
+        with pytest.raises(ValueError, match="once per WebRTC component"):
+            render(copy.copy(demo.default_config), 9)
+
     def test_default_concurrency_limit_comes_from_the_queue(self):
         with gr.Blocks() as demo:
             webrtc = gr.WebRTC()
@@ -722,7 +774,7 @@ class TestWebRTC:
         event_token = LocalContext.event_id.set("event")
         try:
             skip = gr.skip()
-            assert await webrtc._run_stream(manager, "abc") == (skip, skip, skip)
+            assert await webrtc._run_stream(manager, "abc", 2) == (skip, skip, skip)
             assert manager.sessions["abc"].event is event
             # A hot reload gives the event a new function, whose manager never
             # saw the stream; the stream stays with the one that admitted it
@@ -734,17 +786,17 @@ class TestWebRTC:
             set_outputs(AdditionalOutputs(1, "a"))
             set_outputs(AdditionalOutputs(2, "b"))
             event.signal.clear()
-            assert await webrtc._run_stream(reloaded, "abc") == (skip, 1, "a")
+            assert await webrtc._run_stream(reloaded, "abc", 2) == (skip, 1, "a")
             assert event.signal.is_set()
             event.signal.clear()
-            assert await webrtc._run_stream(reloaded, "abc") == (skip, 2, "b")
+            assert await webrtc._run_stream(reloaded, "abc", 2) == (skip, 2, "b")
             assert not event.signal.is_set()
-            assert await webrtc._run_stream(reloaded, "abc") == (skip, skip, skip)
+            assert await webrtc._run_stream(reloaded, "abc", 2) == (skip, skip, skip)
 
             # A later call (a chunk) cannot admit another stream through the
             # same event, and still serves the stream it admitted
             set_outputs(AdditionalOutputs(3, "c"))
-            assert await webrtc._run_stream(reloaded, "other") == (skip, 3, "c")
+            assert await webrtc._run_stream(reloaded, "other", 2) == (skip, 3, "c")
             assert "other" not in manager.sessions
 
             # A stream that ends still delivers what it emitted before, and
@@ -753,14 +805,14 @@ class TestWebRTC:
             set_outputs(AdditionalOutputs(6, "f"))
             manager.end("abc")
             assert not event.closed
-            assert await webrtc._run_stream(reloaded, "abc") == (skip, 5, "e")
+            assert await webrtc._run_stream(reloaded, "abc", 2) == (skip, 5, "e")
             assert not event.closed
-            assert await webrtc._run_stream(reloaded, "abc") == (skip, 6, "f")
+            assert await webrtc._run_stream(reloaded, "abc", 2) == (skip, 6, "f")
             assert event.closed
 
             set_outputs(AdditionalOutputs(4))
             with pytest.raises(ValueError, match="2 outputs besides"):
-                await webrtc._run_stream(reloaded, "abc")
+                await webrtc._run_stream(reloaded, "abc", 2)
 
             # Another queue event that joins with an id already in use ends at
             # once instead of holding a place it can never use
@@ -769,7 +821,7 @@ class TestWebRTC:
             queue.event_ids_to_events["other"] = other
             other_token = LocalContext.event_id.set("other")
             try:
-                assert await webrtc._run_stream(manager, "abc") == (skip, skip, skip)
+                assert await webrtc._run_stream(manager, "abc", 2) == (skip, skip, skip)
             finally:
                 LocalContext.event_id.reset(other_token)
             assert other.closed
@@ -2071,6 +2123,19 @@ class TestStreams:
         assert await gr.WebRTC(
             rtc_configuration=lambda: {"iceServers": []}
         )._rtc_configuration_for() == {"iceServers": []}
+
+        class Credentials:
+            async def __call__(self):
+                return {"iceServers": []}
+
+        assert await gr.WebRTC(
+            rtc_configuration=Credentials()
+        )._rtc_configuration_for() == {"iceServers": []}
+        # Not a configuration: the page reports it instead of connecting
+        # without the ICE servers
+        assert await gr.WebRTC(
+            rtc_configuration=lambda: None
+        )._rtc_configuration_for() == {"error": "An error occurred."}
 
         await asyncio.sleep(0)
 
@@ -3378,6 +3443,23 @@ class TestCleanUp:
         notifier.send("info", "after the end")
         await asyncio.sleep(0)
         assert notifier.pending == []
+
+    @pytest.mark.asyncio
+    async def test_a_shutdown_that_never_ends_delays_only_the_next_stream(
+        self, monkeypatch
+    ):
+        monkeypatch.setattr(webrtc_connection, "SHUTDOWN_WAIT", 0.2)
+        manager = self.manager()
+        # e.g. a receive-mode generator blocked in next(), which closing waits for
+        manager._add_shutdown(asyncio.Event().wait())
+        started = time.monotonic()
+        await manager._wait_for_shutdowns()
+        assert time.monotonic() - started >= 0.2
+        started = time.monotonic()
+        await manager._wait_for_shutdowns()
+        assert time.monotonic() - started < 0.1
+        for task in manager.tasks:
+            task.cancel()
 
     @pytest.mark.asyncio
     async def test_clean_up_releases_a_handler_waiting_for_its_inputs(self):

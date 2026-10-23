@@ -8,7 +8,8 @@
 		stop,
 		new_webrtc_id,
 		close_on_pagehide,
-		on_connection_state
+		on_connection_state,
+		get_rtc_configuration
 	} from "./webrtc";
 	import { StreamAttempts } from "./attempts.svelte";
 	import {
@@ -94,13 +95,7 @@
 			return;
 		}
 
-		let rtc_configuration: Record<string, any> = {};
-		try {
-			rtc_configuration =
-				(await server.get_rtc_configuration({ webrtc_id })) ?? {};
-		} catch (e) {
-			rtc_configuration = { error: String(e) };
-		}
+		const rtc_configuration = await get_rtc_configuration(server, webrtc_id);
 		if (!attempts.is_current(token)) return;
 		if (rtc_configuration.error) {
 			onerror?.(rtc_configuration.error);

@@ -241,6 +241,26 @@ export function close_on_pagehide(
 	};
 }
 
+/**
+ * The stream's RTC configuration, or `{ error }` to show. A server function
+ * call that fails resolves to undefined, which must not pass for a
+ * configuration without ICE servers: the stream would connect without TURN.
+ */
+export async function get_rtc_configuration(
+	server: WebRTCServer,
+	webrtc_id: string
+): Promise<Record<string, any>> {
+	try {
+		return (
+			(await server.get_rtc_configuration({ webrtc_id })) ?? {
+				error: "Could not get the connection settings from the server."
+			}
+		);
+	} catch (e) {
+		return { error: String(e) };
+	}
+}
+
 /** Turns an offer rejection into a message for the user. */
 export function rejection_message(response: Record<string, any>): string {
 	const error = response?.meta?.error;
