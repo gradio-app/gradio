@@ -1940,15 +1940,22 @@ class TestStreams:
     @pytest.mark.parametrize(
         "launched", [{"modality": "audio", "handler": FailingShutdown}], indirect=True
     )
-    async def test_a_failing_shutdown_still_ends_the_stream(self, launched):
+    async def test_a_failing_shutdown_still_ends_the_stream(self, launched, caplog):
         h = launched
         event_id = await h.start("one")
         pc = await make_offer(audio=True)
         await h.connect(pc, "one")
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        notifier = h.manager.sessions["one"].notifier
+        assert notifier is not None
         # The browser leaves; the handler's shutdown() raises while cleaning up
         await pc.close()
         await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
+        await h.wait_until(lambda: "shutdown failed" in caplog.text)
+        # Clean-up after the stream, not a failure of it, and logged once
+        assert notifier.failure is None
+        logged = [r.getMessage() for r in caplog.records if r.exc_info]
+        assert logged == ["Stream handler shutdown() failed"]
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

@@ -191,11 +191,12 @@ def instantiate_handler(handler: HandlerType, request: Any = None) -> HandlerTyp
     else:
         return webrtc_error_handler(bind_special_args(cast(Callable, handler), request))
     cast(Any, instance).start_up = bind_special_args(instance.start_up, request)
+    # Not shutdown(): it cleans up after the stream, which may have ended well,
+    # and _shut_down logs its errors
     for name in (
         "emit",
         "receive",
         "start_up",
-        "shutdown",
         "video_receive",
         "video_emit",
     ):
