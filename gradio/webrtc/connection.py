@@ -394,12 +394,15 @@ class ConnectionManager:
         session = self.sessions.get(webrtc_id)
         if session is None or not session.ended or session.outputs:
             return None
-        failure = session.notifier.failure if session.notifier else None
+        notifier = session.notifier
+        failure = notifier.failure if notifier else None
         if failure is not None and delivered:
             # The next call reports the error
             session.wake()
             return None
         session.event.closed = True
+        if failure is not None and notifier is not None and notifier.failure_shown:
+            failure = {**failure, "visible": False}
         return failure
 
     def clean_up(self, webrtc_id: str) -> None:
@@ -534,6 +537,7 @@ class ConnectionManager:
             payload = error_payload(e, show_error)
             # The page shows the error from the answer; the event fails too
             notifier.failure = payload
+            notifier.failure_shown = True
             self.clean_up(webrtc_id)
             return _failed(
                 "setup_failed", message=payload["error"] or "An error occurred."
@@ -706,6 +710,9 @@ class ConnectionManager:
         await pc.setRemoteDescription(offer)
         if rejected:
             await pc.close()
+            # As for a handler that cannot start
+            notifier.failure = {"error": rejected[0]}
+            notifier.failure_shown = True
             self.clean_up(webrtc_id)
             return _failed("unsupported_track", message=rejected[0])
         for sender, candidate in _pending_candidates.pop(webrtc_id, []):

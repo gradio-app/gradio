@@ -645,12 +645,12 @@ class WebRTC(Component):
                 outputs = manager.take_outputs(stream_id)
                 failure = manager.finish_if_drained(stream_id, outputs is not None)
                 if failure is not None:
-                    # The page has shown it already, over the data channel,
-                    # and the server has logged it
+                    # Hidden when the page has shown it already; the server
+                    # has logged it
                     raise Error(
                         cast(str, failure["error"] or ""),
                         title=cast(str, failure.get("title") or "Error"),
-                        visible=False,
+                        visible=bool(failure.get("visible", True)),
                         print_exception=False,
                     )
                 if outputs is not None:

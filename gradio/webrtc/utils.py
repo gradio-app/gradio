@@ -155,6 +155,10 @@ class StreamNotifier:
         self.closed = False
         # The handler's error as error_payload() shows it, once it failed
         self.failure: dict[str, Any] | None = None
+        # Whether the page has shown the failure, over the data channel or
+        # from the offer's answer; the queue event shows it otherwise
+        self.failure_shown = False
+        self._failure_message: str | None = None
         # fail() can be called from several handler threads at once
         self._fail_lock = threading.Lock()
 
@@ -192,6 +196,9 @@ class StreamNotifier:
             self.channel.send(message)
         except Exception:
             logger.debug("Could not send %s", message, exc_info=True)
+            return
+        if message is self._failure_message:
+            self.failure_shown = True
 
     def send(
         self,
@@ -201,7 +208,18 @@ class StreamNotifier:
         duration: float | None = 10,
         visible: bool = True,
     ) -> None:
-        payload = json.dumps(
+        payload = self._toast(type, message, title, duration, visible)
+        self.loop.call_soon_threadsafe(self._send_now, payload)
+
+    @staticmethod
+    def _toast(
+        type: str,
+        message: str,
+        title: str | None,
+        duration: float | None,
+        visible: bool,
+    ) -> str:
+        return json.dumps(
             {
                 "type": type,
                 "message": message,
@@ -210,7 +228,6 @@ class StreamNotifier:
                 "visible": visible,
             }
         )
-        self.loop.call_soon_threadsafe(self._send_now, payload)
 
     def fail(self, error: BaseException) -> None:
         """
@@ -225,13 +242,15 @@ class StreamNotifier:
             if self.failure is not None:
                 return
             self.failure = payload
-        self.send(
+        message = self._toast(
             "error",
             cast(str | None, payload["error"]) or "",
             cast(str | None, payload.get("title")) or "Error",
             cast(float | None, payload.get("duration", 10)),
             bool(payload.get("visible", True)),
         )
+        self._failure_message = message
+        self.loop.call_soon_threadsafe(self._send_now, message)
         # Leaves the message time to go out before the connection closes
         self.loop.call_soon_threadsafe(self.loop.call_later, 0.2, self.end_stream)
 

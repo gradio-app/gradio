@@ -1033,7 +1033,10 @@ class TestStreams:
             event=cast(Any, event),
             queue=cast(Any, None),
             ended=True,
-            notifier=cast(Any, SimpleNamespace(failure={"error": "Bad frame"})),
+            notifier=cast(
+                Any,
+                SimpleNamespace(failure={"error": "Bad frame"}, failure_shown=False),
+            ),
         )
         session.outputs.append(AdditionalOutputs(1))
         manager.sessions["failed"] = session
@@ -1286,6 +1289,25 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    async def test_a_handler_error_before_the_data_channel_opens_is_shown(
+        self, launched
+    ):
+        h = launched
+        await h.start("one")
+        pc = await make_offer(video=True)
+        # The page never applies the answer, so the data channel never opens
+        assert (await h.offer(pc, "one"))["type"] == "answer"
+        notifier = h.manager.sessions["one"].notifier
+        assert notifier is not None
+        notifier.fail(gr.Error("Sign in first"))
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m["msg"] == "process_completed")
+        assert completion["success"] is False
+        assert completion["output"]["error"] == "Sign in first"
+        assert completion["output"]["visible"] is True
+        await pc.close()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched", [{"stream_kwargs": {"time_limit": 1}}], indirect=True
     )
@@ -1434,6 +1456,11 @@ class TestStreams:
         assert response["status"] == "failed"
         assert response["meta"]["error"] == "unsupported_track"
         assert "one" not in h.manager.pcs
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m["msg"] == "process_completed")
+        assert completion["success"] is False
+        # The page shows the error from the answer
+        assert completion["output"]["visible"] is False
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1735,6 +1762,8 @@ class TestStreams:
         messages = await h.messages("one", completed)
         completion = next(m for m in messages if m["msg"] == "process_completed")
         assert completion["success"] is False
+        # The page shows the error from the answer
+        assert completion["output"]["visible"] is False
         await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
         await pc.close()
 
