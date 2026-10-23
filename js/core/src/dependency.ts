@@ -543,13 +543,19 @@ export class DependencyManager {
 
 								// handle status updates here
 								if (result.stage === "complete") {
+									// A stream that the page ended before its turn came never
+									// ran: as a cancelled event, it runs `.failure()` (and
+									// `.then()`) instead of `.success()`
+									const cancelled =
+										this.page_ended.has(dep_submission.data) &&
+										stream_state !== "open";
 									// Only a stream closes: for any other event, a "closed"
 									// stream_state would reach its input components and end
 									// a stream one of them is running
 									if (dep.connection_type === "stream") {
 										stream_state = "closed";
 									}
-									success.forEach((dep_id) => {
+									(cancelled ? failure : success).forEach((dep_id) => {
 										this.dispatch({
 											type: "fn",
 											fn_index: dep_id,
@@ -781,26 +787,31 @@ export class DependencyManager {
 	/**
 	 * Ends a resumed stream event and reads what the server sends for it up to
 	 * its end, showing its outputs and running the `.change` listeners of the
-	 * gr.State values it changed. Returns how the event ended, "gone" when the
-	 * server no longer has it, or null when the messages stopped without an end.
+	 * gr.State values it changed. Returns how the event ended ("cancelled" when
+	 * it was still waiting for its turn), "gone" when the server no longer has
+	 * it, or null when the messages stopped without an end.
 	 */
 	async end_resumed_stream(
 		submission: ReturnType<Client["resume_jobs"]>[number],
 		outputs: number[]
-	): Promise<"complete" | "error" | "gone" | null> {
+	): Promise<"complete" | "cancelled" | "error" | "gone" | null> {
 		// Whether the stream had already ended, is still waiting in line or is
 		// still running, the server replays what it sent and then reports the
 		// end, so nothing depends on how fast the connection opens or how long
 		// the last call waits for a worker
 		submission.close_stream({ read_to_end: true });
+		let started = false;
 		for await (const result of submission) {
 			if (result?.type === "data") {
 				await this.handle_data(outputs, result.data);
 				continue;
 			}
 			if (result?.type !== "status") continue;
+			if (result.original_msg === "process_starts") started = true;
 			this.dispatch_state_change_events(result);
-			if (result.stage === "complete") return "complete";
+			if (result.stage === "complete") {
+				return started ? "complete" : "cancelled";
+			}
 			if (result.stage === "error") {
 				return result.session_not_found ? "gone" : "error";
 			}
@@ -834,9 +845,15 @@ export class DependencyManager {
 					if (outcome === "gone" || outcome === null) return;
 					// A stream that failed runs `.failure()`; one that completed,
 					// or that is ended here as when the user stops it, runs
-					// `.success()` and `.then()`
+					// `.success()` and `.then()`; one still waiting for its turn
+					// runs `.failure()` and `.then()`, as a cancelled event
 					const { success, failure, all } = dep.get_triggers();
-					const chained = outcome === "error" ? failure : [...success, ...all];
+					const chained =
+						outcome === "error"
+							? failure
+							: outcome === "cancelled"
+								? [...failure, ...all]
+								: [...success, ...all];
 					for (const dep_id of chained) {
 						this.dispatch({ type: "fn", fn_index: dep_id, event_data: null });
 					}
