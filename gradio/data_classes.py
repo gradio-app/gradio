@@ -14,6 +14,7 @@ from typing import (
     Any,
     Literal,
     NewType,
+    NotRequired,
     Union,
 )
 
@@ -34,7 +35,7 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import TypedDict
 
 from gradio.i18n import I18nData
 
@@ -139,18 +140,13 @@ class PredictBodyInternal(PredictBody):
     )
     # The verified browser-held gr.State values for this event (a ClientState)
     client_state: Any = Field(default=None, exclude=True)
+    batch_trigger_ids: list[int | None] | None = (
+        None  # trigger_id of each event in a queued batch, in the order of data
+    )
 
 
 class ResetBody(BaseModel):
     event_id: str
-
-
-class VibeEditBody(BaseModel):
-    prompt: str
-
-
-class VibeCodeBody(BaseModel):
-    code: str
 
 
 class ComponentServerJSONBody(BaseModel):
@@ -405,7 +401,6 @@ class BlocksConfigDict(TypedDict):
     resume_sessions: NotRequired[bool]
     session_user: NotRequired[str | None]
     dev_mode: bool
-    vibe_mode: bool
     analytics_enabled: bool
     components: list[dict[str, Any]]
     css: str | None

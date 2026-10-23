@@ -79,7 +79,7 @@ ROUND_TRIP_VALUES = [
     decimal.Decimal("1.1"),
     uuid.UUID("12345678-1234-5678-1234-567812345678"),
     pathlib.Path("/a/b"),
-    datetime.datetime(2020, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc),
+    datetime.datetime(2020, 1, 2, 3, 4, 5, tzinfo=datetime.UTC),
     datetime.date(2020, 1, 2),
     datetime.time(1, 2),
     datetime.timedelta(3, 4, 5),

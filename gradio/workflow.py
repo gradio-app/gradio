@@ -15,6 +15,7 @@ import secrets
 import sys
 import tempfile
 import threading
+import time
 import types
 import urllib.parse
 import warnings
@@ -530,10 +531,14 @@ def _classify_error(e: Exception) -> dict:
     message = getattr(e, "message", None) or str(e)
     full = f"{title} {message}".lower()
 
-    if "zerogpu" in full or ("gpu" in full and "worker" in full):
+    # ZeroGPU titles a queue timeout "quota exceeded" too, so that message is
+    # matched first; any other quota error can mean hours, not a minute.
+    if "no gpu was available" in full:
         return {"error_type": "gpu"}
     if "quota" in full or "rate limit" in full or "rate_limit" in full:
         return {"error_type": "quota"}
+    if "zerogpu" in full or ("gpu" in full and "worker" in full):
+        return {"error_type": "gpu"}
     if "sleeping" in full or "paused" in full:
         return {
             "error_type": "sleeping",
@@ -694,7 +699,10 @@ def get_oauth_scopes(_data=None) -> str:
 
 
 def call_space(
-    data, request: Optional[Request] = None, token: Optional[OAuthToken] = None
+    data,
+    request: Optional[Request] = None,
+    token: Optional[OAuthToken] = None,
+    on_log: Callable[[str, str], None] | None = None,
 ) -> str:
     space_id = data[0] if data else ""
     try:
@@ -709,7 +717,16 @@ def call_space(
                     "suggestion": "Space ID must be in owner/repo format",
                 }
             )
-        client = Client(space_id, token=hf_token)
+        # ZeroGPU ranks callers by the visitor's X-IP-Token, which the Hub only
+        # adds to the browser's request. Without it the Space sees an anonymous
+        # caller: lowest queue priority, so it gives up after 60s.
+        ip_token = request.headers.get("x-ip-token") if request else None
+        client = Client(
+            space_id,
+            verbose=False,
+            token=hf_token,
+            headers={"x-ip-token": ip_token} if ip_token else None,
+        )
         args = json.loads(args_json)
         if not endpoint or endpoint == "/predict":
             api_info = client.view_api(return_format="dict")
@@ -742,7 +759,20 @@ def call_space(
         )
         while processed and processed[-1] is None:
             processed.pop()
-        result = client.predict(*processed, api_name=endpoint)
+        job = client.submit(*processed, api_name=endpoint)
+        if on_log:
+            # Relay the Space's own queue messages ("Waiting for a GPU to
+            # become available") so a ZeroGPU wait doesn't look like a hang.
+            # ponytail: polls the latest status, so a message replaced within
+            # 0.2s is dropped; read `job.communicator.updates` if that matters.
+            last = None
+            while not job.done():
+                log = job.status().log
+                if log and log != last:
+                    on_log(*log)
+                    last = log
+                time.sleep(0.2)
+        result = job.result()
         result = list(result) if isinstance(result, (list, tuple)) else [result]
 
         _tmpdir = os.path.realpath(tempfile.gettempdir())
@@ -1718,6 +1748,21 @@ def get_dataset_schema(
         return json.dumps({"error": str(e)})
 
 
+# elem_id of the column holding the app view; the canvas frontend looks it up to
+# mark it inert while the canvas covers it.
+_APP_ELEM_ID = "workflow-app"
+# The row gives each child a 0% flex-basis, which overrides the scale=0
+# button's `width: fit-content` and squeezes it down to its padding.
+#
+# The app stays hidden until the canvas component has picked which view to show
+# (it sets `data-view`), so a viewer who gets the canvas never sees it first.
+_APP_CSS = f"""
+#{_APP_ELEM_ID}-header {{ justify-content: flex-end; }}
+#{_APP_ELEM_ID}-header > button {{ flex: none; }}
+#{_APP_ELEM_ID}:not([data-view="app"]) {{ visibility: hidden; }}
+"""
+
+
 class Workflow(Blocks):
     """
     Build and launch a visual AI workflow as a Gradio app.
@@ -1844,6 +1889,7 @@ class Workflow(Blocks):
         # Set once the API endpoints are registered (post UI build); save_workflow
         # re-syncs it so /info + /call track edits to the graph.
         self._api_endpoints: WorkflowEndpointManager | None = None
+        self._canvas: WorkflowCanvas | None = None
 
         if self._edges and os.path.exists(self._workflow_file):
             logger.warning(
@@ -1959,6 +2005,22 @@ class Workflow(Blocks):
             endpoints = describe_workflow_api(graph) if graph is not None else []
             return json.dumps({"endpoints": endpoints})
 
+        def _publish_saved_value(payload: str) -> None:
+            """Make pages opened from now on load `payload`. The canvas's value
+            was computed once, at launch, and that copy is what `/config` (and
+            the HTML page) hands to the canvas — which loads the first value it
+            gets, so without this it would open on the launch-time graph and
+            could later save it back over newer edits."""
+            canvas = self._canvas
+            if canvas is None:
+                return
+            canvas.value = payload
+            config = getattr(self, "config", None) or {}
+            for component in config.get("components", []):
+                if component.get("id") == canvas._id:
+                    component.setdefault("props", {})["value"] = payload
+                    break
+
         def save_workflow(
             data,
             request: Optional[Request] = None,
@@ -1994,6 +2056,7 @@ class Workflow(Blocks):
                 with _save_lock:
                     with open(workflow_file, "w", encoding="utf-8") as f:
                         f.write(payload)
+                    _publish_saved_value(payload)
                     if self._api_endpoints is not None:
                         try:
                             self._api_endpoints.sync()
@@ -2009,6 +2072,16 @@ class Workflow(Blocks):
 
         def get_workflow_key(_data=None) -> str:
             return _workflow_key(workflow_file)
+
+        def get_app_version(_data=None) -> str:
+            """`<structure>.<defaults>`: the first part is bumped whenever a save
+            rebuilds the app view / endpoints (an open page's event ids no
+            longer exist), the second when a save only changes the pre-filled
+            values. Either way the frontend's copy of the app is stale."""
+            manager = self._api_endpoints
+            if manager is None:
+                return "0.0"
+            return f"{manager.version}.{manager.defaults_version}"
 
         async def record_workflow_run(
             data,
@@ -2059,6 +2132,7 @@ class Workflow(Blocks):
             get_oauth_scopes,
             get_space_id,
             get_workflow_key,
+            get_app_version,
             record_workflow_run,
             call_space,
             call_model,
@@ -2094,12 +2168,22 @@ class Workflow(Blocks):
             return WorkflowGraph.from_json(_load_initial())
 
         with self:
-            if get_space() is not None and os.getenv("OAUTH_CLIENT_ID"):
-                gr.LoginButton(visible=False)
-            WorkflowCanvas(
+            self._canvas = WorkflowCanvas(
                 value=_load_initial,
                 server_functions=server_functions,
+                app_view=_APP_ELEM_ID,
             )
+            # The "app view": a regular Gradio app built from the same
+            # components that back the workflow's API endpoints (filled in by
+            # `register_workflow_endpoints` below). The canvas overlays it; the
+            # frontend decides which one a visitor sees.
+            with gr.Column(elem_id=_APP_ELEM_ID) as app_root:
+                if get_space() is not None and os.getenv("OAUTH_CLIENT_ID"):
+                    # Created here rather than by the endpoint manager: the
+                    # button attaches a load event, which only a regular
+                    # `with Blocks` context wires up.
+                    with gr.Row(elem_id=f"{_APP_ELEM_ID}-header"):
+                        gr.LoginButton(size="sm", scale=0, min_width=0)
 
         def _wrap_bound_fn(fn: Callable) -> Callable:
             async def wrapper(
@@ -2126,9 +2210,32 @@ class Workflow(Blocks):
 
             return wrapper
 
-        if bound:
-            from gradio.workflow_api import _active_blocks
+        def call_space_queued(
+            data_json: str,
+            _request: Optional[Request] = None,
+            _token: Optional[OAuthToken] = None,
+        ) -> str:
+            """`call_space` behind the queue rather than as a server function,
+            so the canvas sees the Space's toasts while it waits for a GPU."""
+            toasts = {"warning": gr.Warning, "success": gr.Success}
+            return call_space(
+                json.loads(data_json),
+                _request,
+                _token,
+                on_log=lambda msg, level: toasts.get(level, gr.Info)(msg),
+            )
 
+        from gradio.workflow_api import _active_blocks
+
+        with _active_blocks(self):
+            gr.api(
+                call_space_queued,
+                api_name="call_space",
+                concurrency_limit=None,
+                api_visibility="undocumented",
+            )
+
+        if bound:
             if len(bound) != len({_SANITIZE_RE.sub("_", n) for n in bound}):
                 sanitized = [_SANITIZE_RE.sub("_", n) for n in bound]
                 dupes = {s for s in sanitized if sanitized.count(s) > 1}
@@ -2149,7 +2256,9 @@ class Workflow(Blocks):
         # Expose each subject (output) as a named API endpoint reusing /info +
         # /call. The manager re-syncs on every save_workflow, so adding,
         # removing, renaming, or retyping an output updates the live API.
-        self._api_endpoints = register_workflow_endpoints(self, _current_graph, callers)
+        self._api_endpoints = register_workflow_endpoints(
+            self, _current_graph, callers, app_root=app_root
+        )
 
     def launch(self, *args, **kwargs):  # type: ignore[override]
         """Launch the workflow as a Gradio app. Accepts the same arguments as `gr.Blocks.launch()`.
@@ -2169,6 +2278,7 @@ class Workflow(Blocks):
             tempfile.gettempdir(),
             *(kwargs.get("allowed_paths") or []),
         ]
+        kwargs["css"] = _APP_CSS + (kwargs.get("css") or "")
         # We need the edit link to print (and the browser to open to it) before
         # the main thread is blocked, which means super().launch() must return
         # first. Rather than forcing `debug=False` — which would also strip

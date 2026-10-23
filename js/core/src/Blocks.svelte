@@ -74,7 +74,6 @@
 		max_file_size,
 		initial_layout,
 		css,
-		vibe_mode,
 		search_params,
 		render_complete = $bindable(false),
 		ready = $bindable(false),
@@ -103,7 +102,6 @@
 		max_file_size: number | undefined;
 		initial_layout: ComponentMeta | undefined;
 		css: string | null | undefined;
-		vibe_mode: boolean;
 		search_params: URLSearchParams;
 		render_complete: boolean;
 		ready: boolean;
@@ -293,8 +291,6 @@
 		});
 	});
 
-	let vibe_editor_width = 350;
-
 	// export let
 	let api_docs_visible = $derived(
 		search_params.get("view") === "api" && footer_links.includes("api")
@@ -310,7 +306,6 @@
 	let ApiDocs: Component<any> | null = null;
 	let ApiRecorder: Component<any> | null = null;
 	let Settings: Component<any> | null = null;
-	let VibeEditor: any = $state(null);
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -332,13 +327,6 @@
 		if (!Settings) {
 			const settings_module = await import("./api_docs/Settings.svelte");
 			Settings = settings_module.default;
-		}
-	}
-
-	async function loadVibeEditor(): Promise<void> {
-		if (!VibeEditor) {
-			const vibe_editor_module = await import("@gradio/vibeeditor");
-			VibeEditor = vibe_editor_module.default;
 		}
 	}
 
@@ -524,10 +512,6 @@
 			}
 		});
 
-		if (vibe_mode) {
-			void loadVibeEditor();
-		}
-
 		return () => {
 			disconnect_iframe_resizer();
 			mutation_observer?.disconnect();
@@ -557,7 +541,6 @@
 		class="contain"
 		style:flex-grow={app_mode ? "1" : "auto"}
 		bind:this={root_container}
-		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
 		<MountComponents node={app_tree.root} />
 	</main>
@@ -739,10 +722,6 @@
 				/>
 			</div>
 		</div>
-	{/if}
-
-	{#if vibe_mode && VibeEditor}
-		<VibeEditor {app} {root} />
 	{/if}
 </div>
 

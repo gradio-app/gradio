@@ -1,4 +1,5 @@
 import { test, describe, afterEach, expect } from "vitest";
+import { tick } from "svelte";
 import { cleanup, render, fireEvent } from "@self/tootils/render";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
@@ -187,11 +188,26 @@ describe("Events", () => {
 
 		const expand = listen("expand", { retrospective: true });
 		const collapse = listen("collapse", { retrospective: true });
-		const gradio_expand = listen("gradio_expand", { retrospective: true });
 
 		expect(expand).not.toHaveBeenCalled();
 		expect(collapse).not.toHaveBeenCalled();
-		expect(gradio_expand).not.toHaveBeenCalled();
+	});
+
+	test("gradio_expand fires on mount only when mounted open", async () => {
+		// An accordion can mount already open (e.g. revealed with open=True
+		// while hidden), and must still ask for its unrendered children.
+		const open = await render(Accordion, { ...base_props, open: true });
+		const open_expand = open.listen("gradio_expand", { retrospective: true });
+		await tick();
+		expect(open_expand).toHaveBeenCalledTimes(1);
+		cleanup();
+
+		const closed = await render(Accordion, { ...base_props, open: false });
+		const closed_expand = closed.listen("gradio_expand", {
+			retrospective: true
+		});
+		await tick();
+		expect(closed_expand).not.toHaveBeenCalled();
 	});
 
 	test("expand and collapse fire alternately on repeated toggles", async () => {
@@ -267,6 +283,8 @@ describe("get_data / set_data", () => {
 			...base_props,
 			open: true
 		});
+		// let the mount-time gradio_expand (mounted open) go out first
+		await tick();
 
 		const collapse = listen("collapse");
 		const expand = listen("expand");
@@ -283,6 +301,8 @@ describe("get_data / set_data", () => {
 			...base_props,
 			open: true
 		});
+		// let the mount-time gradio_expand (mounted open) go out first
+		await tick();
 
 		const expand = listen("expand");
 		const collapse = listen("collapse");
@@ -330,6 +350,53 @@ describe("get_data / set_data", () => {
 
 		const data = await get_data();
 		expect(data).toHaveProperty("open", true);
+	});
+
+	test("get_data reflects a header click", async () => {
+		const { getByRole, get_data } = await render(Accordion, {
+			...base_props,
+			open: true
+		});
+
+		await fireEvent.click(
+			getByRole("button", { ...hidden, name: /Test Accordion/ })
+		);
+		expect(await get_data()).toHaveProperty("open", false);
+	});
+
+	test("set_data({ open: false }) closes an accordion opened by a header click", async () => {
+		const { getByRole, getByTestId, listen, set_data } = await render(
+			Accordion,
+			{ ...base_props, open: false }
+		);
+
+		await fireEvent.click(
+			getByRole("button", { ...hidden, name: /Test Accordion/ })
+		);
+		expectContentOpen(getByTestId);
+
+		const collapse = listen("collapse");
+		await set_data({ open: false });
+		expectContentClosed(getByTestId);
+		expect(collapse).toHaveBeenCalledTimes(1);
+	});
+
+	test("set_data({ open: true }) reopens an accordion closed by a header click", async () => {
+		const { getByRole, getByTestId, listen, set_data } = await render(
+			Accordion,
+			{ ...base_props, open: false }
+		);
+
+		await set_data({ open: true });
+		await fireEvent.click(
+			getByRole("button", { ...hidden, name: /Test Accordion/ })
+		);
+		expectContentClosed(getByTestId);
+
+		const expand = listen("expand");
+		await set_data({ open: true });
+		expectContentOpen(getByTestId);
+		expect(expand).toHaveBeenCalledTimes(1);
 	});
 
 	test("round-trip: set_data then get_data preserves open state", async () => {

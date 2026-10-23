@@ -169,8 +169,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			// reload that fires once when this list is committed happens
 			// before iframes start running tests, so it's harmless. CI
 			// caches `node_modules/.vite` so even that one reload is rare.
-			// The deps belong to workspace packages and do not resolve from the
-			// root, hence the "package > dep" form.
+			// These deps belong to workspace packages and don't resolve from
+			// the repo root, hence the `parent > dep` form.
 			include: [
 				"@gradio/markdown > @gradio/markdown-code > katex/contrib/auto-render",
 				"@gradio/markdown > @gradio/markdown-code > mermaid",

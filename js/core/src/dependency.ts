@@ -42,9 +42,6 @@ export class Dependency {
 	// if this dependency has any then, success or failure triggers
 	triggers: [number, "success" | "failure" | "all"][] = [];
 
-	// the id of the original event_id that caused this dependency to run
-	// in the case of chained events, it would be the id of the initial trigger
-	original_trigger_id: number | null = null;
 	show_progress_on: number[] | null = null;
 	component_prop_inputs: number[] = [];
 	show_progress: "full" | "minimal" | "hidden";
@@ -60,7 +57,6 @@ export class Dependency {
 	constructor(dep_config: IDependency) {
 		this.id = dep_config.id;
 		this.api_name = dep_config.api_name;
-		this.original_trigger_id = dep_config.id;
 		this.inputs = dep_config.inputs;
 		this.outputs = dep_config.outputs;
 		this.connection_type = dep_config.connection;
@@ -215,6 +211,7 @@ export class DependencyManager {
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
 	// Streams that the page ended and that are read to their end
 	page_ended: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
+	submission_trigger_ids: Map<number, number | null> = new Map();
 	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
 		new Map();
 	client: Client;
@@ -455,18 +452,9 @@ export class DependencyManager {
 					}
 					this.update_loading_status(status);
 				};
+				const target_id = event_meta.target_id ?? null;
 
 				try {
-					let target_id: number | null = null;
-					if (
-						event_meta.target_id !== undefined ||
-						event_meta.type === "event"
-					) {
-						target_id = event_meta.target_id || null;
-					} else {
-						target_id = dep.original_trigger_id;
-					}
-
 					if (
 						dep.connection_type === "stream" &&
 						this.submissions.has(dep.id)
@@ -519,6 +507,7 @@ export class DependencyManager {
 						}
 
 						this.submissions.set(dep.id, dep_submission.data);
+						this.submission_trigger_ids.set(dep.id, target_id);
 						this.active_dependencies.set(dep_submission.data, dep);
 						active_submission = dep_submission.data;
 						let index = 0;
@@ -745,7 +734,8 @@ export class DependencyManager {
 						this.dispatch({
 							type: "fn",
 							fn_index: dep_id,
-							event_data: null
+							event_data: null,
+							target_id: target_id as number | undefined
 						});
 					});
 				}
@@ -758,8 +748,10 @@ export class DependencyManager {
 	apply_render(render_data: any): void {
 		const { layout, components, render_id, dependencies } = render_data;
 
-		this.rerender_cb(components, layout);
-		// update dependencies
+		// update dependencies before the layout: re-rendering pushes
+		// props into reused components, and any event that fires
+		// (e.g. an accordion collapsing back to its declared state)
+		// must reach this render's listeners, not the previous one's.
 		const { by_id, by_event } = this.create(
 			dependencies as unknown as IDependency[]
 		);
@@ -776,6 +768,7 @@ export class DependencyManager {
 			});
 		}
 		this.render_id_deps.set(render_id, new Set(Array.from(by_id.keys())));
+		this.rerender_cb(components, layout);
 		this.dispatch_load_events(by_id);
 	}
 
@@ -985,10 +978,6 @@ export class DependencyManager {
 			const dependency = _deps_by_id.get(trigger_after);
 			if (dependency) {
 				dependency.add_trigger(dep_id, condition);
-				dependency.original_trigger_id = walk_after_to_original(
-					dependencies,
-					trigger_after
-				);
 			}
 		}
 
@@ -1113,6 +1102,7 @@ export class DependencyManager {
 					stream_state: null
 				});
 				this.update_loading_stati_state();
+				const target_id = this.submission_trigger_ids.get(id) ?? undefined;
 				this.clear_submission(id);
 				// Need to trigger any dependencies that are waiting for this one to complete
 				const { failure, all } = this.dependencies_by_fn
@@ -1123,7 +1113,7 @@ export class DependencyManager {
 						type: "fn",
 						fn_index: dep_id,
 						event_data: null,
-						target_id: id
+						target_id
 					});
 				});
 				all.forEach((dep_id) => {
@@ -1131,7 +1121,7 @@ export class DependencyManager {
 						type: "fn",
 						fn_index: dep_id,
 						event_data: null,
-						target_id: id
+						target_id
 					});
 				});
 			}
@@ -1207,6 +1197,7 @@ export class DependencyManager {
 		const registered_submission = this.submissions.get(id);
 		if (submission === undefined || registered_submission === submission) {
 			this.submissions.delete(id);
+			this.submission_trigger_ids.delete(id);
 		}
 		if (submission) {
 			this.active_dependencies.delete(submission);
@@ -1265,28 +1256,4 @@ export function process_frontend_fn(
 		if (typeof result === "undefined") return [];
 		return (wrap && !Array.isArray(result) ? [result] : result) as unknown[];
 	};
-}
-
-/**
- * Walks the dependency graph to find the original trigger ID for a given dependency.
- * @param dependency_map The map of all dependencies.
- * @param dep_id The ID of the dependency to start from.
- * @returns The ID of the original trigger dependency, or the input ID if not found.
- */
-function walk_after_to_original(dependency_map: IDependency[], dep_id: number) {
-	// TODO: hoist this cache later so it is useful across multiple calls
-	let cache = new Map<number, IDependency>();
-	let current_id = dep_id;
-	let safety_counter = 0;
-	while (safety_counter < 100) {
-		const dep =
-			cache.get(current_id) || dependency_map.find((d) => d.id === current_id);
-		if (!dep) break;
-		cache.set(dep.id, dep);
-		if (dep.trigger_after === null || dep.trigger_after === undefined) break;
-
-		current_id = dep.trigger_after;
-		safety_counter += 1;
-	}
-	return current_id;
 }

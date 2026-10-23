@@ -1,5 +1,19 @@
 # gradio
 
+## 6.30.0
+
+### Features
+
+- [#13893](https://github.com/gradio-app/gradio/pull/13893) [`0d59e5e`](https://github.com/gradio-app/gradio/commit/0d59e5e75824fa1b2317717bcb982ce3d77e95db) - Add an app view to gr.Workflow.  Thanks @abidlabs!
+- [#13866](https://github.com/gradio-app/gradio/pull/13866) [`ef1a961`](https://github.com/gradio-app/gradio/commit/ef1a9612f595316c9a98620e332742bf52d58d9b) - gr.Workflow: "Run this node" now reuses up-to-date upstream results instead of re-executing the whole upstream subgraph (Shift+click forces a full re-run). Also keeps a node's completed state after a run, which makes the stale-outline indicator work beyond the first few seconds.  Thanks @yvrjsharma!
+- [#13937](https://github.com/gradio-app/gradio/pull/13937) [`dea2bf3`](https://github.com/gradio-app/gradio/commit/dea2bf33d79338b2e607689d4b77b9b37d31293b) - Preserve the alpha channel of images loaded into gr.ImageEditor (backport to 6.x).  Thanks @abidlabs!
+
+### Fixes
+
+- [#13936](https://github.com/gradio-app/gradio/pull/13936) [`0a7c8da`](https://github.com/gradio-app/gradio/commit/0a7c8da46e0d3918e24a3da6cd9b749e08eb8f6d) - Fix hidden Accordion revealed with open=True rendering empty.  Thanks @abidlabs!
+- [#13940](https://github.com/gradio-app/gradio/pull/13940) [`c836e23`](https://github.com/gradio-app/gradio/commit/c836e23ae83b938c2677534955357aae8c26c358) - Keep custom tags visible in gr.Chatbot when allow_tags is set.  Thanks @hysts!
+- [#13944](https://github.com/gradio-app/gradio/pull/13944) [`ff0dfca`](https://github.com/gradio-app/gradio/commit/ff0dfca072af1424d32d2acc43053915530366cb) - Escape LaTeX when restoring it into rendered markdown.  Thanks @hysts!
+
 ## 6.29.1
 
 ### Fixes

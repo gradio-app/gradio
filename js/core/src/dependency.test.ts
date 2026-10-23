@@ -432,6 +432,88 @@ describe("DependencyManager.dispatch", () => {
 			"waiting"
 		);
 	});
+
+	test("sends the root Blocks id as the trigger of a load event and its .failure() step", async () => {
+		const on_load = dependency(0, "on_load", [10]);
+		on_load.targets = [[0, "load"]];
+		const fallback = dependency(1, "fallback", [10]);
+		fallback.trigger_after = 0;
+		fallback.trigger_only_on_failure = true;
+		const submitted: [number, unknown][] = [];
+		const client = {
+			submit: (
+				fn_index: number,
+				_data: unknown,
+				_event_data: unknown,
+				trigger_id: unknown
+			) => {
+				submitted.push([fn_index, trigger_id]);
+				return submission(
+					(async function* () {
+						yield fn_index === 0
+							? { type: "status", stage: "error", queue: true, message: "boom" }
+							: { type: "status", stage: "complete", queue: true };
+					})()
+				);
+			}
+		} as unknown as Client;
+
+		manager([on_load, fallback], client).dispatch_load_events();
+
+		await vi.waitFor(() =>
+			expect(submitted).toEqual([
+				[0, 0],
+				[1, 0]
+			])
+		);
+	});
+
+	test("sends the cancelled run's trigger to the step chained after it", async () => {
+		const slow = dependency(0, "slow", [10]);
+		slow.targets = [[5, "click"]];
+		const after = dependency(1, "after", [11]);
+		after.trigger_after = 0;
+		const stop = dependency(2, "stop", []);
+		stop.targets = [[6, "click"]];
+		stop.cancels = [0];
+		const submitted: [number, unknown][] = [];
+		const client = {
+			submit: (
+				fn_index: number,
+				_data: unknown,
+				_event_data: unknown,
+				trigger_id: unknown
+			) => {
+				submitted.push([fn_index, trigger_id]);
+				const run = submission(
+					(async function* () {
+						if (fn_index === 0) await new Promise(() => {});
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				);
+				return Object.assign(run, { cancel: vi.fn() });
+			}
+		} as unknown as Client;
+		const dependency_manager = manager([slow, after, stop], client);
+
+		dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 5,
+			event_data: null
+		});
+		await vi.waitFor(() =>
+			expect(dependency_manager.submissions.has(0)).toBe(true)
+		);
+		dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 6,
+			event_data: null
+		});
+
+		await vi.waitFor(() => expect(submitted).toContainEqual([1, 5]));
+	});
 });
 
 describe("DependencyManager.close_stream", () => {

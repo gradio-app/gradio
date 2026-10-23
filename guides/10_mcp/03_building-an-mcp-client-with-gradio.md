@@ -10,7 +10,7 @@ The Model Context Protocol (MCP) standardizes how applications provide context t
 
 ## Prerequisites
 
-- Python 3.10+
+- Python 3.11+
 - An Anthropic API key
 - Basic understanding of Python programming
 

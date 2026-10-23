@@ -432,6 +432,33 @@ describe("Props: allow_tags", () => {
 			expect(bot.textContent).toContain("before <tool_call/> after")
 		);
 	});
+
+	test("keeps finished paragraphs after an escaped tag while streaming", async () => {
+		const content = "<think>\nOkay.\n\nFirst point.\n\nSecond";
+		const { getAllByTestId, set_data } = await render(Chatbot, {
+			...default_props,
+			allow_tags: true,
+			value: [text_msg("assistant", content, 0)]
+		});
+
+		const bot = getAllByTestId("bot")[0];
+		const first = await waitFor(() => {
+			const p = bot.querySelectorAll(".md p")[0];
+			expect(p?.textContent).toBe("First point.");
+			return p;
+		});
+
+		await set_data({
+			value: [text_msg("assistant", `${content} point.`, 0)]
+		});
+
+		await waitFor(() =>
+			expect(bot.querySelectorAll(".md p")[1]?.textContent).toBe(
+				"Second point."
+			)
+		);
+		expect(bot.querySelectorAll(".md p")[0]).toBe(first);
+	});
 });
 
 describe("Props: autoscroll", () => {

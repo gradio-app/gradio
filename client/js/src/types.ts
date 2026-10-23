@@ -178,7 +178,6 @@ export interface Config {
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
 	dev_mode: boolean;
-	vibe_mode: boolean;
 	auth_message: string;
 	components: ComponentMeta[];
 	css: string | null;

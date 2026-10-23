@@ -149,7 +149,6 @@
 		"@gradio/timer": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/uploadbutton": "workspace:^",
-		"@gradio/vibeeditor": "workspace:^",
 		"@gradio/video": "workspace:^",
 		"@gradio/webrtc": "workspace:^",
 		"@gradio/workflowcanvas": "workspace:^",
