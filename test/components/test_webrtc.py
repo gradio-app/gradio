@@ -1373,8 +1373,9 @@ class TestStreams:
     )
     async def test_time_limit_ends_the_event_and_the_connection(self, launched):
         h = launched
-        event_id = await h.start("one")
+        # Made before the admission, from which the time limit counts
         pc = await make_offer(video=True)
+        event_id = await h.start("one")
         answer = await h.connect(pc, "one")
         assert 0 < answer["time_limit"] <= 1
         started = time.monotonic()
@@ -1391,8 +1392,9 @@ class TestStreams:
         self, launched
     ):
         h = launched
-        await h.start("one")
+        # Made before the admission, from which the time limit counts
         pc = await make_offer(video=True)
+        await h.start("one")
         await h.connect(pc, "one")
         notifier = h.manager.sessions["one"].notifier
         assert notifier is not None
@@ -2286,9 +2288,11 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
     with closing(demo):
         _, local_url, _ = demo.launch(prevent_thread_lock=True, max_threads=1)
         h = Harness(demo, local_url, webrtc)
+        # Made first: gathering its candidates can take longer than the time
+        # limit, which counts from the admission
+        pc = await make_offer(video=True)
         await h.start("one")
         started = time.monotonic()
-        pc = await make_offer(video=True)
         await h.connect(pc, "one")
         server_pc = h.manager.pcs["one"]
         await h.push_inputs("one")
