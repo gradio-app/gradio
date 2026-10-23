@@ -245,6 +245,25 @@ def test_examples_are_cached_before_the_gateway_serves(tmp_path, monkeypatch):
         assert calls == ["a", "b"]
 
 
+def test_running_event_and_server_are_visible_to_the_app():
+    # What ZeroGPU reads while an event runs: the event in the queue's active
+    # jobs, to see if its client left, and the server's port
+    from gradio.context import LocalContext
+
+    def fn():
+        blocks = LocalContext.blocks.get()
+        event_id = LocalContext.event_id.get()
+        events = [e for job in blocks._queue.active_jobs for e in job or []]
+        alive = [e.alive for e in events if e._id == event_id]
+        return f"{alive} {isinstance(blocks.server.config.port, int)}"
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        gr.Button().click(fn, None, t, api_name="fn")
+    with launched(demo) as client:
+        assert client.predict(api_name="/fn") == "[True] True"
+
+
 def test_invalid_executor():
     demo = gr.Interface(lambda x: x, "textbox", "textbox")
     with pytest.raises(ValueError, match="must be 'thread' or 'process'"):

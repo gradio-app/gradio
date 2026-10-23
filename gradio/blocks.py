@@ -4123,6 +4123,7 @@ Received inputs:
             worker.close()
             self._queue = getattr(self._queue, "original", self._queue)
             self._process_worker = None
+            self.server = None
             self.is_running = False
             return
         if not self.is_running:

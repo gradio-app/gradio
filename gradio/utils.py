@@ -112,26 +112,35 @@ def get_package_version() -> str:
         return ""
 
 
+_thread_event_loops = threading.local()
+
+
+def _set_thread_event_loop() -> None:
+    """Sets an event loop for this thread if none is running. It is the same
+    loop each time: a new one per call would leave the last one to be garbage
+    collected unclosed, which can raise when its sockets go first."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        loop = getattr(_thread_event_loops, "loop", None)
+        if loop is None or loop.is_closed():
+            loop = asyncio.new_event_loop()
+            _thread_event_loops.loop = loop
+        asyncio.set_event_loop(loop)
+
+
 def safe_get_lock() -> asyncio.Lock:
     """Get asyncio.Lock() without fear of getting an Exception.
 
     Needed because in reload mode we import the Blocks object outside
     the main thread.
     """
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    _set_thread_event_loop()
     return asyncio.Lock()
 
 
 def safe_get_stop_event() -> asyncio.Event:
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    _set_thread_event_loop()
     return asyncio.Event()
 
 

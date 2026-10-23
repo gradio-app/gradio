@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
 from gradio.processing import protocol
@@ -41,6 +42,11 @@ class ForwardingQueue:
     def __getattr__(self, name: str) -> Any:
         # Settings such as max_size live on the queue the app configured
         return getattr(self.original, name)
+
+    @property
+    def active_jobs(self) -> list[list[RunningEvent]]:
+        # Read by code an event runs, e.g. ZeroGPU, to learn if its client left
+        return [list(self.worker.running.values())]
 
     def log_message(self, event_id, log, title, level, duration=10, visible=True):
         self.worker.send(
@@ -74,6 +80,28 @@ class ForwardingQueue:
 
     def close(self):
         pass
+
+
+class RunningEvent:
+    """An event the gateway's queue is running here. `alive` turns False when
+    its client leaves or it is cancelled, as with the queue's own events."""
+
+    def __init__(self, event_id: str, session_hash: str | None):
+        self._id = event_id
+        self.session_hash = session_hash
+        self.alive = True
+
+
+class AppProcessServer:
+    """`blocks.server` in the app's process: its private server, which the
+    gateway forwards to (e.g. ZeroGPU reads its port)."""
+
+    def __init__(self, worker: Worker, port: int):
+        self.worker = worker
+        self.config = SimpleNamespace(port=port)
+
+    def close(self) -> None:
+        self.worker.close()
 
 
 class Worker:
@@ -124,12 +152,14 @@ class Worker:
             worker=self,
         )
         self.http_server: Any = None
+        self.http_port: int | None = None
         self.token = secrets.token_hex(16)
         self.loop: asyncio.AbstractEventLoop | None = None
         self.writer: asyncio.StreamWriter | None = None
         self.tasks: dict[int, asyncio.Task] = {}
         # The session of each running event, for cleaning up after it
         self.event_sessions: dict[str, str | None] = {}
+        self.running: dict[str, RunningEvent] = {}
         self.gateway: subprocess.Popen | None = None
         self.ready = threading.Event()
         self.done = threading.Event()
@@ -229,6 +259,9 @@ class Worker:
             self.app.reopen_session(session_hash)
             return
         self.app.mark_session_closed(session_hash)
+        for event in self.running.values():
+            if event.session_hash == session_hash:
+                event.alive = False
         caching.clear_session_caches(session_hash)
         for run in self.blocks.pending_streams.pop(session_hash, {}).values():
             for stream in run.values():
@@ -260,13 +293,27 @@ class Worker:
             self.event_sessions[body.event_id] = body.session_hash
         if not p["continuing"] and body.event_id in self.app.iterators:
             await self.close_iterator(body.event_id)
-        output = await route_utils.call_process_api(
-            app=self.app,
-            body=body,
-            gr_request=protocol.restore_request(p["request"], self.lifespan_state()),
-            fn=fn,
-            root_path=p["root_path"],
-        )
+        running = None
+        if body.event_id is not None:
+            running = RunningEvent(body.event_id, body.session_hash)
+            self.running[body.event_id] = running
+        try:
+            output = await route_utils.call_process_api(
+                app=self.app,
+                body=body,
+                gr_request=protocol.restore_request(
+                    p["request"], self.lifespan_state()
+                ),
+                fn=fn,
+                root_path=p["root_path"],
+            )
+        except asyncio.CancelledError:
+            if running is not None:
+                running.alive = False
+            raise
+        finally:
+            if running is not None and self.running.get(body.event_id) is running:
+                del self.running[body.event_id]
         output["has_iterator"] = self.app.iterators.get(body.event_id) is not None
         if not output["has_iterator"]:
             # The queue removes a finished event's entry, as it does with threads
@@ -386,6 +433,7 @@ class Worker:
         self.loop = asyncio.get_running_loop()
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
         http_port = self.serve_http()
+        self.http_port = http_port
         # What launch() runs once the server is up, e.g. caching examples. Here
         # it runs before the gateway serves, whose first events would wait on it
         if not self.app.startup_events_triggered:
@@ -522,5 +570,6 @@ def serve(
     blocks.share_url = share_url
     for key, value in worker.server_attributes.items():
         setattr(blocks, key, value)
+    blocks.server = AppProcessServer(worker, worker.http_port)  # type: ignore[assignment]
     blocks.is_running = True
     return worker.app, local_url, share_url
