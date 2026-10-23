@@ -1544,6 +1544,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             postprocessed_value = block_config["props"].pop("value", None)
 
             constructor_args = cls.recover_kwargs(block_config["props"])
+            if block_config["props"].get("name") == "dataset":
+                # A Dataset's config describes its components as
+                # {"name", "class_id"}; the constructor takes their names
+                constructor_args["components"] = [
+                    c["name"] if isinstance(c, dict) else c
+                    for c in constructor_args.get("components") or []
+                ]
             if preserve_ids:
                 Context.id = id
             block = cls(**constructor_args)
@@ -1657,7 +1664,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         api_visibility = "public"
                     else:
                         api_visibility = "undocumented"
-                    dependency["api_visibility"] = api_visibility
+                dependency["api_visibility"] = api_visibility
 
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
