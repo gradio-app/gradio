@@ -1657,7 +1657,11 @@ class TestStreams:
             "shutdown ends",
             "created",
         ]
+        # Closed before it connects, the stream would end only at the connect
+        # timeout, and its shutdown would land in a later test's log
+        await h.wait_until(lambda: h.manager.sessions["two"].connected)
         await second.close()
+        await h.wait_until(lambda: SlowShutdown.log.count("shutdown ends") == 2)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -1694,7 +1698,9 @@ class TestStreams:
             "created",
             "shutdown ends",
         ]
+        await h.wait_until(lambda: h.manager.sessions["two"].connected)
         await second.close()
+        await h.wait_until(lambda: SlowShutdown.log.count("shutdown ends") == 2)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
