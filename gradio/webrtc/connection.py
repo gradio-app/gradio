@@ -754,7 +754,7 @@ async def _wait_for_admission(webrtc_id: str) -> ConnectionManager | None:
         _admission_waiters[webrtc_id] += 1
         try:
             await asyncio.wait_for(_admissions[webrtc_id].wait(), ADMISSION_WAIT)
-        except (asyncio.TimeoutError, TimeoutError):
+        except TimeoutError:
             pass
         finally:
             _admission_waiters[webrtc_id] -= 1

@@ -11,7 +11,7 @@ import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Generator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Literal, TypeAlias, cast
+from typing import TYPE_CHECKING, Any, Literal, Self, TypeAlias, cast
 
 import numpy as np
 from numpy import typing as npt
@@ -26,7 +26,6 @@ from gradio.webrtc.utils import (
 
 if TYPE_CHECKING:
     from av import AudioFrame
-    from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 

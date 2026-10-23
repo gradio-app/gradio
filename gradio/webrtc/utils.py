@@ -355,7 +355,7 @@ async def wait_for_item(queue: asyncio.Queue, timeout: float = 0.1) -> Any:
     """
     try:
         return await asyncio.wait_for(queue.get(), timeout=timeout)
-    except (TimeoutError, asyncio.TimeoutError):
+    except TimeoutError:
         return None
 
 
