@@ -135,7 +135,8 @@ class StreamNotifier:
     Shows toasts on the page of one stream: the errors of its handler, and
     `gr.Warning` / `gr.Info` / `gr.Success` called from it, which have no queued
     event to go through. Usable from any thread. Messages sent before the data
-    channel exists wait for it.
+    channel is open wait for it; once it closed, or the stream ended, they are
+    dropped.
     """
 
     def __init__(
@@ -151,6 +152,7 @@ class StreamNotifier:
         self.show_error = show_error
         self.channel: Any = None
         self.pending: list[str] = []
+        self.closed = False
         # The handler's error as error_payload() shows it, once it failed
         self.failure: dict[str, Any] | None = None
         # fail() can be called from several handler threads at once
@@ -172,9 +174,19 @@ class StreamNotifier:
         for message in pending:
             self._send_now(message)
 
+    def close(self) -> None:
+        """Called on the event loop when the stream ends."""
+        self.closed = True
+        self.pending.clear()
+
     def _send_now(self, message: str) -> None:
+        if self.closed:
+            return
         if not self._is_open():
-            self.pending.append(message)
+            # A handler, or a thread it started, may keep logging after the
+            # channel closed, and nothing would ever read those
+            if getattr(self.channel, "readyState", "connecting") == "connecting":
+                self.pending.append(message)
             return
         try:
             self.channel.send(message)

@@ -362,6 +362,8 @@ class ConnectionManager:
         if session is None or session.ended:
             return
         session.ended = True
+        if session.notifier is not None:
+            session.notifier.close()
         session.wake()
 
     def _close_connection(self, webrtc_id: str) -> None:

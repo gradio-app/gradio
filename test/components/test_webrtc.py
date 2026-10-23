@@ -3328,6 +3328,30 @@ class TestCleanUp:
         assert "one" not in manager.connections
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("channel", [None, "connecting", "open", "closed"])
+    async def test_messages_of_an_ended_stream_are_not_kept(self, channel):
+        from gradio.webrtc.utils import StreamNotifier
+
+        # A handler, or a thread it started, may keep logging after its stream
+        # ended or its data channel closed
+        notifier = StreamNotifier(asyncio.get_running_loop(), end_stream=lambda: None)
+        if channel is not None:
+            notifier.channel = SimpleNamespace(readyState=channel, send=lambda m: None)
+        manager = self.manager()
+        manager.sessions["one"] = webrtc_connection.Session(
+            event=cast(Any, SimpleNamespace(signal=asyncio.Event())),
+            queue=cast(Any, None),
+            notifier=notifier,
+        )
+        notifier.send("info", "before the end")
+        await asyncio.sleep(0)
+        assert len(notifier.pending) == (1 if channel in (None, "connecting") else 0)
+        manager.end("one")
+        notifier.send("info", "after the end")
+        await asyncio.sleep(0)
+        assert notifier.pending == []
+
+    @pytest.mark.asyncio
     async def test_clean_up_releases_a_handler_waiting_for_its_inputs(self):
         from gradio.webrtc.tracks import AudioCallback
         from gradio.webrtc.utils import Context
