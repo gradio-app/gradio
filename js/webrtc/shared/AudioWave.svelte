@@ -9,8 +9,7 @@
 		icon = null,
 		icon_button_color = "var(--color-accent)",
 		pulse_color = "var(--color-accent)",
-		icon_radius = 50,
-		pending = false
+		icon_radius = 50
 	}: {
 		stream_state?: StreamState;
 		audio_source: () => MediaStream | null;
@@ -18,7 +17,6 @@
 		icon_button_color?: string;
 		pulse_color?: string;
 		icon_radius?: number;
-		pending?: boolean;
 	} = $props();
 
 	const NUM_BANDS = 16;
@@ -135,7 +133,7 @@
 </script>
 
 <div class="wave-wrapper">
-	{#if icon && !pending}
+	{#if icon}
 		<div class="icon-container">
 			<div class="icon" style:background={icon_button_color}>
 				<PulsingIcon

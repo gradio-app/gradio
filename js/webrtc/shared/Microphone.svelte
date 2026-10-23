@@ -99,7 +99,6 @@
 	let options_open = $state(false);
 	let is_muted = $state(false);
 	let is_mic_muted = $state(false);
-	let pending = $state(false);
 	let active_time_limit = $state<number | null>(null);
 	// The time limit the server reported in its answer, if any
 	let negotiated_time_limit: number | null = null;
@@ -182,11 +181,7 @@
 	}
 
 	function handle_message(msg: ControlMessage): void {
-		if (msg.type === "log" && msg.data === "pause_detected") {
-			pending = true;
-		} else if (msg.type === "log" && msg.data === "response_starting") {
-			pending = false;
-		} else if (msg.type === "end_stream") {
+		if (msg.type === "end_stream") {
 			close_stream();
 		}
 		onmessage?.(msg);
@@ -203,7 +198,6 @@
 		}
 		stream_state = "closed";
 		active_time_limit = null;
-		pending = false;
 	}
 
 	// When the user last stopped (or left the line), see RESTART_GUARD_MS
@@ -337,7 +331,6 @@
 			{icon}
 			{icon_button_color}
 			{pulse_color}
-			{pending}
 			{icon_radius}
 		/>
 		<StreamingBar time_limit={active_time_limit} />

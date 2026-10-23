@@ -88,15 +88,7 @@ def send_to_page(channel: DataChannel | None, message: str) -> None:
         logger.debug("Could not send %s", message, exc_info=True)
 
 
-MessageType = Literal[
-    "send_input",
-    "end_stream",
-    "stopword",
-    "error",
-    "warning",
-    "log",
-    "update_connection",
-]
+MessageType = Literal["send_input", "end_stream"]
 
 
 def create_message(type: MessageType, data: list[Any] | str) -> str:
