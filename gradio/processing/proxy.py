@@ -175,12 +175,15 @@ async def check_dependencies(
     from fastapi import HTTPException
 
     url, headers = _upstream(request, target)
+    content_type = request.headers.get("content-type", "")
+    body = b"" if content_type.startswith("multipart/") else await request.body()
     headers = [(k, v) for k, v in headers if k.lower() != b"content-length"]
     async with httpx2.AsyncClient(timeout=None) as client:
         response = await client.request(
             request.method,
             url,
             headers=[*headers, *extra_headers, (CHECK_HEADER, b"1")],
+            content=body,
         )
     if response.is_success:
         return

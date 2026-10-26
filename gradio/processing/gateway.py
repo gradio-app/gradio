@@ -45,6 +45,8 @@ class Link:
         self.writer: asyncio.StreamWriter | None = None
         self.server_loop: asyncio.AbstractEventLoop | None = None
         self.running = 0
+        self.slots: dict[str, asyncio.Semaphore] = {}
+        self.held: dict[str, asyncio.Semaphore] = {}
         self.loop = asyncio.new_event_loop()
         threading.Thread(
             target=self.loop.run_forever, daemon=True, name="gradio-gateway-link"
@@ -119,6 +121,18 @@ class Link:
         future = asyncio.run_coroutine_threadsafe(self._call(kind, payload), self.loop)
         return await asyncio.wrap_future(future)
 
+    def slot(self, concurrency_id: str, limit: int) -> asyncio.Semaphore:
+        """What lets an event of `concurrency_id` run in this process, which
+        runs `limit` of them at once, as with threads."""
+        if concurrency_id not in self.slots:
+            self.slots[concurrency_id] = asyncio.Semaphore(limit)
+        return self.slots[concurrency_id]
+
+    def release(self, event_id: str | None) -> None:
+        slot = self.held.pop(event_id, None) if event_id is not None else None
+        if slot is not None:
+            slot.release()
+
     def fail_pending(self, error: BaseException) -> None:
         def fail():
             for future in self.pending.values():
@@ -145,6 +159,7 @@ class Pool:
         self.sessions: LRUCache[str, Link] = LRUCache(100_000)
         self.lock = threading.Lock()
         self.limits: dict[int, int | None] = {}
+        self.group_limits: dict[str, int] = {}
 
     @property
     def primary(self) -> Link:
@@ -174,10 +189,15 @@ class Pool:
         with self.lock:
             link = self.sessions.get(session_hash) if session_hash else None
             if link is None or link not in self.links:
-                link = min(self.links, key=lambda link: link.running)
+                link = min(self.links, key=lambda link: link.running + len(link.held))
                 if session_hash:
                     self.sessions[session_hash] = link
             return link
+
+    def process_limit(self, fn: BlockFunction) -> int | None:
+        """How many events of `fn`'s concurrency group one process runs at
+        once: the smallest limit of the events in it, as with threads."""
+        return self.group_limits.get(fn.concurrency_id)
 
     def scale_limits(self) -> None:
         """Lets the queue admit each event's concurrency_limit once per
@@ -186,9 +206,13 @@ class Pool:
         if not self.limits:
             for fn in self.blocks.fns.values():
                 limit = fn.concurrency_limit
-                self.limits[fn._id] = (
-                    queue.default_concurrency_limit if limit == "default" else limit
-                )
+                limit = queue.default_concurrency_limit if limit == "default" else limit
+                self.limits[fn._id] = limit
+                if limit is not None:
+                    current = self.group_limits.get(fn.concurrency_id)
+                    self.group_limits[fn.concurrency_id] = (
+                        limit if current is None else min(current, limit)
+                    )
         count = max(len(self.links), 1)
         for fn in self.blocks.fns.values():
             limit = self.limits.get(fn._id)
@@ -239,6 +263,7 @@ class RemoteIterator:
         self.event_id = event_id
 
     async def aclose(self) -> None:
+        self.link.release(self.event_id)
         self.link.send(("close_iterator", self.event_id))
 
 
@@ -264,8 +289,24 @@ async def forward_event(
         if isinstance(iterator, RemoteIterator)
         else pool.for_session(body.session_hash)
     )
+    limit = (
+        pool.process_limit(fn) if fn.queue and not fn.is_validator_function else None
+    )
+    slot = None
+
+    def release() -> None:
+        if body.event_id is not None:
+            link.release(body.event_id)
+        elif slot is not None:
+            slot.release()
+
     link.running += 1
     try:
+        if limit is not None and iterator is None:
+            await link.slot(fn.concurrency_id, limit).acquire()
+            slot = link.slot(fn.concurrency_id, limit)
+            if body.event_id is not None:
+                link.held[body.event_id] = slot
         output = await link.call(
             "event",
             {
@@ -278,9 +319,14 @@ async def forward_event(
                 "root_path": root_path,
             },
         )
+    except BaseException:
+        release()
+        raise
     finally:
         link.running -= 1
     has_iterator = output.pop("has_iterator")
+    if not has_iterator:
+        release()
     if body.event_id is not None:
         app.iterators[body.event_id] = (  # type: ignore[assignment]
             RemoteIterator(link, body.event_id) if has_iterator else None
@@ -443,6 +489,7 @@ def build(bootstrap: dict) -> Blocks:
     blocks.app_id = config["app_id"]
     blocks._state_fingerprint = bootstrap["fingerprint"]  # type: ignore[attr-defined]
     blocks.delete_cache = bootstrap["delete_cache"]
+    blocks.proxy_urls = set(bootstrap["proxy_urls"])
     blocks._expects_oauth = bootstrap["expects_oauth"]  # type: ignore[attr-defined]
     if config.get("mode"):
         blocks.mode = config["mode"]
@@ -454,8 +501,11 @@ def build(bootstrap: dict) -> Blocks:
 
     api_info = bootstrap["api_info"]
 
-    def get_api_info(all_endpoints: bool = False, page: str | None = None):  # noqa: ARG001
-        return api_info[all_endpoints]
+    def get_api_info(all_endpoints: bool = False, page: str | None = None):
+        return (
+            api_info.get((page, bool(all_endpoints)))
+            or api_info[(None, bool(all_endpoints))]
+        )
 
     blocks.get_config_file = get_config_file  # type: ignore[method-assign]
     blocks.get_api_info = get_api_info  # type: ignore[method-assign]
@@ -493,6 +543,7 @@ def watch_app_process(pid: int, blocks: Blocks) -> None:
 
 
 FORWARDED_ROUTES = [
+    ("/custom_component/{id}/{environment}/{type}/{file_name}", ["GET"]),
     ("/component_server", ["POST"]),
     ("/component_server/", ["POST"]),
     ("/deep_link", ["GET"]),

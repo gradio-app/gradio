@@ -461,6 +461,134 @@ def test_auth_dependency_request_state_reaches_the_event():
         assert client.predict(api_name="/whoami") == "alice"
 
 
+REPLICA_APP = """
+import os, threading, time
+import gradio as gr
+
+lock = threading.Lock()
+state = {"running": 0, "peak": 0}
+
+def work(x):
+    with lock:
+        state["running"] += 1
+        state["peak"] = max(state["peak"], state["running"])
+    time.sleep(1)
+    with lock:
+        state["running"] -= 1
+    return f"{os.getpid()} {state['peak']}"
+
+with gr.Blocks() as demo:
+    t = gr.Textbox()
+    t.submit(work, t, t, api_name="work", concurrency_limit=1)
+
+demo.launch(server_port=int(os.environ["PORT"]))
+"""
+
+
+def test_replicas_keep_concurrency_limit_per_process(tmp_path):
+    import subprocess
+    import sys
+
+    script = tmp_path / "app.py"
+    script.write_text(REPLICA_APP)
+    port = 7990
+    proc = subprocess.Popen(
+        [sys.executable, str(script)],
+        env={**os.environ, "GRADIO_PROCESS_REPLICAS": "2", "PORT": str(port)},
+        start_new_session=True,
+    )
+    url = f"http://127.0.0.1:{port}/"
+    try:
+        deadline = time.time() + 120
+        while time.time() < deadline:
+            try:
+                status = httpx2.get(f"{url}gradio_api/processes").json()
+                if len(status["processes"]) == 2 and not status["starting"]:
+                    break
+            except (httpx2.HTTPError, ValueError):
+                pass
+            time.sleep(0.5)
+        client = Client(url, verbose=False)
+        client.predict("warm", api_name="/work")
+        # One client is one session, which stays on one process
+        jobs = [client.submit("x", api_name="/work") for _ in range(2)]
+        results = [job.result().split() for job in jobs]
+        assert len({pid for pid, _ in results}) == 1
+        assert max(int(peak) for _, peak in results) == 1
+    finally:
+        import signal
+
+        os.killpg(proc.pid, signal.SIGTERM)
+        proc.wait(timeout=30)
+
+
+def test_custom_component_assets_come_from_the_app(tmp_path, monkeypatch):
+    import sys
+
+    package = tmp_path / "mycomp"
+    (package / "templates" / "component").mkdir(parents=True)
+    (package / "templates" / "component" / "index.js").write_text("export default 1;")
+    (package / "__init__.py").write_text(
+        "import gradio as gr\n\n"
+        "class MyComp(gr.Textbox):\n"
+        "    TEMPLATE_DIR = 'templates'\n"
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    from mycomp import MyComp  # ty: ignore[unresolved-import]
+
+    with gr.Blocks() as demo:
+        MyComp()
+    with launched(demo) as client:
+        class_id = MyComp.get_component_class_id()
+        response = httpx2.get(
+            f"{client.src}gradio_api/custom_component/{class_id}/client/component/index.js"
+        )
+    sys.modules.pop("mycomp", None)
+    assert response.status_code == 200, response.text
+    assert "export default 1" in response.text
+
+
+async def _check_body(request: Request):
+    if (
+        request.method == "POST"
+        and request.url.path.startswith("/gradio_api/call")
+        and (await request.json()).get("data") != ["ok"]
+    ):
+        raise HTTPException(status_code=400, detail="bad data")
+
+
+def test_server_dependencies_can_read_the_body():
+    app = gr.Server(dependencies=[Depends(_check_body)])
+
+    @app.api(name="echo")
+    def echo(x: str) -> str:
+        return x
+
+    _, url, _ = app.launch(prevent_thread_lock=True)
+    try:
+        assert httpx2.post(
+            f"{url}gradio_api/call/echo", json={"data": ["ok"]}
+        ).is_success
+        assert (
+            httpx2.post(f"{url}gradio_api/call/echo", json={"data": ["no"]}).status_code
+            == 400
+        )
+    finally:
+        app.get_blocks().close()
+
+
+def test_page_api_info_has_only_its_endpoints():
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        t.submit(lambda x: x, t, t, api_name="home")
+    with demo.route("Details", "/details"):
+        d = gr.Textbox()
+        d.submit(lambda x: x, d, d, api_name="details")
+    with launched(demo) as client:
+        info = httpx2.get(f"{client.src}gradio_api/info", params={"page": "details"})
+    assert list(info.json()["named_endpoints"]) == ["/details"]
+
+
 def test_invalid_executor():
     demo = gr.Interface(lambda x: x, "textbox", "textbox")
     with pytest.raises(ValueError, match="must be 'thread' or 'process'"):

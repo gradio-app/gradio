@@ -362,11 +362,15 @@ class Worker:
             self.done.set()
             self.blocks.is_running = False
 
-    def api_info(self) -> dict[bool, Any]:
-        """The API info the gateway serves, by `all_endpoints`."""
+    def api_info(self) -> dict[tuple[str | None, bool], Any]:
+        """The API info the gateway serves, by page and `all_endpoints`."""
+        pages = [None, *(self.blocks.config.get("page") or {})]
         return {
-            False: self.blocks.get_api_info(),
-            True: self.blocks.get_api_info(all_endpoints=True),
+            (page, all_endpoints): self.blocks.get_api_info(
+                all_endpoints=all_endpoints, page=page
+            )
+            for page in pages
+            for all_endpoints in (False, True)
         }
 
     def portable_config(self) -> dict:
@@ -437,6 +441,7 @@ class Worker:
             "static_paths": [str(p) for p in _StaticFiles.all_paths],
             "server_routes": self.server_routes,
             "delete_cache": self.blocks.delete_cache,
+            "proxy_urls": sorted(self.blocks.proxy_urls),
             "expects_oauth": self.blocks.expects_oauth,
             "check_dependencies": self.checker is not None,
         }
