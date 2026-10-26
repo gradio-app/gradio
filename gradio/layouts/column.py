@@ -46,7 +46,7 @@ class Column(BlockContext, metaclass=ComponentMeta):
         Parameters:
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
             min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
-            variant: column type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
+            variant: deprecated and will be removed in Gradio 7.0. Column type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -58,6 +58,13 @@ class Column(BlockContext, metaclass=ComponentMeta):
         if scale != round(scale):
             warnings.warn(
                 f"'scale' value should be an integer. Using {scale} will cause issues."
+            )
+        if variant != "default":
+            warnings.warn(
+                "The 'variant' parameter of gr.Column() is deprecated and will be removed in Gradio 7.0. "
+                "To style a Column, use 'elem_classes' with custom CSS instead.",
+                DeprecationWarning,
+                stacklevel=3,
             )
 
         self.scale = scale

@@ -681,6 +681,22 @@ class TestComponentsInBlocks:
             gr.State(dict)
         demo.get_api_info()
 
+    @pytest.mark.parametrize("variant", ["panel", "compact"])
+    def test_column_variant_is_deprecated(self, variant):
+        with gr.Blocks():
+            with pytest.warns(
+                DeprecationWarning, match="'variant' parameter"
+            ) as record:
+                column = gr.Column(variant=variant)
+        assert column.variant == variant
+        assert record[0].filename == __file__
+
+    def test_default_column_variant_does_not_warn(self):
+        with gr.Blocks():
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", DeprecationWarning)
+                gr.Column()
+
 
 class TestBlocksPostprocessing:
     @pytest.mark.asyncio
