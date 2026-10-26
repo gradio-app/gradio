@@ -201,8 +201,9 @@ class Worker:
         hello = await protocol.read(reader)
         if hello["fingerprint"] != app_fingerprint(self.blocks):
             self.failure = (
-                "The gateway rebuilt this app with a different structure, so "
-                "executor='process' cannot serve it. Use executor='thread'."
+                "The gateway serves an app with a different structure (another "
+                "replica's script?), so executor='process' cannot serve it. Use "
+                "executor='thread'."
             )
             self.done.set()
             writer.close()
