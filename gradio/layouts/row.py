@@ -43,7 +43,7 @@ class Row(BlockContext, metaclass=ComponentMeta):
     ):
         """
         Parameters:
-            variant: row type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
+            variant: deprecated and will be removed in Gradio 7.0. Row type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
             visible: If False, row will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -57,6 +57,13 @@ class Row(BlockContext, metaclass=ComponentMeta):
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
+        if variant != "default":
+            warnings.warn(
+                "The 'variant' parameter of gr.Row() is deprecated and will be removed in Gradio 7.0. "
+                "To style a Row, use 'elem_classes' with custom CSS instead.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
         self.variant = variant
         self.equal_height = equal_height
         if variant == "compact":
