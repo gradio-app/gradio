@@ -69,7 +69,6 @@ class TestBlocksMethods:
             # self.share is False when instantiating the class
             assert not demo.share
             # share default is True, if share is None in colab and queueing
-            # The tunnel is mocked in this process, where it runs with threads
             demo.launch(prevent_thread_lock=True, executor="thread")
             assert demo.share
             demo.close()
@@ -294,7 +293,6 @@ class TestBlocksMethods:
             t2 = gr.Textbox()
             t2.change(lambda x: x, t2, t1)
 
-        # Its event's output is a block of another Blocks, which a gateway cannot rebuild
         demo.launch(prevent_thread_lock=True, executor="thread")
         mock_anlaytics.assert_called()
 

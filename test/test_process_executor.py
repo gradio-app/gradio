@@ -41,7 +41,7 @@ def test_events_run_in_the_launching_process():
 
 
 def test_state_globals_and_closures_behave_as_with_threads():
-    lock = threading.Lock()  # a closure over a live object that cannot be pickled
+    lock = threading.Lock()
 
     with gr.Blocks() as demo:
         history = gr.State([])
@@ -50,7 +50,7 @@ def test_state_globals_and_closures_behave_as_with_threads():
         out = gr.Textbox()
 
         def add(x, h):
-            h.append(x)  # changed in place, not returned
+            h.append(x)
             return len(h)
 
         def bump():
@@ -106,7 +106,6 @@ def test_streaming_logs_progress_and_errors():
         assert job.outputs() == ["0", "1", "2"]
         with pytest.raises(Exception, match="bad input: z"):
             client.predict("z", api_name="/fail")
-        # A user error leaves the app serving
         assert client.predict("c d", api_name="/chat") == "cd"
 
 
@@ -126,7 +125,6 @@ def test_event_concurrency_settings_reach_the_gateway():
 
     with gr.Blocks() as demo:
         t = gr.Textbox()
-        # The app-wide default (1) would run these one at a time
         gr.Button().click(slow, t, t, api_name="slow", concurrency_limit=3)
 
     with launched(demo) as client:
@@ -227,7 +225,6 @@ def test_examples_are_cached_before_the_gateway_serves(tmp_path, monkeypatch):
 
 
 def test_running_event_and_server_are_visible_to_the_app():
-    # What ZeroGPU reads while an event runs
     from gradio.context import LocalContext
 
     def fn():
@@ -258,8 +255,6 @@ def test_oauth_login_reaches_the_app_process():
     _, url, _ = demo.launch(executor="process", prevent_thread_lock=True)
     try:
         with httpx2.Client(base_url=url) as http:
-            # Locally, the login is mocked. Its session cookie is Secure, which
-            # browsers send to localhost and httpx does not.
             login = http.get("login/callback", params={"_target_url": "/"})
             cookie = {"cookie": f"session={login.cookies['session']}"}
             event = http.post(
@@ -335,7 +330,6 @@ def test_server_websockets_are_relayed():
         with connect(url.replace("http", "ws", 1) + "ws") as websocket:
             websocket.send("hi")
             assert websocket.recv() == f"hi {os.getpid()}"
-        # Only from the gateway
         port = app.get_blocks()._process_worker.http_port  # type: ignore[attr-defined]
         with pytest.raises(InvalidStatus):
             connect(f"ws://127.0.0.1:{port}/ws")
@@ -399,7 +393,6 @@ def test_classes_defined_by_the_app():
     def fail(x):
         raise QuotaError("over quota")
 
-    # As if defined in the app's script, which the gateway cannot import
     Seafoam.__module__ = QuotaError.__module__ = "__main__"
 
     with gr.Blocks() as demo:
@@ -419,7 +412,6 @@ def test_classes_defined_by_the_app():
 
 
 def _require_key(request: Request):
-    # Only the API, so that launch() can reach the app's page
     if (
         request.url.path.startswith("/gradio_api/call")
         and request.headers.get("x-key") != "secret"

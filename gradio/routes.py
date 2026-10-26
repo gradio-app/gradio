@@ -281,8 +281,6 @@ class App(FastAPI):
         # Sessions whose `unload` events have run, so that the heartbeat and the
         # queue, which can both end a session, run them only once
         self.unloaded_sessions: utils.LRUCache[str, bool] = utils.LRUCache(10000)
-        # Told when a session closes (True) or reopens (False), e.g. by the
-        # gateway of executor="process", whose app process holds the state
         self.session_listener: Callable[[str, bool], None] | None = None
         self.lock = utils.safe_get_lock()
         self.stop_event = utils.safe_get_stop_event()

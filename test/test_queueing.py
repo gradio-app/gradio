@@ -126,7 +126,6 @@ class TestQueueing:
 
         demo.queue()
 
-        # Reads the queue's internals, which live in this process with threads
         with connect(demo, executor="thread") as client:
             first = client.submit("x", fn_index=0)
             assert first.result(timeout=5) == "Hello, x!"
@@ -259,7 +258,6 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
         output = gr.Textbox()
         mic.stream(on_chunk, chunk, output)
 
-    # Reads the queue's internals, which live in this process with threads
     _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     # A real client rather than TestClient, which would set the event's
     # asyncio signal from another thread and cannot drop an endless response
@@ -328,7 +326,6 @@ def test_detached_queue_session_can_resume():
         start.click(slow, None, output)
 
     demo.queue(default_concurrency_limit=1)
-    # Reads the queue's internals, which live in this process with threads
     app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     test_client = TestClient(app)
 
@@ -423,7 +420,6 @@ def test_expired_detached_session_is_fully_cleaned_up():
         demo.unload(unloaded.set)
 
     demo.queue(default_concurrency_limit=1)
-    # Reads the queue's internals, which live in this process with threads
     app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     test_client = TestClient(app)
 
@@ -486,7 +482,6 @@ def test_expired_session_runs_unload_after_its_events_are_gone():
     with gr.Blocks() as demo:
         demo.unload(unloaded.set)
 
-    # Reads the queue's internals, which live in this process with threads
     app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     try:
         queue = demo._queue
@@ -620,7 +615,6 @@ class TestQueueDoesNotAccumulate:
             out = gr.Textbox()
             box.submit(lambda x: x, box, out)
 
-        # Reads the queue's internals, which live in this process with threads
         with connect(demo, executor="thread") as client:
             for _ in range(5):
                 client.predict("a", api_name="/lambda")
@@ -634,7 +628,6 @@ class TestQueueDoesNotAccumulate:
             box.submit(lambda x: x, box, out)
 
         demo._queue.ANALYTICS_MAX_EVENTS = 3
-        # Reads the queue's internals, which live in this process with threads
         with connect(demo, executor="thread") as client:
             for _ in range(8):
                 client.predict("a", api_name="/lambda")

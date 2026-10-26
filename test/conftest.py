@@ -1,7 +1,5 @@
 import os
 
-# Gateways start by forking a process that has already imported Gradio, so
-# that the suite's many launches do not each pay for that import
 os.environ.setdefault("GRADIO_GATEWAY_ZYGOTE", "1")
 
 import inspect

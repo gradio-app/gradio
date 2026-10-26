@@ -348,7 +348,6 @@ class TestClientHeldState:
 
     def test_another_server_asks_for_the_value(self, launch):
         demo, _ = counter_app()
-        # Clears the server's caches, which live in this process with threads
         app = launch(demo, executor="thread")
         with TestClient(app) as client:
             browser = FakeBrowser(client)
@@ -375,7 +374,6 @@ class TestClientHeldState:
 
     def test_tampered_or_foreign_tokens_reset_the_state(self, launch, monkeypatch):
         demo, state = counter_app()
-        # Changes GRADIO_SECRET_KEY while the server runs, in this process with threads
         app = launch(demo, executor="thread")
         monkeypatch.setattr(client_state, "_warned", set())
         with TestClient(app) as client:
@@ -426,7 +424,6 @@ class TestClientHeldState:
             text = gr.Textbox()
             count = gr.Number()
             text.submit(add, [history, text], count)
-        # Clears the server's caches, which live in this process with threads
         app = launch(demo, executor="thread")
         with TestClient(app) as client:
             browser = FakeBrowser(client)
@@ -658,7 +655,6 @@ class TestQueuedEventsAndStreams:
 
         with gr.Blocks() as demo:
             gr.Textbox()
-        # Inspects the server's queued event, which lives in this process with threads
         app = launch(demo, executor="thread")
         carried = object()
         event = SimpleNamespace(
@@ -682,7 +678,6 @@ def test_session_status_says_whether_the_server_has_the_session(launch, monkeypa
     with gr.Blocks() as demo:
         t = gr.Textbox()
         t.submit(lambda x: x, t, t)
-    # Changes GRADIO_SECRET_KEY while the server runs, in this process with threads
     app = launch(demo, executor="thread")
     with TestClient(app) as client:
         status = lambda h: client.get(  # noqa: E731

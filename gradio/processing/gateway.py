@@ -44,7 +44,6 @@ class Link:
         self.pending: dict[int, asyncio.Future] = {}
         self.writer: asyncio.StreamWriter | None = None
         self.server_loop: asyncio.AbstractEventLoop | None = None
-        # Events running there, which the pool balances new sessions by
         self.running = 0
         self.loop = asyncio.new_event_loop()
         threading.Thread(
@@ -270,7 +269,6 @@ async def forward_event(
         output = await link.call(
             "event",
             {
-                # A validator's BlockFunction has no id of its own
                 "fn_index": fn.fn._fn_id,  # type: ignore[union-attr]
                 "validator": fn.is_validator_function,
                 "body": body.model_copy(update={"request": None, "client_state": None}),
@@ -288,8 +286,6 @@ async def forward_event(
             RemoteIterator(link, body.event_id) if has_iterator else None
         )
     if client_state is not None and output.get("state"):
-        # Cache the values the app's process issued, so that the browser can
-        # send their references next time instead of the values themselves
         sealer = get_sealer()
         for key, update in output["state"].items():
             if not update:
@@ -429,8 +425,6 @@ def build(bootstrap: dict) -> Blocks:
     for component in config["components"]:
         props = component["props"]
         if props.get("name") == "state":
-            # Real ones, for gr.State kept in the browser, whose values the
-            # gateway caches and seals
             state = State(
                 storage=props.get("storage", "server"),
                 time_to_live=props.get("time_to_live"),
@@ -498,8 +492,6 @@ def watch_app_process(pid: int, blocks: Blocks) -> None:
         time.sleep(1)
 
 
-# Gradio routes that need the app's code (component server functions, its MCP
-# server) or its per-session state (deep links, media streams)
 FORWARDED_ROUTES = [
     ("/component_server", ["POST"]),
     ("/component_server/", ["POST"]),
@@ -563,7 +555,6 @@ def add_forwarded_routes(app, bootstrap: dict, pool: Pool) -> None:
         for path, methods in FORWARDED_ROUTES
     ]
     routes.append(APIRoute(API_PREFIX + "/processes", processes, methods=["GET"]))
-    # A Server's own routes come before Gradio's, as they do with threads
     for kind, path, methods in bootstrap["server_routes"]:
         if kind == "http":
             routes.append(
@@ -581,7 +572,6 @@ def add_forwarded_routes(app, bootstrap: dict, pool: Pool) -> None:
                 )
             )
     app.router.routes[:0] = routes
-    # e.g. a route the Server added after it launched
     app.router.routes.append(
         APIRoute("/{path:path}", to_app, methods=METHODS, include_in_schema=False)
     )
@@ -598,7 +588,6 @@ def adopt_environment(env: dict[str, str], cwd: str) -> None:
     os.environ.clear()
     os.environ.update(env)
     os.environ["GRADIO_PROCESS_GATEWAY"] = "1"
-    # The app's process reports its launch; the gateway's would count it twice
     os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
     os.chdir(cwd)
     temp_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
@@ -677,16 +666,13 @@ def main(path: str) -> None:
         async def app_dependencies(request: Request) -> None:
             await check_dependencies(request, target, token)
 
-        # Gradio's routes run them, as they do with threads
         app_kwargs = dict(launch_kwargs.get("app_kwargs") or {})
         app_kwargs["dependencies"] = [Depends(app_dependencies)]
         launch_kwargs["app_kwargs"] = app_kwargs
     app, local_url, share_url = blocks.launch(prevent_thread_lock=True, **launch_kwargs)
-    # launch() regenerates these from the Blocks, which has no components
     blocks.config = blocks.get_config_file()
     blocks.theme_css = bootstrap["theme_css"]
     if blocks.config.get("i18n_translations"):
-        # The /config route reads translations from here
         blocks.i18n_instance = SimpleNamespace(  # type: ignore[assignment]
             translations_dict=blocks.config["i18n_translations"]
         )

@@ -113,7 +113,6 @@ class TestInterface:
         mock_setup_tunnel.side_effect = RuntimeError()
         mock_colab_check.return_value = True
         interface = Interface(lambda x: x, "textbox", "label")
-        # The tunnel is mocked in this process, where it runs with threads
         _, _, share_url = interface.launch(prevent_thread_lock=True, executor="thread")
         assert share_url is None
         interface.close()

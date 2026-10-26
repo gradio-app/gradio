@@ -1169,8 +1169,6 @@ class BlocksConfig:
         if renderable and _id not in rendered_ids:
             return {}
         if (app_config := getattr(block, "app_config", None)) is not None:
-            # A block of the gateway of executor="process", which has the
-            # config the app's process made for it
             return app_config
         props = block.get_config() if hasattr(block, "get_config") else {}
 
@@ -1714,8 +1712,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     @property
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
-        # The gateway of executor="process" rebuilds a LoginButton as the
-        # Button it is a template of, so it is told instead
         return getattr(self, "_expects_oauth", False) or any(
             isinstance(block, components.LoginButton) for block in self.blocks.values()
         )
@@ -3315,7 +3311,6 @@ Received inputs:
                 )
             if os.environ.get("GRADIO_PROCESS_REPLICA_FD"):
                 serve_replica(self, _app, launch_kwargs)
-            # Decided here, where a notebook's IPython runs, not in the gateway
             self.is_colab = utils.colab_check()
             self.is_hosted_notebook = utils.is_hosted_notebook()
             self._node_is_proxy = False
@@ -4010,7 +4005,6 @@ Received inputs:
     @staticmethod
     def _resolve_executor(executor: str | None) -> str:
         if os.environ.get("GRADIO_PROCESS_GATEWAY"):
-            # This process is the gateway of an app launched with "process"
             return "thread"
         explicit = executor or os.environ.get("GRADIO_EXECUTOR")
         resolved = explicit or "process"
@@ -4020,7 +4014,6 @@ Received inputs:
             )
         if resolved == "process" and os.getenv("GRADIO_WATCH_DIRS"):
             if not explicit:
-                # TODO: remove once reload mode supports the process executor
                 return "thread"
             raise ValueError(
                 "executor='process' does not support reload mode yet. Use "
@@ -4041,8 +4034,6 @@ Received inputs:
 
         gateway_kwargs = {}
         for name, value in launch_kwargs.items():
-            # The app's config carries the theme, css, js, head and
-            # translations, and the app's process runs its MCP server
             if name in (
                 "prevent_thread_lock",
                 "debug",
@@ -4060,7 +4051,6 @@ Received inputs:
             if value is None or value is defaults.get(name):
                 continue
             if name == "app_kwargs":
-                # They run in the app's process (see processing.worker)
                 value = {
                     k: v
                     for k, v in value.items()

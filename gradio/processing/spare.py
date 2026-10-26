@@ -27,7 +27,6 @@ class _State:
     lock = threading.Lock()
     zygote: subprocess.Popen | None = None
     context: tuple | None = None
-    # Where the zygote writes the pid of each gateway it forks
     replies: int | None = None
 
 
@@ -35,7 +34,6 @@ _state = _State()
 ZYGOTE_IDLE_SECONDS = 120
 
 
-# Read at import time by modules a gateway has imported, and not refreshed
 IMPORT_TIME_VARIABLES = (
     "GRADIO_HOT_RELOAD",
     "GRADIO_WATCH_DIRS",
@@ -167,9 +165,6 @@ def run_zygote(reply_fd: int) -> None:
 
     from gradio.processing import gateway
 
-    # On macOS, urllib reads the system proxy settings through CoreFoundation,
-    # which crashes a forked child, and HTTP clients read them at startup.
-    # Read them once here; forked gateways get these answers instead.
     scproxy = {}
     if sys.platform == "darwin":
         proxies = urllib.request._get_proxies()  # type: ignore[attr-defined]
@@ -178,7 +173,6 @@ def run_zygote(reply_fd: int) -> None:
             "_get_proxies": lambda: dict(proxies),
             "_get_proxy_settings": lambda: dict(settings),
         }
-    # Forked gateways are reaped automatically
     signal.signal(signal.SIGCHLD, signal.SIG_IGN)
     import select
 

@@ -18,8 +18,6 @@ const LOCAL_PYTHONPATH = [
 const USE_INSTALLED_GRADIO =
 	process.env.GRADIO_TEST_USE_INSTALLED_GRADIO === "1";
 
-// Demos using gr.render, which executor="process" (the default) does not
-// support yet, run with threads until it does
 const THREAD_EXECUTOR_DEMOS = new Set([
 	"accordion_tab_switch",
 	"multipage",

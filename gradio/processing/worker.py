@@ -46,7 +46,6 @@ class ForwardingQueue:
 
     @property
     def active_jobs(self) -> list[list[RunningEvent]]:
-        # ZeroGPU reads it to learn whether an event's client left
         return [list(self.worker.running.values())]
 
     def log_message(self, event_id, log, title, level, duration=10, visible=True):
@@ -123,18 +122,13 @@ class Worker:
         self.gateway_kwargs = gateway_kwargs
         self.queue_kwargs = queue_kwargs
         self.auth_dependency: Any = launch_kwargs.get("auth_dependency")
-        # Before Gradio adds its own routes
         self.server_routes = protocol.describe_routes(app) if app is not None else []
-        # A real Gradio app over this process's blocks, sessions, iterators and
-        # gr.State caches. It runs the app's lifespan and serves the requests
-        # the gateway forwards; any other request is sent on to the gateway.
         self.app = App.create_app(
             blocks,
             app=app,
             auth_dependency=self.auth_dependency,
             app_kwargs=dict(launch_kwargs.get("app_kwargs") or {}),
             strict_cors=launch_kwargs.get("strict_cors", True),
-            # Served here; the gateway forwards its routes
             mcp_server=launch_kwargs.get("mcp_server"),
         )
         self.checker = (
@@ -164,7 +158,6 @@ class Worker:
         self.urls: tuple[str, str | None] = ("", None)
         self.server_attributes: dict[str, Any] = {}
         self.failure: str | None = None
-        # Set in a replica: where it reports its address to the app's process
         self.replica_fd = replica_fd
         self.replicas = max(int(os.environ.get("GRADIO_PROCESS_REPLICAS", "1")), 1)
         self.replica_processes: list[subprocess.Popen] = []
@@ -187,7 +180,6 @@ class Worker:
     async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         from gradio.client_state import app_fingerprint
 
-        # Raw, so that nothing is unpickled before it is checked
         try:
             token = await asyncio.wait_for(reader.readexactly(len(self.token)), 10)
         except (TimeoutError, asyncio.IncompleteReadError, ConnectionError):
@@ -231,7 +223,6 @@ class Worker:
                 elif kind == "session":
                     self.session_changed(message[1], message[2])
                 elif kind == "close_iterator":
-                    # It waits for a generator's current step to finish
                     task = asyncio.create_task(self.close_iterator(message[1]))
                     self.closing.add(task)
                     task.add_done_callback(self.closing.discard)
@@ -250,8 +241,6 @@ class Worker:
             try:
                 data = protocol.dumps(result)
             except Exception:
-                # e.g. data models of classes defined in the app's script: send
-                # their JSON form, which the client receives
                 data = protocol.dumps(protocol.jsonable(result))
             self.send(("result", rid, data))
         except asyncio.CancelledError:
@@ -314,7 +303,6 @@ class Worker:
                 ),
                 fn=fn,
                 root_path=p["root_path"],
-                # The gateway records it
                 record_history=False,
             )
         except asyncio.CancelledError:
@@ -372,7 +360,6 @@ class Worker:
             self.failure = f"executor='process' could not start: {err!r}"
         finally:
             self.done.set()
-            # So that a blocked launch() returns
             self.blocks.is_running = False
 
     def api_info(self) -> dict[bool, Any]:
@@ -406,8 +393,6 @@ class Worker:
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
         http_port = await self.serve_http()
         self.http_port = http_port
-        # What launch() runs once the server is up (e.g. caching examples),
-        # before the gateway serves, whose first events would wait on it
         self.blocks.create_limiter()
         if not self.app.startup_events_triggered:
             await self.blocks.run_extra_startup_events()
@@ -429,7 +414,6 @@ class Worker:
             "launch_kwargs": self.gateway_kwargs,
             "queue_kwargs": self.queue_kwargs,
             "api_info": self.api_info(),
-            # What the config does not carry
             "fn_settings": {
                 fn_id: {
                     "concurrency_limit": fn.concurrency_limit,
@@ -449,7 +433,6 @@ class Worker:
             "worker_pid": os.getpid(),
             "env": dict(os.environ),
             "cwd": os.getcwd(),
-            # Browser-held gr.State tokens are sealed on both sides
             "state_secret": client_state._process_secret,
             "static_paths": [str(p) for p in _StaticFiles.all_paths],
             "server_routes": self.server_routes,
@@ -483,7 +466,6 @@ class Worker:
         self.done.set()
 
     async def stop_http(self) -> None:
-        # The app's lifespan shuts down before this loop ends
         self.http_server.should_exit = True
         if self.http_task is not None:
             with contextlib.suppress(Exception):
@@ -557,7 +539,6 @@ class Worker:
 
     def close(self) -> None:
         if self.http_server is not None:
-            # Waits for its lifespan to shut down, unless this is its loop
             self.http_server.should_exit = True
             if threading.current_thread().name != "gradio-worker":
                 self.http_done.wait(timeout=10)
@@ -597,8 +578,6 @@ def serve(
         target=asyncio.run, args=(worker.main(),), daemon=True, name="gradio-worker"
     ).start()
 
-    # Only the gateway's startup has a limit: the app's own (its lifespan,
-    # caching examples) has none, as with threads
     deadline = None
     while not worker.ready.wait(0.1):
         failure = None

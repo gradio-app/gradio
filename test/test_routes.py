@@ -143,7 +143,6 @@ class TestRoutes:
                 api_name="details_endpoint",
             )
 
-        # Checks the server's API-info cache, which lives in this process with threads
         app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
         try:
             client = TestClient(app)
@@ -2531,7 +2530,6 @@ def test_api_name_set_for_all_events(connect):
         btn8.click(part, i, o)
 
     with closing(demo) as io:
-        # Checks that the server raises in this process, as it does with threads
         app, _, _ = io.launch(prevent_thread_lock=True, executor="thread")
         client = TestClient(app)
         assert client.post(
@@ -3459,7 +3457,6 @@ def test_mount_gradio_app_args_match_launch_args():
         "i18n",
         "_app",
         "num_workers",
-        # A mounted app runs in the user's own server, so always with threads
         "executor",
     }
 

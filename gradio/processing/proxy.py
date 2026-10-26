@@ -22,14 +22,9 @@ from starlette.requests import Request
 from starlette.responses import StreamingResponse
 
 TOKEN_HEADER = b"x-gradio-gateway-token"
-# The user the gateway logged in, trusted only beside the token
 USER_HEADER = b"x-gradio-gateway-user"
-# Asks the app's process to run only its FastAPI dependencies for a request
 CHECK_HEADER = b"x-gradio-gateway-check"
-# Only the gateway sets these
 GATEWAY_HEADERS = {TOKEN_HEADER, USER_HEADER, CHECK_HEADER}
-# Headers that describe one connection, not the message. Host is kept, so
-# that the receiver builds URLs for the address the client used.
 SKIPPED_REQUEST_HEADERS = {b"connection", b"keep-alive", b"transfer-encoding"}
 SKIPPED_RESPONSE_HEADERS = {b"content-length", b"connection", b"transfer-encoding"}
 METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
@@ -55,8 +50,6 @@ async def forward(
     request: Request, target: str, extra_headers: Sequence[tuple[bytes, bytes]] = ()
 ) -> StreamingResponse:
     """Streams `request` to `target` (an origin) and its response back."""
-    # A client per request: TestClient may call an app from a new event loop
-    # each time, and an AsyncClient belongs to the loop it was made on
     client = httpx2.AsyncClient(timeout=None)
     url, headers = _upstream(request, target)
     upstream = client.build_request(
@@ -182,7 +175,6 @@ async def check_dependencies(
     from fastapi import HTTPException
 
     url, headers = _upstream(request, target)
-    # Without the body, which the dependencies do not read
     headers = [(k, v) for k, v in headers if k.lower() != b"content-length"]
     async with httpx2.AsyncClient(timeout=None) as client:
         response = await client.request(

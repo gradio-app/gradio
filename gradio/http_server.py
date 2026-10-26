@@ -149,7 +149,6 @@ def start_server(
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
             )
-            # A gateway of executor="process" runs none of the app's code
             if get_space() is not None and not os.environ.get("GRADIO_PROCESS_GATEWAY"):
                 reloader = SpacesReloader(
                     app=app,

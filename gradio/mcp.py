@@ -434,7 +434,6 @@ class GradioMCPServer:
         @contextlib.asynccontextmanager
         async def lifespan(app: Starlette) -> AsyncIterator[None]:  # noqa: ARG001
             """Context manager for managing session manager lifecycle."""
-            # A session manager runs only once
             if self._manager_ran:
                 self.manager = new_manager()
             self._manager_ran = True
