@@ -85,6 +85,9 @@ if TYPE_CHECKING:
 
 config_lock = threading.Lock()
 API_PREFIX = "/gradio_api"
+# The user the gateway of executor="process" logged in, on a request it
+# forwarded to the app's process (see processing.proxy.GatewayFront)
+GATEWAY_USER_SCOPE_KEY = "gradio.gateway_user"
 
 
 mimetypes.init()
@@ -242,7 +245,10 @@ class Request:
         return self.__dict__
 
     def __setstate__(self, state: dict[str, Any]):
+        # __getstate__ keeps it in kwargs
         request_state = state.pop("request_state", None)
+        if request_state is None:
+            request_state = (state.get("kwargs") or {}).pop("request_state", None)
         self.__dict__ = state
         if request_state is not None:
             self.state = State(request_state)
@@ -410,6 +416,15 @@ async def call_process_api(
     root_path: str,
     record_history: bool = True,
 ):
+    pool = getattr(app.get_blocks(), "_process_pool", None)
+    if pool is not None:
+        # This is the gateway of `executor="process"`: the app's process runs it
+        from gradio.processing.gateway import forward_event
+
+        return await forward_event(
+            pool, app, body, gr_request, fn, root_path, record_history
+        )
+
     session_state, iterator = restore_session_state(app=app, body=body)
     # A batch mixes events from different sessions, so its state stays on the server
     client_state = body.client_state if not body.batched else None

@@ -1168,6 +1168,10 @@ class BlocksConfig:
     ) -> dict:
         if renderable and _id not in rendered_ids:
             return {}
+        if (app_config := getattr(block, "app_config", None)) is not None:
+            # A block of the gateway of executor="process", which has the
+            # config the app's process made for it
+            return app_config
         props = block.get_config() if hasattr(block, "get_config") else {}
 
         skip_none_deletion = []
@@ -1710,7 +1714,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     @property
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
-        return any(
+        # The gateway of executor="process" rebuilds a LoginButton as the
+        # Button it is a template of, so it is told instead
+        return getattr(self, "_expects_oauth", False) or any(
             isinstance(block, components.LoginButton) for block in self.blocks.values()
         )
 
@@ -3104,6 +3110,7 @@ Received inputs:
         js: str | Literal[True] | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
+        executor: Literal["thread", "process"] | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -3154,6 +3161,7 @@ Received inputs:
             js: Custom JavaScript provided as either a function or a raw code string. A function is automatically invoked; otherwise the code is executed directly when the page loads. To run JavaScript as a document-level `<script>` tag, use the `head` parameter.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
+            executor: Where the server runs relative to the app's functions. "process" (the default) runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. GRADIO_PROCESS_REPLICAS=N then runs the app's script in N processes, each serving its own sessions. "thread" runs the server in this process, with functions in its threads; it is the default in reload mode, and the choice for gr.render and a Server's middleware, which "process" does not support yet. Can be set with the GRADIO_EXECUTOR environment variable.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -3183,6 +3191,9 @@ Received inputs:
         head_paths = (
             head_paths if head_paths is not None else self._deprecated_head_paths
         )
+        launch_kwargs = {
+            k: v for k, v in locals().items() if k not in ("self", "App", "executor")
+        }
 
         self.theme: Theme = utils.get_theme(theme)
         self.css = css
@@ -3287,7 +3298,61 @@ Received inputs:
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
         self.transpile_to_js(quiet=quiet)
+        self.i18n_instance = i18n
         self.config = self.get_config_file()
+
+        if self._resolve_executor(executor) != "process":
+            from gradio.processing import spare
+
+            spare.discard()
+        else:
+            from gradio.processing.worker import serve, serve_replica
+
+            if any(fn.renderable is not None for fn in self.fns.values()):
+                raise ValueError(
+                    "gr.render is not supported with executor='process' yet. Use "
+                    "launch(executor='thread') or GRADIO_EXECUTOR=thread."
+                )
+            if os.environ.get("GRADIO_PROCESS_REPLICA_FD"):
+                serve_replica(self, _app, launch_kwargs)
+            # Decided here, where a notebook's IPython runs, not in the gateway
+            self.is_colab = utils.colab_check()
+            self.is_hosted_notebook = utils.is_hosted_notebook()
+            self._node_is_proxy = False
+            if share is None and (self.is_colab or self.is_hosted_notebook):
+                if not quiet:
+                    print(
+                        "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                launch_kwargs["share"] = True
+            if getattr(self, "_process_worker", None) is not None and self.is_running:
+                if not quiet:
+                    print(
+                        "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
+                    )
+            else:
+                serve(
+                    self,
+                    {
+                        **self._gateway_launch_kwargs(launch_kwargs),
+                        "inline": False,
+                        "inbrowser": False,
+                    },
+                    app=_app,
+                    launch_kwargs=launch_kwargs,
+                )
+            if inbrowser:
+                webbrowser.open(
+                    str(
+                        self.share_url
+                        if self.share and self.share_url
+                        else self.local_url
+                    )
+                )
+            self._after_launch(
+                inline, inbrowser, debug, prevent_thread_lock, head_paths
+            )
+            return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
 
         self.ssr_mode = self._resolve_ssr_mode(ssr_mode, disable_when_multi_page=False)
 
@@ -3677,6 +3742,19 @@ Received inputs:
             link = self.share_url if self.share and self.share_url else self.local_url
             webbrowser.open(link)
 
+        self._after_launch(inline, inbrowser, debug, prevent_thread_lock, head_paths)
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
+
+    def _after_launch(
+        self,
+        inline: bool | None,
+        inbrowser: bool,
+        debug: bool,
+        prevent_thread_lock: bool,
+        head_paths,
+    ) -> None:
+        """What launch() does once the server runs: display inline in notebooks,
+        report analytics, and block the main thread when running a script."""
         # Check if running in a Python notebook in which case, display inline
         if inline is None:
             inline = utils.ipython_check()
@@ -3779,8 +3857,6 @@ Received inputs:
             )
         ):
             self.block_thread()
-
-        return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
 
     def integrate(
         self,
@@ -3931,10 +4007,100 @@ Received inputs:
         """
         self.server_app.stop_event.set()
 
+    @staticmethod
+    def _resolve_executor(executor: str | None) -> str:
+        if os.environ.get("GRADIO_PROCESS_GATEWAY"):
+            # This process is the gateway of an app launched with "process"
+            return "thread"
+        explicit = executor or os.environ.get("GRADIO_EXECUTOR")
+        resolved = explicit or "process"
+        if resolved not in ("thread", "process"):
+            raise ValueError(
+                f"`executor` must be 'thread' or 'process', not {resolved!r}."
+            )
+        if resolved == "process" and os.getenv("GRADIO_WATCH_DIRS"):
+            if not explicit:
+                # TODO: remove once reload mode supports the process executor
+                return "thread"
+            raise ValueError(
+                "executor='process' does not support reload mode yet. Use "
+                "executor='thread' while developing with `gradio app.py`."
+            )
+        return resolved
+
+    @staticmethod
+    def _gateway_launch_kwargs(launch_kwargs: dict[str, Any]) -> dict[str, Any]:
+        """The launch() arguments the gateway process starts the server with.
+        They cross to another process, so callables (which would run there,
+        without this process's state) are refused rather than dropped."""
+        defaults = {
+            name: parameter.default
+            for name, parameter in inspect.signature(Blocks.launch).parameters.items()
+        }
+        from gradio.processing import protocol
+
+        gateway_kwargs = {}
+        for name, value in launch_kwargs.items():
+            # The app's config carries the theme, css, js, head and
+            # translations, and the app's process runs its MCP server
+            if name in (
+                "prevent_thread_lock",
+                "debug",
+                "_app",
+                "theme",
+                "css",
+                "css_paths",
+                "js",
+                "head",
+                "head_paths",
+                "i18n",
+                "mcp_server",
+            ):
+                continue
+            if value is None or value is defaults.get(name):
+                continue
+            if name == "app_kwargs":
+                # They run in the app's process (see processing.worker)
+                value = {
+                    k: v
+                    for k, v in value.items()
+                    if k not in ("lifespan", "dependencies")
+                }
+            if isinstance(value, (bool, int, float, str)) and value == defaults.get(
+                name
+            ):
+                continue
+            if name in ("auth", "auth_dependency") and callable(value):
+                gateway_kwargs[name] = protocol.FORWARDED
+                continue
+            if callable(value):
+                raise ValueError(
+                    f"`{name}` is not supported with executor='process' yet. Use "
+                    "executor='thread'."
+                )
+            try:
+                protocol.dumps(value)
+            except Exception as err:
+                raise ValueError(
+                    f"`{name}` cannot be sent to the gateway process of "
+                    f"executor='process': {err}. Define it in a module the app "
+                    "imports instead of in its script, or use executor='thread'."
+                ) from None
+            gateway_kwargs[name] = value
+        return gateway_kwargs
+
     def close(self, verbose: bool = True) -> None:
         """
         Closes the Interface that was launched and frees the port.
         """
+        worker = getattr(self, "_process_worker", None)
+        if worker is not None:
+            worker.close()
+            self._queue = getattr(self._queue, "original", self._queue)
+            self._process_worker = None
+            self.server = None
+            self.is_running = False
+            return
         if not self.is_running:
             return
 
@@ -3968,6 +4134,8 @@ Received inputs:
                 time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
+            if getattr(self, "_process_worker", None) is not None:
+                self.close()
             if self.server:
                 self.server.close()
             for tunnel in CURRENT_TUNNELS:

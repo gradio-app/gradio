@@ -385,9 +385,13 @@ class GradioMCPServer:
         self._local_url: str | None = None
         self._client_instance: Client | None = None
 
-        manager = self.StreamableHTTPSessionManager(  # type: ignore
-            app=self.mcp_server, json_response=False, stateless=True
-        )
+        def new_manager():
+            return self.StreamableHTTPSessionManager(  # type: ignore
+                app=self.mcp_server, json_response=False, stateless=True
+            )
+
+        self.manager = new_manager()
+        self._manager_ran = False
 
         async def handle_streamable_http(
             scope: Scope, receive: Receive, send: Send
@@ -425,19 +429,22 @@ class GradioMCPServer:
                     await response(scope, receive, send)
                     return
 
-            await manager.handle_request(scope, receive, send)
+            await self.manager.handle_request(scope, receive, send)
 
         @contextlib.asynccontextmanager
         async def lifespan(app: Starlette) -> AsyncIterator[None]:  # noqa: ARG001
             """Context manager for managing session manager lifecycle."""
-            async with manager.run():
+            # A session manager runs only once
+            if self._manager_ran:
+                self.manager = new_manager()
+            self._manager_ran = True
+            async with self.manager.run():
                 try:
                     yield
                 finally:
                     pass
 
         self.lifespan = lifespan
-        self.manager = manager
         self.handle_streamable_http = handle_streamable_http
 
     @property

@@ -111,6 +111,7 @@ from gradio.route_utils import (  # noqa: F401
     API_PREFIX,
     BUILD_PATH_LIB,
     DEFAULT_TEMP_DIR,
+    GATEWAY_USER_SCOPE_KEY,
     STATIC_PATH_LIB,
     STATIC_TEMPLATE_LIB,
     VERSION,
@@ -280,6 +281,9 @@ class App(FastAPI):
         # Sessions whose `unload` events have run, so that the heartbeat and the
         # queue, which can both end a session, run them only once
         self.unloaded_sessions: utils.LRUCache[str, bool] = utils.LRUCache(10000)
+        # Told when a session closes (True) or reopens (False), e.g. by the
+        # gateway of executor="process", whose app process holds the state
+        self.session_listener: Callable[[str, bool], None] | None = None
         self.lock = utils.safe_get_lock()
         self.stop_event = utils.safe_get_stop_event()
         self.cookie_id = secrets.token_urlsafe(32)
@@ -338,6 +342,15 @@ class App(FastAPI):
         self.unloaded_sessions.pop(session_hash, None)
         if session_hash in self.state_holder.session_data:
             self.state_holder.session_data[session_hash].is_closed = False
+        if self.session_listener is not None:
+            self.session_listener(session_hash, False)
+
+    def mark_session_closed(self, session_hash: str) -> None:
+        """The session's page went away, so its state is deleted after a while."""
+        if session_hash in self.state_holder.session_data:
+            self.state_holder.session_data[session_hash].is_closed = True
+        if self.session_listener is not None:
+            self.session_listener(session_hash, True)
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
@@ -469,6 +482,8 @@ class App(FastAPI):
         @router.get("/user")
         @router.get("/user/")
         async def get_current_user(request: fastapi.Request) -> str | None:
+            if GATEWAY_USER_SCOPE_KEY in request.scope:
+                return request.scope[GATEWAY_USER_SCOPE_KEY]
             if app.auth_dependency is not None:
                 user = app.auth_dependency(request)
                 if inspect.isawaitable(user):
@@ -1581,8 +1596,7 @@ class App(FastAPI):
                     if any(t for t in dep.targets if t[1] == "unload")
                 ]
                 # This will mark the state to be deleted in an hour
-                if session_hash in app.state_holder.session_data:
-                    app.state_holder.session_data[session_hash].is_closed = True
+                app.mark_session_closed(session_hash)
                 caching.clear_session_caches(session_hash)
                 # Streams only; diff state is dropped by the queue when
                 # the run ends

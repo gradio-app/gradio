@@ -18,6 +18,18 @@ const LOCAL_PYTHONPATH = [
 const USE_INSTALLED_GRADIO =
 	process.env.GRADIO_TEST_USE_INSTALLED_GRADIO === "1";
 
+// Demos using gr.render, which executor="process" (the default) does not
+// support yet, run with threads until it does
+const THREAD_EXECUTOR_DEMOS = new Set([
+	"accordion_tab_switch",
+	"multipage",
+	"render_heavy_concurrently",
+	"render_merge",
+	"render_queue_false",
+	"state_change",
+	"todo_list"
+]);
+
 export interface GradioApp {
 	port: number;
 	process: ChildProcess;
@@ -227,6 +239,9 @@ export async function launchGradioApp(
 			// Use unique directories per instance to avoid conflicts
 			GRADIO_EXAMPLES_CACHE: cacheDir,
 			GRADIO_TEMP_DIR: tempDir,
+			...(THREAD_EXECUTOR_DEMOS.has(demoName)
+				? { GRADIO_EXECUTOR: "thread" }
+				: {}),
 			PYTHONPATH: USE_INSTALLED_GRADIO ? "" : LOCAL_PYTHONPATH
 		}
 	});

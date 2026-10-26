@@ -316,9 +316,9 @@ class FakeBrowser:
 def launch():
     demos = []
 
-    def _launch(demo):
+    def _launch(demo, executor=None):
         demos.append(demo)
-        app, _, _ = demo.launch(prevent_thread_lock=True)
+        app, _, _ = demo.launch(prevent_thread_lock=True, executor=executor)
         return app
 
     yield _launch
@@ -348,7 +348,8 @@ class TestClientHeldState:
 
     def test_another_server_asks_for_the_value(self, launch):
         demo, _ = counter_app()
-        app = launch(demo)
+        # Clears the server's caches, which live in this process with threads
+        app = launch(demo, executor="thread")
         with TestClient(app) as client:
             browser = FakeBrowser(client)
             browser.run(0, [None])
@@ -374,7 +375,8 @@ class TestClientHeldState:
 
     def test_tampered_or_foreign_tokens_reset_the_state(self, launch, monkeypatch):
         demo, state = counter_app()
-        app = launch(demo)
+        # Changes GRADIO_SECRET_KEY while the server runs, in this process with threads
+        app = launch(demo, executor="thread")
         monkeypatch.setattr(client_state, "_warned", set())
         with TestClient(app) as client:
             browser = FakeBrowser(client, inline_limit=16_384)
@@ -424,7 +426,8 @@ class TestClientHeldState:
             text = gr.Textbox()
             count = gr.Number()
             text.submit(add, [history, text], count)
-        app = launch(demo)
+        # Clears the server's caches, which live in this process with threads
+        app = launch(demo, executor="thread")
         with TestClient(app) as client:
             browser = FakeBrowser(client)
             browser.run(0, [None, "a"])
@@ -655,7 +658,8 @@ class TestQueuedEventsAndStreams:
 
         with gr.Blocks() as demo:
             gr.Textbox()
-        app = launch(demo)
+        # Inspects the server's queued event, which lives in this process with threads
+        app = launch(demo, executor="thread")
         carried = object()
         event = SimpleNamespace(
             data=SimpleNamespace(client_state=carried), signal=_asyncio.Event()
@@ -678,7 +682,8 @@ def test_session_status_says_whether_the_server_has_the_session(launch, monkeypa
     with gr.Blocks() as demo:
         t = gr.Textbox()
         t.submit(lambda x: x, t, t)
-    app = launch(demo)
+    # Changes GRADIO_SECRET_KEY while the server runs, in this process with threads
+    app = launch(demo, executor="thread")
     with TestClient(app) as client:
         status = lambda h: client.get(  # noqa: E731
             f"{API_PREFIX}/session_status", params={"session_hash": h}

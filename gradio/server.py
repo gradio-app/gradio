@@ -275,6 +275,7 @@ class Server(App):
         head_paths: str | Path | Sequence[str | Path] | None = None,
         num_workers: int | None = None,
         resume_sessions: bool | None = None,
+        executor: Literal["thread", "process"] | None = None,
     ) -> tuple[App, str, str]:
         """Launch the Gradio API server (Server mode).
 
@@ -285,6 +286,9 @@ class Server(App):
         """
         from gradio.blocks import Blocks
         from gradio.events import api as gr_api
+
+        if Blocks._resolve_executor(executor) == "process":
+            self._check_process_executor()
 
         with Blocks(mode="server") as blocks:
             for fn, api_kwargs in self._deferred_apis:
@@ -342,4 +346,16 @@ class Server(App):
             head_paths=head_paths,
             num_workers=num_workers,
             resume_sessions=resume_sessions,
+            executor=executor,
         )
+
+    def _check_process_executor(self) -> None:
+        """With executor="process" the gateway serves Gradio's routes and
+        forwards this app's own routes here, so middleware added to this app
+        would not wrap Gradio's routes as it does with threads."""
+        if self.user_middleware:
+            raise ValueError(
+                "executor='process' does not support a Server with middleware yet, "
+                "since it would not wrap Gradio's routes, which the gateway "
+                "process serves. Use executor='thread'."
+            )
