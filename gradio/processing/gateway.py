@@ -454,11 +454,6 @@ def build(bootstrap: dict) -> Blocks:
         blocks.mode = config["mode"]
     if config.get("pages"):
         blocks.pages = [tuple(page) for page in config["pages"]]
-    if config.get("i18n_translations"):
-        # The /config route reads translations from here
-        blocks.i18n_instance = SimpleNamespace(  # type: ignore[assignment]
-            translations_dict=config["i18n_translations"]
-        )
 
     def get_config_file() -> dict:
         return dict(config)
@@ -690,6 +685,11 @@ def main(path: str) -> None:
     # launch() regenerates these from the Blocks, which has no components
     blocks.config = blocks.get_config_file()
     blocks.theme_css = bootstrap["theme_css"]
+    if blocks.config.get("i18n_translations"):
+        # The /config route reads translations from here
+        blocks.i18n_instance = SimpleNamespace(  # type: ignore[assignment]
+            translations_dict=blocks.config["i18n_translations"]
+        )
     pool.scale_limits()
     add_forwarded_routes(app, bootstrap, pool)
     app.session_listener = pool.session_changed
