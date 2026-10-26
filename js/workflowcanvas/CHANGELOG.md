@@ -1,5 +1,12 @@
 # @gradio/workflowcanvas
 
+## 0.13.0
+
+### Features
+
+- [#13893](https://github.com/gradio-app/gradio/pull/13893) [`0d59e5e`](https://github.com/gradio-app/gradio/commit/0d59e5e75824fa1b2317717bcb982ce3d77e95db) - Add an app view to gr.Workflow.  Thanks @abidlabs!
+- [#13866](https://github.com/gradio-app/gradio/pull/13866) [`ef1a961`](https://github.com/gradio-app/gradio/commit/ef1a9612f595316c9a98620e332742bf52d58d9b) - gr.Workflow: "Run this node" now reuses up-to-date upstream results instead of re-executing the whole upstream subgraph (Shift+click forces a full re-run). Also keeps a node's completed state after a run, which makes the stale-outline indicator work beyond the first few seconds.  Thanks @yvrjsharma!
+
 ## 0.12.0
 
 ### Dependency updates

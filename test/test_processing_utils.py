@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
 from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -58,6 +59,39 @@ class TestTempFileManagement:
         )
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
         assert Path(f).name == "cheetah1-copy.jpg"
+
+    def test_save_file_to_cache_refreshes_ctime_of_a_reused_copy(self, tmp_path):
+        source = tmp_path / "clip.txt"
+        source.write_text("content")
+        cache_dir = tmp_path / "cache"
+
+        cached = processing_utils.save_file_to_cache(source, cache_dir=str(cache_dir))
+        first_ctime = Path(cached).stat().st_ctime_ns
+        time.sleep(0.05)
+        reused = processing_utils.save_file_to_cache(source, cache_dir=str(cache_dir))
+
+        assert reused == cached
+        assert Path(reused).stat().st_ctime_ns > first_ctime
+
+    def test_save_file_to_cache_leaves_nothing_behind_when_copy_fails(
+        self, tmp_path, monkeypatch
+    ):
+        source = tmp_path / "clip.txt"
+        source.write_text("content")
+        cache_dir = tmp_path / "cache"
+
+        def failing_copy(src, dst):
+            Path(dst).write_text("cont")
+            raise OSError("disk full")
+
+        monkeypatch.setattr(processing_utils.shutil, "copy2", failing_copy)
+        with pytest.raises(OSError):
+            processing_utils.save_file_to_cache(source, cache_dir=str(cache_dir))
+        assert not [f for f in cache_dir.rglob("*") if f.is_file()]
+
+        monkeypatch.undo()
+        cached = processing_utils.save_file_to_cache(source, cache_dir=str(cache_dir))
+        assert Path(cached).read_text() == "content"
 
     @pytest.mark.asyncio
     async def test_move_files_to_cache_encodes_file_urls(self, tmp_path):

@@ -81,7 +81,7 @@ async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
             pyodide_pyfetch(url, method="POST", headers=headers, body=body),
             timeout=5,
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         pass  # do not push analytics if no network
 
 
@@ -224,19 +224,6 @@ def custom_component_analytics(
 
     _do_analytics_request(
         topic="gradio/custom-components",
-        data=data,
-    )
-
-
-def vibe_analytics() -> None:
-    data = {
-        "command": "vibe",
-    }
-    if not analytics_enabled():
-        return
-
-    _do_analytics_request(
-        topic="gradio/vibe",
         data=data,
     )
 

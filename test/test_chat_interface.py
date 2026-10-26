@@ -2,12 +2,11 @@ import tempfile
 import warnings
 from concurrent.futures import wait
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 from unittest.mock import patch
 
 import pytest
 from gradio_client import handle_file
-from typing_extensions import Self
 
 import gradio as gr
 from gradio.components.chatbot import Message, TextMessage

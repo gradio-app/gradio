@@ -2,6 +2,7 @@
 
 import asyncio
 import functools
+import gzip
 import inspect
 import io
 import json
@@ -986,6 +987,67 @@ class TestRoutes:
         assert file_response_with_partial_range.is_success
         assert len(file_response_with_partial_range.text) == 11
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "content, range_header, expected",
+        [
+            (b"abc", "bytes=0-3", b"abc"),
+            (b"abc", "bytes=0-0", b"a"),
+            (b"a", "bytes=0-0", b"a"),
+            (b"a", "bytes=0-3", b"a"),
+            (b"a", "bytes=0-", b"a"),
+        ],
+    )
+    async def test_file_range_end(self, tmp_path, content, range_header, expected):
+        path = tmp_path / "file.txt"
+        path.write_bytes(content)
+        gr.set_static_paths(paths=[path])
+        with gr.Blocks() as demo:
+            pass
+        async with httpx2.AsyncClient(
+            transport=httpx2.ASGITransport(app=demo.app), base_url="http://test"
+        ) as client:
+            response = await asyncio.wait_for(
+                client.get(
+                    f"{API_PREFIX}/file={path}", headers={"Range": range_header}
+                ),
+                timeout=30,
+            )
+        assert response.status_code == 206
+        assert response.headers["content-range"] == (
+            f"bytes 0-{len(expected) - 1}/{len(content)}"
+        )
+        assert response.headers["content-length"] == str(len(expected))
+        assert response.content == expected
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "content, range_header",
+        [
+            (b"abc", "bytes=3-4"),
+            (b"abc", "bytes=99-100"),
+            (b"", "bytes=0-0"),
+            (b"", "bytes=0-3"),
+        ],
+    )
+    async def test_file_range_unsatisfiable(self, tmp_path, content, range_header):
+        path = tmp_path / "file.txt"
+        path.write_bytes(content)
+        gr.set_static_paths(paths=[path])
+        with gr.Blocks() as demo:
+            pass
+        async with httpx2.AsyncClient(
+            transport=httpx2.ASGITransport(app=demo.app), base_url="http://test"
+        ) as client:
+            response = await asyncio.wait_for(
+                client.get(
+                    f"{API_PREFIX}/file={path}", headers={"Range": range_header}
+                ),
+                timeout=30,
+            )
+        assert response.status_code == 416
+        assert response.headers["content-range"] == f"bytes */{len(content)}"
+
     def test_mount_gradio_app(self):
         app = FastAPI()
 
@@ -1482,6 +1544,58 @@ class TestRoutes:
         else:
             assert resp.status_code == 403
             assert "location" not in resp.headers
+
+    @pytest.mark.parametrize(
+        "path,decoded",
+        [
+            ("data.json", True),
+            # A stored compressed file mislabelled with `Content-Encoding: gzip`
+            # is served as-is, as browsers do.
+            ("archive.tar.gz", False),
+        ],
+    )
+    def test_file_endpoint_url_is_not_served_compressed(
+        self, monkeypatch, path, decoded
+    ):
+        body = b'{"hello": "world"}'
+        compressed = gzip.compress(body)
+        upstream_headers = {}
+
+        async def stream(data: bytes):
+            yield data
+
+        def compressing_host(request: httpx2.Request) -> httpx2.Response:
+            upstream_headers.update(request.headers)
+            return httpx2.Response(
+                200,
+                headers={
+                    "content-type": "application/json",
+                    "content-encoding": "gzip",
+                },
+                content=stream(compressed),
+            )
+
+        async def resolve(host):
+            return "93.184.216.34"
+
+        monkeypatch.setattr(route_utils.safehttpx, "async_validate_url", resolve)
+        monkeypatch.setattr(
+            route_utils.safehttpx,
+            "AsyncSecureTransport",
+            lambda ip: httpx2.MockTransport(compressing_host),
+        )
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        client = TestClient(routes.App.create_app(io))
+
+        resp = client.get(
+            f"{API_PREFIX}/file=https://example.com/{path}",
+            headers={"Range": "bytes=0-", "If-Range": '"v1"'},
+        )
+        assert resp.status_code == 200
+        assert resp.content == (body if decoded else compressed)
+        assert upstream_headers["accept-encoding"] == "identity"
+        assert upstream_headers["range"] == "bytes=0-"
+        assert upstream_headers["if-range"] == '"v1"'
 
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):

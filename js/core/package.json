@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/core",
-	"version": "1.12.1",
+	"version": "1.12.2",
 	"type": "module",
 	"devDependencies": {
 		"@gradio/accordion": "workspace:^",
@@ -60,7 +60,6 @@
 		"@gradio/upload": "workspace:^",
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/vibeeditor": "workspace:^",
 		"@gradio/video": "workspace:^",
 		"@gradio/workflowcanvas": "workspace:^"
 	},

@@ -78,7 +78,8 @@
 		topoSort,
 		resolveCurrentInputs as resolveCurrentInputsImpl,
 		computeStaleNodes,
-		buildUpstreamSubgraph as buildUpstreamSubgraphImpl
+		buildUpstreamSubgraph as buildUpstreamSubgraphImpl,
+		reusableUpstreamNodes
 	} from "./workflow-graph";
 	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
@@ -110,16 +111,31 @@
 	let {
 		server = {},
 		initialValue = null,
-		gradio_shared = undefined
+		gradio_shared = undefined,
+		auth: shared_auth = undefined,
+		active = true,
+		dirty = $bindable(false),
+		ready = $bindable(false)
 	}: {
 		server?: Record<string, any>;
 		initialValue?: string | null;
 		gradio_shared?: Record<string, any> | undefined;
+		/** Auth owned by the parent (which already called `init()`), so the
+		 * parent and canvas agree on who the viewer is. */
+		auth?: ReturnType<typeof createHFAuth>;
+		active?: boolean;
+		/** Whether the canvas holds edits the server doesn't have yet. False
+		 * until `initialValue` is loaded, so the store's placeholder never counts. */
+		dirty?: boolean;
+		/** Set once `initialValue` is on screen. Before that the store holds a
+		 * placeholder workflow, which the parent keeps covered. */
+		ready?: boolean;
 	} = $props();
 
 	const gradio_client = $derived(gradio_shared?.client);
 
-	const auth = createHFAuth(() => server);
+	// svelte-ignore state_referenced_locally
+	const auth = shared_auth ?? createHFAuth(() => server);
 
 	let spaceId = $state("");
 	// Server independently rejects unauthorized saves — this is UX only.
@@ -144,6 +160,9 @@
 		lastSavedSignature !== null &&
 			structural_signature($workflow) !== lastSavedSignature
 	);
+	$effect(() => {
+		dirty = isDirty;
+	});
 	function flashSaved(): void {
 		saveIndicator = true;
 		if (saveIndicatorTimer) clearTimeout(saveIndicatorTimer);
@@ -153,7 +172,7 @@
 	}
 
 	$effect(() => {
-		void auth.init();
+		if (!shared_auth) void auth.init();
 	});
 
 	$effect(() => {
@@ -333,6 +352,7 @@
 		lastSavedSignature = structural_signature(loaded);
 		history.reset(loaded);
 		layoutReady = true;
+		ready = true;
 		if (autoArrange) {
 			requestAnimationFrame(() => {
 				autoLayout();
@@ -467,13 +487,24 @@
 	});
 
 	$effect(() => {
+		if (!active) return;
 		window.addEventListener("keydown", handleKeydown);
 		window.addEventListener("keyup", handle_keyup);
+		window.addEventListener("beforeunload", warn_if_dirty);
+		const root = document.documentElement;
+		const prev_overscroll = root.style.overscrollBehaviorX;
+		root.style.overscrollBehaviorX = "none";
 		return () => {
 			window.removeEventListener("keydown", handleKeydown);
 			window.removeEventListener("keyup", handle_keyup);
+			window.removeEventListener("beforeunload", warn_if_dirty);
+			root.style.overscrollBehaviorX = prev_overscroll;
 		};
 	});
+
+	function warn_if_dirty(e: BeforeUnloadEvent): void {
+		if (isDirty) e.preventDefault();
+	}
 
 	function handle_keyup(e: KeyboardEvent): void {
 		if (e.code === "Space") spaceHeld = false;
@@ -1005,7 +1036,7 @@
 				);
 			}
 		},
-		onrunnode: (id: string) => void runNode(id),
+		onrunnode: (id: string, force = false) => void runNode(id, force),
 		onselect: (id: string, additive = false) => selectNode(id, additive),
 		onnodepointerdown: (e: PointerEvent, id: string) => startNodeDrag(e, id),
 		onportpointerdown: (
@@ -1188,9 +1219,11 @@
 
 	function onWheel(e: WheelEvent): void {
 		if (!canvasEl) return;
-		if (e.target instanceof Element && e.target.closest(".nowheel")) return;
+		const zooming = e.ctrlKey || e.metaKey;
+		if (!zooming && e.target instanceof Element && e.target.closest(".nowheel"))
+			return;
 		e.preventDefault();
-		if (e.ctrlKey || e.metaKey) {
+		if (zooming) {
 			const r = canvasEl.getBoundingClientRect();
 			const cx = e.clientX - r.left;
 			const cy = e.clientY - r.top;
@@ -1216,6 +1249,8 @@
 	// no write access and marks nothing dirty.
 	function startNodeDrag(e: PointerEvent, nodeId: string): void {
 		if (e.button !== 0) return;
+		if ((e.target as HTMLElement).closest("input, select, textarea, label"))
+			return;
 		const node = legacyView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
@@ -2063,24 +2098,33 @@
 		});
 	}
 
-	async function runNode(targetId: string): Promise<void> {
+	// Shift+click (`force`) re-runs up-to-date upstream nodes instead of reusing them.
+	async function runNode(targetId: string, force = false): Promise<void> {
 		if (running) return;
-		await runWorkflow(buildUpstreamSubgraphImpl($workflow, targetId));
+		const reuse = force
+			? new Set<string>()
+			: reusableUpstreamNodes($workflow, targetId, nodeStatus, staleNodes);
+		await runWorkflow(buildUpstreamSubgraphImpl($workflow, targetId), reuse);
 	}
 
 	let nodesInRun = $state(new Set<string>());
 
-	async function runWorkflow(target?: Workflow): Promise<void> {
+	async function runWorkflow(
+		target?: Workflow,
+		reuse: Set<string> = new Set()
+	): Promise<void> {
 		if (running) return;
 		running = true;
 		const wfToRun = target ?? $workflow;
 		// Clear status only for nodes we're about to run, so already-finished
-		// nodes outside the target subgraph keep their snapshots + state.
-		const runningIds = new Set([
-			...wfToRun.references.map((n) => n.id),
-			...wfToRun.operators.map((n) => n.id),
-			...wfToRun.subjects.map((n) => n.id)
-		]);
+		// nodes outside the target subgraph (and reused nodes) keep their snapshots + state.
+		const runningIds = new Set(
+			[
+				...wfToRun.references.map((n) => n.id),
+				...wfToRun.operators.map((n) => n.id),
+				...wfToRun.subjects.map((n) => n.id)
+			].filter((id) => !reuse.has(id))
+		);
 		nodesInRun = runningIds;
 		nodeStatus = Object.fromEntries(
 			Object.entries(nodeStatus).filter(([id]) => !runningIds.has(id))
@@ -2101,10 +2145,47 @@
 			);
 		}
 
-		const callSpaceWithToken = server?.call_space
-			? async (spaceId: string, endpoint: string, argsJson: string) =>
-					server.call_space([spaceId, endpoint, argsJson, auth.token])
-			: undefined;
+		// Through the queue, not the server function, so the Space's own toasts
+		// ("Waiting for a GPU to become available") reach the canvas.
+		const callSpaceWithToken = gradio_client
+			? async (spaceId: string, endpoint: string, argsJson: string) => {
+					const job = gradio_client.submit("/call_space", [
+						JSON.stringify([spaceId, endpoint, argsJson, auth.token])
+					]);
+					abortController?.signal.addEventListener(
+						"abort",
+						() => job.cancel(),
+						{ once: true }
+					);
+					for await (const msg of job) {
+						if (msg.type === "log") {
+							const type =
+								msg.level === "warning" || msg.level === "success"
+									? msg.level
+									: "info";
+							showToast(`${spaceId}: ${msg.log}`, 4000, type);
+						}
+						if (msg.type === "data") {
+							return (msg.data as unknown[])[0] as string;
+						}
+						if (msg.type === "status" && msg.stage === "error") {
+							return JSON.stringify({
+								error: msg.message ?? "Space call failed",
+								error_type: "unknown",
+								suggestion: ""
+							});
+						}
+					}
+					return JSON.stringify({
+						error: "No data received from Space",
+						error_type: "unknown",
+						suggestion: ""
+					});
+				}
+			: server?.call_space
+				? async (spaceId: string, endpoint: string, argsJson: string) =>
+						server.call_space([spaceId, endpoint, argsJson, auth.token])
+				: undefined;
 
 		const callModelWithToken = server?.call_model
 			? async (
@@ -2204,7 +2285,9 @@
 							errorType === "quota"
 								? "GPU quota exceeded"
 								: "GPU unavailable — try again in a minute";
-						nodeErrors = { ...nodeErrors, [nodeId]: headline };
+						// Keep the Space's own message: it says whose quota ran
+						// out and how long until it resets.
+						nodeErrors = { ...nodeErrors, [nodeId]: `${headline}\n${error}` };
 						const cta = auth.getQuotaCTA();
 						showToast(
 							`${label}: ${headline}. ${cta.suffix}`,
@@ -2242,7 +2325,8 @@
 							signal: signal ?? undefined,
 							onChunk
 						})
-				: undefined
+				: undefined,
+			{ reuse }
 		);
 
 		running = false;
@@ -2315,12 +2399,7 @@
 			hasErrors ? 5000 : 3000,
 			hasErrors ? "error" : "success"
 		);
-
-		setTimeout(() => {
-			nodeStatus = Object.fromEntries(
-				Object.entries(nodeStatus).filter(([_, s]) => s === "error")
-			);
-		}, 3000);
+		// "done" is kept: staleness and upstream reuse depend on it.
 	}
 
 	function stopWorkflow(): void {
@@ -2568,7 +2647,6 @@
 			selectedEdgeIds = new Set($workflow.edges.map((edge) => edge.id));
 		}
 		if (e.key === "0" && (e.metaKey || e.ctrlKey)) {
-			e.preventDefault();
 			viewport = { x: 0, y: 0, zoom: 1 };
 		}
 		if (e.key === "Escape") {
@@ -2795,7 +2873,15 @@
 	}
 
 	function handlePickerUpdate(nodeId: string, template: any): void {
-		if (!readOnly) replaceNodeSource(nodeId, template);
+		if (!readOnly) {
+			replaceNodeSource(nodeId, template);
+			// Staleness compares input values only, so without this a swapped
+			// node stays "done" and gets reused.
+			const { [nodeId]: _status, ...status } = nodeStatus;
+			nodeStatus = status;
+			const { [nodeId]: _snapshot, ...snapshots } = nodeInputSnapshots;
+			nodeInputSnapshots = snapshots;
+		}
 		activePicker = null;
 	}
 
