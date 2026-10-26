@@ -1,8 +1,15 @@
 """Messages between the app's process and its gateway.
 
 Each message is a pickled tuple behind a 4-byte length. The connection is a
-loopback socket that only the gateway this process spawned can use (it must
-send the token first), so both ends trust what they unpickle.
+loopback socket that only the gateway this process spawned can use: it sends
+the token first, as raw bytes that the app's process checks before it
+unpickles anything, so both ends trust what they unpickle.
+
+The results and errors the app's process sends are pickled on their own, so
+that one the gateway cannot load fails its call, not the connection. They are
+pickled without classes or functions defined in `__main__` (the app's script),
+which pickle by reference and which the gateway, running another script,
+cannot find.
 """
 
 from __future__ import annotations
@@ -10,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import pickle
 import struct
+import types
 from typing import Any
 
 HEADER = struct.Struct("!I")
@@ -25,20 +33,51 @@ async def read(reader: asyncio.StreamReader) -> Any:
     return pickle.loads(await reader.readexactly(size))
 
 
+class NotPortable(pickle.PicklingError):
+    pass
+
+
+class _AppPickler(pickle.Pickler):
+    """Refuses what pickles by a reference into `__main__`."""
+
+    def reducer_override(self, obj):
+        if isinstance(obj, (type, types.FunctionType)):
+            module = getattr(obj, "__module__", None)
+        else:
+            module = type(obj).__module__
+        if module == "__main__":
+            raise NotPortable(f"{obj!r} is defined in __main__")
+        return NotImplemented
+
+
+def dumps(value: Any) -> bytes:
+    """`value` pickled so that the gateway can load it, or NotPortable."""
+    import io
+
+    buffer = io.BytesIO()
+    _AppPickler(buffer, protocol=pickle.HIGHEST_PROTOCOL).dump(value)
+    return buffer.getvalue()
+
+
 def portable_error(exc: BaseException) -> tuple:
-    """An exception crosses as itself when it survives pickling, else as a summary."""
+    """An exception crosses as itself when it can, else as a summary."""
+    summary = (type(exc).__name__, str(exc))
     try:
-        data = pickle.dumps(exc)
+        data = dumps(exc)
         pickle.loads(data)
-        return ("pickled", data)
+        return ("pickled", data, *summary)
     except Exception:
-        return ("summary", type(exc).__name__, str(exc))
+        return ("summary", None, *summary)
 
 
 def restore_error(payload: tuple) -> BaseException:
-    if payload[0] == "pickled":
-        return pickle.loads(payload[1])
-    return RuntimeError(f"{payload[1]}: {payload[2]}")
+    kind, data, name, message = payload
+    if kind == "pickled":
+        try:
+            return pickle.loads(data)
+        except Exception:
+            pass
+    return RuntimeError(f"{name}: {message}")
 
 
 # Modules every gateway can import, so annotations naming only their types
@@ -139,6 +178,13 @@ def restore_signature(portable: tuple | None):
 FORWARDED = "__gradio_forwarded_to_the_app_process__"
 
 
+def _session(request) -> dict | None:
+    """The Starlette session of a request (OAuth keeps its login there)."""
+    scope = getattr(request, "scope", None) or {}
+    session = scope.get("session")
+    return dict(session) if session is not None else None
+
+
 def request_snapshot(request) -> dict:
     """What a Starlette request carries, for code in the app's process."""
     return {
@@ -151,6 +197,7 @@ def request_snapshot(request) -> dict:
         if request.client
         else None,
         "path_params": dict(request.path_params),
+        "session": _session(request),
     }
 
 
@@ -177,6 +224,11 @@ def starlette_request(snapshot: dict, state: dict | None = None):
             "client": snapshot.get("client"),
             "path_params": snapshot.get("path_params") or {},
             "state": dict(state or {}),
+            **(
+                {"session": snapshot["session"]}
+                if snapshot.get("session") is not None
+                else {}
+            ),
         }
     )
 
@@ -195,14 +247,22 @@ def portable_metadata(fn) -> dict:
 
 
 def portable_request(request):
-    """A request as it can cross: a gr.Request pickles itself, while a raw
-    Starlette request (the MCP server passes one) crosses as a snapshot."""
+    """A request as it can cross: a gr.Request pickles itself, with its session,
+    while a raw Starlette request (the MCP server passes one) crosses as a
+    snapshot."""
     from starlette.requests import Request as StarletteRequest
+
+    from gradio.route_utils import Request
 
     if isinstance(request, list):
         return [portable_request(r) for r in request]
     if isinstance(request, StarletteRequest):
         return ("starlette", request_snapshot(request))
+    if isinstance(request, Request) and request.request is not None:
+        # Pickling keeps headers, cookies and the like, but not the session
+        session = _session(request.request)
+        if session is not None:
+            request.kwargs["session"] = session
     return request
 
 
@@ -223,6 +283,7 @@ def restore_request(request, lifespan_state: dict | None = None):
     if not isinstance(request, Request) or request.request is not None:
         return request
     kwargs = request.kwargs
+    session = kwargs.pop("session", None)
     url = urlsplit(str(kwargs.get("url", "")))
     client = kwargs.get("client") or {}
     state = dict(lifespan_state or {})
@@ -245,12 +306,77 @@ def restore_request(request, lifespan_state: dict | None = None):
         "path_params": kwargs.get("path_params") or {},
         "state": state,
     }
+    if session is not None:
+        scope["session"] = session
     rebuilt = Request(
         StarletteRequest(scope),
         username=request.username,
         session_hash=request.session_hash,
     )
     return rebuilt
+
+
+def _event_name(event) -> str:
+    return event if isinstance(event, str) else event.event_name
+
+
+def foreign_component_classes(blocks) -> dict[str, dict[str, str]]:
+    """Component classes the app defines (e.g. a gr.HTML subclass in its
+    script), by the name the config gives them. The gateway, which cannot
+    import the app, stands in for each with the Gradio class it extends."""
+    import inspect
+
+    from gradio.components import Component
+
+    classes = {}
+    for block in blocks.blocks.values():
+        cls = type(block)
+        if not isinstance(block, Component) or cls.__module__.split(".")[0] == "gradio":
+            continue
+        base = next(
+            (
+                c
+                for c in cls.__mro__[1:]
+                if c.__module__.split(".")[0] == "gradio" and issubclass(c, Component)
+            ),
+            None,
+        )
+        # One with its own frontend extends an abstract class, which cannot
+        # stand in for it
+        if base is None or inspect.isabstract(base):
+            continue
+        base_events = {_event_name(e) for e in base.EVENTS}
+        classes[block.get_block_class()] = {
+            "name": cls.__name__,
+            "base": base.__name__,
+            "base_module": base.__module__,
+            "class_id": cls.get_component_class_id(),
+            # Events the class adds, which the gateway attaches listeners to
+            "events": [
+                _event_name(e) for e in cls.EVENTS if _event_name(e) not in base_events
+            ],
+        }
+    return classes
+
+
+THEME = "__gradio_theme__"
+
+
+def describe_routes(app) -> list[tuple[str, str, list[str]]]:
+    """The routes of a FastAPI app (a Server's own, before Gradio adds its
+    routes), as the gateway forwards them."""
+    from fastapi.routing import APIRoute, APIWebSocketRoute
+    from starlette.routing import Mount, WebSocketRoute
+
+    routes = []
+    for route in app.router.routes:
+        if isinstance(route, APIRoute):
+            routes.append(("http", route.path, sorted(route.methods)))
+        elif isinstance(route, (APIWebSocketRoute, WebSocketRoute)):
+            routes.append(("websocket", route.path, []))
+        elif isinstance(route, Mount):
+            routes.append(("mount", route.path, []))
+    return routes
 
 
 def jsonable(output: dict) -> dict:

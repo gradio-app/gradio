@@ -111,6 +111,7 @@ from gradio.route_utils import (  # noqa: F401
     API_PREFIX,
     BUILD_PATH_LIB,
     DEFAULT_TEMP_DIR,
+    GATEWAY_USER_SCOPE_KEY,
     STATIC_PATH_LIB,
     STATIC_TEMPLATE_LIB,
     VERSION,
@@ -481,6 +482,10 @@ class App(FastAPI):
         @router.get("/user")
         @router.get("/user/")
         async def get_current_user(request: fastapi.Request) -> str | None:
+            if GATEWAY_USER_SCOPE_KEY in request.scope:
+                # executor="process": the gateway, which holds the login,
+                # forwarded this request and said who made it
+                return request.scope[GATEWAY_USER_SCOPE_KEY]
             if app.auth_dependency is not None:
                 user = app.auth_dependency(request)
                 if inspect.isawaitable(user):

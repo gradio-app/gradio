@@ -31,9 +31,7 @@ const THREAD_EXECUTOR_DEMOS = new Set([
 	"state_change",
 	"todo_list",
 	// launch(i18n=...)
-	"i18n",
-	// custom components
-	"super_html"
+	"i18n"
 ]);
 
 export interface GradioApp {

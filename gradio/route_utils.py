@@ -85,6 +85,9 @@ if TYPE_CHECKING:
 
 config_lock = threading.Lock()
 API_PREFIX = "/gradio_api"
+# Set on a request the gateway of executor="process" forwarded to the app's
+# process: the user it logged in (see processing.proxy.GatewayFront)
+GATEWAY_USER_SCOPE_KEY = "gradio.gateway_user"
 
 
 mimetypes.init()

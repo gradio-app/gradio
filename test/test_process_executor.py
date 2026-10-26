@@ -265,6 +265,261 @@ def test_running_event_and_server_are_visible_to_the_app():
         assert client.predict(api_name="/fn") == "[True] True"
 
 
+def test_oauth_login_reaches_the_app_process():
+    pytest.importorskip("authlib")
+
+    def whoami(profile: gr.OAuthProfile | None) -> str:
+        return profile.username if profile else "nobody"
+
+    with gr.Blocks() as demo:
+        gr.LoginButton()
+        out = gr.Textbox()
+        gr.Button().click(whoami, None, out, api_name="whoami")
+    _, url, _ = demo.launch(executor="process", prevent_thread_lock=True)
+    try:
+        with httpx2.Client(base_url=url) as http:
+            # Locally, the login is mocked: the session holds a fake profile.
+            # Its cookie is Secure, which browsers send to localhost and
+            # httpx does not, so it is sent by hand.
+            login = http.get("login/callback", params={"_target_url": "/"})
+            cookie = {"cookie": f"session={login.cookies['session']}"}
+            event = http.post(
+                "gradio_api/call/whoami", json={"data": []}, headers=cookie
+            ).json()
+            result = http.get(
+                f"gradio_api/call/whoami/{event['event_id']}", headers=cookie
+            ).text
+        assert "nobody" not in result
+        assert "event: complete" in result
+    finally:
+        demo.close()
+
+
+def test_forwarded_routes_see_the_gateway_login(tmp_path):
+    (tmp_path / "a.txt").write_text("a")
+    with gr.Blocks() as demo:
+        explorer = gr.FileExplorer(root_dir=str(tmp_path))
+    _, url, _ = demo.launch(
+        executor="process", prevent_thread_lock=True, auth=("u", "p")
+    )
+    try:
+        with httpx2.Client(base_url=url) as http:
+            assert http.post(
+                "login", data={"username": "u", "password": "p"}
+            ).is_success
+            response = http.post(
+                "gradio_api/component_server",
+                json={
+                    "data": None,
+                    "fn_name": "ls",
+                    "session_hash": "s",
+                    "component_id": explorer._id,
+                },
+            )
+        assert response.status_code == 200, response.text
+        assert "a.txt" in response.text
+    finally:
+        demo.close()
+
+
+def test_server_routes_come_before_gradio_routes():
+    app = gr.Server()
+
+    @app.get("/")
+    def root():
+        return {"message": "Hello World"}
+
+    _, url, _ = app.launch(executor="process", prevent_thread_lock=True)
+    try:
+        assert httpx2.get(url).json() == {"message": "Hello World"}
+    finally:
+        app.get_blocks().close()
+
+
+def test_server_websockets_are_relayed():
+    pytest.importorskip("websockets")
+    from fastapi import WebSocket
+    from websockets.exceptions import InvalidStatus
+    from websockets.sync.client import connect
+
+    app = gr.Server()
+
+    @app.websocket("/ws")
+    async def ws(websocket: WebSocket):
+        await websocket.accept()
+        text = await websocket.receive_text()
+        await websocket.send_text(f"{text} {os.getpid()}")
+        await websocket.close()
+
+    _, url, _ = app.launch(executor="process", prevent_thread_lock=True)
+    try:
+        with connect(url.replace("http", "ws", 1) + "ws") as websocket:
+            websocket.send("hi")
+            assert websocket.recv() == f"hi {os.getpid()}"
+        # The app's private server takes websockets only from the gateway
+        port = app.get_blocks()._process_worker.http_port  # type: ignore[attr-defined]
+        with pytest.raises(InvalidStatus):
+            connect(f"ws://127.0.0.1:{port}/ws")
+    finally:
+        app.get_blocks().close()
+
+
+def test_lifespan_runs_before_events_on_their_loop():
+    import asyncio
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def lifespan(_app):
+        await asyncio.sleep(1)
+        yield {"ready": asyncio.Event()}
+
+    async def fn(request: gr.Request) -> str:
+        event = request.state.ready
+        event.set()
+        await event.wait()
+        return "ok"
+
+    with gr.Blocks() as demo:
+        out = gr.Textbox()
+        gr.Button().click(fn, None, out, api_name="fn")
+    with launched(demo, app_kwargs={"lifespan": lifespan}) as client:
+        assert client.predict(api_name="/fn") == "ok"
+
+
+def test_launch_again_keeps_the_running_server():
+    demo = gr.Interface(lambda x: x, "textbox", "textbox")
+    _, first_url, _ = demo.launch(executor="process", prevent_thread_lock=True)
+    worker = demo._process_worker  # type: ignore[attr-defined]
+    assert worker is not None and worker.gateway is not None
+    try:
+        _, second_url, _ = demo.launch(executor="process", prevent_thread_lock=True)
+        assert second_url == first_url
+        assert demo._process_worker is worker  # type: ignore[attr-defined]
+    finally:
+        demo.close()
+    assert worker.gateway.poll() is not None or worker.gateway.wait(timeout=10) == 0
+
+
+def test_max_threads_sets_the_app_process_limiter():
+    demo = gr.Interface(lambda x: x, "textbox", "textbox")
+    with launched(demo, max_threads=60):
+        assert demo.limiter is not None
+        assert demo.limiter.total_tokens == 60
+
+
+def test_app_classes_from_the_script_cross():
+    class MainError(Exception):
+        pass
+
+    # Defined as if in the app's script, which the gateway cannot import
+    MainError.__module__ = "__main__"
+
+    def fail(x):
+        raise MainError("over quota")
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        t.submit(fail, t, t, api_name="fail")
+        t.change(lambda x: x, t, t, api_name="echo")
+    with launched(demo) as client:
+        with pytest.raises(Exception):
+            client.predict("a", api_name="/fail")
+        # The connection to the app's process is still up
+        assert client.predict("b", api_name="/echo") == "b"
+
+
+def test_run_history_is_recorded_once(monkeypatch):
+    from gradio import history
+
+    recorded = []
+    monkeypatch.setattr(
+        history, "schedule_record_run", lambda *a, **k: recorded.append(k)
+    )
+    demo = gr.Interface(lambda x: x, "textbox", "textbox", api_name="echo")
+    with launched(demo) as client:
+        assert client.predict("a", api_name="/echo") == "a"
+    # The gateway records it, in its own process
+    assert recorded == []
+
+
+def test_uploads_in_the_gateway_follow_delete_cache(tmp_path):
+    upload = tmp_path / "upload.txt"
+    upload.write_text("hello")
+    with gr.Blocks(delete_cache=(1, 1)) as demo:
+        gr.File()
+    with launched(demo) as client:
+        with open(upload, "rb") as f:
+            response = httpx2.post(f"{client.src}gradio_api/upload", files={"files": f})
+        path = response.json()[0]
+        assert os.path.exists(path)
+        deadline = time.time() + 15
+        while os.path.exists(path) and time.time() < deadline:
+            time.sleep(0.5)
+        assert not os.path.exists(path)
+
+
+def test_caching_examples_does_not_count_toward_the_startup_timeout(
+    tmp_path, monkeypatch
+):
+    from gradio.processing import worker
+
+    monkeypatch.setenv("GRADIO_EXAMPLES_CACHE", str(tmp_path))
+    monkeypatch.setattr(worker, "STARTUP_TIMEOUT", 1)
+
+    def slow(x):
+        time.sleep(2)
+        return x
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        gr.Examples([["a"]], t, t, slow, cache_examples=True)
+    with launched(demo):
+        pass
+
+
+def test_stopping_a_generator_does_not_hold_up_other_events():
+    def slow():
+        yield "start"
+        time.sleep(4)
+        yield "end"
+
+    with gr.Blocks() as demo:
+        out = gr.Textbox()
+        gr.Button().click(slow, None, out, api_name="slow")
+        gr.Button().click(lambda x: x, out, out, api_name="echo")
+    with launched(demo) as client:
+        job = client.submit(api_name="/slow")
+        while not job.outputs():
+            time.sleep(0.05)
+        job.cancel()
+        start = time.time()
+        assert Client(client.src, verbose=False).predict("b", api_name="/echo") == "b"
+        assert time.time() - start < 3
+
+
+def test_component_subclasses_and_themes_of_the_app():
+    class MyTextbox(gr.Textbox):
+        pass
+
+    class Seafoam(gr.themes.Base):
+        pass
+
+    # Defined as if in the app's script, which the gateway cannot import
+    Seafoam.__module__ = "__main__"
+
+    with gr.Blocks() as demo:
+        t = MyTextbox(label="mine")
+        t.submit(lambda x: x[::-1], t, t, api_name="reverse")
+    with launched(demo, theme=Seafoam(primary_hue="green")) as client:
+        assert client.predict("abc", api_name="/reverse") == "cba"
+        config = httpx2.get(f"{client.src}config").json()
+        theme_css = httpx2.get(f"{client.src}theme.css").text
+    (component,) = [c for c in config["components"] if c["id"] == t._id]
+    assert component["props"]["name"] == "mytextbox"
+    assert component["component_class_id"] == MyTextbox.get_component_class_id()
+    assert gr.themes.colors.green.c500 in theme_css
+
+
 def test_invalid_executor():
     demo = gr.Interface(lambda x: x, "textbox", "textbox")
     with pytest.raises(ValueError, match="must be 'thread' or 'process'"):

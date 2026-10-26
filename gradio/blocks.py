@@ -6,7 +6,6 @@ import hashlib
 import inspect
 import json
 import os
-import pickle
 import random
 import re
 import secrets
@@ -14,6 +13,7 @@ import string
 import sys
 import threading
 import time
+import types
 import uuid
 import warnings
 import weakref
@@ -335,6 +335,11 @@ class Block:
         kwargs = {}
         for parameter in signature.parameters.values():
             if parameter.name in props and parameter.name not in additional_keys:
+                if parameter.kind is inspect.Parameter.VAR_KEYWORD:
+                    # e.g. gr.HTML(**props), whose config keeps them together
+                    if isinstance(props[parameter.name], dict):
+                        kwargs.update(props[parameter.name])
+                    continue
                 kwargs[parameter.name] = props[parameter.name]
         return kwargs
 
@@ -1767,7 +1772,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     @property
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
-        return any(
+        # The gateway of executor="process" rebuilds a LoginButton as the
+        # Button it is a template of, so it is told instead
+        return getattr(self, "_expects_oauth", False) or any(
             isinstance(block, components.LoginButton) for block in self.blocks.values()
         )
 
@@ -3212,7 +3219,7 @@ Received inputs:
             js: Custom JavaScript provided as either a function or a raw code string. A function is automatically invoked; otherwise the code is executed directly when the page loads. To run JavaScript as a document-level `<script>` tag, use the `head` parameter.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
-            executor: Where the server runs relative to the app's functions. "thread" (the default) runs the server in this process, with functions in its threads. "process" runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. Can be set with the GRADIO_EXECUTOR environment variable.
+            executor: Where the server runs relative to the app's functions. "process" (the default) runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. "thread" runs the server in this process, with functions in its threads; it is the default in reload mode, and the choice for the features "process" does not support yet (gr.render, launch(i18n=...), custom components and a Server's middleware). Can be set with the GRADIO_EXECUTOR environment variable.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -3373,16 +3380,23 @@ Received inputs:
                         "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 launch_kwargs["share"] = True
-            serve(
-                self,
-                {
-                    **self._gateway_launch_kwargs(launch_kwargs),
-                    "inline": False,
-                    "inbrowser": False,
-                },
-                app=_app,
-                launch_kwargs=launch_kwargs,
-            )
+            if getattr(self, "_process_worker", None) is not None and self.is_running:
+                # As with threads, the running server keeps serving
+                if not quiet:
+                    print(
+                        "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
+                    )
+            else:
+                serve(
+                    self,
+                    {
+                        **self._gateway_launch_kwargs(launch_kwargs),
+                        "inline": False,
+                        "inbrowser": False,
+                    },
+                    app=_app,
+                    launch_kwargs=launch_kwargs,
+                )
             if inbrowser:
                 webbrowser.open(
                     str(
@@ -4104,8 +4118,22 @@ Received inputs:
                     f"`{name}` is not supported with executor='process' yet. Use "
                     "executor='thread'."
                 )
+            from gradio.processing import protocol
+            from gradio.themes import ThemeClass
+
             try:
-                pickle.dumps(value)
+                protocol.dumps(value)
+            except protocol.NotPortable as err:
+                if isinstance(value, ThemeClass):
+                    # e.g. a theme class defined in the app's script: its values
+                    # cross instead
+                    gateway_kwargs[name] = {protocol.THEME: value.to_dict()}
+                    continue
+                raise ValueError(
+                    f"`{name}` cannot be sent to the gateway process of "
+                    f"executor='process': {err}. Define it in a module the app "
+                    "imports instead of in its script, or use executor='thread'."
+                ) from None
             except Exception as err:
                 raise ValueError(
                     f"`{name}` cannot be sent to the gateway process of "
@@ -4337,6 +4365,10 @@ Received inputs:
                         f"Cannot find Block with id: {target_id} but is present as a target in the config"
                     )
             event = getattr(block, event_name)
+            if isinstance(event, partial):
+                # A custom event of gr.HTML (see HTML.__getattr__): the
+                # listener, bound to the block like the built-in ones
+                event = types.MethodType(event.func, event.args[0])
             target_events.append(event)
         return target_events
 
