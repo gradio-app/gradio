@@ -682,15 +682,18 @@ class TestComponentsInBlocks:
         demo.get_api_info()
 
     @pytest.mark.parametrize("layout", [gr.Column, gr.Row])
-    @pytest.mark.parametrize("variant", ["panel", "compact"])
-    def test_layout_variant_is_deprecated(self, layout, variant):
+    @pytest.mark.parametrize("variant", ["default", "panel", "compact"])
+    def test_layout_variant_is_deprecated_and_ignored(self, layout, variant):
         with gr.Blocks():
             with pytest.warns(
-                DeprecationWarning, match="'variant' parameter"
+                DeprecationWarning, match="'variant' parameter.*default"
             ) as record:
-                block = layout(variant=variant)
-        assert block.variant == variant
+                with layout(variant=variant) as block:
+                    gr.Textbox()
+                    gr.Textbox()
         assert record[0].filename == __file__
+        assert "variant" not in block.get_config()
+        assert isinstance(block.children[0], gr.components.Form)
 
     @pytest.mark.parametrize("layout", [gr.Column, gr.Row])
     def test_default_layout_variant_does_not_warn(self, layout):

@@ -550,8 +550,7 @@ class BlockContext(Block):
         set_render_context(self.parent)
         if exc_type is not None:
             return
-        if getattr(self, "allow_expected_parents", True):
-            self.fill_expected_parents()
+        self.fill_expected_parents()
 
 
 def postprocess_update_dict(
