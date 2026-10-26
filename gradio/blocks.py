@@ -1549,21 +1549,17 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             postprocessed_value = block_config["props"].pop("value", None)
 
             constructor_args = cls.recover_kwargs(block_config["props"])
+            processed_samples = None
             if block_config["props"].get("name") == "dataset":
-                # A Dataset's config describes its components as
-                # {"name", "class_id"}; the constructor takes their names
+                # The config describes its components as {"name", "class_id"}
                 constructor_args["components"] = [
                     c["name"] if isinstance(c, dict) else c
                     for c in constructor_args.get("components") or []
                 ]
-            # A Dataset processes its samples unless it has a proxy URL, but
-            # the config's samples are processed already
-            processed_samples = (
-                constructor_args.pop("samples", None)
-                if block_config["props"].get("name") == "dataset"
-                and block_config["props"].get("proxy_url") is None
-                else None
-            )
+                # It processes its samples unless it has a proxy URL, but the
+                # config's are processed already
+                if block_config["props"].get("proxy_url") is None:
+                    processed_samples = constructor_args.pop("samples", None)
             if preserve_ids:
                 Context.id = id
             block = cls(**constructor_args)
@@ -1581,8 +1577,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 block_proxy_url
             ).host.endswith(".hf.space"):
                 proxy_urls.add(block_proxy_url)
-            # Set by registering listeners such as .select() or .like(),
-            # which the config describes but does not register here
+            # Set by registering listeners such as .select() or .like()
             for event_attribute in [
                 "_selectable",
                 "_undoable",
@@ -1665,8 +1660,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
                 dependency.pop("backend_fn")
                 dependency.pop("documentation", None)
-                # An id missing from the config is a block of another Blocks,
-                # which a normal launch tolerates too
+                # An id missing from the config is a block of another Blocks
                 dependency["inputs"] = [
                     original_mapping[i]
                     for i in dependency["inputs"]
@@ -1716,7 +1710,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
                     dependency["no_target"] = True
                 elif [list(t) for t in _targets] == [[None, "unload"]]:
-                    # demo.unload() targets no block (see Blocks.unload)
                     targets = [EventListenerMethod(None, "unload")]
                 else:
                     targets = [
@@ -3381,7 +3374,6 @@ Received inputs:
                     )
                 launch_kwargs["share"] = True
             if getattr(self, "_process_worker", None) is not None and self.is_running:
-                # As with threads, the running server keeps serving
                 if not quiet:
                     print(
                         "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
@@ -4093,16 +4085,16 @@ Received inputs:
             name: parameter.default
             for name, parameter in inspect.signature(Blocks.launch).parameters.items()
         }
+        from gradio.processing import protocol
+
         gateway_kwargs = {}
         for name, value in launch_kwargs.items():
-            # The gateway always serves in the background and reports back
             if name in ("prevent_thread_lock", "debug", "_app"):
                 continue
             if value is None or value is defaults.get(name):
                 continue
             if name == "app_kwargs":
-                # The lifespan and dependencies run in the app's process, with
-                # the app's code (the gateway asks it to run the dependencies)
+                # They run in the app's process (see processing.worker)
                 value = {
                     k: v
                     for k, v in value.items()
@@ -4113,25 +4105,18 @@ Received inputs:
             ):
                 continue
             if name in ("auth", "auth_dependency") and callable(value):
-                # Called in the app's process; the gateway asks it
-                from gradio.processing.protocol import FORWARDED
-
-                gateway_kwargs[name] = FORWARDED
+                gateway_kwargs[name] = protocol.FORWARDED
                 continue
             if callable(value):
                 raise ValueError(
                     f"`{name}` is not supported with executor='process' yet. Use "
                     "executor='thread'."
                 )
-            from gradio.processing import protocol
-            from gradio.themes import ThemeClass
-
             try:
                 protocol.dumps(value)
             except protocol.NotPortable as err:
-                if isinstance(value, ThemeClass):
-                    # e.g. a theme class defined in the app's script: its values
-                    # cross instead
+                if isinstance(value, Theme):
+                    # e.g. a theme class defined in the app's script
                     gateway_kwargs[name] = {protocol.THEME: value.to_dict()}
                     continue
                 raise ValueError(
@@ -4371,8 +4356,7 @@ Received inputs:
                     )
             event = getattr(block, event_name)
             if isinstance(event, partial):
-                # A custom event of gr.HTML (see HTML.__getattr__): the
-                # listener, bound to the block like the built-in ones
+                # A custom event of gr.HTML (see HTML.__getattr__)
                 event = types.MethodType(event.func, event.args[0])
             target_events.append(event)
         return target_events

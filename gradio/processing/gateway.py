@@ -80,7 +80,6 @@ class Link:
                     else:
                         future.set_exception(protocol.restore_error(message[2]))
                 elif kind in ("log", "progress") and self.server_loop is not None:
-                    # The queue's events belong to the server's loop
                     self.server_loop.call_soon_threadsafe(self.deliver, message)
         except (asyncio.IncompleteReadError, ConnectionError):
             pass
@@ -88,7 +87,6 @@ class Link:
             import traceback
 
             traceback.print_exc()
-        # The app's process exited, or refused this gateway
         shutdown(self.blocks)
 
     def deliver(self, message: tuple) -> None:
@@ -164,7 +162,6 @@ async def forward_event(
         "event",
         {
             "fn_index": fn.fn._process_fn_index,  # type: ignore[union-attr]
-            # The queue's check of the inputs, before the event itself
             "validator": fn.is_validator_function,
             "body": body.model_copy(update={"request": None, "client_state": None}),
             "client_state": protocol.portable_client_state(client_state),
@@ -240,26 +237,16 @@ def make_proxy(dependency: dict, signature=None, metadata: dict | None = None):
     return proxy
 
 
-def make_validator_proxy(fn_id: int):
-    """Stands in for the validator of event `fn_id`, which lives in the app's
-    process."""
+def make_stub(**attributes):
+    """A function that does nothing, standing in for one in the app's process
+    (an event's validator, a component's server function)."""
 
-    def validator(*_args):
+    def stub(*_args):
         pass
 
-    validator._process_fn_index = fn_id  # type: ignore[attr-defined]
-    return validator
-
-
-def make_server_fn_proxy(name: str):
-    """Stands in for a component's server function, which lives in the app's
-    process: the config lists it by name."""
-
-    def server_fn(*_args):
-        pass
-
-    server_fn.__name__ = name
-    return server_fn
+    for name, value in attributes.items():
+        setattr(stub, name, value)
+    return stub
 
 
 STAND_INS: list[type] = []
@@ -279,7 +266,6 @@ def make_stand_in(info: dict[str, str]) -> type:
 
     def get_config(self, *args, **kwargs):
         config = base.get_config(self, *args, **kwargs)
-        # The app's own props, which the Gradio class may not know
         return {**config, **getattr(self, "_app_props", {})}
 
     from unittest import mock
@@ -313,7 +299,7 @@ def build(bootstrap: dict) -> Blocks:
     if bootstrap["static_paths"]:
         utils.set_static_paths(bootstrap["static_paths"])
     config = bootstrap["config"]
-    stand_ins = bootstrap.get("component_classes") or {}
+    stand_ins = bootstrap["component_classes"]
     for info in stand_ins.values():
         make_stand_in(info)
     app_props = {}
@@ -345,29 +331,25 @@ def build(bootstrap: dict) -> Blocks:
     ]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        # No proxy URL: the app's files are local, served by the gateway
         blocks = Blocks.from_config(config, fns, None, preserve_ids=True)
     for block_id, props in app_props.items():
         if block_id in blocks.blocks:
             blocks.blocks[block_id]._app_props = props  # type: ignore[attr-defined]
     for block_id, names in server_fns.items():
-        # e.g. gr.HTML(server_functions=...), which run in the app's process:
-        # the component_server route is forwarded there
+        # e.g. gr.HTML(server_functions=...); the component_server route is
+        # forwarded to the app's process
         block = blocks.blocks.get(block_id)
         known = {fn.__name__ for fn in getattr(block, "server_fns", [])}
         for name in names:
             if block is not None and name not in known:
-                block.server_fns.append(make_server_fn_proxy(name))  # type: ignore[attr-defined]
+                block.server_fns.append(make_stub(__name__=name))  # type: ignore[attr-defined]
     for fn_id, settings in bootstrap["fn_settings"].items():
         if fn_id in blocks.fns:
             for key, value in settings.items():
                 if key not in ("signature", "metadata", "has_validator"):
                     setattr(blocks.fns[fn_id], key, value)
             if settings.get("has_validator"):
-                # The queue runs the validator first; the app's process runs
-                # the real one (see Worker.run_event)
-                blocks.fns[fn_id].validator = make_validator_proxy(fn_id)
-    # Multipage apps: which page each block and event belongs to
+                blocks.fns[fn_id].validator = make_stub(_process_fn_index=fn_id)
     if config.get("pages"):
         blocks.pages = [tuple(page) for page in config["pages"]]
         for page, contents in (config.get("page") or {}).items():
@@ -379,8 +361,8 @@ def build(bootstrap: dict) -> Blocks:
                     blocks.fns[fn_id].page = page
     if config.get("mode"):
         blocks.mode = config["mode"]
-    blocks.delete_cache = bootstrap.get("delete_cache")
-    blocks._expects_oauth = bootstrap.get("expects_oauth", False)  # type: ignore[attr-defined]
+    blocks.delete_cache = bootstrap["delete_cache"]
+    blocks._expects_oauth = bootstrap["expects_oauth"]  # type: ignore[attr-defined]
     for key in ("css", "js", "head", "title", "fill_height", "fill_width"):
         if config.get(key) is not None and hasattr(blocks, key):
             setattr(blocks, key, config[key])
@@ -458,21 +440,20 @@ def watch_app_process(pid: int, blocks: Blocks) -> None:
         time.sleep(1)
 
 
-# Routes that need the app's process: its code (component server functions,
-# a Server's own routes) or its per-session state (deep links, media streams)
+# Gradio routes that need the app's code (component server functions) or its
+# per-session state (deep links, media streams)
 FORWARDED_ROUTES = [
     ("/component_server", ["POST"]),
     ("/component_server/", ["POST"]),
     ("/deep_link", ["GET"]),
     ("/stream/{session_hash}/{run}/{component_id}/{rest:path}", ["GET", "HEAD"]),
 ]
-METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
 
 
 async def logged_in_user(app: App, request: Request) -> str | None:
-    """Who `launch(auth=...)` logged in, by the gateway's own login cookie."""
+    """Who `launch(auth=...)` logged in, by the gateway's own login cookie.
+    With auth_dependency, the app's process runs it on the request itself."""
     if app.auth is None or app.auth_dependency is not None:
-        # With auth_dependency, the app's process asks the app's own function
         return None
     token = request.cookies.get(f"access-token-{app.cookie_id}") or (
         request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
@@ -486,7 +467,13 @@ def add_forwarded_routes(app, bootstrap: dict) -> None:
     from fastapi.routing import APIRoute
     from starlette.routing import WebSocketRoute
 
-    from gradio.processing.proxy import TOKEN_HEADER, USER_HEADER, forward, relay
+    from gradio.processing.proxy import (
+        METHODS,
+        TOKEN_HEADER,
+        USER_HEADER,
+        forward,
+        relay,
+    )
     from gradio.route_utils import API_PREFIX
 
     port = bootstrap["http_port"]
@@ -508,7 +495,7 @@ def add_forwarded_routes(app, bootstrap: dict) -> None:
         for path, methods in FORWARDED_ROUTES
     ]
     # A Server's own routes come before Gradio's, as they do with threads
-    for kind, path, methods in bootstrap.get("server_routes", []):
+    for kind, path, methods in bootstrap["server_routes"]:
         if kind == "http":
             routes.append(
                 APIRoute(path, to_app, methods=methods, include_in_schema=False)
@@ -525,8 +512,7 @@ def add_forwarded_routes(app, bootstrap: dict) -> None:
                 )
             )
     app.router.routes[:0] = routes
-    # Anything else the gateway does not serve may be a route the Server added
-    # after it launched
+    # e.g. a route the Server added after it launched
     app.router.routes.append(
         APIRoute("/{path:path}", to_app, methods=METHODS, include_in_schema=False)
     )
@@ -601,14 +587,12 @@ def main(path: str) -> None:
             result = await link.call(
                 "auth_dependency", protocol.request_snapshot(request)
             )
-            # e.g. the user or tenant the function found, which the event's
-            # function reads off its request
             for key, value in result["state"].items():
                 setattr(request.state, key, value)
             return result["user"]
 
         launch_kwargs["auth_dependency"] = auth_dependency
-    if bootstrap.get("check_dependencies"):
+    if bootstrap["check_dependencies"]:
         from fastapi import Depends
 
         from gradio.processing.proxy import TOKEN_HEADER, check_dependencies
@@ -619,9 +603,7 @@ def main(path: str) -> None:
         async def app_dependencies(request: Request) -> None:
             await check_dependencies(request, target, token)
 
-        # Gradio's routes run the app's dependencies, as they do on a Server
-        # or with app_kwargs={"dependencies": ...} when the server is in the
-        # app's process
+        # Gradio's routes run them, as they do with threads
         app_kwargs = dict(launch_kwargs.get("app_kwargs") or {})
         app_kwargs["dependencies"] = [Depends(app_dependencies)]
         launch_kwargs["app_kwargs"] = app_kwargs

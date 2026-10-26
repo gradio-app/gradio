@@ -41,12 +41,11 @@ class ForwardingQueue:
         self.server_app = worker.app
 
     def __getattr__(self, name: str) -> Any:
-        # Settings such as max_size live on the queue the app configured
         return getattr(self.original, name)
 
     @property
     def active_jobs(self) -> list[list[RunningEvent]]:
-        # Read by code an event runs, e.g. ZeroGPU, to learn if its client left
+        # ZeroGPU reads it to learn whether an event's client left
         return [list(self.worker.running.values())]
 
     def log_message(self, event_id, log, title, level, duration=10, visible=True):
@@ -121,35 +120,30 @@ class Worker:
         self.blocks = blocks
         self.gateway_kwargs = gateway_kwargs
         self.queue_kwargs = queue_kwargs
-        # A real Gradio app over this process's blocks, sessions, iterators and
-        # gr.State caches, built as a normal launch builds it (onto a Server,
-        # if this is one). It runs the app's lifespan and serves the requests
-        # the gateway forwards; any other request is sent on to the gateway.
-        self.auth_dependency = launch_kwargs.get("auth_dependency")
-        # A Server's own routes, which the gateway forwards ahead of Gradio's
+        self.auth_dependency: Any = launch_kwargs.get("auth_dependency")
+        # Before Gradio adds its own routes
         self.server_routes = protocol.describe_routes(app) if app is not None else []
+        # A real Gradio app over this process's blocks, sessions, iterators and
+        # gr.State caches. It runs the app's lifespan and serves the requests
+        # the gateway forwards; any other request is sent on to the gateway.
         self.app = App.create_app(
             blocks,
             app=app,
             auth_dependency=self.auth_dependency,
             app_kwargs=dict(launch_kwargs.get("app_kwargs") or {}),
             strict_cors=launch_kwargs.get("strict_cors", True),
-            # The gateway serves MCP clients (see below)
             mcp_server=False,
         )
         mcp_server = launch_kwargs.get("mcp_server")
         if mcp_server is None:
             mcp_server = os.environ.get("GRADIO_MCP_SERVER", "").lower() == "true"
         if mcp_server:
-            # The server object a normal launch makes, unmounted: the gateway's
-            # MCP server is the one clients reach
+            # Unmounted: the gateway's MCP server is the one clients reach
             with contextlib.suppress(Exception):
                 import gradio.mcp
 
                 blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(blocks)
                 blocks.mcp_server = True
-        # The app's own FastAPI dependencies, which the gateway asks this
-        # process to run for the requests it serves
         self.checker = (
             dependency_checker(self.app) if self.app.router.dependencies else None
         )
@@ -167,7 +161,6 @@ class Worker:
         self.writer: asyncio.StreamWriter | None = None
         self.tasks: dict[int, asyncio.Task] = {}
         self.closing: set[asyncio.Task] = set()
-        # The session of each running event, for cleaning up after it
         self.event_sessions: dict[str, str | None] = {}
         self.running: dict[str, RunningEvent] = {}
         self.gateway: subprocess.Popen | None = None
@@ -183,11 +176,7 @@ class Worker:
         """Writes a message from any thread (functions run in worker threads)."""
         if self.loop is None or self.writer is None:
             return
-        self.send_frame(protocol.encode(message))
-
-    def send_frame(self, frame: bytes) -> None:
-        if self.loop is None or self.writer is None:
-            return
+        frame = protocol.encode(message)
         try:
             running = asyncio.get_running_loop()
         except RuntimeError:
@@ -200,8 +189,7 @@ class Worker:
     async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         from gradio.client_state import app_fingerprint
 
-        # The token comes first, raw, so that nothing is unpickled before it
-        # is checked
+        # Raw, so that nothing is unpickled before it is checked
         try:
             token = await asyncio.wait_for(reader.readexactly(len(self.token)), 10)
         except (TimeoutError, asyncio.IncompleteReadError, ConnectionError):
@@ -214,7 +202,6 @@ class Worker:
         self.writer = writer
         hello = await protocol.read(reader)
         if hello["fingerprint"] != app_fingerprint(self.blocks):
-            # Ids would mean different things on each side of the boundary
             self.failure = (
                 "The gateway rebuilt this app with a different structure, so "
                 "executor='process' cannot serve it. Use executor='thread'."
@@ -244,8 +231,7 @@ class Worker:
                 elif kind == "session":
                     self.session_changed(message[1], message[2])
                 elif kind == "close_iterator":
-                    # Closing waits for a generator's current step to finish,
-                    # which must not hold up the messages behind it
+                    # It waits for a generator's current step to finish
                     task = asyncio.create_task(self.close_iterator(message[1]))
                     self.closing.add(task)
                     task.add_done_callback(self.closing.discard)
@@ -264,9 +250,8 @@ class Worker:
             try:
                 data = protocol.dumps(result)
             except Exception:
-                # e.g. data models of classes defined in the app's script or
-                # inside a function: send what the client would receive, their
-                # JSON form
+                # e.g. data models of classes defined in the app's script: send
+                # their JSON form, which the client receives
                 data = protocol.dumps(protocol.jsonable(result))
             self.send(("result", rid, data))
         except asyncio.CancelledError:
@@ -298,8 +283,6 @@ class Worker:
         iterator = self.app.iterators.pop(event_id, None)
         session_hash = self.event_sessions.pop(event_id, None)
         if iterator is not None:
-            # The run ended early (its client left, or it was cancelled):
-            # what it kept for streaming is dropped, as the queue does
             self.blocks._drop_run_streams(session_hash, iterator)
             with contextlib.suppress(Exception):
                 await safe_aclose_iterator(iterator)
@@ -331,7 +314,7 @@ class Worker:
                 ),
                 fn=fn,
                 root_path=p["root_path"],
-                # The gateway records the run, with the request it served
+                # The gateway records it
                 record_history=False,
             )
         except asyncio.CancelledError:
@@ -343,7 +326,6 @@ class Worker:
                 del self.running[body.event_id]
         output["has_iterator"] = self.app.iterators.get(body.event_id) is not None
         if not output["has_iterator"]:
-            # The queue removes a finished event's entry, as it does with threads
             self.app.iterators.pop(body.event_id, None)
             self.event_sessions.pop(body.event_id, None)
         return output
@@ -367,15 +349,13 @@ class Worker:
 
         lifespan_state = self.lifespan_state()
         request = protocol.starlette_request(p, lifespan_state)
-        fn: Any = self.auth_dependency
-        user = None
-        if fn is not None:
-            if inspect.iscoroutinefunction(fn):
-                user = await fn(request)
-            else:
-                user = await anyio.to_thread.run_sync(fn, request)
-                if inspect.isawaitable(user):
-                    user = await user
+        fn = self.auth_dependency
+        if inspect.iscoroutinefunction(fn):
+            user = await fn(request)
+        else:
+            user = await anyio.to_thread.run_sync(fn, request)
+            if inspect.isawaitable(user):
+                user = await user
         state = {}
         for key, value in getattr(request.state, "_state", {}).items():
             if key in lifespan_state and lifespan_state[key] is value:
@@ -434,7 +414,7 @@ class Worker:
             self.failure = f"executor='process' could not start: {err!r}"
         finally:
             self.done.set()
-            # The gateway is gone, so a blocked launch() returns
+            # So that a blocked launch() returns
             self.blocks.is_running = False
 
     def api_info(self) -> dict[int, Any]:
@@ -472,9 +452,8 @@ class Worker:
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
         http_port = await self.serve_http()
         self.http_port = http_port
-        # What launch() runs once the server is up: the thread limiter that
-        # max_threads sets, and e.g. caching examples. Here it runs before the
-        # gateway serves, whose first events would wait on it
+        # What launch() runs once the server is up (e.g. caching examples),
+        # before the gateway serves, whose first events would wait on it
         self.blocks.create_limiter()
         if not self.app.startup_events_triggered:
             await self.blocks.run_extra_startup_events()
@@ -483,11 +462,8 @@ class Worker:
             "config": self.portable_config(),
             "launch_kwargs": self.gateway_kwargs,
             "queue_kwargs": self.queue_kwargs,
-            # Endpoints of gr.api() and Server mode describe their types here,
-            # which their config does not carry
             "api_info": self.api_info(),
-            # Queue settings the config does not carry, which the gateway's
-            # queue applies
+            # What the config does not carry
             "fn_settings": {
                 fn_id: {
                     "concurrency_limit": fn.concurrency_limit,
@@ -511,14 +487,10 @@ class Worker:
             "cwd": os.getcwd(),
             # Browser-held gr.State tokens are sealed on both sides
             "state_secret": client_state._process_secret,
-            # Files the app allowed with gr.set_static_paths(), and the icons
-            # its components display, which the gateway's file route serves
             "static_paths": [str(p) for p in _StaticFiles.all_paths],
             "server_routes": self.server_routes,
-            # Uploads land in the gateway, which cleans them up as the app says
             "delete_cache": self.blocks.delete_cache,
             "component_classes": protocol.foreign_component_classes(self.blocks),
-            # The gateway serves OAuth's login routes and holds its session
             "expects_oauth": self.blocks.expects_oauth,
             "check_dependencies": self.checker is not None,
         }
@@ -542,7 +514,7 @@ class Worker:
                 if self.gateway.poll() is not None:
                     break
                 await asyncio.sleep(0.2)
-        # The app's lifespan shuts down (e.g. delete_cache) before this loop ends
+        # The app's lifespan shuts down before this loop ends
         self.http_server.should_exit = True
         if self.http_task is not None:
             with contextlib.suppress(Exception):
@@ -584,8 +556,7 @@ class Worker:
 
     def close(self) -> None:
         if self.http_server is not None:
-            # Its lifespan's shutdown (e.g. delete_cache) runs before this
-            # returns, unless this is the loop that has to run it
+            # Waits for its lifespan to shut down, unless this is its loop
             self.http_server.should_exit = True
             if threading.current_thread().name != "gradio-worker":
                 self.http_done.wait(timeout=10)
@@ -622,8 +593,8 @@ def serve(
         target=asyncio.run, args=(worker.main(),), daemon=True, name="gradio-worker"
     ).start()
 
-    # The app's own startup (its lifespan, caching examples) takes as long as
-    # it takes, as with threads; the gateway's has a limit
+    # Only the gateway's startup has a limit: the app's own (its lifespan,
+    # caching examples) has none, as with threads
     deadline = None
     while not worker.ready.wait(0.1):
         failure = None

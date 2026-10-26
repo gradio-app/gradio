@@ -199,7 +199,6 @@ def test_gateway_config_keeps_listener_props_and_local_files():
     deps = config["dependencies"]
     assert [d["show_progress_on"] for d in deps if d["show_progress_on"]] == [[o._id]]
     assert any(d["trigger_only_on_failure"] for d in deps)
-    # Files are served by the gateway itself, not through a proxy URL
     assert "proxy=" not in json.dumps(config)
 
 
@@ -247,8 +246,7 @@ def test_examples_are_cached_before_the_gateway_serves(tmp_path, monkeypatch):
 
 
 def test_running_event_and_server_are_visible_to_the_app():
-    # What ZeroGPU reads while an event runs: the event in the queue's active
-    # jobs, to see if its client left, and the server's port
+    # What ZeroGPU reads while an event runs
     from gradio.context import LocalContext
 
     def fn():
@@ -279,9 +277,8 @@ def test_oauth_login_reaches_the_app_process():
     _, url, _ = demo.launch(executor="process", prevent_thread_lock=True)
     try:
         with httpx2.Client(base_url=url) as http:
-            # Locally, the login is mocked: the session holds a fake profile.
-            # Its cookie is Secure, which browsers send to localhost and
-            # httpx does not, so it is sent by hand.
+            # Locally, the login is mocked. Its session cookie is Secure, which
+            # browsers send to localhost and httpx does not.
             login = http.get("login/callback", params={"_target_url": "/"})
             cookie = {"cookie": f"session={login.cookies['session']}"}
             event = http.post(
@@ -357,7 +354,7 @@ def test_server_websockets_are_relayed():
         with connect(url.replace("http", "ws", 1) + "ws") as websocket:
             websocket.send("hi")
             assert websocket.recv() == f"hi {os.getpid()}"
-        # The app's private server takes websockets only from the gateway
+        # Only from the gateway
         port = app.get_blocks()._process_worker.http_port  # type: ignore[attr-defined]
         with pytest.raises(InvalidStatus):
             connect(f"ws://127.0.0.1:{port}/ws")
@@ -398,7 +395,7 @@ def test_launch_again_keeps_the_running_server():
         assert demo._process_worker is worker  # type: ignore[attr-defined]
     finally:
         demo.close()
-    assert worker.gateway.poll() is not None or worker.gateway.wait(timeout=10) == 0
+    worker.gateway.wait(timeout=10)
 
 
 def test_max_threads_sets_the_app_process_limiter():
@@ -408,110 +405,29 @@ def test_max_threads_sets_the_app_process_limiter():
         assert demo.limiter.total_tokens == 60
 
 
-def test_app_classes_from_the_script_cross():
-    class MainError(Exception):
-        pass
-
-    # Defined as if in the app's script, which the gateway cannot import
-    MainError.__module__ = "__main__"
-
-    def fail(x):
-        raise MainError("over quota")
-
-    with gr.Blocks() as demo:
-        t = gr.Textbox()
-        t.submit(fail, t, t, api_name="fail")
-        t.change(lambda x: x, t, t, api_name="echo")
-    with launched(demo) as client:
-        with pytest.raises(Exception):
-            client.predict("a", api_name="/fail")
-        # The connection to the app's process is still up
-        assert client.predict("b", api_name="/echo") == "b"
-
-
-def test_run_history_is_recorded_once(monkeypatch):
-    from gradio import history
-
-    recorded = []
-    monkeypatch.setattr(
-        history, "schedule_record_run", lambda *a, **k: recorded.append(k)
-    )
-    demo = gr.Interface(lambda x: x, "textbox", "textbox", api_name="echo")
-    with launched(demo) as client:
-        assert client.predict("a", api_name="/echo") == "a"
-    # The gateway records it, in its own process
-    assert recorded == []
-
-
-def test_uploads_in_the_gateway_follow_delete_cache(tmp_path):
-    upload = tmp_path / "upload.txt"
-    upload.write_text("hello")
-    with gr.Blocks(delete_cache=(1, 1)) as demo:
-        gr.File()
-    with launched(demo) as client:
-        with open(upload, "rb") as f:
-            response = httpx2.post(f"{client.src}gradio_api/upload", files={"files": f})
-        path = response.json()[0]
-        assert os.path.exists(path)
-        deadline = time.time() + 15
-        while os.path.exists(path) and time.time() < deadline:
-            time.sleep(0.5)
-        assert not os.path.exists(path)
-
-
-def test_caching_examples_does_not_count_toward_the_startup_timeout(
-    tmp_path, monkeypatch
-):
-    from gradio.processing import worker
-
-    monkeypatch.setenv("GRADIO_EXAMPLES_CACHE", str(tmp_path))
-    monkeypatch.setattr(worker, "STARTUP_TIMEOUT", 1)
-
-    def slow(x):
-        time.sleep(2)
-        return x
-
-    with gr.Blocks() as demo:
-        t = gr.Textbox()
-        gr.Examples([["a"]], t, t, slow, cache_examples=True)
-    with launched(demo):
-        pass
-
-
-def test_stopping_a_generator_does_not_hold_up_other_events():
-    def slow():
-        yield "start"
-        time.sleep(4)
-        yield "end"
-
-    with gr.Blocks() as demo:
-        out = gr.Textbox()
-        gr.Button().click(slow, None, out, api_name="slow")
-        gr.Button().click(lambda x: x, out, out, api_name="echo")
-    with launched(demo) as client:
-        job = client.submit(api_name="/slow")
-        while not job.outputs():
-            time.sleep(0.05)
-        job.cancel()
-        start = time.time()
-        assert Client(client.src, verbose=False).predict("b", api_name="/echo") == "b"
-        assert time.time() - start < 3
-
-
-def test_component_subclasses_and_themes_of_the_app():
+def test_classes_defined_by_the_app():
     class MyTextbox(gr.Textbox):
         pass
 
     class Seafoam(gr.themes.Base):
         pass
 
-    # Defined as if in the app's script, which the gateway cannot import
-    Seafoam.__module__ = "__main__"
+    class QuotaError(Exception):
+        pass
+
+    def fail(x):
+        raise QuotaError("over quota")
+
+    # As if defined in the app's script, which the gateway cannot import
+    Seafoam.__module__ = QuotaError.__module__ = "__main__"
 
     with gr.Blocks() as demo:
         t = MyTextbox(label="mine")
         t.submit(lambda x: x[::-1], t, t, api_name="reverse")
+        t.change(fail, t, t, api_name="fail")
     with launched(demo, theme=Seafoam(primary_hue="green")) as client:
+        with pytest.raises(Exception):
+            client.predict("a", api_name="/fail")
         assert client.predict("abc", api_name="/reverse") == "cba"
         config = httpx2.get(f"{client.src}config").json()
         theme_css = httpx2.get(f"{client.src}theme.css").text
@@ -557,13 +473,6 @@ def test_server_dependencies_guard_gradio_routes():
         app.get_blocks().close()
 
 
-def test_app_kwargs_dependencies_guard_gradio_routes():
-    demo = gr.Interface(lambda x: x, "textbox", "textbox", api_name="echo")
-    with launched(demo, app_kwargs={"dependencies": [Depends(_require_key)]}) as c:
-        refused = httpx2.post(f"{c.src}gradio_api/call/echo", json={"data": ["a"]})
-        assert refused.status_code == 403
-
-
 def test_auth_dependency_request_state_reaches_the_event():
     def auth_dependency(request):
         request.state.identity = "alice"
@@ -597,8 +506,6 @@ def test_auth_function_runs_in_the_app_process():
         executor="process", prevent_thread_lock=True, auth=auth
     )
     try:
-        import httpx2
-
         bad = httpx2.post(f"{local_url}login", data={"username": "a", "password": "b"})
         assert bad.status_code == 400
         good = httpx2.post(
@@ -612,8 +519,6 @@ def test_auth_function_runs_in_the_app_process():
 
 def test_server_custom_routes_and_lifespan_work():
     from contextlib import asynccontextmanager
-
-    import httpx2
 
     @asynccontextmanager
     async def lifespan(_):

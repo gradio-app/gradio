@@ -26,12 +26,29 @@ TOKEN_HEADER = b"x-gradio-gateway-token"
 USER_HEADER = b"x-gradio-gateway-user"
 # Asks the app's process to run only its FastAPI dependencies for a request
 CHECK_HEADER = b"x-gradio-gateway-check"
+# Only the gateway sets these
+GATEWAY_HEADERS = {TOKEN_HEADER, USER_HEADER, CHECK_HEADER}
 # Headers that describe one connection, not the message. Host is kept, so
 # that the receiver builds URLs for the address the client used.
 SKIPPED_REQUEST_HEADERS = {b"connection", b"keep-alive", b"transfer-encoding"}
-# Only the gateway sets these
-GATEWAY_HEADERS = {TOKEN_HEADER, USER_HEADER, CHECK_HEADER}
 SKIPPED_RESPONSE_HEADERS = {b"content-length", b"connection", b"transfer-encoding"}
+METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
+
+
+def _upstream(
+    request: Request, target: str
+) -> tuple[httpx2.URL, list[tuple[bytes, bytes]]]:
+    """The URL at `target` (an origin) for the raw path the client sent, and
+    the request's headers to send there."""
+    raw_path = request.scope.get("raw_path") or request.url.path.encode()
+    if request.url.query:
+        raw_path += b"?" + request.url.query.encode()
+    headers = [
+        (k, v)
+        for k, v in request.headers.raw
+        if k.lower() not in SKIPPED_REQUEST_HEADERS and k.lower() not in GATEWAY_HEADERS
+    ]
+    return httpx2.URL(target.rstrip("/")).copy_with(raw_path=raw_path), headers
 
 
 async def forward(
@@ -41,16 +58,7 @@ async def forward(
     # A client per request: TestClient may call an app from a new event loop
     # each time, and an AsyncClient belongs to the loop it was made on
     client = httpx2.AsyncClient(timeout=None)
-    # The raw path, so that the receiver judges the same path the client sent
-    raw_path = request.scope.get("raw_path") or request.url.path.encode()
-    if request.url.query:
-        raw_path += b"?" + request.url.query.encode()
-    url = httpx2.URL(target.rstrip("/")).copy_with(raw_path=raw_path)
-    headers = [
-        (k, v)
-        for k, v in request.headers.raw
-        if k.lower() not in SKIPPED_REQUEST_HEADERS and k.lower() not in GATEWAY_HEADERS
-    ]
+    url, headers = _upstream(request, target)
     upstream = client.build_request(
         request.method,
         url,
@@ -87,7 +95,6 @@ async def relay(
     try:
         from websockets.asyncio.client import connect  # type: ignore
     except ImportError:
-        # Without the library, uvicorn cannot serve websockets either
         await websocket.close(code=1011)
         return
     from websockets.exceptions import ConnectionClosed  # type: ignore
@@ -163,11 +170,7 @@ def dependency_checker(app: Any) -> Any:
     def passed():
         return Response(status_code=204)
 
-    checker.add_api_route(
-        "/{path:path}",
-        passed,
-        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
-    )
+    checker.add_api_route("/{path:path}", passed, methods=METHODS)
     return checker
 
 
@@ -178,20 +181,13 @@ async def check_dependencies(
     (see `dependency_checker`), raising as they did if they refuse it."""
     from fastapi import HTTPException
 
-    raw_path = request.scope.get("raw_path") or request.url.path.encode()
-    if request.url.query:
-        raw_path += b"?" + request.url.query.encode()
-    headers = [
-        (k, v)
-        for k, v in request.headers.raw
-        if k.lower() not in SKIPPED_REQUEST_HEADERS
-        and k.lower() not in GATEWAY_HEADERS
-        and k.lower() != b"content-length"
-    ]
+    url, headers = _upstream(request, target)
+    # Without the body, which the dependencies do not read
+    headers = [(k, v) for k, v in headers if k.lower() != b"content-length"]
     async with httpx2.AsyncClient(timeout=None) as client:
         response = await client.request(
             request.method,
-            httpx2.URL(target.rstrip("/")).copy_with(raw_path=raw_path),
+            url,
             headers=[*headers, *extra_headers, (CHECK_HEADER, b"1")],
         )
     if response.is_success:
@@ -241,7 +237,6 @@ class GatewayFront:
             await self.app(scope, receive, send)
             return
         if scope["type"] == "websocket":
-            # Only the gateway relays websockets here
             await send({"type": "websocket.close", "code": 1008})
             return
         gateway = self.worker.urls[0]

@@ -15,6 +15,7 @@ cannot find.
 from __future__ import annotations
 
 import asyncio
+import io
 import pickle
 import struct
 import types
@@ -52,8 +53,6 @@ class _AppPickler(pickle.Pickler):
 
 def dumps(value: Any) -> bytes:
     """`value` pickled so that the gateway can load it, or NotPortable."""
-    import io
-
     buffer = io.BytesIO()
     _AppPickler(buffer, protocol=pickle.HIGHEST_PROTOCOL).dump(value)
     return buffer.getvalue()
@@ -63,9 +62,7 @@ def portable_error(exc: BaseException) -> tuple:
     """An exception crosses as itself when it can, else as a summary."""
     summary = (type(exc).__name__, str(exc))
     try:
-        data = dumps(exc)
-        pickle.loads(data)
-        return ("pickled", data, *summary)
+        return ("pickled", dumps(exc), *summary)
     except Exception:
         return ("summary", None, *summary)
 
@@ -113,7 +110,6 @@ class _PortableUnpickler(pickle.Unpickler):
 
 def _as_typing(annotation):
     """`X | None` (types.UnionType) does not pickle; typing.Union does."""
-    import types
     import typing
 
     if isinstance(annotation, types.UnionType):
@@ -123,8 +119,6 @@ def _as_typing(annotation):
 
 def _portable(value) -> bool:
     """Whether `value` pickles to something only PORTABLE_MODULES can load."""
-    import io
-
     try:
         data = pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
         _PortableUnpickler(io.BytesIO(data)).load()
@@ -259,7 +253,6 @@ def portable_request(request):
     if isinstance(request, StarletteRequest):
         return ("starlette", request_snapshot(request))
     if isinstance(request, Request) and request.request is not None:
-        # Pickling keeps headers, cookies and the like, but not the session
         session = _session(request.request)
         if session is not None:
             request.kwargs["session"] = session
@@ -308,12 +301,11 @@ def restore_request(request, lifespan_state: dict | None = None):
     }
     if session is not None:
         scope["session"] = session
-    rebuilt = Request(
+    return Request(
         StarletteRequest(scope),
         username=request.username,
         session_hash=request.session_hash,
     )
-    return rebuilt
 
 
 def _event_name(event) -> str:
@@ -341,8 +333,7 @@ def foreign_component_classes(blocks) -> dict[str, dict[str, str]]:
             ),
             None,
         )
-        # One with its own frontend extends an abstract class, which cannot
-        # stand in for it
+        # A custom component with its own frontend extends an abstract class
         if base is None or inspect.isabstract(base):
             continue
         base_events = {_event_name(e) for e in base.EVENTS}
@@ -351,7 +342,6 @@ def foreign_component_classes(blocks) -> dict[str, dict[str, str]]:
             "base": base.__name__,
             "base_module": base.__module__,
             "class_id": cls.get_component_class_id(),
-            # Events the class adds, which the gateway attaches listeners to
             "events": [
                 _event_name(e) for e in cls.EVENTS if _event_name(e) not in base_events
             ],
