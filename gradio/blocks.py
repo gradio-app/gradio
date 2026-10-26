@@ -4100,9 +4100,14 @@ Received inputs:
                 continue
             if value is None or value is defaults.get(name):
                 continue
-            if name == "app_kwargs" and "lifespan" in value:
-                # The lifespan runs in the app's process, with the app's code
-                value = {k: v for k, v in value.items() if k != "lifespan"}
+            if name == "app_kwargs":
+                # The lifespan and dependencies run in the app's process, with
+                # the app's code (the gateway asks it to run the dependencies)
+                value = {
+                    k: v
+                    for k, v in value.items()
+                    if k not in ("lifespan", "dependencies")
+                }
             if isinstance(value, (bool, int, float, str)) and value == defaults.get(
                 name
             ):

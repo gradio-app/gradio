@@ -24,11 +24,13 @@ from starlette.responses import StreamingResponse
 TOKEN_HEADER = b"x-gradio-gateway-token"
 # The user the gateway logged in, trusted only beside the token
 USER_HEADER = b"x-gradio-gateway-user"
+# Asks the app's process to run only its FastAPI dependencies for a request
+CHECK_HEADER = b"x-gradio-gateway-check"
 # Headers that describe one connection, not the message. Host is kept, so
 # that the receiver builds URLs for the address the client used.
 SKIPPED_REQUEST_HEADERS = {b"connection", b"keep-alive", b"transfer-encoding"}
 # Only the gateway sets these
-GATEWAY_HEADERS = {TOKEN_HEADER, USER_HEADER}
+GATEWAY_HEADERS = {TOKEN_HEADER, USER_HEADER, CHECK_HEADER}
 SKIPPED_RESPONSE_HEADERS = {b"content-length", b"connection", b"transfer-encoding"}
 
 
@@ -143,6 +145,73 @@ async def relay(
         await upstream.close()
 
 
+def dependency_checker(app: Any) -> Any:
+    """An app that runs only `app`'s own FastAPI dependencies (such as
+    `gr.Server(dependencies=...)`) for any request, and answers 204 if they
+    pass. The gateway asks it before serving Gradio's routes, which run these
+    dependencies when the server runs in the app's process."""
+    from fastapi import FastAPI, Response
+
+    checker = FastAPI(
+        dependencies=list(app.router.dependencies),
+        openapi_url=None,
+        docs_url=None,
+        redoc_url=None,
+    )
+    checker.dependency_overrides = app.dependency_overrides
+
+    def passed():
+        return Response(status_code=204)
+
+    checker.add_api_route(
+        "/{path:path}",
+        passed,
+        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    )
+    return checker
+
+
+async def check_dependencies(
+    request: Request, target: str, extra_headers: Sequence[tuple[bytes, bytes]]
+) -> None:
+    """Runs the app's FastAPI dependencies for `request` in the app's process
+    (see `dependency_checker`), raising as they did if they refuse it."""
+    from fastapi import HTTPException
+
+    raw_path = request.scope.get("raw_path") or request.url.path.encode()
+    if request.url.query:
+        raw_path += b"?" + request.url.query.encode()
+    headers = [
+        (k, v)
+        for k, v in request.headers.raw
+        if k.lower() not in SKIPPED_REQUEST_HEADERS
+        and k.lower() not in GATEWAY_HEADERS
+        and k.lower() != b"content-length"
+    ]
+    async with httpx2.AsyncClient(timeout=None) as client:
+        response = await client.request(
+            request.method,
+            httpx2.URL(target.rstrip("/")).copy_with(raw_path=raw_path),
+            headers=[*headers, *extra_headers, (CHECK_HEADER, b"1")],
+        )
+    if response.is_success:
+        return
+    try:
+        detail = response.json().get("detail")
+    except Exception:
+        detail = response.text
+    raise HTTPException(
+        status_code=response.status_code,
+        detail=detail,
+        headers={
+            k: v
+            for k, v in response.headers.items()
+            if k.lower() not in ("content-length", "content-type", "connection")
+        }
+        or None,
+    )
+
+
 class GatewayFront:
     """ASGI middleware for the app in the app's process: requests the gateway
     forwarded (with the token) reach the app's routes, others go to the
@@ -166,6 +235,9 @@ class GatewayFront:
             scope.pop(GATEWAY_USER_SCOPE_KEY, None)
             if (user := headers.get(USER_HEADER)) is not None:
                 scope[GATEWAY_USER_SCOPE_KEY] = unquote(user.decode("latin-1"))
+            if CHECK_HEADER in headers and self.worker.checker is not None:
+                await self.worker.checker(scope, receive, send)
+                return
             await self.app(scope, receive, send)
             return
         if scope["type"] == "websocket":

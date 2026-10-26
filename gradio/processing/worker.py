@@ -114,7 +114,7 @@ class Worker:
         app: App | None = None,
         launch_kwargs: dict[str, Any] | None = None,
     ):
-        from gradio.processing.proxy import GatewayFront
+        from gradio.processing.proxy import GatewayFront, dependency_checker
         from gradio.routes import App
 
         launch_kwargs = launch_kwargs or {}
@@ -148,6 +148,11 @@ class Worker:
 
                 blocks.mcp_server_obj = gradio.mcp.GradioMCPServer(blocks)
                 blocks.mcp_server = True
+        # The app's own FastAPI dependencies, which the gateway asks this
+        # process to run for the requests it serves
+        self.checker = (
+            dependency_checker(self.app) if self.app.router.dependencies else None
+        )
         self.http_token = secrets.token_hex(16)
         self.app.add_middleware(
             GatewayFront,  # type: ignore
@@ -354,20 +359,31 @@ class Worker:
             return bool(await auth(p["username"], p["password"]))
         return bool(await anyio.to_thread.run_sync(auth, p["username"], p["password"]))
 
-    async def run_auth_dependency(self, p: dict) -> str | None:
-        """`launch(auth_dependency=fn)`, called for a request to the gateway."""
+    async def run_auth_dependency(self, p: dict) -> dict:
+        """`launch(auth_dependency=fn)`, called for a request to the gateway.
+        It returns the user, and what `fn` set on `request.state`, which the
+        gateway sets on its request for the event it serves."""
         import anyio
 
-        request = protocol.starlette_request(p, self.lifespan_state())
+        lifespan_state = self.lifespan_state()
+        request = protocol.starlette_request(p, lifespan_state)
         fn: Any = self.auth_dependency
-        if fn is None:
-            return None
-        if inspect.iscoroutinefunction(fn):
-            return await fn(request)
-        user = await anyio.to_thread.run_sync(fn, request)
-        if inspect.isawaitable(user):
-            user = await user
-        return user
+        user = None
+        if fn is not None:
+            if inspect.iscoroutinefunction(fn):
+                user = await fn(request)
+            else:
+                user = await anyio.to_thread.run_sync(fn, request)
+                if inspect.isawaitable(user):
+                    user = await user
+        state = {}
+        for key, value in getattr(request.state, "_state", {}).items():
+            if key in lifespan_state and lifespan_state[key] is value:
+                continue
+            with contextlib.suppress(Exception):
+                protocol.dumps(value)
+                state[key] = value
+        return {"user": user, "state": state}
 
     async def run_process_api(self, p: dict) -> dict:
         """A direct `Blocks.process_api` call (e.g. the MCP server's fast path)."""
@@ -504,6 +520,7 @@ class Worker:
             "component_classes": protocol.foreign_component_classes(self.blocks),
             # The gateway serves OAuth's login routes and holds its session
             "expects_oauth": self.blocks.expects_oauth,
+            "check_dependencies": self.checker is not None,
         }
         try:
             data = protocol.dumps(bootstrap)

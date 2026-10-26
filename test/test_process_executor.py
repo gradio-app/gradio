@@ -9,6 +9,7 @@ from contextlib import contextmanager
 
 import httpx2
 import pytest
+from fastapi import Depends, HTTPException, Request
 from gradio_client import Client
 
 import gradio as gr
@@ -518,6 +519,64 @@ def test_component_subclasses_and_themes_of_the_app():
     assert component["props"]["name"] == "mytextbox"
     assert component["component_class_id"] == MyTextbox.get_component_class_id()
     assert gr.themes.colors.green.c500 in theme_css
+
+
+def _require_key(request: Request):
+    # Only the API, so that launch() can reach the app's page
+    if (
+        request.url.path.startswith("/gradio_api/call")
+        and request.headers.get("x-key") != "secret"
+    ):
+        raise HTTPException(status_code=403, detail="forbidden")
+
+
+def test_server_dependencies_guard_gradio_routes():
+    ran = []
+    app = gr.Server(dependencies=[Depends(_require_key)])
+
+    @app.api(name="echo")
+    def echo(x: str) -> str:
+        ran.append(x)
+        return x
+
+    _, url, _ = app.launch(executor="process", prevent_thread_lock=True)
+    try:
+        refused = httpx2.post(f"{url}gradio_api/call/echo", json={"data": ["a"]})
+        assert refused.status_code == 403
+        assert refused.json()["detail"] == "forbidden"
+        allowed = httpx2.post(
+            f"{url}gradio_api/call/echo",
+            json={"data": ["b"]},
+            headers={"x-key": "secret"},
+        )
+        assert allowed.status_code == 200
+        event_id = allowed.json()["event_id"]
+        httpx2.get(f"{url}gradio_api/call/echo/{event_id}", headers={"x-key": "secret"})
+        assert ran == ["b"]
+    finally:
+        app.get_blocks().close()
+
+
+def test_app_kwargs_dependencies_guard_gradio_routes():
+    demo = gr.Interface(lambda x: x, "textbox", "textbox", api_name="echo")
+    with launched(demo, app_kwargs={"dependencies": [Depends(_require_key)]}) as c:
+        refused = httpx2.post(f"{c.src}gradio_api/call/echo", json={"data": ["a"]})
+        assert refused.status_code == 403
+
+
+def test_auth_dependency_request_state_reaches_the_event():
+    def auth_dependency(request):
+        request.state.identity = "alice"
+        return "alice"
+
+    def whoami(request: gr.Request) -> str:
+        return getattr(request.state, "identity", "MISSING")
+
+    with gr.Blocks() as demo:
+        out = gr.Textbox()
+        gr.Button().click(whoami, None, out, api_name="whoami")
+    with launched(demo, auth_dependency=auth_dependency) as client:
+        assert client.predict(api_name="/whoami") == "alice"
 
 
 def test_invalid_executor():

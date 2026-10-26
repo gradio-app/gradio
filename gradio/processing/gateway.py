@@ -598,11 +598,33 @@ def main(path: str) -> None:
     if launch_kwargs.get("auth_dependency") == protocol.FORWARDED:
 
         async def auth_dependency(request) -> str | None:
-            return await link.call(
+            result = await link.call(
                 "auth_dependency", protocol.request_snapshot(request)
             )
+            # e.g. the user or tenant the function found, which the event's
+            # function reads off its request
+            for key, value in result["state"].items():
+                setattr(request.state, key, value)
+            return result["user"]
 
         launch_kwargs["auth_dependency"] = auth_dependency
+    if bootstrap.get("check_dependencies"):
+        from fastapi import Depends
+
+        from gradio.processing.proxy import TOKEN_HEADER, check_dependencies
+
+        target = f"http://127.0.0.1:{bootstrap['http_port']}"
+        token = [(TOKEN_HEADER, bootstrap["http_token"].encode())]
+
+        async def app_dependencies(request: Request) -> None:
+            await check_dependencies(request, target, token)
+
+        # Gradio's routes run the app's dependencies, as they do on a Server
+        # or with app_kwargs={"dependencies": ...} when the server is in the
+        # app's process
+        app_kwargs = dict(launch_kwargs.get("app_kwargs") or {})
+        app_kwargs["dependencies"] = [Depends(app_dependencies)]
+        launch_kwargs["app_kwargs"] = app_kwargs
     app, local_url, share_url = blocks.launch(prevent_thread_lock=True, **launch_kwargs)
     add_forwarded_routes(app, bootstrap)
     app.session_listener = lambda session_hash, closed: link.send(

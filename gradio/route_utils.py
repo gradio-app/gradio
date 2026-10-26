@@ -245,7 +245,10 @@ class Request:
         return self.__dict__
 
     def __setstate__(self, state: dict[str, Any]):
+        # __getstate__ keeps it in kwargs
         request_state = state.pop("request_state", None)
+        if request_state is None:
+            request_state = (state.get("kwargs") or {}).pop("request_state", None)
         self.__dict__ = state
         if request_state is not None:
             self.state = State(request_state)

@@ -2301,6 +2301,27 @@ class TestPassingRequest:
         output = dict(response.json())
         assert output["data"] == ["test"]
 
+    def test_request_state_survives_pickling(self):
+        from starlette.requests import Request as StarletteRequest
+
+        request = gr.Request(
+            StarletteRequest(
+                {
+                    "type": "http",
+                    "method": "GET",
+                    "scheme": "http",
+                    "server": ("localhost", 7860),
+                    "path": "/",
+                    "query_string": b"",
+                    "headers": [],
+                    "client": ("127.0.0.1", 1234),
+                    "state": {"identity": "alice"},
+                }
+            )
+        )
+        unpickled = pickle.loads(pickle.dumps(request))
+        assert unpickled.state.identity == "alice"
+
 
 def test_predict_route_is_blocked_if_api_open_false():
     io = Interface(
