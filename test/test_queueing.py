@@ -1,10 +1,12 @@
 import asyncio
+import contextvars
 import json
 import sys
 import threading
 import time
 from unittest.mock import patch
 
+import anyio
 import fastapi
 import gradio_client as grc
 import httpx2
@@ -14,7 +16,66 @@ from fastapi.testclient import TestClient
 import gradio as gr
 from gradio import queueing
 from gradio.route_utils import API_PREFIX
+from gradio.routes import App
 from gradio.server_messages import ProcessCompletedMessage
+
+request_context = contextvars.ContextVar("request_context", default="unset")
+
+
+class ContextHeaderMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        headers = dict(scope.get("headers", []))
+        value = headers.get(b"x-test-context", b"missing").decode()
+        token = request_context.set(value)
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            request_context.reset(token)
+
+
+def run_queued_event_with_context(demo):
+    demo.queue()
+    app = App.create_app(demo)
+    app.add_middleware(ContextHeaderMiddleware)  # ty: ignore[invalid-argument-type]
+
+    try:
+        with TestClient(app) as test_client:
+            startup = test_client.get(
+                f"{API_PREFIX}/startup-events",
+                headers={"x-test-context": "startup"},
+            )
+            assert startup.status_code == 200
+            join = test_client.post(
+                f"{API_PREFIX}/queue/join",
+                headers={"x-test-context": "join"},
+                json={
+                    "data": [],
+                    "fn_index": 0,
+                    "event_data": None,
+                    "session_hash": "context_session",
+                    "trigger_id": None,
+                },
+            )
+            assert join.status_code == 200
+            stream = test_client.get(
+                f"{API_PREFIX}/queue/data?session_hash=context_session"
+            )
+            messages = [
+                json.loads(line[6:])
+                for line in stream.iter_lines()
+                if line.startswith("data: ")
+            ]
+            completed = next(m for m in messages if m["msg"] == "process_completed")
+            assert completed["success"], completed["output"]
+            return messages
+    finally:
+        demo.close()
 
 
 class TestQueueing:
@@ -108,8 +169,10 @@ class TestQueueing:
             assert second.outputs() == ["h", "he", "hel", "hell", "hello"]
 
         assert call_count == 1
+        assert demo._queue.process_time_per_fn[demo.fns[0]].count == 1
 
-    def test_queue_average_excludes_manual_cache_hits(self, connect):
+    @pytest.mark.parametrize("asynchronous", [False, True])
+    def test_queue_average_excludes_manual_cache_hits(self, connect, asynchronous):
         def greet(x, c=gr.Cache()):
             hit = c.get(x)
             if hit is not None:
@@ -119,10 +182,13 @@ class TestQueueing:
             c.set(x, value=value)
             return value
 
+        async def greet_async(x):
+            return greet(x)
+
         with gr.Blocks() as demo:
             name = gr.Textbox()
             output = gr.Textbox()
-            name.submit(greet, name, output)
+            name.submit(greet_async if asynchronous else greet, name, output)
 
         demo.queue()
 
@@ -236,6 +302,197 @@ def test_heartbeat_task_cancelled_after_stream_completes():
                 "Heartbeat task was not cancelled after stream completed"
             )
     demo.close()
+
+
+@pytest.mark.parametrize("generator", [False, True])
+@pytest.mark.parametrize("asynchronous", [False, True])
+def test_queue_event_propagates_context_from_join_request(
+    asynchronous: bool, generator: bool
+):
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+
+        def read_context():
+            return request_context.get()
+
+        def read_context_gen():
+            yield request_context.get()
+
+        async def read_context_async():
+            return request_context.get()
+
+        async def read_context_asyncgen():
+            yield request_context.get()
+
+        match asynchronous, generator:
+            case False, False:
+                fn = read_context
+            case False, True:
+                fn = read_context_gen
+            case True, False:
+                fn = read_context_async
+            case True, True:
+                fn = read_context_asyncgen
+
+        start.click(fn, None, output)
+
+    messages = run_queued_event_with_context(demo)
+    completed = next(m for m in messages if m["msg"] == "process_completed")
+    assert completed["output"]["data"] == ["join"]
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+def test_generator_context_preserves_cache_tracking_between_iterations(
+    asynchronous,
+):
+    cache = gr.Cache()
+    cache.set("key", value="cached")
+
+    def generate():
+        assert request_context.get() == "join"
+        yield "starting"
+        assert request_context.get() == "join"
+        hit = cache.get("key")
+        assert hit is not None
+        yield hit["value"]
+
+    async def generate_async():
+        assert request_context.get() == "join"
+        yield "starting"
+        assert request_context.get() == "join"
+        hit = cache.get("key")
+        assert hit is not None
+        yield hit["value"]
+
+    with gr.Blocks() as demo:
+        gr.Button().click(
+            generate_async if asynchronous else generate, None, gr.Textbox()
+        )
+
+    messages = run_queued_event_with_context(demo)
+    outputs = [
+        message["output"]
+        for message in messages
+        if message["msg"] == "process_generating"
+    ]
+    assert len(outputs) == 2
+    assert outputs[0]["data"] == ["starting"]
+    assert outputs[0]["used_cache"] is None
+    assert outputs[1]["used_cache"] == "partial"
+    completed = next(m for m in messages if m["msg"] == "process_completed")
+    assert completed["output"]["data"] == ["cached"]
+
+
+@pytest.mark.parametrize("scope", ["move_on_after", "fail_after", "task_group"])
+def test_queue_async_generator_preserves_anyio_scope_between_iterations(scope):
+    tasks = []
+
+    async def generate():
+        if scope == "task_group":
+            async with anyio.create_task_group():
+                for value in "abc":
+                    assert request_context.get() == "join"
+                    tasks.append(asyncio.current_task())
+                    yield value
+        else:
+            with getattr(anyio, scope)(30):
+                for value in "abc":
+                    assert request_context.get() == "join"
+                    tasks.append(asyncio.current_task())
+                    yield value
+
+    with gr.Blocks() as demo:
+        gr.Button().click(generate, None, gr.Textbox())
+
+    messages = run_queued_event_with_context(demo)
+    completed = next(m for m in messages if m["msg"] == "process_completed")
+    assert completed["output"]["data"] == ["c"]
+    assert len(tasks) == 3
+    assert len(set(tasks)) == 1
+
+
+def test_queue_async_generator_can_reset_context_token_after_yield():
+    async def generate():
+        assert request_context.get() == "join"
+        token = request_context.set("inside")
+        try:
+            yield request_context.get()
+            assert request_context.get() == "inside"
+        finally:
+            request_context.reset(token)
+        yield request_context.get()
+
+    with gr.Blocks() as demo:
+        gr.Button().click(generate, None, gr.Textbox())
+
+    messages = run_queued_event_with_context(demo)
+    completed = next(m for m in messages if m["msg"] == "process_completed")
+    assert completed["output"]["data"] == ["join"]
+
+
+def test_queue_context_task_is_cancelled_with_event():
+    started = threading.Event()
+    cancelled = threading.Event()
+    completed = threading.Event()
+
+    with gr.Blocks() as demo:
+        start = gr.Button()
+        output = gr.Textbox()
+
+        async def wait_forever():
+            try:
+                assert request_context.get() == "join"
+                started.set()
+                await asyncio.Event().wait()
+                completed.set()
+                return "done"
+            finally:
+                cancelled.set()
+
+        start.click(wait_forever, None, output)
+
+    demo.queue()
+    app = App.create_app(demo)
+    app.add_middleware(ContextHeaderMiddleware)  # ty: ignore[invalid-argument-type]
+
+    try:
+        with TestClient(app) as test_client:
+            startup = test_client.get(
+                f"{API_PREFIX}/startup-events",
+                headers={"x-test-context": "startup"},
+            )
+            assert startup.status_code == 200
+
+            join = test_client.post(
+                f"{API_PREFIX}/queue/join",
+                headers={"x-test-context": "join"},
+                json={
+                    "data": [],
+                    "fn_index": 0,
+                    "event_data": None,
+                    "session_hash": "cancel_context_session",
+                    "trigger_id": None,
+                },
+            )
+            assert join.status_code == 200
+            event_id = join.json()["event_id"]
+
+            assert started.wait(timeout=2)
+
+            cancel = test_client.post(
+                f"{API_PREFIX}/cancel",
+                json={
+                    "session_hash": "cancel_context_session",
+                    "fn_index": 0,
+                    "event_id": event_id,
+                },
+            )
+            assert cancel.status_code == 200
+            assert cancelled.wait(timeout=2)
+            assert not completed.is_set()
+    finally:
+        demo.close()
 
 
 @pytest.mark.skipif(
