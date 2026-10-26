@@ -27,7 +27,6 @@ class Row(BlockContext, metaclass=ComponentMeta):
     def __init__(
         self,
         *,
-        variant: Literal["default", "panel", "compact"] | None = None,
         visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -43,7 +42,6 @@ class Row(BlockContext, metaclass=ComponentMeta):
     ):
         """
         Parameters:
-            variant: deprecated and has no effect. The default Row styling is always used. To customize the Row, use `elem_classes` with custom CSS.
             visible: If False, row will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -57,13 +55,6 @@ class Row(BlockContext, metaclass=ComponentMeta):
             key: in a gr.render, Components with the same key across re-renders are treated as the same component, not a new component. Properties set in 'preserved_by_key' are not reset across a re-render.
             preserved_by_key: A list of parameters from this component's constructor. Inside a gr.render() function, if a component is re-rendered with the same key, these (and only these) parameters will be preserved in the UI (if they have been changed by the user or an event listener) instead of re-rendered based on the values provided during constructor.
         """
-        if variant is not None:
-            warnings.warn(
-                "The 'variant' parameter of gr.Row() is deprecated and has no effect, so the default Row styling will be used. "
-                "To customize the Row, use 'elem_classes' with custom CSS instead.",
-                DeprecationWarning,
-                stacklevel=3,
-            )
         self.equal_height = equal_height
         self.show_progress = show_progress
         self.height = height
