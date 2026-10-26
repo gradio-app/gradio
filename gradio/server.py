@@ -27,32 +27,33 @@ class _MCPNamespace:
 @document("api", "launch")
 class Server(App):
     """
-    Server is the Gradio API engine exposed on a FastAPI application (Server mode).
-    It inherits from FastAPI, so all standard FastAPI methods (.get(), .post(),
-    .add_middleware(), .include_router(), etc.) work directly on this instance.
+    Server is the Gradio API engine exposed on a FastAPI application (Server mode),
+    also available as `gr.App`. It inherits from FastAPI, so all standard FastAPI
+    methods (.get(), .post(), .add_middleware(), .include_router(), etc.) work
+    directly on this instance.
 
     New methods added on top of FastAPI:
-        api(): Decorator to register a Gradio API endpoint with queue,
-            SSE streaming, and concurrency control.
+        queue(): Decorator to register a Gradio API endpoint with queue,
+            SSE streaming, and concurrency control. `api()` is the same.
         mcp: Namespace with .tool(), .resource(), and .prompt() decorators
             to tag functions with MCP metadata.
         launch(): Creates an internal Blocks, registers deferred API
             endpoints, and starts the server.
 
     Example:
-        from gradio import Server
+        import gradio as gr
 
-        server = Server()
+        app = gr.App()
 
-        @server.api(name="hello")
+        @app.queue(name="hello")
         def hello(name: str) -> str:
             return f"Hello {name}"
 
-        @server.get("/")
+        @app.get("/")
         def root():
             return {"message": "Hello World"}
 
-        server.launch()
+        app.launch()
     Demos: server_app
     Guides: server-mode
     """
@@ -177,7 +178,7 @@ class Server(App):
         """MCP decorator namespace: server.mcp.tool(), server.mcp.resource(), server.mcp.prompt()."""
         return self._mcp
 
-    def api(
+    def queue(
         self,
         fn: Callable | None = None,
         *,
@@ -195,6 +196,7 @@ class Server(App):
         """Decorator to register a function as a Gradio API endpoint.
 
         Goes through Gradio's queue with concurrency control and SSE streaming.
+        `api()` is the same decorator.
         """
         kwargs = {
             "api_name": name,
@@ -217,6 +219,8 @@ class Server(App):
             return func
 
         return wrapper
+
+    api = queue
 
     def launch(
         self,

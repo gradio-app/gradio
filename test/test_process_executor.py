@@ -533,10 +533,10 @@ def test_server_with_middleware_is_refused():
         server.launch(executor="process", prevent_thread_lock=True)
 
 
-def test_server_api_runs_in_the_app_process():
-    app = gr.Server()
+def test_server_queue_and_app_alias():
+    app = gr.App()
 
-    @app.api(name="echo")
+    @app.queue(name="echo")
     def echo(x: str) -> str:
         return f"{x} {os.getpid()}"
 
