@@ -411,7 +411,8 @@ def recording_app(monkeypatch):
         return f"hello {name}"
 
     io = gr.Interface(greet, "text", "text", api_name="greet")
-    app, _, _ = io.launch(prevent_thread_lock=True)
+    # Mocks the Hub in this process, where run history is written with threads
+    app, _, _ = io.launch(prevent_thread_lock=True, executor="thread")
     with (
         patch("gradio.history.resolve_token", return_value="tok"),
         patch("gradio.history.HfApi", return_value=hub),
@@ -540,7 +541,8 @@ class TestServerSideRecording:
                 [button.click, timer.tick], lambda: "x", None, out, api_name="story"
             ).then(lambda: "y", None, out, api_name="after_story")
             demo.load(lambda: "z", None, out, api_name="on_load")
-        app, _, _ = demo.launch(prevent_thread_lock=True)
+        # Mocks the Hub in this process, where run history is written with threads
+        app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
         with (
             patch("gradio.history.resolve_token", return_value="tok"),
             patch("gradio.history.HfApi", return_value=hub),
@@ -605,7 +607,8 @@ class TestServerSideRecording:
             ),
             patch("gradio.history.HfApi", side_effect=lambda token: hubs[token]),
         ):
-            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            # Mocks the Hub in this process, where run history is written with threads
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
             try:
                 with httpx2.Client(base_url=local_url, timeout=30) as client:
 
@@ -673,7 +676,8 @@ class TestServerSideRecording:
             patch("gradio.history.resolve_token", return_value="tok"),
             patch("gradio.history.HfApi", return_value=hub),
         ):
-            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            # Mocks the Hub in this process, where run history is written with threads
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
             try:
                 with httpx2.Client(base_url=local_url, timeout=30) as client:
 
@@ -906,7 +910,8 @@ class TestWorkflowRecording:
                 lambda x: x, box, out, api_name="public_one", api_visibility="public"
             )
             gr.Button().click(lambda x: x, box, out, api_visibility="private")
-        app, _, _ = demo.launch(prevent_thread_lock=True)
+        # Mocks the Hub in this process, where run history is written with threads
+        app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
         internal = next(f for f in demo.fns.values() if f.api_visibility != "public")
         with (
             patch("gradio.history.resolve_token", return_value="tok"),
