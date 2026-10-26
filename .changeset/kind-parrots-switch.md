@@ -1,5 +1,8 @@
 ---
+"@gradio/column": minor
+"@gradio/core": minor
+"@gradio/row": minor
 "gradio": minor
 ---
 
-feat:Deprecate the `variant` parameter of `gr.Column` and `gr.Row`
+feat:Remove `gr.Column` and `gr.Row` variants
