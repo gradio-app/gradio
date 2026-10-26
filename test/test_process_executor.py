@@ -339,8 +339,8 @@ def test_server_routes_come_before_gradio_routes():
 def test_server_websockets_are_relayed():
     pytest.importorskip("websockets")
     from fastapi import WebSocket
-    from websockets.exceptions import InvalidStatus
-    from websockets.sync.client import connect
+    from websockets.exceptions import InvalidStatus  # ty: ignore[unresolved-import]
+    from websockets.sync.client import connect  # ty: ignore[unresolved-import]
 
     app = gr.Server()
 
