@@ -1,4 +1,5 @@
 import copy
+import gzip
 import hashlib
 import json
 import os
@@ -1161,13 +1162,51 @@ async def test_async_get_redirect_without_location_returns_response(monkeypatch)
     async def mock_get(*args, **kwargs):
         return expected
 
-    monkeypatch.setattr(processing_utils.sh, "get", mock_get)
+    monkeypatch.setattr(processing_utils, "_ssrf_protected_get_once", mock_get)
 
     response = await processing_utils.async_ssrf_protected_get(
         "https://example.com/image.png"
     )
 
     assert response is expected
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("content_encoding", ["br", "BR", "gzip, br", "identity,br"])
+async def test_async_get_rejects_brotli_response(monkeypatch, content_encoding):
+    def handler(request):
+        return httpx.Response(
+            200, headers={"Content-Encoding": content_encoding}, content=b"\x00"
+        )
+
+    monkeypatch.setattr(
+        processing_utils, "async_transport", httpx.MockTransport(handler)
+    )
+
+    with pytest.raises(ValueError, match="Refusing Brotli-encoded response"):
+        await processing_utils.async_ssrf_protected_get("https://example.com/a.png")
+
+
+@pytest.mark.asyncio
+async def test_async_get_does_not_accept_brotli(monkeypatch):
+    seen_accept_encoding = []
+
+    def handler(request):
+        seen_accept_encoding.append(request.headers["Accept-Encoding"])
+        return httpx.Response(
+            200, headers={"Content-Encoding": "gzip"}, content=gzip.compress(b"data")
+        )
+
+    monkeypatch.setattr(
+        processing_utils, "async_transport", httpx.MockTransport(handler)
+    )
+
+    response = await processing_utils.async_ssrf_protected_get(
+        "https://example.com/a.png"
+    )
+
+    assert response.content == b"data"
+    assert "br" not in seen_accept_encoding[0]
 
 
 class TestAudioFormatDetection:
