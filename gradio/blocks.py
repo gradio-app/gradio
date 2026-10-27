@@ -3336,6 +3336,13 @@ Received inputs:
                     app=_app,
                     launch_kwargs=launch_kwargs,
                 )
+                if self.mcp_server_obj:
+                    self.mcp_server_obj._local_url = self.local_url
+                if self.mcp_server:
+                    print(
+                        "\n🔨 Launching MCP server:"
+                        f"\n* Streamable HTTP URL: {str(self.share_url or self.local_url).rstrip('/')}{API_PREFIX}/mcp/"
+                    )
             if inbrowser:
                 webbrowser.open(
                     str(

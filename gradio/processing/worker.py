@@ -15,6 +15,7 @@ import inspect
 import json
 import os
 import secrets
+import signal
 import subprocess
 import sys
 import tempfile
@@ -154,6 +155,7 @@ class Worker:
         self.ready = threading.Event()
         self.gateway_started = threading.Event()
         self.done = threading.Event()
+        self.finished = threading.Event()
         self.http_done = threading.Event()
         self.urls: tuple[str, str | None] = ("", None)
         self.server_attributes: dict[str, Any] = {}
@@ -162,6 +164,7 @@ class Worker:
         self.replicas = max(int(os.environ.get("GRADIO_PROCESS_REPLICAS", "1")), 1)
         self.replica_processes: list[subprocess.Popen] = []
         self.replica_addresses: list[dict] = []
+        self.shutting_down = False
 
     def send(self, message: Any) -> None:
         """Writes a message from any thread (functions run in worker threads)."""
@@ -233,6 +236,7 @@ class Worker:
         except (asyncio.IncompleteReadError, ConnectionError):
             pass
         finally:
+            writer.close()
             self.done.set()
 
     async def respond(self, rid: int, run, payload: dict) -> None:
@@ -242,7 +246,11 @@ class Worker:
                 data = protocol.dumps(result)
             except Exception:
                 data = protocol.dumps(protocol.jsonable(result))
+            del result
             self.send(("result", rid, data))
+            if self.writer is not None:
+                with contextlib.suppress(ConnectionError):
+                    await self.writer.drain()
         except asyncio.CancelledError:
             pass
         except BaseException as exc:  # noqa: BLE001 -- user code can raise anything
@@ -278,7 +286,7 @@ class Worker:
 
     async def run_event(self, p: dict) -> dict:
         """One event from the queue: exactly what a normal launch runs."""
-        from gradio import route_utils
+        from gradio import caching, route_utils
         from gradio.queueing import create_validator_fn
 
         fn = self.blocks.fns[p["fn_index"]]
@@ -295,16 +303,17 @@ class Worker:
             running = RunningEvent(body.event_id, body.session_hash)
             self.running[body.event_id] = running
         try:
-            output = await route_utils.call_process_api(
-                app=self.app,
-                body=body,
-                gr_request=protocol.restore_request(
-                    p["request"], self.lifespan_state()
-                ),
-                fn=fn,
-                root_path=p["root_path"],
-                record_history=False,
-            )
+            with caching.ProbeCache() if p["probe_cache"] else contextlib.nullcontext():
+                output = await route_utils.call_process_api(
+                    app=self.app,
+                    body=body,
+                    gr_request=protocol.restore_request(
+                        p["request"], self.lifespan_state()
+                    ),
+                    fn=fn,
+                    root_path=p["root_path"],
+                    record_history=False,
+                )
         except asyncio.CancelledError:
             if running is not None:
                 running.alive = False
@@ -312,10 +321,10 @@ class Worker:
         finally:
             if running is not None and self.running.get(body.event_id) is running:
                 del self.running[body.event_id]
+            if self.app.iterators.get(body.event_id) is None:
+                self.app.iterators.pop(body.event_id, None)
+                self.event_sessions.pop(body.event_id, None)
         output["has_iterator"] = self.app.iterators.get(body.event_id) is not None
-        if not output["has_iterator"]:
-            self.app.iterators.pop(body.event_id, None)
-            self.event_sessions.pop(body.event_id, None)
         return output
 
     async def run_auth(self, p: dict) -> bool:
@@ -361,6 +370,7 @@ class Worker:
         finally:
             self.done.set()
             self.blocks.is_running = False
+            self.finished.set()
 
     def api_info(self) -> dict[tuple[str | None, bool], Any]:
         """The API info the gateway serves, by page and `all_endpoints`."""
@@ -391,6 +401,7 @@ class Worker:
     async def _main(self) -> None:
         from gradio import client_state
         from gradio.client_state import app_fingerprint
+        from gradio.context import Context
         from gradio.data_classes import _StaticFiles
 
         self.loop = asyncio.get_running_loop()
@@ -405,13 +416,16 @@ class Worker:
             "port": server.sockets[0].getsockname()[1],
             "token": self.token,
             "pid": os.getpid(),
+            "http_port": http_port,
+            "http_token": self.http_token,
         }
         if self.replica_fd is not None:
             os.write(self.replica_fd, (json.dumps(address) + "\n").encode())
             os.close(self.replica_fd)
-            async with server:
+            try:
                 await asyncio.to_thread(self.done.wait)
-            await self.stop_http()
+            finally:
+                await self.stop_server(server)
             return
         bootstrap = {
             "config": self.portable_config(),
@@ -424,6 +438,9 @@ class Worker:
                     "concurrency_id": fn.concurrency_id,
                     "tracks_progress": fn.tracks_progress,
                     "has_validator": fn.validator is not None,
+                    "cached": hasattr(fn.fn, "cache"),
+                    "parameter_names": list(fn.input_parameter_names)
+                    or (list(inspect.signature(fn.fn).parameters) if fn.fn else []),
                 }
                 for fn_id, fn in self.blocks.fns.items()
             },
@@ -444,6 +461,7 @@ class Worker:
             "proxy_urls": sorted(self.blocks.proxy_urls),
             "expects_oauth": self.blocks.expects_oauth,
             "check_dependencies": self.checker is not None,
+            "hf_token": Context.token,
         }
         try:
             data = protocol.dumps(bootstrap)
@@ -462,13 +480,22 @@ class Worker:
         self.gateway_started.set()
         for _ in range(self.replicas - 1):
             self.start_replica()
-        async with server:
+        try:
             while not self.done.is_set():
                 if self.gateway.poll() is not None:
                     break
                 await asyncio.sleep(0.2)
-        await self.stop_http()
+        finally:
+            await self.stop_server(server)
+            with contextlib.suppress(subprocess.TimeoutExpired):
+                await asyncio.to_thread(self.gateway.wait, 5)
         self.done.set()
+
+    async def stop_server(self, server: asyncio.Server) -> None:
+        server.close()
+        with contextlib.suppress(asyncio.TimeoutError):
+            await asyncio.wait_for(server.wait_closed(), 5)
+        await self.stop_http()
 
     async def stop_http(self) -> None:
         self.http_server.should_exit = True
@@ -487,25 +514,37 @@ class Worker:
         from gradio import client_state
 
         read, write = os.pipe()
-        self.replica_processes.append(
-            subprocess.Popen(
-                [sys.executable, *sys.argv],
-                env={
-                    **os.environ,
-                    "GRADIO_PROCESS_REPLICA_FD": str(write),
-                    "GRADIO_PROCESS_STATE_SECRET": client_state._process_secret.hex(),
-                },
-                pass_fds=[write],
-            )
+        process = subprocess.Popen(
+            [sys.executable, *sys.argv],
+            env={
+                **os.environ,
+                "GRADIO_PROCESS_REPLICA_FD": str(write),
+                "GRADIO_PROCESS_STATE_SECRET": client_state._process_secret.hex(),
+            },
+            pass_fds=[write],
         )
+        self.replica_processes.append(process)
         os.close(write)
 
         def report():
+            address = None
             with os.fdopen(read) as lines:
                 for line in lines:
                     address = json.loads(line)
                     self.replica_addresses.append(address)
                     self.send(("replica", address))
+            process.wait()
+            if address is not None:
+                self.replica_addresses.remove(address)
+            if self.shutting_down:
+                return
+            if address is not None:
+                print(
+                    f"A replica of the app (pid {process.pid}) exited; restarting it."
+                )
+                self.start_replica()
+            else:
+                self.send(("replica_failed",))
 
         threading.Thread(target=report, daemon=True).start()
 
@@ -543,6 +582,7 @@ class Worker:
         return sock.getsockname()[1]
 
     def close(self) -> None:
+        self.shutting_down = True
         if self.http_server is not None:
             self.http_server.should_exit = True
             if threading.current_thread().name != "gradio-worker":
@@ -637,7 +677,12 @@ def serve_replica(blocks: Blocks, app: App | None, launch_kwargs: dict[str, Any]
     threading.Thread(
         target=asyncio.run, args=(worker.main(),), daemon=True, name="gradio-worker"
     ).start()
-    worker.done.wait()
+    signal.signal(signal.SIGTERM, lambda *_: worker.done.set())
+    try:
+        worker.finished.wait()
+    except KeyboardInterrupt:
+        worker.done.set()
+        worker.finished.wait(15)
     sys.stdout.flush()
     sys.stderr.flush()
     os._exit(0)

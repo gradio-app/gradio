@@ -687,3 +687,281 @@ def test_render_is_refused():
 
     with pytest.raises(ValueError, match="gr.render is not supported"):
         demo.launch(executor="process", prevent_thread_lock=True)
+
+
+def _queue_messages(base_url: str, body: dict, on_message=None) -> list[dict]:
+    """Joins the queue with `body` and returns the event's messages, up to
+    `process_completed`."""
+    messages = []
+    with httpx2.Client(base_url=base_url, timeout=15) as client:
+        event_id = client.post("gradio_api/queue/join", json=body).json()["event_id"]
+        with client.stream(
+            "GET",
+            "gradio_api/queue/data",
+            params={"session_hash": body["session_hash"]},
+        ) as sse:
+            for line in sse.iter_lines():
+                if not line.startswith("data:"):
+                    continue
+                message = json.loads(line[5:])
+                messages.append(message)
+                if on_message is not None:
+                    on_message(client, event_id, message)
+                if message["msg"] == "process_completed":
+                    return messages
+    return messages
+
+
+def test_streamed_input_to_a_generator_answers_every_chunk():
+    def on_chunk(chunk):
+        yield "got a chunk"
+
+    with gr.Blocks() as demo:
+        mic = gr.Audio(sources=["microphone"], streaming=True)
+        out = gr.Textbox()
+        mic.stream(on_chunk, mic, out)
+
+    with launched(demo) as client:
+        with httpx2.Client(base_url=client.src) as http:
+            with open("test/test_files/audio_sample.wav", "rb") as f:
+                (path,) = http.post("gradio_api/upload", files={"files": f}).json()
+        body = {
+            "data": [{"path": path, "meta": {"_type": "gradio.FileData"}}],
+            "fn_index": 0,
+            "session_hash": "chunks",
+        }
+        chunks = [1]
+
+        def send_chunks(http, event_id, message):
+            if message["msg"] != "process_streaming":
+                return
+            if chunks[0] < 3:
+                chunks[0] += 1
+                http.post(f"gradio_api/stream/{event_id}", json=body)
+            else:
+                http.post(f"gradio_api/stream/{event_id}/close")
+
+        messages = _queue_messages(client.src, body, send_chunks)
+    assert chunks[0] == 3
+    assert messages[-1]["success"]
+
+
+def test_app_process_exits_when_the_gateway_dies(tmp_path):
+    import signal
+    import subprocess
+    import sys
+
+    script = tmp_path / "app.py"
+    script.write_text(
+        "import gradio as gr\n"
+        "demo = gr.Interface(lambda x: x, 'textbox', 'textbox')\n"
+        "demo.launch(prevent_thread_lock=True)\n"
+        "print('gateway', demo._process_worker.gateway.pid, flush=True)\n"
+        "demo.block_thread()\n"
+        "print('exited', flush=True)\n"
+    )
+    proc = subprocess.Popen(
+        [sys.executable, str(script)], stdout=subprocess.PIPE, text=True
+    )
+    try:
+        assert proc.stdout is not None
+        line = next(line for line in proc.stdout if line.startswith("gateway"))
+        os.kill(int(line.split()[1]), signal.SIGKILL)
+        assert proc.wait(timeout=20) == 0
+        assert "exited" in proc.stdout.read()
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+
+
+REPLICA_LIFESPAN_APP = """
+import os
+from contextlib import asynccontextmanager
+import gradio as gr
+
+@asynccontextmanager
+async def lifespan(_app):
+    yield
+    with open(os.environ["LOG"], "a") as f:
+        f.write(f"teardown {os.getpid()}\\n")
+
+demo = gr.Interface(lambda x: x, "textbox", "textbox")
+demo.launch(server_port=int(os.environ["PORT"]), app_kwargs={"lifespan": lifespan})
+"""
+
+
+def test_replicas_run_their_lifespan_teardown(tmp_path):
+    import signal
+    import subprocess
+    import sys
+
+    script = tmp_path / "app.py"
+    script.write_text(REPLICA_LIFESPAN_APP)
+    log = tmp_path / "log.txt"
+    port = 7991
+    proc = subprocess.Popen(
+        [sys.executable, str(script)],
+        env={
+            **os.environ,
+            "GRADIO_PROCESS_REPLICAS": "2",
+            "PORT": str(port),
+            "LOG": str(log),
+        },
+        start_new_session=True,
+    )
+    try:
+        deadline = time.time() + 120
+        while time.time() < deadline:
+            try:
+                status = httpx2.get(
+                    f"http://127.0.0.1:{port}/gradio_api/processes"
+                ).json()
+                if len(status["processes"]) == 2 and not status["starting"]:
+                    break
+            except (httpx2.HTTPError, ValueError):
+                pass
+            time.sleep(0.5)
+        os.killpg(proc.pid, signal.SIGINT)
+        proc.wait(timeout=30)
+        deadline = time.time() + 15
+        while time.time() < deadline and (
+            not log.exists() or len(log.read_text().splitlines()) < 2
+        ):
+            time.sleep(0.2)
+        assert len(set(log.read_text().splitlines())) == 2
+    finally:
+        if proc.poll() is None:
+            os.killpg(proc.pid, signal.SIGKILL)
+
+
+def test_errors_keep_the_app_traceback():
+    import traceback
+
+    from gradio.processing import protocol
+
+    def divide(x):
+        return 1 / int(x)
+
+    try:
+        divide("0")
+    except ZeroDivisionError as err:
+        restored = protocol.restore_error(protocol.portable_error(err))
+    printed = "".join(traceback.format_exception(restored))
+    assert "in divide" in printed
+    assert "1 / int(x)" in printed
+
+
+def test_error_subclass_defined_in_the_script():
+    from gradio_client.exceptions import AppError
+
+    class QuotaError(gr.Error):
+        pass
+
+    QuotaError.__module__ = "__main__"
+
+    def fail(x):
+        raise QuotaError("Out of credits", title="Quota")
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        t.submit(fail, t, t, api_name="fail")
+    with launched(demo) as client:
+        with pytest.raises(AppError, match="Out of credits") as err:
+            client.predict("x", api_name="/fail")
+    assert err.value.title == "Quota"
+
+
+def test_cached_call_skips_a_busy_concurrency_group():
+    def slow(x):
+        time.sleep(3)
+        return x
+
+    @gr.cache
+    def cached(x):
+        time.sleep(1)
+        return x * 2
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        t.submit(slow, t, t, api_name="slow", concurrency_id="g", concurrency_limit=1)
+        t.change(
+            cached, t, t, api_name="cached", concurrency_id="g", concurrency_limit=1
+        )
+    with launched(demo) as client:
+        assert client.predict("a", api_name="/cached") == "aa"
+        busy = client.submit("b", api_name="/slow")
+        time.sleep(0.5)
+        start = time.monotonic()
+        assert client.predict("a", api_name="/cached") == "aa"
+        assert time.monotonic() - start < 1.5
+        busy.result()
+
+
+def test_validation_errors_name_the_function_parameters():
+    def validate(name, age):
+        return [gr.validate(len(name) > 0, "empty"), gr.validate(age > 0, "too young")]
+
+    with gr.Blocks() as demo:
+        name = gr.Textbox()
+        age = gr.Number()
+        out = gr.Textbox()
+        gr.Button().click(
+            lambda name, age: name, [name, age], out, validator=validate, api_name="go"
+        )
+    with launched(demo) as client:
+        response = httpx2.post(
+            f"{client.src}gradio_api/queue/join",
+            json={"data": ["", 0], "fn_index": 0, "session_hash": "v"},
+        )
+    assert response.status_code == 422
+    assert [item["parameter_name"] for item in response.json()["detail"]] == [
+        "name",
+        "age",
+    ]
+
+
+def test_failed_events_do_not_leak_their_sessions():
+    def fail(x):
+        raise ValueError(x)
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        t.submit(fail, t, t, api_name="fail")
+    with launched(demo) as client:
+        for _ in range(5):
+            with pytest.raises(Exception):
+                client.predict("x", api_name="/fail")
+        assert demo._process_worker.event_sessions == {}  # type: ignore[union-attr]
+
+
+def test_processes_route_needs_login():
+    demo = gr.Interface(lambda x: x, "textbox", "textbox")
+    _, local_url, _ = demo.launch(
+        executor="process", prevent_thread_lock=True, auth=("u", "p")
+    )
+    try:
+        assert httpx2.get(f"{local_url}gradio_api/processes").status_code == 401
+        assert httpx2.get(f"{local_url}config").status_code == 401
+    finally:
+        demo.close()
+
+
+def test_mcp_server_knows_its_local_url():
+    pytest.importorskip("mcp")
+
+    def echo(x: str) -> str:
+        """Echoes x.
+
+        Args:
+            x: the text
+        """
+        return x
+
+    demo = gr.Interface(echo, "textbox", "textbox")
+    _, local_url, _ = demo.launch(
+        executor="process", prevent_thread_lock=True, mcp_server=True
+    )
+    try:
+        assert demo.mcp_server_obj._local_url == local_url  # type: ignore[union-attr]
+    finally:
+        demo.close()

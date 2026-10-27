@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import inspect
 import itertools
 import os
 import pickle
+import signal
 import sys
 import threading
 import time
@@ -89,6 +91,8 @@ class Link:
                     self.server_loop.call_soon_threadsafe(self.pool.deliver, message)
                 elif kind == "replica":
                     self.pool.add_replica(message[1])
+                elif kind == "replica_failed":
+                    self.pool.expected -= 1
         except (asyncio.IncompleteReadError, ConnectionError):
             pass
         except Exception:  # noqa: BLE001 -- the gateway cannot go on without it
@@ -160,6 +164,7 @@ class Pool:
         self.lock = threading.Lock()
         self.limits: dict[int, int | None] = {}
         self.group_limits: dict[str, int] = {}
+        self.expected = 1
 
     @property
     def primary(self) -> Link:
@@ -184,6 +189,12 @@ class Pool:
                 self.links.remove(link)
         link.fail_pending(RuntimeError("A replica of the app exited"))
         self.scale_limits()
+
+    def holding(self, session_hash: str | None) -> Link:
+        """The process that holds `session_hash`, or else the primary."""
+        with self.lock:
+            link = self.sessions.get(session_hash) if session_hash else None
+            return link if link in self.links else self.primary
 
     def for_session(self, session_hash: str | None) -> Link:
         with self.lock:
@@ -217,10 +228,9 @@ class Pool:
         for fn in self.blocks.fns.values():
             limit = self.limits.get(fn._id)
             fn.concurrency_limit = None if limit is None else limit * count
-        for fn in self.blocks.fns.values():
-            event_queue = queue.event_queue_per_concurrency_id.get(fn.concurrency_id)
-            if event_queue is not None:
-                event_queue.concurrency_limit = fn.concurrency_limit
+        for concurrency_id, event_queue in queue.event_queue_per_concurrency_id.items():
+            limit = self.group_limits.get(concurrency_id)
+            event_queue.concurrency_limit = None if limit is None else limit * count
 
     def session_changed(self, session_hash: str, closed: bool) -> None:
         link = self.sessions.get(session_hash)
@@ -249,7 +259,7 @@ class Pool:
                 {"pid": link.address["pid"], "running": link.running}
                 for link in self.links
             ],
-            "starting": self.blocks._replicas_expected - len(self.links),  # type: ignore[attr-defined]
+            "starting": max(self.expected - len(self.links), 0),
         }
 
 
@@ -278,7 +288,7 @@ async def forward_event(
 ) -> dict[str, Any]:
     """`route_utils.call_process_api`, run in the app's process that holds the
     event's session."""
-    from gradio import history, route_utils
+    from gradio import caching, history, route_utils
     from gradio.client_state import get_sealer
 
     session_state, iterator = route_utils.restore_session_state(app=app, body=body)
@@ -289,24 +299,20 @@ async def forward_event(
         if isinstance(iterator, RemoteIterator)
         else pool.for_session(body.session_hash)
     )
+    probing = caching._probe_mode_active.get()
     limit = (
-        pool.process_limit(fn) if fn.queue and not fn.is_validator_function else None
+        pool.process_limit(fn)
+        if fn.queue and not fn.is_validator_function and not probing
+        else None
     )
+    streaming = fn.connection == "stream"
     slot = None
-
-    def release() -> None:
-        if body.event_id is not None:
-            link.release(body.event_id)
-        elif slot is not None:
-            slot.release()
-
     link.running += 1
     try:
-        if limit is not None and iterator is None:
-            await link.slot(fn.concurrency_id, limit).acquire()
-            slot = link.slot(fn.concurrency_id, limit)
-            if body.event_id is not None:
-                link.held[body.event_id] = slot
+        if limit is not None and (iterator is None or streaming):
+            candidate = link.slot(fn.concurrency_id, limit)
+            await candidate.acquire()
+            slot = candidate
         output = await link.call(
             "event",
             {
@@ -317,16 +323,25 @@ async def forward_event(
                 "continuing": iterator is not None,
                 "request": protocol.portable_request(gr_request),
                 "root_path": root_path,
+                "probe_cache": probing,
             },
         )
     except BaseException:
-        release()
+        if slot is not None:
+            slot.release()
+        elif iterator is not None:
+            link.release(body.event_id)
         raise
     finally:
         link.running -= 1
     has_iterator = output.pop("has_iterator")
-    if not has_iterator:
-        release()
+    if slot is not None:
+        if has_iterator and not streaming and body.event_id is not None:
+            link.held[body.event_id] = slot
+        else:
+            slot.release()
+    elif not has_iterator:
+        link.release(body.event_id)
     if body.event_id is not None:
         app.iterators[body.event_id] = (  # type: ignore[assignment]
             RemoteIterator(link, body.event_id) if has_iterator else None
@@ -377,10 +392,10 @@ class AppBlock:
         return self.type
 
 
-def make_stub(fn_id: int, generator: bool = False):
+def make_stub(fn_id: int, generator: bool = False, cached: bool = False):
     """A function that does nothing, standing in for event `fn_id`'s function
-    or validator in the app's process. Its shape (generator or not) is what
-    the queue reads."""
+    or validator in the app's process. Its shape (generator or not, cached or
+    not) is what the queue reads."""
     if generator:
 
         def stub(*_args):
@@ -392,6 +407,8 @@ def make_stub(fn_id: int, generator: bool = False):
             pass
 
     stub._fn_id = fn_id  # type: ignore[attr-defined]
+    if cached:
+        stub.cache = None  # type: ignore[attr-defined]
     return stub
 
 
@@ -413,7 +430,7 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
             return [blocks[i] for i in dep.get(key) or [] if i in blocks]
 
         fns[dep["id"]] = BlockFunction(
-            fn=make_stub(dep["id"], dep["types"]["generator"])
+            fn=make_stub(dep["id"], dep["types"]["generator"], settings["cached"])
             if dep["backend_fn"]
             else None,
             inputs=ids("inputs"),
@@ -450,6 +467,7 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
             component_prop_inputs=dep.get("component_prop_inputs"),
             page=pages.get(dep["id"], ""),
             validator=make_stub(dep["id"]) if settings["has_validator"] else None,
+            input_parameter_names=settings["parameter_names"],
         )
     return fns
 
@@ -460,8 +478,10 @@ def build(bootstrap: dict) -> Blocks:
     from gradio import client_state, utils
     from gradio.blocks import Blocks
     from gradio.components import State
+    from gradio.context import Context
 
     client_state._process_secret = bootstrap["state_secret"]
+    Context.token = bootstrap["hf_token"]
     if bootstrap["static_paths"]:
         utils.set_static_paths(bootstrap["static_paths"])
     config = bootstrap["config"]
@@ -510,8 +530,8 @@ def build(bootstrap: dict) -> Blocks:
     blocks.get_config_file = get_config_file  # type: ignore[method-assign]
     blocks.get_api_info = get_api_info  # type: ignore[method-assign]
     pool = Pool(blocks, bootstrap["fingerprint"])
+    pool.expected = bootstrap["replicas"]
     blocks._process_pool = pool  # type: ignore[attr-defined]
-    blocks._replicas_expected = bootstrap["replicas"]  # type: ignore[attr-defined]
     return blocks
 
 
@@ -525,6 +545,10 @@ def shutdown(blocks: Blocks) -> None:
     if node_process is not None:
         with contextlib.suppress(Exception):
             stop_node_process(node_process)
+    static_workers = getattr(blocks, "_static_worker_pool", None)
+    if static_workers is not None:
+        with contextlib.suppress(Exception):
+            static_workers.shutdown()
     for tunnel in list(CURRENT_TUNNELS):
         with contextlib.suppress(Exception):
             tunnel.kill()
@@ -564,9 +588,26 @@ async def logged_in_user(app: App, request: Request) -> str | None:
     return app.tokens.get(token)
 
 
+async def session_of(request: Request) -> str | None:
+    """The session a forwarded request is for, so that it reaches the process
+    that holds it."""
+    import json
+
+    session_hash = request.path_params.get("session_hash") or request.query_params.get(
+        "session_hash"
+    )
+    if session_hash is None and request.headers.get("content-type", "").startswith(
+        "application/json"
+    ):
+        with contextlib.suppress(ValueError, AttributeError):
+            session_hash = json.loads(await request.body()).get("session_hash")
+    return session_hash if isinstance(session_hash, str) else None
+
+
 def add_forwarded_routes(app, bootstrap: dict, pool: Pool) -> None:
     from urllib.parse import quote
 
+    from fastapi import Depends, HTTPException
     from fastapi.routing import APIRoute
     from starlette.routing import WebSocketRoute
 
@@ -580,15 +621,22 @@ def add_forwarded_routes(app, bootstrap: dict, pool: Pool) -> None:
     from gradio.route_utils import API_PREFIX
 
     port = bootstrap["http_port"]
-    target = f"http://127.0.0.1:{port}"
     token = [(TOKEN_HEADER, bootstrap["http_token"].encode())]
 
-    async def to_app(request: Request):
-        headers = list(token)
+    async def send(request: Request, link: Link):
+        headers = [(TOKEN_HEADER, link.address["http_token"].encode())]
         user = await logged_in_user(app, request)
         if user is not None:
             headers.append((USER_HEADER, quote(user).encode()))
-        return await forward(request, target, headers)
+        return await forward(
+            request, f"http://127.0.0.1:{link.address['http_port']}", headers
+        )
+
+    async def to_app(request: Request):
+        return await send(request, pool.primary)
+
+    async def to_session(request: Request):
+        return await send(request, pool.holding(await session_of(request)))
 
     async def websocket_to_app(websocket):
         await relay(websocket, f"ws://127.0.0.1:{port}", token)
@@ -596,16 +644,35 @@ def add_forwarded_routes(app, bootstrap: dict, pool: Pool) -> None:
     async def processes():
         return pool.status()
 
+    async def login_check(request: Request) -> None:
+        if app.auth is None and app.auth_dependency is None:
+            return
+        if app.auth_dependency is not None:
+            user = app.auth_dependency(request)
+            if inspect.isawaitable(user):
+                user = await user
+        else:
+            user = await logged_in_user(app, request)
+        if user is None:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+
     routes: list = [
         APIRoute(
             API_PREFIX + path,
-            to_app,
+            to_session,
             methods=methods or METHODS,
             include_in_schema=False,
         )
         for path, methods in FORWARDED_ROUTES
     ]
-    routes.append(APIRoute(API_PREFIX + "/processes", processes, methods=["GET"]))
+    routes.append(
+        APIRoute(
+            API_PREFIX + "/processes",
+            processes,
+            methods=["GET"],
+            dependencies=[Depends(login_check)],
+        )
+    )
     for kind, path, methods in bootstrap["server_routes"]:
         if kind == "http":
             routes.append(
@@ -668,6 +735,7 @@ def main(path: str) -> None:
         os.unlink(path)
     adopt_environment(bootstrap["env"], bootstrap["cwd"])
     blocks = build(bootstrap)
+    signal.signal(signal.SIGTERM, lambda *_: shutdown(blocks))
     threading.Thread(
         target=watch_app_process,
         args=(bootstrap["worker_pid"], blocks),
@@ -681,6 +749,8 @@ def main(path: str) -> None:
                 "port": bootstrap["port"],
                 "token": bootstrap["token"],
                 "pid": bootstrap["worker_pid"],
+                "http_port": bootstrap["http_port"],
+                "http_token": bootstrap["http_token"],
             },
             pool,
             primary=True,
@@ -750,6 +820,7 @@ def main(path: str) -> None:
         )
     )
     blocks.block_thread()
+    shutdown(blocks)
 
 
 if __name__ == "__main__":

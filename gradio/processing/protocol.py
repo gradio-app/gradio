@@ -15,6 +15,7 @@ cannot find.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import io
 import pickle
 import struct
@@ -58,23 +59,52 @@ def dumps(value: Any) -> bytes:
     return buffer.getvalue()
 
 
+class RemoteTraceback(Exception):
+    """The traceback of an exception raised in the app's process, set as the
+    `__cause__` of the one the gateway raises, as `ProcessPoolExecutor` does."""
+
+    def __init__(self, text: str):
+        self.text = text
+
+    def __str__(self) -> str:
+        return self.text
+
+
 def portable_error(exc: BaseException) -> tuple:
-    """An exception crosses as itself when it can, else as a summary."""
-    summary = (type(exc).__name__, str(exc))
-    try:
-        return ("pickled", dumps(exc), *summary)
-    except Exception:
-        return ("summary", None, *summary)
+    """An exception crosses as itself when it can, else as a summary. A
+    gr.Error whose class the gateway cannot load crosses as a plain gr.Error."""
+    import traceback
+
+    from gradio.exceptions import Error
+
+    summary = (type(exc).__name__, str(exc), "".join(traceback.format_exception(exc)))
+    candidates = [exc]
+    if isinstance(exc, Error) and type(exc) is not Error:
+        candidates.append(
+            Error(
+                exc.message,
+                duration=exc.duration,
+                visible=exc.visible,
+                title=exc.title,
+                print_exception=exc.print_exception,
+            )
+        )
+    for candidate in candidates:
+        try:
+            return ("pickled", dumps(candidate), *summary)
+        except Exception:
+            continue
+    return ("summary", None, *summary)
 
 
 def restore_error(payload: tuple) -> BaseException:
-    kind, data, name, message = payload
+    kind, data, name, message, text = payload
+    error: BaseException = RuntimeError(f"{name}: {message}")
     if kind == "pickled":
-        try:
-            return pickle.loads(data)
-        except Exception:
-            pass
-    return RuntimeError(f"{name}: {message}")
+        with contextlib.suppress(Exception):
+            error = pickle.loads(data)
+    error.__cause__ = RemoteTraceback(text)
+    return error
 
 
 FORWARDED = "__gradio_forwarded_to_the_app_process__"
