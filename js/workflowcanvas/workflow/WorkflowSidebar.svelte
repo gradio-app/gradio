@@ -287,7 +287,6 @@
 		{ key: "summarization", label: "Summarization" },
 		{ key: "text-classification", label: "Text Classification" },
 		{ key: "image-to-image", label: "Image → Image" },
-		{ key: "depth-estimation", label: "Depth Estimation" },
 		{ key: "image-segmentation", label: "Image Segmentation" },
 		{ key: "text-to-video", label: "Text → Video" },
 		{ key: "image-text-to-text", label: "Image+Text → Text" },
