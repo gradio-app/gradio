@@ -525,8 +525,11 @@ def reassign_pending_event_fns(new_blocks: "Blocks"):
         yield from list(queue.event_ids_to_events.values())
 
     for event in all_events():
-        new_fn = new_fns_by_api_name.get(event.fn.api_name)
-        if new_fn is not None and new_fn.connection == event.fn.connection:
+        fn = getattr(event, "fn", None)
+        if fn is None:
+            continue
+        new_fn = new_fns_by_api_name.get(fn.api_name)
+        if new_fn is not None and new_fn.connection == fn.connection:
             event.fn = new_fn
 
 

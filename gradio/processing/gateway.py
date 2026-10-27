@@ -281,8 +281,11 @@ class Pool:
         Mode): serves its new config and events, and tells pages to reload."""
         import copy
 
+        from gradio.utils import reassign_pending_event_fns
+
         if description is not None:
             configure(self.blocks, description)
+            reassign_pending_event_fns(self.blocks)
             self.fingerprint = description["fingerprint"]
             self.limits.clear()
             self.group_limits.clear()

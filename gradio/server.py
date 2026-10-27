@@ -24,12 +24,12 @@ class _MCPNamespace:
     prompt = staticmethod(mcp.prompt)
 
 
-@document("api", "launch")
 def _check_process(process: str) -> None:
     if process not in ("app", "gateway"):
         raise ValueError(f"`process` must be 'app' or 'gateway', not {process!r}.")
 
 
+@document("api", "launch")
 class Server(App):
     """
     Server is the Gradio API engine exposed on a FastAPI application (Server mode),
