@@ -167,7 +167,7 @@
 		"wikidata-lang": "5.0.1"
 	},
 	"engines": {
-		"node": ">=24.22.1",
+		"node": ">=24.0.0",
 		"pnpm": "^10"
 	},
 	"packageManager": "pnpm@10.17.0",

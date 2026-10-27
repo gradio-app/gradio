@@ -347,48 +347,14 @@ def lru_cache_async(maxsize: int = 128):
 
 MAX_REDIRECTS = 20
 
-# Responses from user-supplied URLs are never Brotli-decoded, so attacker-controlled
-# data can't reach the Brotli decoder (e.g. CVE-2026-111497). We don't advertise
-# `br`, so a well-behaved server won't send it.
-SSRF_ACCEPT_ENCODING = "gzip, deflate"
-
-
-async def _ssrf_protected_get_once(url: str) -> httpx.Response:
-    """A single GET (no redirects) with the same transport selection as
-    `safehttpx.get`, but streamed so the Content-Encoding can be checked before
-    httpx decodes the body."""
-    hostname = httpx.URL(url).host
-    if not hostname:
-        raise ValueError(f"URL {url} does not have a valid hostname")
-    if async_transport:
-        transport = async_transport
-    elif hostname in PUBLIC_HOSTNAME_WHITELIST:
-        transport = None
-    else:
-        verified_ip = await sh.async_validate_url(hostname)
-        transport = sh.AsyncSecureTransport(verified_ip)
-
-    async with httpx.AsyncClient(transport=transport) as client:
-        request = client.build_request(
-            "GET", url, headers={"Accept-Encoding": SSRF_ACCEPT_ENCODING}
-        )
-        response = await client.send(request, stream=True)
-        try:
-            encodings = response.headers.get("Content-Encoding", "")
-            if "br" in [e.strip().lower() for e in encodings.split(",")]:
-                raise ValueError(f"Refusing Brotli-encoded response from {url}.")
-            await response.aread()
-        finally:
-            await response.aclose()
-    return response
-
 
 async def async_ssrf_protected_get(url: str) -> httpx.Response:
-    """SSRF-protected GET: uses the `safehttpx` secure transport outside the
-    public hostname allow-list and re-validates each redirect. Returns the
-    `httpx.Response` without raising on non-2xx status (callers decide how to
-    handle that)."""
-    response = await _ssrf_protected_get_once(url)
+    """SSRF-protected GET: routes through `safehttpx` with the public hostname
+    allow-list and re-validates each redirect. Returns the `httpx.Response`
+    without raising on non-2xx status (callers decide how to handle that)."""
+    response = await sh.get(
+        url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
+    )
     redirects = 0
     while response.has_redirect_location:
         if redirects >= MAX_REDIRECTS:
@@ -398,7 +364,9 @@ async def async_ssrf_protected_get(url: str) -> httpx.Response:
         # relative/scheme-relative redirects and host changes across hops are
         # handled per RFC 3986. safehttpx re-validates the resolved host.
         url = urljoin(str(response.url), response.headers["Location"])
-        response = await _ssrf_protected_get_once(url)
+        response = await sh.get(
+            url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
+        )
     return response
 
 
