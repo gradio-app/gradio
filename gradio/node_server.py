@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import signal
 import socket
 import subprocess
@@ -89,6 +90,42 @@ def start_node_server(
 
 GRADIO_LOCAL_DEV_MODE = os.getenv("GRADIO_LOCAL_DEV_MODE") is not None
 SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
+# SSR needs this Node release or newer; anything older falls back to client-side rendering.
+MIN_NODE_VERSION = (24, 22, 0)
+MIN_NODE_VERSION_STR = ".".join(str(part) for part in MIN_NODE_VERSION)
+
+
+def get_node_version(node_path: str) -> tuple[int, ...] | None:
+    """Returns the version of the Node executable at node_path, or None if it isn't one."""
+    try:
+        output = subprocess.check_output(
+            [node_path, "--version"], stderr=subprocess.DEVNULL, timeout=10
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    match = re.fullmatch(r"v(\d+)\.(\d+)\.(\d+)", output.decode().strip())
+    if match is None:
+        return None
+    return tuple(int(part) for part in match.groups())
+
+
+def get_ssr_unavailable_reason(node_path: str | None) -> str | None:
+    """Returns why SSR can't run with the Node at node_path, or None if it can."""
+    if not SSR_APP_PATH.exists():
+        return "The Gradio SSR build was not found."
+    version = get_node_version(node_path) if node_path else None
+    if version is None:
+        return (
+            f"SSR mode requires Node {MIN_NODE_VERSION_STR} or higher, but no Node "
+            "executable was found. Install Node or set the GRADIO_NODE_PATH environment variable."
+        )
+    if version < MIN_NODE_VERSION:
+        found = ".".join(str(part) for part in version)
+        return (
+            f"SSR mode requires Node {MIN_NODE_VERSION_STR} or higher, but found "
+            f"Node {found} at {node_path}."
+        )
+    return None
 
 
 def start_node_process(
@@ -228,7 +265,7 @@ def start_node_process(
             print(f"No free port found in range {server_ports[0]}-{server_ports[-1]}.")
     else:
         print(
-            "Please install Node 24 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
+            f"Please install Node {MIN_NODE_VERSION_STR} or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
         )
     print(
         "You can explicitly specify a port by setting the environment variable GRADIO_NODE_SERVER_PORT."

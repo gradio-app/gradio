@@ -80,7 +80,7 @@ from gradio.exceptions import (
 )
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
-from gradio.node_server import start_node_server
+from gradio.node_server import get_ssr_unavailable_reason, start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream, slugify
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
@@ -3036,19 +3036,40 @@ Received inputs:
                 self.head += "\n" + head_file.read()
 
     def _resolve_ssr_mode(
-        self, ssr_mode: bool | None, disable_when_multi_page: bool = True
+        self,
+        ssr_mode: bool | None,
+        disable_when_multi_page: bool = True,
+        default: bool = True,
     ) -> bool:
-        if disable_when_multi_page and len(self.config.get("pages", [])) > 1:
-            warnings.warn(
-                "SSR mode is not supported with multi-page apps when mounting on a FastAPI app. Disabling SSR mode.",
-                UserWarning,
-            )
+        """
+        Resolves whether to render with SSR. An explicit `ssr_mode` wins, then the
+        GRADIO_SSR_MODE environment variable, then `default`. SSR is only used when a
+        supported Node install is found; otherwise the app falls back to client-side
+        rendering, with a warning only if SSR was explicitly requested.
+        """
+        if ssr_mode is None and "GRADIO_SSR_MODE" in os.environ:
+            ssr_mode = os.environ["GRADIO_SSR_MODE"].lower() == "true"
+        requested = ssr_mode is True
+        if ssr_mode is False or (ssr_mode is None and not default):
             return False
-        return (
-            ssr_mode
-            if ssr_mode is not None
-            else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
-        )
+        if disable_when_multi_page and len(self.config.get("pages", [])) > 1:
+            if requested:
+                warnings.warn(
+                    "SSR mode is not supported with multi-page apps when mounting on a FastAPI app. Disabling SSR mode.",
+                    UserWarning,
+                )
+            return False
+        if os.getenv("GRADIO_LOCAL_DEV_MODE") is not None:
+            # Dev mode renders through the vite dev server, so there's no Node build
+            # to check, and SSR stays opt-in.
+            return requested
+        self.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
+        reason = get_ssr_unavailable_reason(self.node_path)
+        if reason is None:
+            return True
+        if requested:
+            warnings.warn(f"{reason} Disabling SSR mode.", UserWarning)
+        return False
 
     def launch(
         self,
@@ -3148,7 +3169,7 @@ Received inputs:
             max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
             enable_monitoring: Enables traffic monitoring of the app through the /monitoring endpoint. By default is None, which enables this endpoint. If explicitly True, will also print the monitoring URL to the console. If False, will disable monitoring altogether.
             strict_cors: If True, prevents external domains from making requests to a Gradio server running on localhost. If False, allows requests to localhost that originate from localhost but also, crucially, from "null". This parameter should normally be True to prevent CSRF attacks but may need to be False when embedding a *locally-running Gradio app* using web components.
-            ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 24+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+            ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 24.22.0+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use the GRADIO_SSR_MODE environment variable if it is set, and otherwise use SSR mode whenever Node 24.22.0+ is installed, falling back to client-side rendering if it is not.
             pwa: If True, the Gradio app will be set up as an installable PWA (Progressive Web App). If set to None (default behavior), then the PWA feature will be enabled if this Gradio app is launched on Spaces, but not otherwise.
             i18n: An I18n instance containing custom translations, which are used to translate strings in our components (e.g. the labels of components or Markdown strings). This feature can only be used to translate static text in the frontend, not values in the backend.
             mcp_server: If True, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools. If None (default behavior), then the GRADIO_MCP_SERVER environment variable will be used to determine if the MCP server should be enabled.

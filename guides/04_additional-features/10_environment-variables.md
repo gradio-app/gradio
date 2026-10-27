@@ -147,7 +147,7 @@ Environment variables in Gradio provide a way to customize your applications and
 
 - **Description**: Controls whether server-side rendering (SSR) is enabled. When enabled, the initial HTML is rendered on the server rather than the client, which can improve initial page load performance and SEO.
 
-- **Default**: `"False"` (except on Hugging Face Spaces, where this environment variable sets it to `True`)
+- **Default**: Unset, which means SSR is used whenever Node 24.22.0 or higher is installed, and client-side rendering otherwise. (Apps mounted with `gr.mount_gradio_app` only use SSR when it is explicitly enabled.)
 - **Options**: `"True"`, `"False"`
 - **Example**:
   ```sh
