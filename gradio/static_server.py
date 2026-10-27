@@ -156,7 +156,7 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
             await asyncio.wait_for(
                 file_upload_statuses.is_tracked(upload_id), timeout=3
             )
-        except (asyncio.TimeoutError, TimeoutError):
+        except TimeoutError:
             return PlainTextResponse("Upload not found", status_code=404)
 
         return StreamingResponse(

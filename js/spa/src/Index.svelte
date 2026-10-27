@@ -670,7 +670,6 @@
 				bind:add_new_message={new_message_fn}
 				footer_links={is_embed ? [] : config.footer_links}
 				{app_mode}
-				vibe_mode={false}
 				{version}
 				api_prefix={config.api_prefix || ""}
 				max_file_size={config.max_file_size}

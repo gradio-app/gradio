@@ -19,7 +19,9 @@ import contextlib
 import inspect
 import json
 import logging
+import os
 import re
+import urllib.parse
 from collections import deque
 from collections.abc import Callable
 from typing import Any, Optional
@@ -28,17 +30,18 @@ logger = logging.getLogger(__name__)
 
 
 @contextlib.contextmanager
-def _active_blocks(blocks):
+def _active_blocks(blocks, parent=None):
     """Make `blocks` the active render target so components/events register into
     it, without entering `Blocks.__exit__` — which would re-run
     `attach_load_events` (duplicating the canvas's callable-`value` load event)
     and recreate the running `App`. We only need the render-context primitives,
-    restored afterward."""
+    restored afterward. `parent` (a layout block already inside `blocks`)
+    becomes the container new blocks are added to; defaults to the root."""
     from gradio.context import Context
 
     prev_root, prev_block = Context.root_block, Context.block
     Context.root_block = blocks
-    Context.block = blocks
+    Context.block = parent if parent is not None else blocks
     try:
         yield
     finally:
@@ -622,6 +625,8 @@ _PY_TYPE = {
     "dataframe": "list[list]",
     "json": "dict",
 }
+# JSON inputs are entered as text (see `port_to_component`).
+_PY_INPUT_TYPE = {**_PY_TYPE, "json": "str"}
 
 
 def _group_slug_iter(groups: list[list[dict]]):
@@ -663,7 +668,7 @@ def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
                         "label": f["label"],
                         "parameter_name": f"in_{i}",
                         "type": f["type"],
-                        "python_type": _PY_TYPE.get(f["type"], "str"),
+                        "python_type": _PY_INPUT_TYPE.get(f["type"], "str"),
                     }
                     for i, f in enumerate(frees)
                 ],
@@ -682,35 +687,90 @@ def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
     return endpoints
 
 
-def port_to_component(port_type: str, label: str):
+def port_to_component(
+    port_type: str, label: str, value: Any = None, *, output: bool = False
+):
     """Map a workflow port type to a Gradio component for the API schema. Real
     components are used (not `gr.api` type hints) so multimodal I/O round-trips
     via their proven `api_info` / `FileData` handling. Created unrendered; the
-    caller renders them inside a hidden container so they reach `/info`."""
+    caller renders them into the app view so they reach `/info`.
+
+    `value` pre-fills the component (the reference node's current value in the
+    graph). `output` picks a display-oriented component where one exists
+    (markdown renders instead of showing raw text). A value the component can't take — a file that no longer exists,
+    a shape it rejects — is dropped rather than failing the whole app."""
     import gradio as gr
 
     label = label or port_type
     if port_type == "image":
-        return gr.Image(label=label, type="filepath", render=False)
-    if port_type == "audio":
-        return gr.Audio(label=label, type="filepath", render=False)
-    if port_type == "video":
-        return gr.Video(label=label, render=False)
-    if port_type in ("model3d", "3d"):
-        return gr.Model3D(label=label, render=False)
-    if port_type == "file":
-        return gr.File(label=label, type="filepath", render=False)
-    if port_type == "number":
-        return gr.Number(label=label, render=False)
-    if port_type == "boolean":
-        return gr.Checkbox(label=label, render=False)
-    if port_type == "dataframe":
-        return gr.Dataframe(label=label, render=False)
-    if port_type == "gallery":
-        return gr.Gallery(label=label, render=False)
-    if port_type == "json":
-        return gr.JSON(label=label, render=False)
-    return gr.Textbox(label=label, render=False)
+        cls, kwargs = gr.Image, {"type": "filepath"}
+    elif port_type == "audio":
+        cls, kwargs = gr.Audio, {"type": "filepath"}
+    elif port_type == "video":
+        cls, kwargs = gr.Video, {}
+    elif port_type in ("model3d", "3d"):
+        cls, kwargs = gr.Model3D, {}
+    elif port_type == "file":
+        cls, kwargs = gr.File, {"type": "filepath"}
+    elif port_type == "number":
+        cls, kwargs = gr.Number, {}
+    elif port_type == "boolean":
+        cls, kwargs = gr.Checkbox, {}
+    elif port_type == "dataframe":
+        cls, kwargs = gr.Dataframe, {}
+    elif port_type == "gallery":
+        cls, kwargs = gr.Gallery, {}
+    elif port_type == "json" and output:
+        cls, kwargs = gr.JSON, {}
+    elif port_type == "json":
+        # `gr.JSON` is display-only. The canvas edits JSON as text and passes
+        # that text on as-is, so do the same here.
+        cls, kwargs = gr.Code, {"language": "json", "lines": 4}
+        if value is not None and not isinstance(value, str):
+            value = json.dumps(value)
+    elif port_type == "markdown" and output:
+        cls, kwargs = gr.Markdown, {"container": True}
+    elif port_type == "markdown":
+        cls, kwargs = gr.Textbox, {"lines": 3}
+    else:
+        cls, kwargs = gr.Textbox, {}
+    if value is not None:
+        try:
+            return cls(label=label, value=value, render=False, **kwargs)
+        except Exception:
+            logger.debug("Workflow: dropping default for %s", label, exc_info=True)
+    return cls(label=label, render=False, **kwargs)
+
+
+def _reference_default(free: dict) -> Any:
+    """The current value of a free-input reference node, shaped for its
+    component: scalars as-is, files as a local path or absolute URL. Values
+    only the browser can resolve (`blob:` URLs) are skipped."""
+    node = free["node"]
+    data = node.get("data") or {}
+    port_ids = [p.get("id") for p in (node.get("outputs") or [])] + [
+        p.get("id") for p in (node.get("inputs") or [])
+    ]
+    value = next((data[pid] for pid in port_ids if data.get(pid) is not None), None)
+    if value is None:
+        return None
+    if free["type"] not in MEDIA_PORT_TYPES:
+        return value
+
+    def as_ref(v: Any) -> Any:
+        src = (v.get("path") or v.get("url")) if isinstance(v, dict) else v
+        if not isinstance(src, str) or not src or src.startswith("blob:"):
+            return None
+        if src.startswith(("http://", "https://", "data:")):
+            return src
+        if src.startswith("/gradio_api/file="):
+            src = urllib.parse.unquote(src.removeprefix("/gradio_api/file="))
+        return src if os.path.exists(src) else None
+
+    if free["type"] == "gallery" and isinstance(value, list):
+        items = [r for r in (as_ref(v) for v in value) if r]
+        return items or None
+    return as_ref(value)
 
 
 def _build_endpoint_fn(
@@ -738,9 +798,16 @@ def _build_endpoint_fn(
         if graph is None:
             raise WorkflowExecutionError("Workflow graph is unavailable")
         inputs = dict(zip(free_ids, input_values))
-        results = WorkflowExecutor(graph, callers).run_many(
-            subject_ids, inputs, request, token
-        )
+        try:
+            results = WorkflowExecutor(graph, callers).run_many(
+                subject_ids, inputs, request, token
+            )
+        except WorkflowExecutionError as e:
+            # Surface the node's message ("X is required by Y", auth hints) to
+            # app users and API callers, instead of Gradio's generic "Error".
+            import gradio as gr
+
+            raise gr.Error(str(e)) from e
         return results[0] if len(results) == 1 else tuple(results)
 
     params = [
@@ -771,6 +838,39 @@ def _build_endpoint_fn(
     return endpoint
 
 
+def _app_signature(graph: WorkflowGraph | None) -> str:
+    """The shape of the endpoints and app layout: graph name, and per subgraph
+    its api_name, free inputs and outputs. Not their values — see
+    `_default_signature`."""
+    if graph is None:
+        return "null"
+    groups = []
+    for group, api_name in _group_slug_iter(subject_groups(graph)):
+        frees = group_free_inputs(graph, group)
+        groups.append(
+            [
+                api_name,
+                [[f["node"]["id"], f["type"], f["label"]] for f in frees],
+                [[s["id"], subject_output_type(s), s.get("label")] for s in group],
+            ]
+        )
+    return json.dumps([graph.name, groups], default=str)
+
+
+def _default_signature(graph: WorkflowGraph | None) -> str:
+    """The free inputs' values. These pre-fill the app and become the API
+    defaults, so a change needs a new config, not new components."""
+    if graph is None:
+        return "null"
+    return json.dumps(
+        [
+            [_reference_default(f) for f in group_free_inputs(graph, group)]
+            for group, _ in _group_slug_iter(subject_groups(graph))
+        ],
+        default=str,
+    )
+
+
 class WorkflowEndpointManager:
     """Owns the lifecycle of the per-subject API endpoints and keeps them in
     sync with the workflow graph.
@@ -788,82 +888,201 @@ class WorkflowEndpointManager:
         blocks,
         get_graph: Callable[[], Optional[WorkflowGraph]],
         callers: dict[str, Callable],
+        app_root,
     ):
         self.blocks = blocks
         self.get_graph = get_graph
         self.callers = callers
-        self._blocks_created: list = []
+        # Layout block the "app view" is rendered into.
+        self.app_root = app_root
+        self._block_ids: list[int] = []
         self._fn_ids: list[int] = []
+        self._signature: str | None = None
+        self._default_signature: str | None = None
+        # Input components per subgraph, in `group_free_inputs` order.
+        self._inputs: list[list] = []
+        # Bumped each time the endpoints/app are rebuilt, so an open page can
+        # tell its config (component + event ids) has gone stale.
+        self.version = 0
+        # Bumped when only the pre-filled values change: the ids stay valid,
+        # but an open page still shows the old values.
+        self.defaults_version = 0
         self.api_names: list[str] = []
 
     def sync(self) -> list[str]:
         """Re-derive endpoints from the current graph. Safe to call repeatedly;
-        the first call registers, later calls reconcile."""
-        self._teardown()
+        the first call registers, later calls reconcile.
+
+        Saves that don't change what the app/API looks like (swapping a model,
+        tweaking an operator, re-wiring behind the same inputs and outputs) are
+        a no-op here: execution re-reads the graph on every call anyway, and
+        keeping the component and event ids stable keeps open pages and
+        connected clients working."""
         graph = self.get_graph()
+        signature = _app_signature(graph)
+        defaults = _default_signature(graph)
+        if signature == self._signature:
+            # Only the pre-filled values moved. Rebuilding here would churn
+            # every id on nearly every autosave.
+            if defaults != self._default_signature:
+                self._default_signature = defaults
+                self.defaults_version += 1
+                self._apply_defaults(graph)
+                self._refresh_app()
+            return list(self.api_names)
+        self._signature = signature
+        self._default_signature = defaults
+        self.version += 1
+        self._teardown()
         if graph is not None and graph.subjects:
             self._register(graph)
+        else:
+            self._register_empty(graph)
+        if graph is not None:
+            self.blocks.title = graph.name
         self._refresh_app()
         return list(self.api_names)
 
     # -- internals ----------------------------------------------------------
 
     def _teardown(self) -> None:
-        if self._blocks_created:
+        if self._block_ids:
             # unrender() needs the Blocks as the active context to remove blocks
             # from its layout + id map.
-            with _active_blocks(self.blocks):
-                for block in self._blocks_created:
+            dropped: set[int] = set()
+            with _active_blocks(self.blocks, self.app_root):
+                for block_id in self._block_ids:
+                    block = self.blocks.blocks.get(block_id)
+                    if block is None:
+                        continue
                     block.unrender()
+                    # `render()` appends `temp_files` to the root block and
+                    # `unrender()` leaves it there.
+                    temp_files = getattr(block, "temp_files", None)
+                    if temp_files is not None:
+                        dropped.add(id(temp_files))
+            if dropped:
+                self.blocks.temp_file_sets = [
+                    fs for fs in self.blocks.temp_file_sets if id(fs) not in dropped
+                ]
         for fn_id in self._fn_ids:
             self.blocks.fns.pop(fn_id, None)
-        self._blocks_created = []
+        self._block_ids = []
         self._fn_ids = []
+        self._inputs = []
         self.api_names = []
+
+    def _apply_defaults(self, graph: WorkflowGraph | None) -> None:
+        """Re-prefill the existing input components. Values are shaped by
+        building a throwaway component, so each gets its own postprocessing and
+        its fallback when a value no longer loads."""
+        if graph is None:
+            return
+        groups = list(_group_slug_iter(subject_groups(graph)))
+        for components, (group, _api_name) in zip(self._inputs, groups):
+            frees = group_free_inputs(graph, group)
+            for component, free in zip(components, frees):
+                shaped = port_to_component(
+                    free["type"], free["label"], value=_reference_default(free)
+                )
+                component.value = shaped.value
+
+    @contextlib.contextmanager
+    def _tracked(self):
+        """Render into the app root (or root) and record every block and event
+        created inside, so `_teardown` can remove exactly those — the layout
+        nests containers, so tracking blocks one by one would miss some."""
+        before_fns = set(self.blocks.fns.keys())
+        before_blocks = set(self.blocks.blocks.keys())
+        try:
+            with _active_blocks(self.blocks, self.app_root):
+                yield
+        finally:
+            self._fn_ids = [fid for fid in self.blocks.fns if fid not in before_fns]
+            self._block_ids = [
+                bid for bid in self.blocks.blocks if bid not in before_blocks
+            ]
+
+    def _register_empty(self, graph: WorkflowGraph | None) -> None:
+        import gradio as gr
+
+        with self._tracked(), gr.Column(elem_classes="workflow-app-body"):
+            gr.Markdown(f"# {graph.name if graph else 'Workflow'}")
+            gr.Markdown(
+                "This workflow doesn't have any outputs yet. Open the workflow "
+                "and add an output node to turn it into an app."
+            )
 
     def _register(self, graph: WorkflowGraph) -> None:
         import gradio as gr
 
-        before = set(self.blocks.fns.keys())
-        with _active_blocks(self.blocks), gr.Column(visible=False) as col:
-            self._blocks_created.append(col)
-            for group, api_name in _group_slug_iter(subject_groups(graph)):
-                frees = group_free_inputs(graph, group)
-                input_components = [
-                    port_to_component(f["type"], f["label"]) for f in frees
-                ]
-                for c in input_components:
-                    c.render()
-                    self._blocks_created.append(c)
-                output_components = []
-                for subject in group:
-                    oc = port_to_component(
-                        subject_output_type(subject), subject.get("label", "output")
-                    )
-                    oc.render()
-                    self._blocks_created.append(oc)
-                    output_components.append(oc)
+        groups = list(_group_slug_iter(subject_groups(graph)))
+        with self._tracked(), gr.Column(elem_classes="workflow-app-body"):
+            gr.Markdown(f"# {graph.name}")
+            if len(groups) == 1:
+                self._register_group(graph, *groups[0])
+            else:
+                # One tab per independent pipeline, like gr.TabbedInterface.
+                with gr.Tabs():
+                    for group, api_name in groups:
+                        with gr.Tab(group[0].get("label") or api_name):
+                            self._register_group(graph, group, api_name)
 
-                fn = _build_endpoint_fn(
-                    self.get_graph,
-                    [s["id"] for s in group],
-                    [f["node"]["id"] for f in frees],
-                    self.callers,
+    def _register_group(
+        self, graph: WorkflowGraph, group: list[dict], api_name: str
+    ) -> None:
+        """Render one subgraph's inputs/outputs and wire its endpoint, laid out
+        like a `gr.Interface` (inputs + Run on the left, outputs on the right).
+        The same components back the API."""
+        import gradio as gr
+
+        frees = group_free_inputs(graph, group)
+
+        def render_inputs() -> list:
+            comps = []
+            for f in frees:
+                c = port_to_component(
+                    f["type"], f["label"], value=_reference_default(f)
                 )
-                trigger = gr.Button(visible=False)
-                self._blocks_created.append(trigger)
-                trigger.click(
-                    fn,
-                    inputs=input_components,
-                    outputs=output_components
-                    if len(output_components) > 1
-                    else output_components[0],
-                    api_name=api_name,
+                c.render()
+                comps.append(c)
+            return comps
+
+        def render_outputs() -> list:
+            comps = []
+            for subject in group:
+                c = port_to_component(
+                    subject_output_type(subject),
+                    subject.get("label", "output"),
+                    output=True,
                 )
-                self.api_names.append(api_name)
-        # New event triggers added during registration (the order of insertion
-        # into the fns dict is the set difference from the pre-register snapshot).
-        self._fn_ids = [fid for fid in self.blocks.fns if fid not in before]
+                c.render()
+                comps.append(c)
+            return comps
+
+        with gr.Row(equal_height=False):
+            with gr.Column():
+                input_components = render_inputs()
+                trigger = gr.Button("Run", variant="primary")
+            with gr.Column():
+                output_components = render_outputs()
+
+        self._inputs.append(input_components)
+        fn = _build_endpoint_fn(
+            self.get_graph,
+            [s["id"] for s in group],
+            [f["node"]["id"] for f in frees],
+            self.callers,
+        )
+        trigger.click(
+            fn,
+            inputs=input_components,
+            outputs=output_components
+            if len(output_components) > 1
+            else output_components[0],
+            api_name=api_name,
+        )
+        self.api_names.append(api_name)
 
     def _refresh_app(self) -> None:
         """After the endpoint set changes, refresh the cached config and (if
@@ -888,10 +1107,12 @@ def register_workflow_endpoints(
     blocks,
     get_graph: Callable[[], Optional[WorkflowGraph]],
     callers: dict[str, Callable],
+    app_root,
 ) -> WorkflowEndpointManager:
     """Create a `WorkflowEndpointManager` and register the initial endpoint set
     from the current graph. Returns the manager so the caller can `.sync()` it
-    again whenever the graph is saved."""
-    manager = WorkflowEndpointManager(blocks, get_graph, callers)
+    again whenever the graph is saved. The endpoints are laid out in
+    `app_root` as a regular Gradio app (the workflow's "app view")."""
+    manager = WorkflowEndpointManager(blocks, get_graph, callers, app_root)
     manager.sync()
     return manager

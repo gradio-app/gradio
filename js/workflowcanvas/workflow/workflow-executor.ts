@@ -58,6 +58,11 @@ type StreamTextFn = (
 	params?: Record<string, string | number>
 ) => Promise<string>;
 
+/** `reuse`: ids of nodes to skip, feeding their stored `data` downstream. */
+export interface ExecuteOptions {
+	reuse?: Set<string>;
+}
+
 async function toDataUrl(url: string): Promise<string> {
 	if (/^data:/.test(url)) return url;
 	if (/^https?:\/\//.test(url)) {
@@ -335,9 +340,11 @@ export async function executeWorkflow(
 	serverCallModel?: ServerCallModelFn,
 	serverFetchDataset?: ServerFetchDatasetFn,
 	serverCallFn?: ServerCallPyFn,
-	stream_text_generation?: StreamTextFn
+	stream_text_generation?: StreamTextFn,
+	options: ExecuteOptions = {}
 ): Promise<void> {
 	const { nodes, edges } = toLegacyShape(workflow);
+	const reuse = options.reuse ?? new Set<string>();
 	const dataMap: Record<string, Record<string, NodeDataValue>> = {};
 	const failed_nodes = new Map<string, string>();
 
@@ -391,6 +398,13 @@ export async function executeWorkflow(
 
 	async function executeNode(node: WFNode): Promise<void> {
 		if (signal?.aborted) return;
+
+		if (reuse.has(node.id)) {
+			// Only nodes that stored every output are offered for reuse.
+			dataMap[node.id] = { ...(node.data ?? {}) };
+			onStatus(node.id, "done");
+			return;
+		}
 
 		// Component nodes with no incoming edges act as inputs
 		const isComponentInput =

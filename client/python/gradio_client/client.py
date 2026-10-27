@@ -1972,7 +1972,7 @@ class Job(Future):
             try:
                 update = await asyncio.wait_for(get, timeout=0.5)
                 yield update
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 if self.done():
                     return
                 continue

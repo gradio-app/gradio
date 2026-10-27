@@ -9,7 +9,7 @@ patchedDependencies:
     hash: 4bf60d897bf9a1418645763e4338b3223b9458b10046bd6cde08601581f05183
     path: patches/@sveltejs__package.patch
   amuchina@1.0.12:
-    hash: 477320eef09b056093be138c91f714b8917aa11c0436c692db0bdab3ff9989b1
+    hash: 2988e04331845fd9b28dcfe89af6a6ac4d14f854b9812959b9920060656f6ab9
     path: patches/amuchina@1.0.12.patch
 
 importers:
@@ -365,9 +365,6 @@ importers:
       '@gradio/uploadbutton':
         specifier: workspace:^
         version: link:js/uploadbutton
-      '@gradio/vibeeditor':
-        specifier: workspace:^
-        version: link:js/vibeeditor
       '@gradio/video':
         specifier: workspace:^
         version: link:js/video
@@ -1186,9 +1183,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/vibeeditor':
-        specifier: workspace:^
-        version: link:../vibeeditor
       '@gradio/video':
         specifier: workspace:^
         version: link:../video
@@ -1912,6 +1906,9 @@ importers:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
+      wavesurfer.js:
+        specifier: 7.11.0
+        version: 7.11.0
 
   js/nativeplot:
     dependencies:
@@ -2115,7 +2112,7 @@ importers:
     dependencies:
       amuchina:
         specifier: ^1.0.12
-        version: 1.0.12(patch_hash=477320eef09b056093be138c91f714b8917aa11c0436c692db0bdab3ff9989b1)
+        version: 1.0.12(patch_hash=2988e04331845fd9b28dcfe89af6a6ac4d14f854b9812959b9920060656f6ab9)
       sanitize-html:
         specifier: ^2.17.7
         version: 2.17.7
@@ -2446,28 +2443,6 @@ importers:
       hls.js:
         specifier: 1.6.15
         version: 1.6.15
-
-  js/vibeeditor:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/client':
-        specifier: workspace:^
-        version: link:../../client/js
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      svelte:
-        specifier: ^5.48.0
-        version: 5.56.9(@typescript-eslint/types@8.67.0)
-    devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../preview
 
   js/video:
     dependencies:
@@ -11385,7 +11360,7 @@ snapshots:
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
 
-  amuchina@1.0.12(patch_hash=477320eef09b056093be138c91f714b8917aa11c0436c692db0bdab3ff9989b1): {}
+  amuchina@1.0.12(patch_hash=2988e04331845fd9b28dcfe89af6a6ac4d14f854b9812959b9920060656f6ab9): {}
 
   ansi-colors@4.1.3: {}
 

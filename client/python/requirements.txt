@@ -2,4 +2,3 @@ fsspec
 httpx2>=2.0.0,<3.0
 huggingface_hub>=1.16.0,<3.0
 packaging
-typing_extensions~=4.0

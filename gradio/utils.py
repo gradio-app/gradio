@@ -47,6 +47,7 @@ from typing import (
     Generic,
     Literal,
     Optional,
+    ParamSpec,
     TypeVar,
     get_args,
     get_origin,
@@ -59,7 +60,6 @@ import orjson
 from gradio_client.documentation import document
 from gradio_client.exceptions import AppError
 from packaging import version
-from typing_extensions import ParamSpec
 
 import gradio
 from gradio import themes
