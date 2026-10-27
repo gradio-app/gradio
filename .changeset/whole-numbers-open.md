@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Require brotli>=1.2.1 and refuse Brotli-encoded responses from user-supplied URLs
+feat:Require brotli>=1.2.1 (CVE-2026-111497)
