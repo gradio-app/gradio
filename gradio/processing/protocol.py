@@ -253,7 +253,11 @@ def restore_request(request, lifespan_state: dict | None = None):
 GATEWAY_COPY_LIMIT = 20 * 1024 * 1024
 
 
-def by_value(value: Any, what: str) -> bytes:
+def by_value(
+    value: Any,
+    what: str,
+    remedy: str = "Pass process='app' to run it in the app's process.",
+) -> bytes:
     """`value`, with the functions it holds, pickled by value for the gateway
     to run: the gateway does not import the app's modules, so each function
     crosses with its code and the globals it uses, as they are now."""
@@ -283,8 +287,7 @@ def by_value(value: Any, what: str) -> bytes:
     except Exception as err:
         raise NotPortable(
             f"{what} runs in the gateway process, which needs a copy of it and "
-            f"of what it uses, but that could not be made ({err}). Pass "
-            "process='app' to run it in the app's process."
+            f"of what it uses, but that could not be made ({err}). {remedy}"
         ) from None
     finally:
         for module in registered:
@@ -293,8 +296,7 @@ def by_value(value: Any, what: str) -> bytes:
         raise NotPortable(
             f"{what} runs in the gateway process, which needs a copy of it and "
             f"of what it uses, but that copy is {len(data) // 2**20} MB (a model "
-            "or large global?). Pass process='app' to run it in the app's "
-            "process."
+            f"or large global?). {remedy}"
         )
     return data
 

@@ -240,6 +240,29 @@ class Pool:
                     link.sessions[session_hash] = True
             return link
 
+    def add_rendered(self, blocks_config, render: dict, fn_settings: dict) -> None:
+        """A gr.render ran in the app's process: its blocks and events replace
+        those of its last run in the session's event table, as with threads."""
+        render_id = render["render_id"]
+        queue = self.blocks._queue
+        for component in render["components"]:
+            blocks_config.blocks[component["id"]] = app_block(component)
+        for fn_id, fn in list(blocks_config.fns.items()):
+            if getattr(fn, "rendered_in_id", None) == render_id:
+                del blocks_config.fns[fn_id]
+        count = max(len(self.links), 1)
+        for fn_id, fn in event_table(render, fn_settings, blocks_config.blocks).items():
+            fn.rendered_in_id = render_id  # type: ignore[attr-defined]
+            limit = fn.concurrency_limit
+            limit = queue.default_concurrency_limit if limit == "default" else limit
+            if limit is not None:
+                current = self.group_limits.get(fn.concurrency_id)
+                self.group_limits[fn.concurrency_id] = (
+                    limit if current is None else min(current, limit)
+                )
+            fn.concurrency_limit = None if limit is None else limit * count
+            blocks_config.fns[fn_id] = fn
+
     def process_limit(self, fn: BlockFunction) -> int | None:
         """How many events of `fn`'s concurrency group one process runs at
         once: the smallest limit of the events in it, as with threads."""
@@ -399,6 +422,11 @@ async def forward_event(
     finally:
         link.running -= 1
     has_iterator = output.pop("has_iterator")
+    render_settings = output.pop("render_fn_settings", None)
+    if render_settings is not None and output.get("render_config"):
+        pool.add_rendered(
+            session_state.blocks_config, output["render_config"], render_settings
+        )
     if slot is not None:
         if has_iterator and not streaming and body.event_id is not None:
             link.held[body.event_id] = slot
@@ -541,34 +569,37 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
     return fns
 
 
-def configure(blocks: Blocks, description: dict) -> None:
-    """Sets what the gateway serves and queues from the app's description:
-    its config, API info, theme and events."""
+def app_block(component: dict) -> Any:
+    """What stands in the gateway for a block of the app's config: an id and
+    a type, or a gr.State or gr.api component, whose logic the gateway runs."""
     from gradio.components import State
     from gradio.components.api_component import Api
 
+    props = component["props"]
+    if props.get("name") == "state":
+        block: Any = State(
+            storage=props.get("storage", "server"),
+            time_to_live=props.get("time_to_live"),
+            render=False,
+        )
+    elif component["type"] == "api":
+        block = Api(
+            props.get("value"), props.get("_api_info") or {}, props.get("label")
+        )
+    else:
+        return AppBlock(component)
+    block._id = component["id"]
+    block.app_config = component  # type: ignore[attr-defined]
+    return block
+
+
+def configure(blocks: Blocks, description: dict) -> None:
+    """Sets what the gateway serves and queues from the app's description:
+    its config, API info, theme and events."""
     config = description["config"]
-    app_blocks: dict[int, Any] = {}
-    for component in config["components"]:
-        props = component["props"]
-        if props.get("name") == "state":
-            state = State(
-                storage=props.get("storage", "server"),
-                time_to_live=props.get("time_to_live"),
-                render=False,
-            )
-            state._id = component["id"]
-            state.app_config = component  # type: ignore[attr-defined]
-            app_blocks[component["id"]] = state
-        elif component["type"] == "api":
-            api = Api(
-                props.get("value"), props.get("_api_info") or {}, props.get("label")
-            )
-            api._id = component["id"]
-            api.app_config = component  # type: ignore[attr-defined]
-            app_blocks[component["id"]] = api
-        else:
-            app_blocks[component["id"]] = AppBlock(component)
+    app_blocks = {
+        component["id"]: app_block(component) for component in config["components"]
+    }
     blocks.default_config.blocks = app_blocks
     blocks.default_config.fns = event_table(
         config, description["fn_settings"], app_blocks
@@ -924,6 +955,11 @@ def main(path: str) -> None:
             return result["user"]
 
         launch_kwargs["auth_dependency"] = auth_dependency
+    if bootstrap["middleware"] is not None:
+        launch_kwargs["app_kwargs"] = {
+            **(launch_kwargs.get("app_kwargs") or {}),
+            "middleware": pickle.loads(bootstrap["middleware"]),
+        }
     if bootstrap["check_dependencies"]:
         from fastapi import Depends
 

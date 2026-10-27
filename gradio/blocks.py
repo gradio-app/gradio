@@ -3158,7 +3158,7 @@ Received inputs:
             js: Custom JavaScript provided as either a function or a raw code string. A function is automatically invoked; otherwise the code is executed directly when the page loads. To run JavaScript as a document-level `<script>` tag, use the `head` parameter.
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
-            executor: Where the server runs relative to the app's functions. "process" (the default) runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. GRADIO_PROCESS_REPLICAS=N then runs the app's script in N processes, each serving its own sessions. "thread" runs the server in this process, with functions in its threads; it is the choice for gr.render and a Server's middleware, which "process" does not support yet. Can be set with the GRADIO_EXECUTOR environment variable.
+            executor: Where the server runs relative to the app's functions. "process" (the default) runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. GRADIO_PROCESS_REPLICAS=N then runs the app's script in N processes, each serving its own sessions. "thread" runs the server in this process, with functions in its threads. Can be set with the GRADIO_EXECUTOR environment variable.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -3305,11 +3305,6 @@ Received inputs:
         else:
             from gradio.processing.worker import serve, serve_replica
 
-            if any(fn.renderable is not None for fn in self.fns.values()):
-                raise ValueError(
-                    "gr.render is not supported with executor='process' yet. Use "
-                    "launch(executor='thread') or GRADIO_EXECUTOR=thread."
-                )
             if os.environ.get("GRADIO_PROCESS_REPLICA_FD"):
                 serve_replica(self, _app, launch_kwargs)
             self.is_colab = utils.colab_check()

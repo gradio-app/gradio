@@ -644,21 +644,43 @@ def test_server_custom_routes_and_lifespan_work():
         server.get_blocks().close()
 
 
-def test_server_with_middleware_is_refused():
+def test_server_middleware_wraps_every_route_once():
     from starlette.middleware.base import BaseHTTPMiddleware
 
-    server = gr.Server()
-    server.add_middleware(
-        BaseHTTPMiddleware,  # type: ignore[arg-type]
-        dispatch=lambda r, call_next: call_next(r),
-    )
+    class Tag(BaseHTTPMiddleware):
+        async def dispatch(self, request, call_next):
+            response = await call_next(request)
+            response.headers["x-tag"] = response.headers.get("x-tag", "") + "t"
+            return response
 
-    @server.api(name="echo")
+    app = gr.App()
+    app.add_middleware(Tag)  # type: ignore[arg-type]
+
+    @app.middleware("http")
+    async def count(request, call_next):
+        response = await call_next(request)
+        response.headers["x-count"] = response.headers.get("x-count", "") + "c"
+        return response
+
+    @app.get("/here", process="app")
+    def here():
+        return os.getpid()
+
+    @app.api(name="echo")
     def echo(x: str) -> str:
         return x
 
-    with pytest.raises(ValueError, match="middleware"):
-        server.launch(executor="process", prevent_thread_lock=True)
+    _, url, _ = app.launch(executor="process", prevent_thread_lock=True)
+    try:
+        for path in ("config", "here"):
+            response = httpx2.get(f"{url}{path}")
+            assert response.status_code == 200
+            assert response.headers["x-tag"] == "t"
+            assert response.headers["x-count"] == "c"
+        assert httpx2.get(f"{url}here").json() == os.getpid()
+        assert Client(url, verbose=False).predict("hi", api_name="/echo") == "hi"
+    finally:
+        app.get_blocks().close()
 
 
 def test_server_queue_and_app_alias():
@@ -677,16 +699,37 @@ def test_server_queue_and_app_alias():
         app.get_blocks().close()
 
 
-def test_render_is_refused():
+def test_render_registers_its_events_in_the_session():
     with gr.Blocks() as demo:
         n = gr.Number(value=1)
 
         @gr.render(inputs=n)
         def show(k):
-            gr.Textbox(value=str(k))
+            for i in range(int(k)):
+                t = gr.Textbox(value=str(i), key=f"t{i}")
+                gr.Button(f"b{i}").click(
+                    lambda x: f"{x}! {os.getpid()}", t, t, api_name=f"bang{i}"
+                )
 
-    with pytest.raises(ValueError, match="gr.render is not supported"):
-        demo.launch(executor="process", prevent_thread_lock=True)
+    with launched(demo) as client:
+        config = httpx2.get(f"{client.src}config").json()
+        (render,) = [
+            d for d in config["dependencies"] if d.get("render_id") is not None
+        ]
+
+        def run(fn_index, data):
+            messages = _queue_messages(
+                client.src,
+                {"data": data, "fn_index": fn_index, "session_hash": "render"},
+            )
+            return messages[-1]["output"]
+
+        for count in (1, 2):
+            output = run(render["id"], [count])
+            rendered = output["render_config"]["dependencies"]
+            assert len(rendered) == count
+        last = rendered[-1]
+        assert run(last["id"], ["x"])["data"] == [f"x! {os.getpid()}"]
 
 
 def _queue_messages(base_url: str, body: dict, on_message=None) -> list[dict]:
@@ -1120,3 +1163,96 @@ def test_pool_routes_new_sessions_to_responsive_processes():
     pool.for_session("c")
     assert "a" not in replica.sessions
     assert pool.holding("a") is primary
+
+
+CUSTOM_COMPONENT = """
+from gradio.components.base import Component
+
+
+class Shout(Component):
+    TEMPLATE_DIR = "templates"
+    EVENTS = ["change", "submit"]
+
+    def preprocess(self, payload):
+        return payload.upper()
+
+    def postprocess(self, value):
+        return f"{value}!"
+
+    def api_info(self):
+        return {"type": "string"}
+
+    def example_payload(self):
+        return "hi"
+
+    def example_value(self):
+        return "hi"
+"""
+
+
+def test_custom_component_with_its_own_frontend(tmp_path, monkeypatch):
+    import sys
+
+    package = tmp_path / "shout"
+    (package / "templates" / "component").mkdir(parents=True)
+    (package / "templates" / "component" / "index.js").write_text("export default 2;")
+    (package / "__init__.py").write_text(CUSTOM_COMPONENT)
+    monkeypatch.syspath_prepend(str(tmp_path))
+    from shout import Shout  # ty: ignore[unresolved-import]
+
+    with gr.Blocks() as demo:
+        box = Shout()
+        box.submit(lambda x: x, box, box, api_name="shout")
+    try:
+        with launched(demo) as client:
+            assert client.predict("hey", api_name="/shout") == "HEY!"
+            config = httpx2.get(f"{client.src}config").json()
+            class_id = Shout.get_component_class_id()
+            asset = httpx2.get(
+                f"{client.src}gradio_api/custom_component/{class_id}/client/component/index.js"
+            )
+    finally:
+        sys.modules.pop("shout", None)
+    (component,) = [c for c in config["components"] if c["id"] == box._id]
+    assert component["props"]["name"] == "shout"
+    assert "export default 2" in asset.text
+
+
+def test_spaces_dev_mode_reload_reaches_the_gateway(monkeypatch):
+    import sys
+
+    from gradio import utils
+
+    started = []
+    monkeypatch.setattr(utils, "get_space", lambda: "user/space")
+    monkeypatch.setattr(utils, "watchfn_spaces", started.append)
+    main = sys.modules["__main__"]
+
+    with gr.Blocks() as demo:
+        gr.Textbox(label="before")
+    monkeypatch.setattr(main, "demo", demo, raising=False)
+    with launched(demo) as client:
+        (reloader,) = started
+        with gr.Blocks() as edited:
+            t = gr.Textbox(label="after")
+            t.submit(lambda x: f"{x} {os.getpid()}", t, t, api_name="echo")
+        monkeypatch.setattr(main, "demo", edited)
+        swapped = []
+
+        def edit():
+            reloader.prerun()
+            swapped.append(reloader.postrun())
+
+        thread = threading.Thread(target=edit)
+        thread.start()
+        thread.join()
+        assert swapped == [True]
+        deadline = time.time() + 10
+        labels: list = []
+        while time.time() < deadline and "after" not in labels:
+            config = httpx2.get(f"{client.src}config").json()
+            labels = [c["props"].get("label") for c in config["components"]]
+            time.sleep(0.2)
+        assert "after" in labels
+        result = Client(client.src, verbose=False).predict("a", api_name="/echo")
+        assert result == f"a {os.getpid()}"

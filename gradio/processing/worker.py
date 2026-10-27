@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING, Any
 from gradio.processing import protocol
 
 if TYPE_CHECKING:
-    from gradio.blocks import Blocks
+    from gradio.blocks import BlockFunction, Blocks
     from gradio.routes import App
 
 STARTUP_TIMEOUT = 300
@@ -128,6 +128,7 @@ class Worker:
             if app is not None
             else []
         )
+        self.middleware = list(app.user_middleware) if app is not None else []
         self.app = App.create_app(
             blocks,
             app=app,
@@ -136,6 +137,11 @@ class Worker:
             strict_cors=launch_kwargs.get("strict_cors", True),
             mcp_server=launch_kwargs.get("mcp_server"),
         )
+        self.app.user_middleware = [
+            m
+            for m in self.app.user_middleware
+            if all(m is not u for u in self.middleware)
+        ]
         self.checker = (
             dependency_checker(self.app) if self.app.router.dependencies else None
         )
@@ -300,10 +306,15 @@ class Worker:
         from gradio import caching, route_utils
         from gradio.queueing import create_validator_fn
 
-        fn = self.blocks.fns[p["fn_index"]]
+        body = p["body"]
+        fns = (
+            self.app.state_holder[body.session_hash].blocks_config.fns
+            if body.session_hash is not None
+            else self.blocks.fns
+        )
+        fn = fns[p["fn_index"]]
         if p.get("validator"):
             fn = create_validator_fn(fn)
-        body = p["body"]
         body.client_state = protocol.restore_client_state(p["client_state"], fn)
         if body.event_id is not None:
             self.event_sessions[body.event_id] = body.session_hash
@@ -336,6 +347,14 @@ class Worker:
                 self.app.iterators.pop(body.event_id, None)
                 self.event_sessions.pop(body.event_id, None)
         output["has_iterator"] = self.app.iterators.get(body.event_id) is not None
+        render = output.get("render_config")
+        if render is not None and body.session_hash is not None:
+            fns = self.app.state_holder[body.session_hash].blocks_config.fns
+            output["render_fn_settings"] = {
+                dep["id"]: self.fn_settings(dep["id"], fns[dep["id"]])
+                for dep in render["dependencies"]
+                if dep["id"] in fns
+            }
         return output
 
     async def run_auth(self, p: dict) -> bool:
@@ -402,24 +421,29 @@ class Worker:
             "config": self.portable_config(),
             "api_info": self.api_info(),
             "fn_settings": {
-                fn_id: {
-                    "concurrency_limit": fn.concurrency_limit,
-                    "concurrency_id": fn.concurrency_id,
-                    "tracks_progress": fn.tracks_progress,
-                    "has_validator": fn.validator is not None,
-                    "cached": hasattr(fn.fn, "cache"),
-                    "parameter_names": list(fn.input_parameter_names)
-                    or (list(inspect.signature(fn.fn).parameters) if fn.fn else []),
-                    "gateway_fn": protocol.by_value(
-                        fn.fn, f"The function of the endpoint {fn.api_name!r}"
-                    )
-                    if fn_id in self.blocks._gateway_fns
-                    else None,
-                }
+                fn_id: self.fn_settings(fn_id, fn)
                 for fn_id, fn in self.blocks.fns.items()
             },
             "fingerprint": app_fingerprint(self.blocks),
             "theme_css": self.blocks.theme_css,
+        }
+
+    def fn_settings(self, fn_id: int, fn: BlockFunction) -> dict:
+        """What the gateway's queue needs to know about an event that the
+        config does not say."""
+        return {
+            "concurrency_limit": fn.concurrency_limit,
+            "concurrency_id": fn.concurrency_id,
+            "tracks_progress": fn.tracks_progress,
+            "has_validator": fn.validator is not None,
+            "cached": hasattr(fn.fn, "cache"),
+            "parameter_names": list(fn.input_parameter_names)
+            or (list(inspect.signature(fn.fn).parameters) if fn.fn else []),
+            "gateway_fn": protocol.by_value(
+                fn.fn, f"The function of the endpoint {fn.api_name!r}"
+            )
+            if fn_id in self.blocks._gateway_fns
+            else None,
         }
 
     def reloaded(self, demo: Blocks) -> None:
@@ -500,6 +524,13 @@ class Worker:
             "expects_oauth": self.blocks.expects_oauth,
             "check_dependencies": self.checker is not None,
             "hf_token": Context.token,
+            "middleware": protocol.by_value(
+                self.middleware,
+                "The app's middleware",
+                "Use executor='thread' to run it in this process.",
+            )
+            if self.middleware
+            else None,
         }
         try:
             data = protocol.dumps(bootstrap)
