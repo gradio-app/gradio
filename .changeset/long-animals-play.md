@@ -1,5 +1,4 @@
 ---
-"@self/tootils": minor
 "gradio": minor
 ---
 
