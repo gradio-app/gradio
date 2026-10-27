@@ -17,8 +17,10 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import io
+import os
 import pickle
 import struct
+import sys
 import types
 from typing import Any
 
@@ -30,9 +32,24 @@ def encode(message: Any) -> bytes:
     return HEADER.pack(len(body)) + body
 
 
+class _Data:
+    """Marks a message whose last item follows it as a frame of raw bytes."""
+
+
+def encode_with_data(message: tuple, data: bytes) -> list[bytes]:
+    """`message` and then `data`, written as it is rather than copied into
+    the pickle of the message (an event's result can be large)."""
+    head = pickle.dumps((*message, _Data()), protocol=pickle.HIGHEST_PROTOCOL)
+    return [HEADER.pack(len(head)), head, HEADER.pack(len(data)), data]
+
+
 async def read(reader: asyncio.StreamReader) -> Any:
     (size,) = HEADER.unpack(await reader.readexactly(HEADER.size))
-    return pickle.loads(await reader.readexactly(size))
+    message = pickle.loads(await reader.readexactly(size))
+    if isinstance(message, tuple) and message and isinstance(message[-1], _Data):
+        (size,) = HEADER.unpack(await reader.readexactly(HEADER.size))
+        message = (*message[:-1], await reader.readexactly(size))
+    return message
 
 
 class NotPortable(pickle.PicklingError):
@@ -59,7 +76,7 @@ def dumps(value: Any) -> bytes:
     return buffer.getvalue()
 
 
-class RemoteTraceback(Exception):
+class RemoteTraceback(Exception):  # noqa: N818
     """The traceback of an exception raised in the app's process, set as the
     `__cause__` of the one the gateway raises, as `ProcessPoolExecutor` does."""
 
@@ -233,20 +250,96 @@ def restore_request(request, lifespan_state: dict | None = None):
     )
 
 
-def describe_routes(app) -> list[tuple[str, str, list[str]]]:
+GATEWAY_COPY_LIMIT = 20 * 1024 * 1024
+
+
+def by_value(value: Any, what: str) -> bytes:
+    """`value`, with the functions it holds, pickled by value for the gateway
+    to run: the gateway does not import the app's modules, so each function
+    crosses with its code and the globals it uses, as they are now."""
+    import sysconfig
+
+    import cloudpickle
+
+    installed = {
+        os.path.realpath(sysconfig.get_paths()[key])
+        for key in ("stdlib", "platstdlib", "purelib", "platlib")
+    }
+    registered = []
+    for module in list(sys.modules.values()):
+        file = getattr(module, "__file__", None)
+        if module.__name__ == "__main__" or not file:
+            continue
+        path = os.path.realpath(file)
+        if any(path.startswith(prefix + os.sep) for prefix in installed):
+            continue
+        if module.__name__.split(".")[0] in ("gradio", "gradio_client"):
+            continue
+        with contextlib.suppress(ValueError):
+            cloudpickle.register_pickle_by_value(module)
+            registered.append(module)
+    try:
+        data = cloudpickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
+    except Exception as err:
+        raise NotPortable(
+            f"{what} runs in the gateway process, which needs a copy of it and "
+            f"of what it uses, but that could not be made ({err}). Pass "
+            "process='app' to run it in the app's process."
+        ) from None
+    finally:
+        for module in registered:
+            cloudpickle.unregister_pickle_by_value(module)
+    if len(data) > GATEWAY_COPY_LIMIT:
+        raise NotPortable(
+            f"{what} runs in the gateway process, which needs a copy of it and "
+            f"of what it uses, but that copy is {len(data) // 2**20} MB (a model "
+            "or large global?). Pass process='app' to run it in the app's "
+            "process."
+        )
+    return data
+
+
+def describe_routes(app, gateway_routes: dict | None = None) -> list[tuple]:
     """The routes of a FastAPI app (a Server's own, before Gradio adds its
-    routes), as the gateway forwards them."""
+    routes), in order, as the gateway serves them: it forwards most to the app's
+    process, and serves StaticFiles mounts and the routes in `gateway_routes`
+    (endpoint -> its decorator's arguments) itself."""
     from fastapi.routing import APIRoute, APIWebSocketRoute
     from starlette.routing import Mount, WebSocketRoute
+    from starlette.staticfiles import StaticFiles
 
-    routes = []
-    for route in app.router.routes:
-        if isinstance(route, APIRoute):
-            routes.append(("http", route.path, sorted(route.methods)))
-        elif isinstance(route, (APIWebSocketRoute, WebSocketRoute)):
-            routes.append(("websocket", route.path, []))
-        elif isinstance(route, Mount):
-            routes.append(("mount", route.path, []))
+    gateway_routes = gateway_routes or {}
+    routes: list[tuple] = []
+
+    def walk(entries, prefix: str) -> None:
+        for entry in entries:
+            if hasattr(entry, "effective_candidates"):
+                walk(entry.effective_candidates(), entry.include_context.prefix)
+                continue
+            route = getattr(entry, "original_route", entry)
+            path = prefix + route.path
+            if isinstance(route, APIRoute):
+                if route.endpoint in gateway_routes:
+                    routes.append(
+                        (
+                            "gateway",
+                            path,
+                            by_value(
+                                (route.endpoint, gateway_routes[route.endpoint]),
+                                f"The route {path}",
+                            ),
+                        )
+                    )
+                else:
+                    routes.append(("http", path, sorted(route.methods)))
+            elif isinstance(route, (APIWebSocketRoute, WebSocketRoute)):
+                routes.append(("websocket", path, None))
+            elif isinstance(route, Mount) and isinstance(route.app, StaticFiles):
+                routes.append(("static", path, (route.app, route.name)))
+            elif isinstance(route, Mount):
+                routes.append(("mount", path, None))
+
+    walk(app.router.routes, "")
     return routes
 
 

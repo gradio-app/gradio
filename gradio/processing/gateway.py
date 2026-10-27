@@ -32,6 +32,9 @@ if TYPE_CHECKING:
     from gradio.data_classes import PredictBodyInternal
     from gradio.routes import App
 
+HEARTBEAT_SECONDS = 5
+UNRESPONSIVE_SECONDS = 30
+
 
 class Link:
     """The connection to one of the app's processes. It lives on its own event
@@ -39,9 +42,13 @@ class Link:
     soon as they are written whatever the server is doing."""
 
     def __init__(self, address: dict, pool: Pool, primary: bool):
+        from gradio.utils import LRUCache
+
         self.address = address
         self.pool = pool
         self.primary = primary
+        self.sessions: LRUCache[str, bool] = LRUCache(pool.session_capacity)
+        self.last_heard = time.monotonic()
         self.ids = itertools.count()
         self.pending: dict[int, asyncio.Future] = {}
         self.writer: asyncio.StreamWriter | None = None
@@ -65,11 +72,24 @@ class Link:
         writer.write(protocol.encode({"fingerprint": self.pool.fingerprint}))
         self.writer = writer
         self.loop.create_task(self.read_loop(reader))
+        self.loop.create_task(self.heartbeat())
+
+    async def heartbeat(self) -> None:
+        """Pings the app's process, whose loop answers, so that a process whose
+        loop is stuck stops getting new sessions."""
+        while self.writer is not None and not self.writer.is_closing():
+            self.writer.write(protocol.encode(("ping",)))
+            await asyncio.sleep(HEARTBEAT_SECONDS)
+
+    @property
+    def responsive(self) -> bool:
+        return time.monotonic() - self.last_heard < UNRESPONSIVE_SECONDS
 
     async def read_loop(self, reader: asyncio.StreamReader) -> None:
         try:
             while True:
                 message = await protocol.read(reader)
+                self.last_heard = time.monotonic()
                 kind = message[0]
                 if kind in ("result", "error"):
                     future = self.pending.pop(message[1], None)
@@ -93,6 +113,8 @@ class Link:
                     self.pool.add_replica(message[1])
                 elif kind == "replica_failed":
                     self.pool.expected -= 1
+                elif kind == "reload":
+                    self.pool.reload(*message[1:])
         except (asyncio.IncompleteReadError, ConnectionError):
             pass
         except Exception:  # noqa: BLE001 -- the gateway cannot go on without it
@@ -154,13 +176,11 @@ class Pool:
     least busy. Each process runs as many of an event at once as its
     `concurrency_limit` allows."""
 
-    def __init__(self, blocks: Blocks, fingerprint: str):
-        from gradio.utils import LRUCache
-
+    def __init__(self, blocks: Blocks, fingerprint: str, session_capacity: int):
         self.blocks = blocks
         self.fingerprint = fingerprint
+        self.session_capacity = session_capacity
         self.links: list[Link] = []
-        self.sessions: LRUCache[str, Link] = LRUCache(100_000)
         self.lock = threading.Lock()
         self.limits: dict[int, int | None] = {}
         self.group_limits: dict[str, int] = {}
@@ -190,19 +210,34 @@ class Pool:
         link.fail_pending(RuntimeError("A replica of the app exited"))
         self.scale_limits()
 
+    def _holder(self, session_hash: str | None) -> Link | None:
+        """The process that holds `session_hash`. Each process keeps as many
+        sessions as its state holder does, so a session is forgotten here when
+        its process has let go of its state."""
+        if not session_hash:
+            return None
+        for link in self.links:
+            if session_hash in link.sessions:
+                link.sessions[session_hash] = True
+                return link
+        return None
+
     def holding(self, session_hash: str | None) -> Link:
         """The process that holds `session_hash`, or else the primary."""
         with self.lock:
-            link = self.sessions.get(session_hash) if session_hash else None
-            return link if link in self.links else self.primary
+            return self._holder(session_hash) or self.primary
 
     def for_session(self, session_hash: str | None) -> Link:
         with self.lock:
-            link = self.sessions.get(session_hash) if session_hash else None
-            if link is None or link not in self.links:
-                link = min(self.links, key=lambda link: link.running + len(link.held))
+            link = self._holder(session_hash)
+            if link is None:
+                candidates = [link for link in self.links if link.responsive]
+                link = min(
+                    candidates or self.links,
+                    key=lambda link: link.running + len(link.held),
+                )
                 if session_hash:
-                    self.sessions[session_hash] = link
+                    link.sessions[session_hash] = True
             return link
 
     def process_limit(self, fn: BlockFunction) -> int | None:
@@ -233,9 +268,31 @@ class Pool:
             event_queue.concurrency_limit = None if limit is None else limit * count
 
     def session_changed(self, session_hash: str, closed: bool) -> None:
-        link = self.sessions.get(session_hash)
-        for target in [link] if link in self.links else list(self.links):
-            target.send(("session", session_hash, closed))  # type: ignore[union-attr]
+        with self.lock:
+            link = self._holder(session_hash)
+            targets = [link] if link is not None else list(self.links)
+        for target in targets:
+            target.send(("session", session_hash, closed))
+
+    def reload(
+        self, description: dict | None, change_type: str, error: str | None
+    ) -> None:
+        """The app's script was reloaded (`gradio app.py`, or a Space's Dev
+        Mode): serves its new config and events, and tells pages to reload."""
+        import copy
+
+        if description is not None:
+            configure(self.blocks, description)
+            self.fingerprint = description["fingerprint"]
+            self.limits.clear()
+            self.group_limits.clear()
+            self.scale_limits()
+            app = self.blocks.app
+            for session in app.state_holder.session_data.values():
+                session.blocks_config = copy.copy(self.blocks.default_config)
+        self.blocks.app.reload_error_message = error
+        self.blocks.app.change_type = change_type  # type: ignore[assignment]
+        self.blocks.app.change_count += 1
 
     def deliver(self, message: tuple) -> None:
         from gradio.server_messages import ProgressMessage, ProgressUnit
@@ -256,7 +313,11 @@ class Pool:
     def status(self) -> dict:
         return {
             "processes": [
-                {"pid": link.address["pid"], "running": link.running}
+                {
+                    "pid": link.address["pid"],
+                    "running": link.running,
+                    "responsive": link.responsive,
+                }
                 for link in self.links
             ],
             "starting": max(self.expected - len(self.links), 0),
@@ -429,10 +490,15 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
         def ids(key):
             return [blocks[i] for i in dep.get(key) or [] if i in blocks]
 
+        if settings["gateway_fn"] is not None:
+            fn = pickle.loads(settings["gateway_fn"])
+            fn._runs_in_gateway = True  # type: ignore[attr-defined]
+        elif dep["backend_fn"]:
+            fn = make_stub(dep["id"], dep["types"]["generator"], settings["cached"])
+        else:
+            fn = None
         fns[dep["id"]] = BlockFunction(
-            fn=make_stub(dep["id"], dep["types"]["generator"], settings["cached"])
-            if dep["backend_fn"]
-            else None,
+            fn=fn,
             inputs=ids("inputs"),
             outputs=ids("outputs"),
             preprocess=False,
@@ -472,21 +538,13 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
     return fns
 
 
-def build(bootstrap: dict) -> Blocks:
-    """A Blocks without components: it serves the app's config, API info and
-    theme as they are, and queues the app's events."""
-    from gradio import client_state, utils
-    from gradio.blocks import Blocks
+def configure(blocks: Blocks, description: dict) -> None:
+    """Sets what the gateway serves and queues from the app's description:
+    its config, API info, theme and events."""
     from gradio.components import State
-    from gradio.context import Context
+    from gradio.components.api_component import Api
 
-    client_state._process_secret = bootstrap["state_secret"]
-    Context.token = bootstrap["hf_token"]
-    if bootstrap["static_paths"]:
-        utils.set_static_paths(bootstrap["static_paths"])
-    config = bootstrap["config"]
-    with Blocks() as blocks:
-        pass
+    config = description["config"]
     app_blocks: dict[int, Any] = {}
     for component in config["components"]:
         props = component["props"]
@@ -499,18 +557,22 @@ def build(bootstrap: dict) -> Blocks:
             state._id = component["id"]
             state.app_config = component  # type: ignore[attr-defined]
             app_blocks[component["id"]] = state
+        elif component["type"] == "api":
+            api = Api(
+                props.get("value"), props.get("_api_info") or {}, props.get("label")
+            )
+            api._id = component["id"]
+            api.app_config = component  # type: ignore[attr-defined]
+            app_blocks[component["id"]] = api
         else:
             app_blocks[component["id"]] = AppBlock(component)
     blocks.default_config.blocks = app_blocks
     blocks.default_config.fns = event_table(
-        config, bootstrap["fn_settings"], app_blocks
+        config, description["fn_settings"], app_blocks
     )
     blocks.default_config.fn_id = max(blocks.fns, default=-1) + 1
     blocks.app_id = config["app_id"]
-    blocks._state_fingerprint = bootstrap["fingerprint"]  # type: ignore[attr-defined]
-    blocks.delete_cache = bootstrap["delete_cache"]
-    blocks.proxy_urls = set(bootstrap["proxy_urls"])
-    blocks._expects_oauth = bootstrap["expects_oauth"]  # type: ignore[attr-defined]
+    blocks._state_fingerprint = description["fingerprint"]  # type: ignore[attr-defined]
     if config.get("mode"):
         blocks.mode = config["mode"]
     if config.get("pages"):
@@ -519,7 +581,7 @@ def build(bootstrap: dict) -> Blocks:
     def get_config_file() -> dict:
         return dict(config)
 
-    api_info = bootstrap["api_info"]
+    api_info = description["api_info"]
 
     def get_api_info(all_endpoints: bool = False, page: str | None = None):
         return (
@@ -529,7 +591,38 @@ def build(bootstrap: dict) -> Blocks:
 
     blocks.get_config_file = get_config_file  # type: ignore[method-assign]
     blocks.get_api_info = get_api_info  # type: ignore[method-assign]
-    pool = Pool(blocks, bootstrap["fingerprint"])
+    serve_as_is(blocks, description)
+
+
+def serve_as_is(blocks: Blocks, description: dict) -> None:
+    """The config, theme and translations the gateway serves, which `launch()`
+    computes for an ordinary app, so they are set again after it."""
+    blocks.config = blocks.get_config_file()
+    blocks.theme_css = description["theme_css"]
+    if blocks.config.get("i18n_translations"):
+        blocks.i18n_instance = SimpleNamespace(  # type: ignore[assignment]
+            translations_dict=blocks.config["i18n_translations"]
+        )
+
+
+def build(bootstrap: dict) -> Blocks:
+    """A Blocks without components: it serves the app's config, API info and
+    theme as they are, and queues the app's events."""
+    from gradio import client_state, utils
+    from gradio.blocks import Blocks
+    from gradio.context import Context
+
+    client_state._process_secret = bootstrap["state_secret"]
+    Context.token = bootstrap["hf_token"]
+    if bootstrap["static_paths"]:
+        utils.set_static_paths(bootstrap["static_paths"])
+    with Blocks() as blocks:
+        pass
+    configure(blocks, bootstrap)
+    blocks.delete_cache = bootstrap["delete_cache"]
+    blocks.proxy_urls = set(bootstrap["proxy_urls"])
+    blocks._expects_oauth = bootstrap["expects_oauth"]  # type: ignore[attr-defined]
+    pool = Pool(blocks, bootstrap["fingerprint"], bootstrap["session_capacity"])
     pool.expected = bootstrap["replicas"]
     blocks._process_pool = pool  # type: ignore[attr-defined]
     return blocks
@@ -588,6 +681,42 @@ async def logged_in_user(app: App, request: Request) -> str | None:
     return app.tokens.get(token)
 
 
+def explain_lifespan_state(endpoint):
+    """`endpoint`, a route that runs in the gateway, which points to
+    process='app' if it reads what the app's lifespan set on `request.state`,
+    since the lifespan runs in the app's process."""
+    import functools
+
+    def explained(err: AttributeError) -> AttributeError:
+        if "'State' object has no attribute" not in str(err):
+            return err
+        return AttributeError(
+            f"{err}. This route runs in the gateway process (the default for "
+            "GET routes with executor='process'), where the app's lifespan does "
+            "not run. Pass process='app' to run it in the app's process."
+        )
+
+    if inspect.iscoroutinefunction(endpoint):
+
+        @functools.wraps(endpoint)
+        async def run_async(*args, **kwargs):
+            try:
+                return await endpoint(*args, **kwargs)
+            except AttributeError as err:
+                raise explained(err) from err
+
+        return run_async
+
+    @functools.wraps(endpoint)
+    def run(*args, **kwargs):
+        try:
+            return endpoint(*args, **kwargs)
+        except AttributeError as err:
+            raise explained(err) from err
+
+    return run
+
+
 async def session_of(request: Request) -> str | None:
     """The session a forwarded request is for, so that it reaches the process
     that holds it."""
@@ -609,7 +738,7 @@ def add_forwarded_routes(app, bootstrap: dict, pool: Pool) -> None:
 
     from fastapi import Depends, HTTPException
     from fastapi.routing import APIRoute
-    from starlette.routing import WebSocketRoute
+    from starlette.routing import Mount, WebSocketRoute
 
     from gradio.processing.proxy import (
         METHODS,
@@ -673,11 +802,27 @@ def add_forwarded_routes(app, bootstrap: dict, pool: Pool) -> None:
             dependencies=[Depends(login_check)],
         )
     )
-    for kind, path, methods in bootstrap["server_routes"]:
+    for kind, path, data in bootstrap["server_routes"]:
         if kind == "http":
+            routes.append(APIRoute(path, to_app, methods=data, include_in_schema=False))
+        elif kind == "gateway":
+            endpoint, kwargs = pickle.loads(data)
+            kwargs = dict(kwargs)
             routes.append(
-                APIRoute(path, to_app, methods=methods, include_in_schema=False)
+                APIRoute(
+                    path,
+                    explain_lifespan_state(endpoint),
+                    dependencies=[
+                        *app.router.dependencies,
+                        *(kwargs.pop("dependencies", None) or []),
+                    ],
+                    dependency_overrides_provider=app,
+                    **kwargs,
+                )
             )
+        elif kind == "static":
+            static_files, name = data
+            routes.append(Mount(path, app=static_files, name=name))
         elif kind == "websocket":
             routes.append(WebSocketRoute(path, websocket_to_app))
         else:
@@ -791,12 +936,7 @@ def main(path: str) -> None:
         app_kwargs["dependencies"] = [Depends(app_dependencies)]
         launch_kwargs["app_kwargs"] = app_kwargs
     app, local_url, share_url = blocks.launch(prevent_thread_lock=True, **launch_kwargs)
-    blocks.config = blocks.get_config_file()
-    blocks.theme_css = bootstrap["theme_css"]
-    if blocks.config.get("i18n_translations"):
-        blocks.i18n_instance = SimpleNamespace(  # type: ignore[assignment]
-            translations_dict=blocks.config["i18n_translations"]
-        )
+    serve_as_is(blocks, bootstrap)
     pool.scale_limits()
     add_forwarded_routes(app, bootstrap, pool)
     app.session_listener = pool.session_changed

@@ -627,7 +627,7 @@ def test_server_custom_routes_and_lifespan_work():
 
     server = gr.Server(lifespan=lifespan)
 
-    @server.get("/health")
+    @server.get("/health", process="app")
     def health():
         return {"pid": os.getpid()}
 
@@ -965,3 +965,158 @@ def test_mcp_server_knows_its_local_url():
         assert demo.mcp_server_obj._local_url == local_url  # type: ignore[union-attr]
     finally:
         demo.close()
+
+
+GREETING = {"text": "hello"}
+
+
+def test_get_routes_run_in_the_gateway_unless_asked(tmp_path):
+    from fastapi import APIRouter
+    from fastapi.responses import HTMLResponse
+    from fastapi.staticfiles import StaticFiles
+
+    (tmp_path / "index.html").write_text("<h1>landing</h1>")
+    app = gr.App()
+    router = APIRouter(prefix="/routed")
+
+    @router.get("/pid")
+    def routed_pid():
+        return os.getpid()
+
+    @app.get("/", response_class=HTMLResponse)
+    def landing():
+        return f"<p>{GREETING['text']} {os.getpid()}</p>"
+
+    @app.get("/app-pid", process="app")
+    def app_pid():
+        return os.getpid()
+
+    @app.queue(name="heavy")
+    def heavy(x: str) -> str:
+        return f"{x} {os.getpid()}"
+
+    @app.queue(name="light", process="gateway")
+    def light(x: str) -> str:
+        return f"{x} {os.getpid()}"
+
+    app.include_router(router)
+    app.mount("/site", StaticFiles(directory=tmp_path, html=True), name="site")
+
+    _, url, _ = app.launch(executor="process", prevent_thread_lock=True)
+    try:
+        gateway_pid = app.get_blocks()._process_worker.gateway.pid  # type: ignore[attr-defined]
+        assert httpx2.get(url).text == f"<p>hello {gateway_pid}</p>"
+        assert httpx2.get(f"{url}app-pid").json() == os.getpid()
+        assert httpx2.get(f"{url}routed/pid").json() == os.getpid()
+        assert "landing" in httpx2.get(f"{url}site/").text
+        client = Client(url, verbose=False)
+        assert client.predict("a", api_name="/heavy") == f"a {os.getpid()}"
+        assert client.predict("b", api_name="/light") == f"b {gateway_pid}"
+    finally:
+        app.get_blocks().close()
+
+
+def test_gateway_routes_point_to_process_app():
+    from starlette.datastructures import State
+
+    from gradio.processing.gateway import explain_lifespan_state
+
+    def model():
+        return State().model
+
+    with pytest.raises(AttributeError, match="process='app'"):
+        explain_lifespan_state(model)()
+
+    app = gr.App()
+    big = b"x" * (25 * 2**20)
+
+    @app.get("/size")
+    def size():
+        return len(big)
+
+    with pytest.raises(Exception, match="process='app'"):
+        app.launch(executor="process", prevent_thread_lock=True)
+
+
+def test_process_argument_is_checked():
+    app = gr.App()
+    with pytest.raises(ValueError, match="process"):
+        app.get("/", process="elsewhere")  # type: ignore[arg-type]
+
+
+RELOAD_APP = """
+import gradio as gr
+
+with gr.Blocks() as demo:
+    t = gr.Textbox(label="before")
+    t.submit(lambda x: "v1 " + x, t, t, api_name="echo")
+
+if __name__ == "__main__":
+    demo.launch(server_port={port})
+"""
+
+
+def test_reload_mode_serves_the_reloaded_app(tmp_path):
+    import signal
+    import subprocess
+    import sys
+
+    port = 7994
+    script = tmp_path / "app.py"
+    script.write_text(RELOAD_APP.format(port=port))
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "gradio", str(script)],
+        cwd=tmp_path,
+        env={**os.environ, "PYTHONPATH": os.getcwd()},
+        start_new_session=True,
+    )
+    url = f"http://127.0.0.1:{port}/"
+
+    def labels():
+        config = httpx2.get(f"{url}config").json()
+        return [
+            c["props"]["label"] for c in config["components"] if c["props"].get("label")
+        ]
+
+    try:
+        deadline = time.time() + 60
+        while time.time() < deadline:
+            try:
+                if "before" in labels():
+                    break
+            except (httpx2.HTTPError, ValueError):
+                pass
+            time.sleep(0.5)
+        assert Client(url, verbose=False).predict("a", api_name="/echo") == "v1 a"
+        status = httpx2.get(f"{url}gradio_api/processes").json()
+        assert status["processes"][0]["pid"] != proc.pid
+        script.write_text(
+            RELOAD_APP.format(port=port)
+            .replace('"before"', '"after"')
+            .replace('"v1 "', '"v2 "')
+        )
+        deadline = time.time() + 30
+        while time.time() < deadline and "after" not in labels():
+            time.sleep(0.5)
+        assert labels() == ["after"]
+        assert Client(url, verbose=False).predict("a", api_name="/echo") == "v2 a"
+    finally:
+        os.killpg(proc.pid, signal.SIGTERM)
+        proc.wait(timeout=30)
+
+
+def test_pool_routes_new_sessions_to_responsive_processes():
+    from gradio.processing.gateway import Link, Pool
+
+    pool = Pool(None, "", session_capacity=2)  # type: ignore[arg-type]
+    primary = Link({"pid": 1}, pool, primary=True)
+    replica = Link({"pid": 2}, pool, primary=False)
+    pool.links = [primary, replica]
+    primary.last_heard -= 60
+    assert pool.for_session("a") is replica
+    assert pool.holding("a") is replica
+    assert pool.holding("unknown") is primary
+    pool.for_session("b")
+    pool.for_session("c")
+    assert "a" not in replica.sessions
+    assert pool.holding("a") is primary

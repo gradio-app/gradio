@@ -123,7 +123,11 @@ class Worker:
         self.gateway_kwargs = gateway_kwargs
         self.queue_kwargs = queue_kwargs
         self.auth_dependency: Any = launch_kwargs.get("auth_dependency")
-        self.server_routes = protocol.describe_routes(app) if app is not None else []
+        self.server_routes = (
+            protocol.describe_routes(app, getattr(app, "_gateway_routes", None))
+            if app is not None
+            else []
+        )
         self.app = App.create_app(
             blocks,
             app=app,
@@ -162,6 +166,10 @@ class Worker:
         self.failure: str | None = None
         self.replica_fd = replica_fd
         self.replicas = max(int(os.environ.get("GRADIO_PROCESS_REPLICAS", "1")), 1)
+        if self.replicas > 1 and os.environ.get("GRADIO_WATCH_DIRS"):
+            print("Replicas are not started in reload mode.")
+            self.replicas = 1
+        self.reloader: Any = None
         self.replica_processes: list[subprocess.Popen] = []
         self.replica_addresses: list[dict] = []
         self.shutting_down = False
@@ -229,6 +237,8 @@ class Worker:
                     task = asyncio.create_task(self.close_iterator(message[1]))
                     self.closing.add(task)
                     task.add_done_callback(self.closing.discard)
+                elif kind == "ping":
+                    self.send(("pong",))
                 elif kind == "ready":
                     self.urls = (message[1], message[2])
                     self.server_attributes = message[3]
@@ -247,8 +257,9 @@ class Worker:
             except Exception:
                 data = protocol.dumps(protocol.jsonable(result))
             del result
-            self.send(("result", rid, data))
             if self.writer is not None:
+                self.writer.writelines(protocol.encode_with_data(("result", rid), data))
+                del data
                 with contextlib.suppress(ConnectionError):
                     await self.writer.drain()
         except asyncio.CancelledError:
@@ -383,6 +394,48 @@ class Worker:
             for all_endpoints in (False, True)
         }
 
+    def description(self) -> dict:
+        """What the gateway serves and queues for this app."""
+        from gradio.client_state import app_fingerprint
+
+        return {
+            "config": self.portable_config(),
+            "api_info": self.api_info(),
+            "fn_settings": {
+                fn_id: {
+                    "concurrency_limit": fn.concurrency_limit,
+                    "concurrency_id": fn.concurrency_id,
+                    "tracks_progress": fn.tracks_progress,
+                    "has_validator": fn.validator is not None,
+                    "cached": hasattr(fn.fn, "cache"),
+                    "parameter_names": list(fn.input_parameter_names)
+                    or (list(inspect.signature(fn.fn).parameters) if fn.fn else []),
+                    "gateway_fn": protocol.by_value(
+                        fn.fn, f"The function of the endpoint {fn.api_name!r}"
+                    )
+                    if fn_id in self.blocks._gateway_fns
+                    else None,
+                }
+                for fn_id, fn in self.blocks.fns.items()
+            },
+            "fingerprint": app_fingerprint(self.blocks),
+            "theme_css": self.blocks.theme_css,
+        }
+
+    def reloaded(self, demo: Blocks) -> None:
+        """Reload mode swapped in the script's new Blocks: they run the events
+        here, and the gateway serves their config."""
+        self.blocks = demo
+        demo._process_worker = self  # type: ignore[attr-defined]
+        try:
+            description = self.description()
+            protocol.dumps(description)
+        except Exception as err:  # noqa: BLE001
+            print(f"executor='process' could not reload the app: {err}")
+            self.send(("reload", None, "error", str(err)))
+            return
+        self.send(("reload", description, "reload", None))
+
     def portable_config(self) -> dict:
         """The config without callables (e.g. a State's delete_callback): the
         gateway never calls them, and they may not pickle."""
@@ -400,7 +453,6 @@ class Worker:
 
     async def _main(self) -> None:
         from gradio import client_state
-        from gradio.client_state import app_fingerprint
         from gradio.context import Context
         from gradio.data_classes import _StaticFiles
 
@@ -428,24 +480,10 @@ class Worker:
                 await self.stop_server(server)
             return
         bootstrap = {
-            "config": self.portable_config(),
+            **self.description(),
             "launch_kwargs": self.gateway_kwargs,
             "queue_kwargs": self.queue_kwargs,
-            "api_info": self.api_info(),
-            "fn_settings": {
-                fn_id: {
-                    "concurrency_limit": fn.concurrency_limit,
-                    "concurrency_id": fn.concurrency_id,
-                    "tracks_progress": fn.tracks_progress,
-                    "has_validator": fn.validator is not None,
-                    "cached": hasattr(fn.fn, "cache"),
-                    "parameter_names": list(fn.input_parameter_names)
-                    or (list(inspect.signature(fn.fn).parameters) if fn.fn else []),
-                }
-                for fn_id, fn in self.blocks.fns.items()
-            },
-            "fingerprint": app_fingerprint(self.blocks),
-            "theme_css": self.blocks.theme_css,
+            "session_capacity": self.blocks.state_session_capacity,
             "replicas": self.replicas,
             "port": server.sockets[0].getsockname()[1],
             "token": self.token,
@@ -508,14 +546,17 @@ class Worker:
         gateway sends it. It reports its address on a pipe, which is passed on
         to the gateway."""
         script = sys.argv[0] if sys.argv else ""
-        if not script.endswith(".py") or not os.path.exists(script):
-            print("Replicas need the app to be run as a script (python app.py).")
+        if not os.path.isfile(script):
+            print(
+                "Replicas need the app to be run as a script or a module "
+                "(python app.py or python -m app)."
+            )
             return
         from gradio import client_state
 
         read, write = os.pipe()
         process = subprocess.Popen(
-            [sys.executable, *sys.argv],
+            [sys.executable, *sys.orig_argv[1:]],
             env={
                 **os.environ,
                 "GRADIO_PROCESS_REPLICA_FD": str(write),
@@ -581,8 +622,58 @@ class Worker:
             await asyncio.sleep(0.01)
         return sock.getsockname()[1]
 
+    def start_reloader(self) -> None:
+        """Reload mode (`gradio app.py`) or a Space's Dev Mode: this process
+        watches and re-runs the script, as with threads, and the gateway
+        serves the reloaded app."""
+        from gradio import http_server, utils
+
+        worker = self
+
+        class SourceReloader(utils.SourceFileReloader):
+            def alert_change(self, change_type="reload"):
+                import traceback
+
+                if change_type == "reload" and self.running_app.blocks is not None:
+                    worker.reloaded(self.running_app.blocks)
+                else:
+                    worker.send(("reload", None, change_type, traceback.format_exc()))
+
+        class SpacesReloader(utils.SpacesReloader):
+            def swap_blocks(self, demo):
+                super().swap_blocks(demo)
+                worker.reloaded(demo)
+
+        module = sys.modules["__main__"]
+        if http_server.GRADIO_WATCH_DIRS:
+            self.reloader = SourceReloader(
+                app=self.app,
+                watch_dirs=http_server.GRADIO_WATCH_DIRS,
+                watch_module_name=http_server.GRADIO_WATCH_MODULE_NAME,
+                demo_name=http_server.GRADIO_WATCH_DEMO_NAME,
+                stop_event=threading.Event(),
+                demo_file=http_server.GRADIO_WATCH_DEMO_PATH,
+                watch_module=module,
+                encoding=os.getenv("GRADIO_WATCH_ENCODING", "utf-8"),
+            )
+            watch = utils.watchfn
+        elif utils.get_space() is not None and self.replica_fd is None:
+            self.reloader = SpacesReloader(
+                app=self.app,
+                watch_dirs=http_server.GRADIO_WATCH_DIRS,
+                demo_name=http_server.GRADIO_WATCH_DEMO_NAME,
+                stop_event=threading.Event(),
+                watch_module=module,
+            )
+            watch = utils.watchfn_spaces
+        else:
+            return
+        threading.Thread(target=watch, args=(self.reloader,), daemon=True).start()
+
     def close(self) -> None:
         self.shutting_down = True
+        if self.reloader is not None:
+            self.reloader.stop()
         if self.http_server is not None:
             self.http_server.should_exit = True
             if threading.current_thread().name != "gradio-worker":
@@ -644,6 +735,7 @@ def serve(
             blocks._process_worker = None  # type: ignore[attr-defined]
             raise RuntimeError(failure)
 
+    worker.start_reloader()
     local_url, share_url = worker.urls
     blocks.server_app = blocks.app = worker.app
     blocks.local_url = local_url

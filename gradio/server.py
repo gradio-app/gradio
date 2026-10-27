@@ -25,6 +25,11 @@ class _MCPNamespace:
 
 
 @document("api", "launch")
+def _check_process(process: str) -> None:
+    if process not in ("app", "gateway"):
+        raise ValueError(f"`process` must be 'app' or 'gateway', not {process!r}.")
+
+
 class Server(App):
     """
     Server is the Gradio API engine exposed on a FastAPI application (Server mode),
@@ -35,6 +40,9 @@ class Server(App):
     New methods added on top of FastAPI:
         queue(): Decorator to register a Gradio API endpoint with queue,
             SSE streaming, and concurrency control. `api()` is the same.
+        get(): FastAPI's `get()`, with `process`: with executor="process", a
+            GET route runs in the gateway process by default, next to Gradio's
+            own pages, so it stays responsive while queued functions run.
         mcp: Namespace with .tool(), .resource(), and .prompt() decorators
             to tag functions with MCP metadata.
         launch(): Creates an internal Blocks, registers deferred API
@@ -170,7 +178,8 @@ class Server(App):
         if generate_unique_id_function is not None:
             init_kwargs["generate_unique_id_function"] = generate_unique_id_function
         super().__init__(**init_kwargs)
-        self._deferred_apis: list[tuple[Callable, dict[str, Any]]] = []
+        self._deferred_apis: list[tuple[Callable, dict[str, Any], str]] = []
+        self._gateway_routes: dict[Callable, dict[str, Any]] = {}
         self._mcp = _MCPNamespace()
 
     @property
@@ -192,12 +201,17 @@ class Server(App):
         api_visibility: Literal["public", "private", "undocumented"] = "public",
         time_limit: int | None = None,
         stream_every: float = 0.5,
+        process: Literal["app", "gateway"] = "app",
     ):
         """Decorator to register a function as a Gradio API endpoint.
 
         Goes through Gradio's queue with concurrency control and SSE streaming.
         `api()` is the same decorator.
+
+        Parameters:
+            process: Where the function runs with executor="process". "app" (the default) runs it in this process (or its replicas), with its models and state. "gateway" runs it in the gateway process, which gets a copy of the function and of the globals it uses, taken at launch: use it for light functions that don't need this process's state.
         """
+        _check_process(process)
         kwargs = {
             "api_name": name,
             "api_description": description,
@@ -211,16 +225,39 @@ class Server(App):
             "stream_every": stream_every,
         }
         if fn is not None:
-            self._deferred_apis.append((fn, kwargs))
+            self._deferred_apis.append((fn, kwargs, process))
             return fn
 
         def wrapper(func):
-            self._deferred_apis.append((func, kwargs))
+            self._deferred_apis.append((func, kwargs, process))
             return func
 
         return wrapper
 
     api = queue
+
+    def get(  # type: ignore[override]
+        self,
+        path: str,
+        *,
+        process: Literal["gateway", "app"] = "gateway",
+        **kwargs: Any,
+    ) -> Callable[[Callable], Callable]:
+        """FastAPI's `get()`, with one more argument.
+
+        Parameters:
+            path: The route's path, as in FastAPI. Its other arguments are FastAPI's.
+            process: Where the route runs with executor="process". "gateway" (the default) runs it in the gateway process, which serves Gradio's own pages, so it stays responsive while queued functions run; it gets a copy of the function and of the globals it uses, taken at launch, and doesn't see later changes to them. "app" runs it in this process, with its models and state.
+        """
+        _check_process(process)
+        route = super().get(path, **kwargs)
+
+        def decorator(fn: Callable) -> Callable:
+            if process == "gateway":
+                self._gateway_routes[fn] = {"methods": ["GET"], **kwargs}
+            return route(fn)
+
+        return decorator
 
     def launch(
         self,
@@ -295,8 +332,10 @@ class Server(App):
             self._check_process_executor()
 
         with Blocks(mode="server") as blocks:
-            for fn, api_kwargs in self._deferred_apis:
-                gr_api(fn=fn, **api_kwargs)
+            for fn, api_kwargs, process in self._deferred_apis:
+                dependency = gr_api(fn=fn, **api_kwargs)
+                if process == "gateway":
+                    blocks._gateway_fns.add(dependency["id"])
 
         os.environ["GRADIO_SERVER_MODE_ENABLED"] = "1"
 
