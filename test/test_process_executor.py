@@ -503,7 +503,7 @@ def test_replicas_keep_concurrency_limit_per_process(tmp_path):
         while time.time() < deadline:
             try:
                 status = httpx2.get(f"{url}gradio_api/processes").json()
-                if len(status["processes"]) == 2 and not status["starting"]:
+                if len(status.get("processes", [])) == 2 and not status["starting"]:
                     break
             except (httpx2.HTTPError, ValueError):
                 pass
@@ -859,7 +859,7 @@ def test_replicas_run_their_lifespan_teardown(tmp_path):
                 status = httpx2.get(
                     f"http://127.0.0.1:{port}/gradio_api/processes"
                 ).json()
-                if len(status["processes"]) == 2 and not status["starting"]:
+                if len(status.get("processes", [])) == 2 and not status["starting"]:
                     break
             except (httpx2.HTTPError, ValueError):
                 pass
@@ -1256,3 +1256,54 @@ def test_spaces_dev_mode_reload_reaches_the_gateway(monkeypatch):
         assert "after" in labels
         result = Client(client.src, verbose=False).predict("a", api_name="/echo")
         assert result == f"a {os.getpid()}"
+
+
+def test_files_cross_by_value(monkeypatch, tmp_path):
+    import hashlib
+
+    from gradio_client import handle_file
+
+    monkeypatch.setenv("GRADIO_PROCESS_FILES", "value")
+    received = []
+
+    def flip(path):
+        received.append(path)
+        out = tmp_path / "flipped.txt"
+        with open(path) as f:
+            out.write_text(f.read()[::-1])
+        return str(out)
+
+    with gr.Blocks() as demo:
+        inp = gr.File()
+        out = gr.File()
+        inp.upload(flip, inp, out, api_name="flip")
+
+    source = tmp_path / "source.txt"
+    source.write_text("abc")
+    with launched(demo) as client:
+        result = client.predict(handle_file(str(source)), api_name="/flip")
+    (path,) = received
+    digest = hashlib.sha256(b"abc").hexdigest()
+    assert os.path.basename(os.path.dirname(path)) == digest
+    with open(result) as f:
+        assert f.read() == "cba"
+
+
+def test_file_copies_send_each_file_once(tmp_path):
+    from gradio.processing import protocol
+
+    path = tmp_path / "a.txt"
+    path.write_text("hello")
+    file_data = {"path": str(path), "meta": {"_type": "gradio.FileData"}}
+    copies = protocol.FileCopies()
+    first = copies.pack({"data": [file_data]})
+    second = copies.pack([file_data])
+    assert first["data"][0][protocol.FILE]["data"] == b"hello"
+    assert second[0][protocol.FILE]["data"] is None
+    message = protocol.decode(b"".join(protocol.encode(first)))
+    unpacked = protocol.unpack_files(message, str(tmp_path / "landed"))
+    landed = unpacked["data"][0]["path"]
+    assert landed != str(path)
+    with open(landed) as f:
+        assert f.read() == "hello"
+    assert protocol.unpack_files(second, str(tmp_path / "landed"))[0]["path"] == landed

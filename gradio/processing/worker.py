@@ -22,7 +22,7 @@ import tempfile
 import threading
 import time
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from gradio.processing import protocol
 
@@ -179,20 +179,21 @@ class Worker:
         self.replica_processes: list[subprocess.Popen] = []
         self.replica_addresses: list[dict] = []
         self.shutting_down = False
+        self.files = protocol.FileCopies()
 
     def send(self, message: Any) -> None:
         """Writes a message from any thread (functions run in worker threads)."""
         if self.loop is None or self.writer is None:
             return
-        frame = protocol.encode(message)
+        frames = protocol.encode(message)
         try:
             running = asyncio.get_running_loop()
         except RuntimeError:
             running = None
         if running is self.loop:
-            self.writer.write(frame)
+            self.writer.writelines(frames)
         else:
-            self.loop.call_soon_threadsafe(self.writer.write, frame)
+            self.loop.call_soon_threadsafe(self.writer.writelines, frames)
 
     async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         from gradio.client_state import app_fingerprint
@@ -207,6 +208,7 @@ class Worker:
             writer.close()
             return
         self.writer = writer
+        self.files = protocol.FileCopies()
         hello = await protocol.read(reader)
         if hello["fingerprint"] != app_fingerprint(self.blocks):
             self.failure = (
@@ -258,14 +260,9 @@ class Worker:
     async def respond(self, rid: int, run, payload: dict) -> None:
         try:
             result = await run(payload)
-            try:
-                data = protocol.dumps(result)
-            except Exception:
-                data = protocol.dumps(protocol.jsonable(result))
+            self.send(("result", rid, result))
             del result
             if self.writer is not None:
-                self.writer.writelines(protocol.encode_with_data(("result", rid), data))
-                del data
                 with contextlib.suppress(ConnectionError):
                     await self.writer.drain()
         except asyncio.CancelledError:
@@ -304,9 +301,16 @@ class Worker:
     async def run_event(self, p: dict) -> dict:
         """One event from the queue: exactly what a normal launch runs."""
         from gradio import caching, route_utils
+        from gradio.data_classes import PredictBodyInternal
         from gradio.queueing import create_validator_fn
 
-        body = p["body"]
+        if protocol.files_by_value():
+            from gradio.utils import get_upload_folder
+
+            p["body"]["data"] = protocol.unpack_files(
+                p["body"]["data"], get_upload_folder()
+            )
+        body = PredictBodyInternal(**p["body"])
         fns = (
             self.app.state_holder[body.session_hash].blocks_config.fns
             if body.session_hash is not None
@@ -316,14 +320,15 @@ class Worker:
         if p.get("validator"):
             fn = create_validator_fn(fn)
         body.client_state = protocol.restore_client_state(p["client_state"], fn)
-        if body.event_id is not None:
-            self.event_sessions[body.event_id] = body.session_hash
-        if not p["continuing"] and body.event_id in self.app.iterators:
-            await self.close_iterator(body.event_id)
+        event_id = cast(Any, body.event_id)
+        if event_id is not None:
+            self.event_sessions[event_id] = body.session_hash
+        if not p["continuing"] and event_id in self.app.iterators:
+            await self.close_iterator(event_id)
         running = None
-        if body.event_id is not None:
-            running = RunningEvent(body.event_id, body.session_hash)
-            self.running[body.event_id] = running
+        if event_id is not None:
+            running = RunningEvent(event_id, body.session_hash)
+            self.running[event_id] = running
         try:
             with caching.ProbeCache() if p["probe_cache"] else contextlib.nullcontext():
                 output = await route_utils.call_process_api(
@@ -341,12 +346,12 @@ class Worker:
                 running.alive = False
             raise
         finally:
-            if running is not None and self.running.get(body.event_id) is running:
-                del self.running[body.event_id]
-            if self.app.iterators.get(body.event_id) is None:
-                self.app.iterators.pop(body.event_id, None)
-                self.event_sessions.pop(body.event_id, None)
-        output["has_iterator"] = self.app.iterators.get(body.event_id) is not None
+            if running is not None and self.running.get(event_id) is running:
+                del self.running[event_id]
+            if self.app.iterators.get(event_id) is None:
+                self.app.iterators.pop(event_id, None)
+                self.event_sessions.pop(event_id, None)
+        output["has_iterator"] = self.app.iterators.get(event_id) is not None
         render = output.get("render_config")
         if render is not None and body.session_hash is not None:
             fns = self.app.state_holder[body.session_hash].blocks_config.fns
@@ -355,6 +360,8 @@ class Worker:
                 for dep in render["dependencies"]
                 if dep["id"] in fns
             }
+        if protocol.files_by_value():
+            output = await asyncio.to_thread(self.files.pack, output)
         return output
 
     async def run_auth(self, p: dict) -> bool:
@@ -387,8 +394,7 @@ class Worker:
         for key, value in getattr(request.state, "_state", {}).items():
             if key in lifespan_state and lifespan_state[key] is value:
                 continue
-            with contextlib.suppress(Exception):
-                protocol.dumps(value)
+            if protocol.is_json(value):
                 state[key] = value
         return {"user": user, "state": state}
 
@@ -402,23 +408,28 @@ class Worker:
             self.blocks.is_running = False
             self.finished.set()
 
-    def api_info(self) -> dict[tuple[str | None, bool], Any]:
+    def api_info(self) -> list[tuple[str | None, bool, Any]]:
         """The API info the gateway serves, by page and `all_endpoints`."""
         pages = [None, *(self.blocks.config.get("page") or {})]
-        return {
-            (page, all_endpoints): self.blocks.get_api_info(
-                all_endpoints=all_endpoints, page=page
+        return [
+            (
+                page,
+                all_endpoints,
+                self.blocks.get_api_info(all_endpoints=all_endpoints, page=page),
             )
             for page in pages
             for all_endpoints in (False, True)
-        }
+        ]
 
     def description(self) -> dict:
         """What the gateway serves and queues for this app."""
         from gradio.client_state import app_fingerprint
 
+        config = self.portable_config()
+        if protocol.files_by_value():
+            config = protocol.FileCopies().pack(config)
         return {
-            "config": self.portable_config(),
+            "config": config,
             "api_info": self.api_info(),
             "fn_settings": {
                 fn_id: self.fn_settings(fn_id, fn)
@@ -453,7 +464,6 @@ class Worker:
         demo._process_worker = self  # type: ignore[attr-defined]
         try:
             description = self.description()
-            protocol.dumps(description)
         except Exception as err:  # noqa: BLE001
             print(f"executor='process' could not reload the app: {err}")
             self.send(("reload", None, "error", str(err)))
@@ -461,8 +471,8 @@ class Worker:
         self.send(("reload", description, "reload", None))
 
     def portable_config(self) -> dict:
-        """The config without callables (e.g. a State's delete_callback): the
-        gateway never calls them, and they may not pickle."""
+        """The config without callables (e.g. a State's delete_callback),
+        which the gateway never calls."""
         config = dict(self.blocks.config)
         config["components"] = [
             {
@@ -504,7 +514,7 @@ class Worker:
                 await self.stop_server(server)
             return
         bootstrap = {
-            **self.description(),
+            "description": b"".join(protocol.encode(self.description())),
             "launch_kwargs": self.gateway_kwargs,
             "queue_kwargs": self.queue_kwargs,
             "session_capacity": self.blocks.state_session_capacity,

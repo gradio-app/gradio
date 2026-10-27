@@ -69,8 +69,9 @@ class Link:
             "127.0.0.1", self.address["port"]
         )
         writer.write(self.address["token"].encode())
-        writer.write(protocol.encode({"fingerprint": self.pool.fingerprint}))
+        writer.writelines(protocol.encode({"fingerprint": self.pool.fingerprint}))
         self.writer = writer
+        self.files = protocol.FileCopies()
         self.loop.create_task(self.read_loop(reader))
         self.loop.create_task(self.heartbeat())
 
@@ -78,7 +79,7 @@ class Link:
         """Pings the app's process, whose loop answers, so that a process whose
         loop is stuck stops getting new sessions."""
         while self.writer is not None and not self.writer.is_closing():
-            self.writer.write(protocol.encode(("ping",)))
+            self.writer.writelines(protocol.encode(("ping",)))
             await asyncio.sleep(HEARTBEAT_SECONDS)
 
     @property
@@ -96,15 +97,7 @@ class Link:
                     if future is None or future.done():
                         continue
                     if kind == "result":
-                        try:
-                            future.set_result(pickle.loads(message[2]))
-                        except Exception as err:  # noqa: BLE001
-                            future.set_exception(
-                                RuntimeError(
-                                    "The gateway could not load what the app's "
-                                    f"process returned: {err!r}"
-                                )
-                            )
+                        future.set_result(message[2])
                     else:
                         future.set_exception(protocol.restore_error(message[2]))
                 elif kind in ("log", "progress") and self.server_loop is not None:
@@ -125,7 +118,9 @@ class Link:
 
     def send(self, message: Any) -> None:
         if self.writer is not None:
-            self.loop.call_soon_threadsafe(self.writer.write, protocol.encode(message))
+            self.loop.call_soon_threadsafe(
+                self.writer.writelines, protocol.encode(message)
+            )
 
     async def _call(self, kind: str, payload: dict) -> Any:
         if self.writer is None:
@@ -133,12 +128,12 @@ class Link:
         rid = next(self.ids)
         future = self.loop.create_future()
         self.pending[rid] = future
-        self.writer.write(protocol.encode((kind, rid, payload)))
+        self.writer.writelines(protocol.encode((kind, rid, payload)))
         try:
             return await future
         except asyncio.CancelledError:
             self.pending.pop(rid, None)
-            self.writer.write(protocol.encode(("cancel", rid)))
+            self.writer.writelines(protocol.encode(("cancel", rid)))
             raise
 
     async def call(self, kind: str, payload: dict) -> Any:
@@ -307,6 +302,10 @@ class Pool:
         from gradio.utils import reassign_pending_event_fns
 
         if description is not None:
+            if protocol.files_by_value():
+                from gradio.utils import get_upload_folder
+
+                description = protocol.unpack_files(description, get_upload_folder())
             configure(self.blocks, description)
             reassign_pending_event_fns(self.blocks)
             self.fingerprint = description["fingerprint"]
@@ -400,12 +399,15 @@ async def forward_event(
             candidate = link.slot(fn.concurrency_id, limit)
             await candidate.acquire()
             slot = candidate
+        sent_body = body.model_dump(exclude={"request", "client_state"})
+        if protocol.files_by_value():
+            sent_body["data"] = link.files.pack(sent_body["data"])
         output = await link.call(
             "event",
             {
                 "fn_index": fn.fn._fn_id,  # type: ignore[union-attr]
                 "validator": fn.is_validator_function,
-                "body": body.model_copy(update={"request": None, "client_state": None}),
+                "body": sent_body,
                 "client_state": protocol.portable_client_state(client_state),
                 "continuing": iterator is not None,
                 "request": protocol.portable_request(gr_request),
@@ -421,6 +423,10 @@ async def forward_event(
         raise
     finally:
         link.running -= 1
+    if protocol.files_by_value():
+        from gradio.utils import get_upload_folder
+
+        output = protocol.unpack_files(output, get_upload_folder())
     has_iterator = output.pop("has_iterator")
     render_settings = output.pop("render_fn_settings", None)
     if render_settings is not None and output.get("render_config"):
@@ -514,6 +520,7 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
         for page, contents in (config.get("page") or {}).items()
         for fn_id in contents.get("dependencies", [])
     }
+    fn_settings = {int(fn_id): settings for fn_id, settings in fn_settings.items()}
     fns = {}
     for dep in config["dependencies"]:
         settings = fn_settings[dep["id"]]
@@ -615,7 +622,10 @@ def configure(blocks: Blocks, description: dict) -> None:
     def get_config_file() -> dict:
         return dict(config)
 
-    api_info = description["api_info"]
+    api_info = {
+        (page, all_endpoints): info
+        for page, all_endpoints, info in description["api_info"]
+    }
 
     def get_api_info(all_endpoints: bool = False, page: str | None = None):
         return (
@@ -912,6 +922,12 @@ def main(path: str) -> None:
             bootstrap = pickle.load(f)
     finally:
         os.unlink(path)
+    description = protocol.decode(bootstrap.pop("description"))
+    if protocol.files_by_value():
+        from gradio.utils import get_upload_folder
+
+        description = protocol.unpack_files(description, get_upload_folder())
+    bootstrap.update(description)
     adopt_environment(bootstrap["env"], bootstrap["cwd"])
     blocks = build(bootstrap)
     signal.signal(signal.SIGTERM, lambda *_: shutdown(blocks))

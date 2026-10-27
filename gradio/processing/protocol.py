@@ -1,15 +1,16 @@
 """Messages between the app's process and its gateway.
 
-Each message is a pickled tuple behind a 4-byte length. The connection is a
-loopback socket that only the gateway this process spawned can use: it sends
-the token first, as raw bytes that the app's process checks before it
-unpickles anything, so both ends trust what they unpickle.
+Each message is JSON, as Gradio sends an event's output to the browser, and
+the bytes it holds (sealed gr.State values, files sent by value) follow it as
+frames of their own. So nothing the app's process sends is unpickled: the
+gateway reads only data, and an error crosses as its type, message and
+traceback. The one exception is code the app asks the gateway to run
+(`process="gateway"` functions, routes and middleware), which crosses pickled
+by value, on purpose.
 
-The results and errors the app's process sends are pickled on their own, so
-that one the gateway cannot load fails its call, not the connection. They are
-pickled without classes or functions defined in `__main__` (the app's script),
-which pickle by reference and which the gateway, running another script,
-cannot find.
+The connection is a loopback socket that only the gateway this process
+spawned can use: it sends the token first, as raw bytes that the app's
+process checks before it reads anything else.
 """
 
 from __future__ import annotations
@@ -24,32 +25,76 @@ import sys
 import types
 from typing import Any
 
-HEADER = struct.Struct("!I")
+import orjson
+from pydantic import BaseModel
+
+HEAD = struct.Struct("!II")
+SIZE = struct.Struct("!Q")
+BYTES = "__gradio_bytes__"
 
 
-def encode(message: Any) -> bytes:
-    body = pickle.dumps(message, protocol=pickle.HIGHEST_PROTOCOL)
-    return HEADER.pack(len(body)) + body
+def encode(message: Any) -> list[bytes]:
+    """`message` as JSON, followed by the bytes it holds. A value JSON has no
+    type for becomes what the browser would get for it."""
+    attachments: list[bytes] = []
+
+    def default(value: Any) -> Any:
+        if isinstance(value, (bytes, bytearray, memoryview)):
+            attachments.append(bytes(value))
+            return {BYTES: len(attachments) - 1}
+        if isinstance(value, BaseModel):
+            return value.model_dump()
+        if isinstance(value, (set, frozenset)):
+            return list(value)
+        return str(value)
+
+    body = orjson.dumps(message, default=default, option=orjson.OPT_NON_STR_KEYS)
+    frames = [HEAD.pack(len(body), len(attachments)), body]
+    for attachment in attachments:
+        frames += [SIZE.pack(len(attachment)), attachment]
+    return frames
 
 
-class _Data:
-    """Marks a message whose last item follows it as a frame of raw bytes."""
-
-
-def encode_with_data(message: tuple, data: bytes) -> list[bytes]:
-    """`message` and then `data`, written as it is rather than copied into
-    the pickle of the message (an event's result can be large)."""
-    head = pickle.dumps((*message, _Data()), protocol=pickle.HIGHEST_PROTOCOL)
-    return [HEADER.pack(len(head)), head, HEADER.pack(len(data)), data]
+def _with_bytes(value: Any, attachments: list[bytes]) -> Any:
+    if isinstance(value, dict):
+        if len(value) == 1 and BYTES in value:
+            return attachments[value[BYTES]]
+        return {k: _with_bytes(v, attachments) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_with_bytes(v, attachments) for v in value]
+    return value
 
 
 async def read(reader: asyncio.StreamReader) -> Any:
-    (size,) = HEADER.unpack(await reader.readexactly(HEADER.size))
-    message = pickle.loads(await reader.readexactly(size))
-    if isinstance(message, tuple) and message and isinstance(message[-1], _Data):
-        (size,) = HEADER.unpack(await reader.readexactly(HEADER.size))
-        message = (*message[:-1], await reader.readexactly(size))
-    return message
+    size, count = HEAD.unpack(await reader.readexactly(HEAD.size))
+    message = orjson.loads(await reader.readexactly(size))
+    if not count:
+        return message
+    attachments = []
+    for _ in range(count):
+        (length,) = SIZE.unpack(await reader.readexactly(SIZE.size))
+        attachments.append(await reader.readexactly(length))
+    return _with_bytes(message, attachments)
+
+
+def decode(data: bytes) -> Any:
+    """A message that `encode` wrote, read from `data`."""
+    stream = io.BytesIO(data)
+    size, count = HEAD.unpack(stream.read(HEAD.size))
+    message = orjson.loads(stream.read(size))
+    attachments = []
+    for _ in range(count):
+        (length,) = SIZE.unpack(stream.read(SIZE.size))
+        attachments.append(stream.read(length))
+    return _with_bytes(message, attachments) if count else message
+
+
+def is_json(value: Any) -> bool:
+    try:
+        orjson.dumps(value)
+    except TypeError:
+        return False
+    return True
 
 
 class NotPortable(pickle.PicklingError):
@@ -70,7 +115,8 @@ class _AppPickler(pickle.Pickler):
 
 
 def dumps(value: Any) -> bytes:
-    """`value` pickled so that the gateway can load it, or NotPortable."""
+    """`value` pickled so that the gateway can load it, or NotPortable. Only
+    the settings the app's process hands the gateway it spawns are pickled."""
     buffer = io.BytesIO()
     _AppPickler(buffer, protocol=pickle.HIGHEST_PROTOCOL).dump(value)
     return buffer.getvalue()
@@ -87,41 +133,140 @@ class RemoteTraceback(Exception):  # noqa: N818
         return self.text
 
 
-def portable_error(exc: BaseException) -> tuple:
-    """An exception crosses as itself when it can, else as a summary. A
-    gr.Error whose class the gateway cannot load crosses as a plain gr.Error."""
+class AppProcessError(Exception):
+    """An exception the app's process raised, other than a gr.Error: its
+    message as it is, and its type and traceback in its `__cause__`."""
+
+    def __init__(self, name: str, message: str):
+        super().__init__(message)
+        self.name = name
+
+
+def portable_error(exc: BaseException) -> dict:
+    """An exception as data: a gr.Error keeps what the user sees."""
     import traceback
 
+    from gradio.caching import CacheMissError
     from gradio.exceptions import Error
 
-    summary = (type(exc).__name__, str(exc), "".join(traceback.format_exception(exc)))
-    candidates = [exc]
-    if isinstance(exc, Error) and type(exc) is not Error:
-        candidates.append(
-            Error(
-                exc.message,
-                duration=exc.duration,
-                visible=exc.visible,
-                title=exc.title,
-                print_exception=exc.print_exception,
-            )
-        )
-    for candidate in candidates:
-        try:
-            return ("pickled", dumps(candidate), *summary)
-        except Exception:
-            continue
-    return ("summary", None, *summary)
-
-
-def restore_error(payload: tuple) -> BaseException:
-    kind, data, name, message, text = payload
-    error: BaseException = RuntimeError(f"{name}: {message}")
-    if kind == "pickled":
-        with contextlib.suppress(Exception):
-            error = pickle.loads(data)
-    error.__cause__ = RemoteTraceback(text)
+    error: dict[str, Any] = {
+        "type": type(exc).__name__,
+        "message": str(exc),
+        "traceback": "".join(traceback.format_exception(exc)),
+        "cache_miss": isinstance(exc, CacheMissError),
+        "gradio_error": None,
+    }
+    if isinstance(exc, Error):
+        error["gradio_error"] = {
+            "message": exc.message,
+            "duration": exc.duration,
+            "visible": exc.visible,
+            "title": exc.title,
+            "print_exception": exc.print_exception,
+        }
     return error
+
+
+def restore_error(error: dict) -> BaseException:
+    from gradio.caching import CacheMissError
+    from gradio.exceptions import Error
+
+    restored: BaseException
+    if error["cache_miss"]:
+        restored = CacheMissError()
+    elif error["gradio_error"] is not None:
+        restored = Error(**error["gradio_error"])
+    else:
+        restored = AppProcessError(error["type"], error["message"])
+    restored.__cause__ = RemoteTraceback(error["traceback"])
+    return restored
+
+
+FILE = "__gradio_file__"
+
+
+def files_by_value() -> bool:
+    """Whether files cross by value (GRADIO_PROCESS_FILES=value), for an app
+    process that does not share the gateway's disk, rather than as paths."""
+    return os.environ.get("GRADIO_PROCESS_FILES", "path").lower() == "value"
+
+
+def _is_file_data(value: dict) -> bool:
+    return (
+        isinstance(value.get("path"), str)
+        and (value.get("meta") or {}).get("_type") == "gradio.FileData"
+        and not value.get("is_stream")
+    )
+
+
+class FileCopies:
+    """The files one side sends the other by value, over one connection: each
+    goes once, named by its content, and later mentions of it carry only its
+    name."""
+
+    def __init__(self):
+        self.sent: set[str] = set()
+        self.digests: dict[tuple[str, int, int], str] = {}
+
+    def pack(self, value: Any) -> Any:
+        if isinstance(value, BaseModel):
+            value = value.model_dump()
+        if isinstance(value, list | tuple):
+            return [self.pack(v) for v in value]
+        if not isinstance(value, dict):
+            return value
+        if not _is_file_data(value) or not os.path.isfile(value["path"]):
+            return {k: self.pack(v) for k, v in value.items()}
+        import hashlib
+
+        stat = os.stat(value["path"])
+        key = (value["path"], stat.st_size, stat.st_mtime_ns)
+        data = None
+        digest = self.digests.get(key)
+        if digest is None:
+            with open(value["path"], "rb") as f:
+                data = f.read()
+            digest = self.digests[key] = hashlib.sha256(data).hexdigest()
+        if digest in self.sent:
+            data = None
+        elif data is None:
+            with open(value["path"], "rb") as f:
+                data = f.read()
+        self.sent.add(digest)
+        return {**value, FILE: {"sha256": digest, "data": data}}
+
+
+def unpack_files(value: Any, folder: str) -> Any:
+    """`value` with each file sent by value written under `folder`, and its
+    path (and URL) pointing there."""
+    if isinstance(value, list):
+        return [unpack_files(v, folder) for v in value]
+    if not isinstance(value, dict):
+        return value
+    if FILE not in value:
+        return {k: unpack_files(v, folder) for k, v in value.items()}
+    copy = value[FILE]
+    sent_path = value["path"]
+    target = os.path.join(folder, copy["sha256"], os.path.basename(sent_path))
+    if copy["data"] is not None and not os.path.exists(target):
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        with open(target + ".part", "wb") as f:
+            f.write(copy["data"])
+        os.replace(target + ".part", target)
+    unpacked = {k: v for k, v in value.items() if k != FILE}
+    unpacked["path"] = target
+    url = unpacked.get("url")
+    if isinstance(url, str):
+        from gradio_client.utils import encode_file_path
+
+        for old, new in (
+            (encode_file_path(sent_path), encode_file_path(target)),
+            (sent_path, target),
+        ):
+            if old in url:
+                unpacked["url"] = url.replace(old, new)
+                break
+    return unpacked
 
 
 FORWARDED = "__gradio_forwarded_to_the_app_process__"
@@ -182,10 +327,16 @@ def starlette_request(snapshot: dict, state: dict | None = None):
     )
 
 
+def _json_state(state: Any) -> dict:
+    """What was set on a request's `state` that JSON can carry."""
+    values = dict(getattr(state, "_state", None) or {})
+    return {k: v for k, v in values.items() if isinstance(k, str) and is_json(v)}
+
+
 def portable_request(request):
-    """A request as it can cross: a gr.Request pickles itself, with its session,
-    while a raw Starlette request (the MCP server passes one) crosses as a
-    snapshot."""
+    """A request as data: a gr.Request as a snapshot of its Starlette request
+    (with its session and `state`), its username and session hash; a raw
+    Starlette request (the MCP server passes one) as a snapshot."""
     from starlette.requests import Request as StarletteRequest
 
     from gradio.route_utils import Request
@@ -193,60 +344,55 @@ def portable_request(request):
     if isinstance(request, list):
         return [portable_request(r) for r in request]
     if isinstance(request, StarletteRequest):
-        return ("starlette", request_snapshot(request))
-    if isinstance(request, Request) and request.request is not None:
-        session = _session(request.request)
-        if session is not None:
-            request.kwargs["session"] = session
-    return request
+        return {"kind": "starlette", **request_snapshot(request)}
+    if not isinstance(request, Request):
+        return None
+    if request.request is not None:
+        snapshot = request_snapshot(request.request)
+        snapshot["state"] = _json_state(getattr(request.request, "state", None))
+    else:
+        kwargs = request.kwargs
+        client = kwargs.get("client") or {}
+        snapshot = {
+            "method": "POST",
+            "url": str(kwargs.get("url", "")),
+            "headers": [
+                (str(k), str(v)) for k, v in (kwargs.get("headers") or {}).items()
+            ],
+            "client": (client.get("host"), client.get("port")),
+            "path_params": kwargs.get("path_params") or {},
+            "session": kwargs.get("session"),
+            "state": {
+                k: v
+                for k, v in (kwargs.get("request_state") or {}).items()
+                if is_json(v)
+            },
+        }
+    return {
+        "kind": "gradio",
+        "username": request.username,
+        "session_hash": request.session_hash,
+        **snapshot,
+    }
 
 
 def restore_request(request, lifespan_state: dict | None = None):
-    """A gr.Request that crossed from the gateway, rebuilt over a Starlette
+    """A request that crossed from the gateway, rebuilt over a Starlette
     request so that headers, cookies, query parameters and `state` behave as
     they do when the function runs in the server's process."""
-    from urllib.parse import urlsplit
-
-    from starlette.requests import Request as StarletteRequest
-
     from gradio.route_utils import Request
 
     if isinstance(request, list):
         return [restore_request(r, lifespan_state) for r in request]
-    if isinstance(request, tuple) and request[:1] == ("starlette",):
-        return starlette_request(request[1], lifespan_state)
-    if not isinstance(request, Request) or request.request is not None:
-        return request
-    kwargs = request.kwargs
-    session = kwargs.pop("session", None)
-    url = urlsplit(str(kwargs.get("url", "")))
-    client = kwargs.get("client") or {}
-    state = dict(lifespan_state or {})
-    request_state = getattr(request.__dict__.get("state"), "_state", None)
-    state.update(request_state or {})
-    scope = {
-        "type": "http",
-        "method": "POST",
-        "scheme": url.scheme or "http",
-        "server": (url.hostname or "", url.port or 80),
-        "path": url.path or "/",
-        "raw_path": (url.path or "/").encode(),
-        "root_path": "",
-        "query_string": url.query.encode(),
-        "headers": [
-            (str(k).lower().encode("latin-1"), str(v).encode("latin-1"))
-            for k, v in (kwargs.get("headers") or {}).items()
-        ],
-        "client": (client.get("host"), client.get("port")),
-        "path_params": kwargs.get("path_params") or {},
-        "state": state,
-    }
-    if session is not None:
-        scope["session"] = session
+    if request is None:
+        return None
+    state = {**(lifespan_state or {}), **(request.get("state") or {})}
+    if request["kind"] == "starlette":
+        return starlette_request(request, state)
     return Request(
-        StarletteRequest(scope),
-        username=request.username,
-        session_hash=request.session_hash,
+        starlette_request(request, state),
+        username=request["username"],
+        session_hash=request["session_hash"],
     )
 
 
@@ -345,13 +491,6 @@ def describe_routes(app, gateway_routes: dict | None = None) -> list[tuple]:
     return routes
 
 
-def jsonable(output: dict) -> dict:
-    """An event's output with its data as the client receives it, JSON types."""
-    from pydantic_core import to_jsonable_python
-
-    return {**output, "data": to_jsonable_python(output.get("data"), fallback=str)}
-
-
 def portable_client_state(client_state) -> dict | None:
     """The browser-held gr.State values of an event, without the gateway's components."""
     if client_state is None:
@@ -371,13 +510,16 @@ def restore_client_state(data: dict | None, fn):
         return None
     from gradio.client_state import ClientState, client_state_components
 
+    def by_id(values: dict) -> dict:
+        return {int(k): v for k, v in values.items()}
+
     client_state = ClientState(
         client_state_components(fn),
         data["fingerprint"],
-        data["serialized"],
-        data["client_refs"],
+        by_id(data["serialized"]),
+        by_id(data["client_refs"]),
         data["username"],
         data["session_hash"],
     )
-    client_state.issued_at = data["issued_at"]
+    client_state.issued_at = by_id(data["issued_at"])
     return client_state
