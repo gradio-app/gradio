@@ -956,6 +956,7 @@ def test_errors_keep_the_app_traceback():
     printed = "".join(traceback.format_exception(restored))
     assert "in divide" in printed
     assert "1 / int(x)" in printed
+    assert printed.rstrip().splitlines()[-1].startswith("ZeroDivisionError")
 
 
 def test_error_subclass_defined_in_the_script():
@@ -1306,3 +1307,168 @@ def test_notebooks_default_to_threads(monkeypatch):
     assert Blocks._resolve_executor("process") == "process"
     monkeypatch.setattr(utils, "ipython_check", lambda: False)
     assert Blocks._resolve_executor(None) == "process"
+
+
+def test_process_alive():
+    import subprocess
+    import sys
+
+    from gradio.processing.gateway import process_alive
+
+    assert process_alive(os.getpid())
+    proc = subprocess.Popen([sys.executable, "-c", "pass"])
+    proc.wait()
+    assert not process_alive(proc.pid)
+
+
+def test_errors_from_user_code_answer_the_call():
+    import asyncio
+
+    from gradio_client.exceptions import AppError
+
+    async def cancelled(x):
+        raise asyncio.CancelledError()
+
+    def upstream(x):
+        raise AppError("the upstream Space failed")
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        t.submit(cancelled, t, t, api_name="cancelled", concurrency_limit=1)
+        t.change(upstream, t, t, api_name="upstream")
+        t.blur(lambda x: x, t, t, api_name="echo", concurrency_id="cancelled")
+    with launched(demo) as client:
+        for _ in range(2):
+            with pytest.raises(AppError):
+                client.predict("a", api_name="/cancelled")
+        assert client.predict("b", api_name="/echo") == "b"
+        with pytest.raises(AppError, match="the upstream Space failed"):
+            client.predict("c", api_name="/upstream")
+
+
+def test_builtin_functions_are_events():
+    import time as time_module
+
+    with gr.Blocks() as demo:
+        out = gr.Textbox()
+        demo.load(time_module.ctime, None, out, api_name="now")
+    with launched(demo) as client:
+        assert client.predict(api_name="/now")
+
+
+def test_pool_admits_events_whose_process_has_room():
+    import asyncio
+    from types import SimpleNamespace
+
+    from gradio.processing.gateway import Link, Pool
+
+    queue = SimpleNamespace(active_jobs=[])
+    pool = Pool(SimpleNamespace(_queue=queue), "", session_capacity=10)  # type: ignore[arg-type]
+    pool.group_limits = {"g": 1}
+    busy = Link({"pid": 1}, pool, primary=True)
+    idle = Link({"pid": 2}, pool, primary=False)
+    pool.links = [busy, idle]
+    busy.sessions["pinned"] = True
+    asyncio.run(busy.slot("g", 1).acquire())
+    fn = SimpleNamespace(queue=True, batch=False, concurrency_id="g")
+
+    def event(event_id, session):
+        return SimpleNamespace(_id=event_id, fn=fn, session_hash=session)
+
+    assert not pool.can_start(event("e1", "pinned"))
+    new = event("e2", "new")
+    assert pool.can_start(new)
+    assert pool.holding("new") is idle
+    queue.active_jobs = [[new]]
+    assert not pool.can_start(event("e3", "another"))
+
+
+def test_closed_links_are_not_added():
+    from gradio.processing.gateway import Link, Pool
+
+    pool = Pool(None, "", session_capacity=10)  # type: ignore[arg-type]
+    primary = Link({"pid": 1}, pool, primary=True)
+    pool.links = [primary]
+    replica = Link({"pid": 2}, pool, primary=False)
+    replica.connect = lambda: pool.lost(replica)  # type: ignore[method-assign]
+    pool.scale_limits = lambda: None  # type: ignore[method-assign]
+    pool.add(replica)
+    assert pool.links == [primary]
+    assert not replica.responsive
+
+
+def test_a_bad_message_does_not_end_the_link():
+    import asyncio
+
+    from gradio.processing import protocol
+    from gradio.processing.gateway import Link
+
+    lost = []
+
+    class FakePool:
+        session_capacity = 10
+
+        def reload(self, *args):
+            raise RuntimeError("bad reload")
+
+        def lost(self, link):
+            lost.append(link)
+
+    link = Link({"pid": 1}, FakePool(), primary=False)  # type: ignore[arg-type]
+
+    async def run():
+        reader = asyncio.StreamReader()
+        for message in (("reload", None, "reload", None), ("result", 0, {"x": 1})):
+            reader.feed_data(b"".join(protocol.encode(message)))
+        reader.feed_eof()
+        future = asyncio.get_running_loop().create_future()
+        link.pending[0] = future
+        await link.read_loop(reader)
+        return future.result()
+
+    assert asyncio.run(run()) == {"x": 1}
+    assert lost == [link]
+
+
+def test_file_copies_keep_files_with_the_same_bytes(tmp_path):
+    from gradio.processing import protocol
+
+    paths = []
+    for name in ("a.txt", "b.txt"):
+        path = tmp_path / name
+        path.write_text("same")
+        paths.append({"path": str(path), "meta": {"_type": "gradio.FileData"}})
+    packed = protocol.FileCopies().pack(paths)
+    landed = protocol.unpack_files(packed, str(tmp_path / "landed"))
+    assert [os.path.basename(f["path"]) for f in landed] == ["a.txt", "b.txt"]
+    assert all(os.path.exists(f["path"]) for f in landed)
+
+
+COUNTING_MIDDLEWARE = """
+from starlette.middleware.base import BaseHTTPMiddleware
+
+
+class Count(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["x-count"] = response.headers.get("x-count", "") + "c"
+        return response
+"""
+
+
+def test_app_kwargs_middleware_runs_once(tmp_path, monkeypatch):
+    import sys
+
+    from starlette.middleware import Middleware
+
+    (tmp_path / "countmw.py").write_text(COUNTING_MIDDLEWARE)
+    monkeypatch.syspath_prepend(str(tmp_path))
+    from countmw import Count  # ty: ignore[unresolved-import]
+
+    demo = gr.Interface(lambda x: x, "textbox", "textbox")
+    try:
+        with launched(demo, app_kwargs={"middleware": [Middleware(Count)]}) as client:
+            for path in ("config", "gradio_api/deep_link?session_hash=s"):
+                assert httpx2.get(f"{client.src}{path}").headers["x-count"] == "c"
+    finally:
+        sys.modules.pop("countmw", None)

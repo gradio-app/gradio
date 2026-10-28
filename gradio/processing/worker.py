@@ -31,6 +31,19 @@ if TYPE_CHECKING:
     from gradio.routes import App
 
 STARTUP_TIMEOUT = 300
+REPLICA_STABLE_SECONDS = 30
+REPLICA_RESTARTS = 5
+
+
+def parameter_names(fn) -> list[str]:
+    """`fn`'s parameter names, or none for a callable without a signature
+    (a builtin such as time.ctime)."""
+    if fn is None:
+        return []
+    try:
+        return list(inspect.signature(fn).parameters)
+    except (TypeError, ValueError):
+        return []
 
 
 def custom_component_locations() -> dict[str, tuple[str, str]]:
@@ -146,7 +159,11 @@ class Worker:
             blocks,
             app=app,
             auth_dependency=self.auth_dependency,
-            app_kwargs=dict(launch_kwargs.get("app_kwargs") or {}),
+            app_kwargs={
+                key: value
+                for key, value in (launch_kwargs.get("app_kwargs") or {}).items()
+                if key != "middleware"
+            },
             strict_cors=launch_kwargs.get("strict_cors", True),
             mcp_server=launch_kwargs.get("mcp_server"),
         )
@@ -193,6 +210,7 @@ class Worker:
         self.replica_processes: list[subprocess.Popen] = []
         self.replica_addresses: list[dict] = []
         self.shutting_down = False
+        self.replica_failures = 0
         self.files = protocol.FileCopies()
 
     def send(self, message: Any) -> None:
@@ -279,8 +297,11 @@ class Worker:
             if self.writer is not None:
                 with contextlib.suppress(ConnectionError):
                     await self.writer.drain()
-        except asyncio.CancelledError:
-            pass
+        except asyncio.CancelledError as exc:
+            task = asyncio.current_task()
+            if task is not None and task.cancelling():
+                raise
+            self.send(("error", rid, protocol.portable_error(exc)))
         except BaseException as exc:  # noqa: BLE001 -- user code can raise anything
             self.send(("error", rid, protocol.portable_error(exc)))
         finally:
@@ -462,8 +483,7 @@ class Worker:
             "tracks_progress": fn.tracks_progress,
             "has_validator": fn.validator is not None,
             "cached": hasattr(fn.fn, "cache"),
-            "parameter_names": list(fn.input_parameter_names)
-            or (list(inspect.signature(fn.fn).parameters) if fn.fn else []),
+            "parameter_names": list(fn.input_parameter_names) or parameter_names(fn.fn),
         }
 
     def reloaded(self, demo: Blocks) -> None:
@@ -524,7 +544,7 @@ class Worker:
             return
         bootstrap = {
             "description": b"".join(protocol.encode(self.description())),
-            "launch_kwargs": self.gateway_kwargs,
+            "launch_kwargs": protocol.dumps(self.gateway_kwargs),
             "queue_kwargs": self.queue_kwargs,
             "session_capacity": self.blocks.state_session_capacity,
             "replicas": self.replicas,
@@ -619,18 +639,33 @@ class Worker:
                     address = json.loads(line)
                     self.replica_addresses.append(address)
                     self.send(("replica", address))
+            started = time.monotonic()
             process.wait()
             if address is not None:
                 self.replica_addresses.remove(address)
             if self.shutting_down:
                 return
-            if address is not None:
-                print(
-                    f"A replica of the app (pid {process.pid}) exited; restarting it."
-                )
-                self.start_replica()
-            else:
+            if address is None:
                 self.send(("replica_failed",))
+                return
+            quick = time.monotonic() - started < REPLICA_STABLE_SECONDS
+            self.replica_failures = self.replica_failures + 1 if quick else 0
+            if self.replica_failures >= REPLICA_RESTARTS:
+                print(
+                    f"A replica of the app (pid {process.pid}) exited; it was "
+                    f"restarted {REPLICA_RESTARTS - 1} times and kept exiting, so it "
+                    "is not restarted again."
+                )
+                self.send(("replica_failed",))
+                return
+            delay = min(2**self.replica_failures, 60) if self.replica_failures else 0
+            print(
+                f"A replica of the app (pid {process.pid}) exited; restarting it"
+                + (f" in {delay} s." if delay else ".")
+            )
+            time.sleep(delay)
+            if not self.shutting_down:
+                self.start_replica()
 
         threading.Thread(target=report, daemon=True).start()
 

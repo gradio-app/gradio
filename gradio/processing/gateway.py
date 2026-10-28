@@ -49,6 +49,7 @@ class Link:
         self.primary = primary
         self.sessions: LRUCache[str, bool] = LRUCache(pool.session_capacity)
         self.last_heard = time.monotonic()
+        self.closed = False
         self.ids = itertools.count()
         self.pending: dict[int, asyncio.Future] = {}
         self.writer: asyncio.StreamWriter | None = None
@@ -84,37 +85,49 @@ class Link:
 
     @property
     def responsive(self) -> bool:
-        return time.monotonic() - self.last_heard < UNRESPONSIVE_SECONDS
+        return (
+            not self.closed
+            and time.monotonic() - self.last_heard < UNRESPONSIVE_SECONDS
+        )
 
     async def read_loop(self, reader: asyncio.StreamReader) -> None:
-        try:
-            while True:
-                message = await protocol.read(reader)
-                self.last_heard = time.monotonic()
-                kind = message[0]
-                if kind in ("result", "error"):
-                    future = self.pending.pop(message[1], None)
-                    if future is None or future.done():
-                        continue
-                    if kind == "result":
-                        future.set_result(message[2])
-                    else:
-                        future.set_exception(protocol.restore_error(message[2]))
-                elif kind in ("log", "progress") and self.server_loop is not None:
-                    self.server_loop.call_soon_threadsafe(self.pool.deliver, message)
-                elif kind == "replica":
-                    self.pool.add_replica(message[1])
-                elif kind == "replica_failed":
-                    self.pool.expected -= 1
-                elif kind == "reload":
-                    self.pool.reload(*message[1:])
-        except (asyncio.IncompleteReadError, ConnectionError):
-            pass
-        except Exception:  # noqa: BLE001 -- the gateway cannot go on without it
-            import traceback
+        """Handles each message from the app's process. One that fails is
+        reported and skipped; only a broken connection ends the loop."""
+        import traceback
 
-            traceback.print_exc()
+        while True:
+            try:
+                message = await protocol.read(reader)
+            except (asyncio.IncompleteReadError, ConnectionError):
+                break
+            except Exception:  # noqa: BLE001 -- the stream can no longer be read
+                traceback.print_exc()
+                break
+            self.last_heard = time.monotonic()
+            try:
+                self.handle(message)
+            except Exception:  # noqa: BLE001 -- one bad message is not fatal
+                traceback.print_exc()
         self.pool.lost(self)
+
+    def handle(self, message: list) -> None:
+        kind = message[0]
+        if kind in ("result", "error"):
+            future = self.pending.pop(message[1], None)
+            if future is None or future.done():
+                return
+            if kind == "result":
+                future.set_result(message[2])
+            else:
+                future.set_exception(protocol.restore_error(message[2]))
+        elif kind in ("log", "progress") and self.server_loop is not None:
+            self.server_loop.call_soon_threadsafe(self.pool.deliver, message)
+        elif kind == "replica":
+            self.pool.add_replica(message[1])
+        elif kind == "replica_failed":
+            self.pool.expected -= 1
+        elif kind == "reload":
+            self.pool.reload(*message[1:])
 
     def send(self, message: Any) -> None:
         if self.writer is not None:
@@ -178,6 +191,7 @@ class Pool:
         self.links: list[Link] = []
         self.lock = threading.Lock()
         self.limits: dict[int, int | None] = {}
+        self.reserved: dict[str, tuple[Link, str]] = {}
         self.group_limits: dict[str, int] = {}
         self.expected = 1
 
@@ -188,6 +202,8 @@ class Pool:
     def add(self, link: Link) -> None:
         link.connect()
         with self.lock:
+            if link.closed:
+                return
             self.links.append(link)
         self.scale_limits()
 
@@ -200,6 +216,7 @@ class Pool:
         if link.primary:
             shutdown(self.blocks)
         with self.lock:
+            link.closed = True
             if link in self.links:
                 self.links.remove(link)
         link.fail_pending(RuntimeError("A replica of the app exited"))
@@ -257,6 +274,40 @@ class Pool:
                 )
             fn.concurrency_limit = None if limit is None else limit * count
             blocks_config.fns[fn_id] = fn
+
+    def can_start(self, event: Any) -> bool:
+        """Whether the queue can start `event` now: the process of its session
+        (or, for a new session, some process) has a free slot in its
+        concurrency group, counting the events started but not yet running
+        there. So an event that would wait for its busy process does not take
+        a queue slot that another process could use."""
+        fn = event.fn
+        limit = self.process_limit(fn) if fn.queue and not fn.batch else None
+        if limit is None or not self.links:
+            return True
+        active = {e._id for job in self.blocks._queue.active_jobs if job for e in job}
+        for event_id in [i for i in self.reserved if i not in active]:
+            del self.reserved[event_id]
+
+        def free(link: Link) -> int:
+            starting = sum(
+                1
+                for reserved_link, concurrency_id in self.reserved.values()
+                if reserved_link is link and concurrency_id == fn.concurrency_id
+            )
+            return link.slot(fn.concurrency_id, limit)._value - starting
+
+        with self.lock:
+            link = self._holder(event.session_hash)
+            if link is None:
+                candidates = [link for link in self.links if link.responsive]
+                link = max(candidates or self.links, key=free)
+                if free(link) > 0 and event.session_hash:
+                    link.sessions[event.session_hash] = True
+            if free(link) <= 0:
+                return False
+            self.reserved[event._id] = (link, fn.concurrency_id)
+            return True
 
     def process_limit(self, fn: BlockFunction) -> int | None:
         """How many events of `fn`'s concurrency group one process runs at
@@ -393,10 +444,12 @@ async def forward_event(
     )
     streaming = fn.connection == "stream"
     slot = None
+    returned = False
     link.running += 1
     try:
         if limit is not None and (iterator is None or streaming):
             candidate = link.slot(fn.concurrency_id, limit)
+            pool.reserved.pop(body.event_id or "", None)
             await candidate.acquire()
             slot = candidate
         sent_body = body.model_dump(exclude={"request", "client_state"})
@@ -415,24 +468,27 @@ async def forward_event(
                 "probe_cache": probing,
             },
         )
+        returned = True
+        if protocol.files_by_value():
+            from gradio.utils import get_upload_folder
+
+            output = protocol.unpack_files(output, get_upload_folder())
+        has_iterator = output.pop("has_iterator")
+        render_settings = output.pop("render_fn_settings", None)
+        if render_settings is not None and output.get("render_config"):
+            pool.add_rendered(
+                session_state.blocks_config, output["render_config"], render_settings
+            )
     except BaseException:
         if slot is not None:
             slot.release()
         elif iterator is not None:
             link.release(body.event_id)
+        if returned and body.event_id is not None:
+            link.send(("close_iterator", body.event_id))
         raise
     finally:
         link.running -= 1
-    if protocol.files_by_value():
-        from gradio.utils import get_upload_folder
-
-        output = protocol.unpack_files(output, get_upload_folder())
-    has_iterator = output.pop("has_iterator")
-    render_settings = output.pop("render_fn_settings", None)
-    if render_settings is not None and output.get("render_config"):
-        pool.add_rendered(
-            session_state.blocks_config, output["render_config"], render_settings
-        )
     if slot is not None:
         if has_iterator and not streaming and body.event_id is not None:
             link.held[body.event_id] = slot
@@ -684,13 +740,32 @@ def shutdown(blocks: Blocks) -> None:
     os._exit(0)
 
 
-def watch_app_process(pid: int, blocks: Blocks) -> None:
-    while True:
+def process_alive(pid: int) -> bool:
+    if sys.platform == "win32":
+        # os.kill(pid, 0) sends Ctrl+C on Windows rather than checking
+        import ctypes
+
+        kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        handle = kernel32.OpenProcess(0x00100000, False, pid)  # SYNCHRONIZE
+        if not handle:
+            return False
         try:
-            os.kill(pid, 0)
-        except ProcessLookupError:
-            shutdown(blocks)
+            return kernel32.WaitForSingleObject(handle, 0) == 0x102  # WAIT_TIMEOUT
+        finally:
+            kernel32.CloseHandle(handle)
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def watch_app_process(pid: int, blocks: Blocks) -> None:
+    while process_alive(pid):
         time.sleep(1)
+    shutdown(blocks)
 
 
 FORWARDED_ROUTES = [
@@ -882,6 +957,7 @@ def main(path: str) -> None:
         daemon=True,
     ).start()
     blocks.queue(**bootstrap["queue_kwargs"])
+    blocks._queue.can_start = blocks._process_pool.can_start  # type: ignore[attr-defined]
     pool: Pool = blocks._process_pool  # type: ignore[attr-defined]
     pool.add(
         Link(
@@ -896,7 +972,8 @@ def main(path: str) -> None:
             primary=True,
         )
     )
-    launch_kwargs = dict(bootstrap["launch_kwargs"])
+    sys.path[:0] = [p for p in bootstrap["sys_path"] if p not in sys.path]
+    launch_kwargs = dict(pickle.loads(bootstrap["launch_kwargs"]))
     if launch_kwargs.get("auth") == protocol.FORWARDED:
 
         async def auth(username: str, password: str) -> bool:
@@ -921,7 +998,6 @@ def main(path: str) -> None:
     if bootstrap["gateway_routers"]:
         from gradio.server import import_gateway
 
-        sys.path[:0] = [p for p in bootstrap["sys_path"] if p not in sys.path]
         for import_path in bootstrap["gateway_routers"]:
             router, middleware = import_gateway(import_path)
             gateway_routers.append(router)

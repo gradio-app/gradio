@@ -118,17 +118,6 @@ def dumps(value: Any) -> bytes:
     return buffer.getvalue()
 
 
-class RemoteTraceback(Exception):  # noqa: N818
-    """The traceback of an exception raised in the app's process, set as the
-    `__cause__` of the one the gateway raises, as `ProcessPoolExecutor` does."""
-
-    def __init__(self, text: str):
-        self.text = text
-
-    def __str__(self) -> str:
-        return self.text
-
-
 class AppProcessError(Exception):
     """An exception the app's process raised, other than a gr.Error: its
     message as it is, and its type and traceback in its `__cause__`."""
@@ -139,11 +128,13 @@ class AppProcessError(Exception):
 
 
 def portable_error(exc: BaseException) -> dict:
-    """An exception as data: a gr.Error keeps what the user sees."""
+    """An exception as data: a gr.Error (or gradio_client's AppError, which
+    the UI shows the same way) keeps what the user sees."""
     import traceback
 
+    from gradio_client.exceptions import AppError
+
     from gradio.caching import CacheMissError
-    from gradio.exceptions import Error
 
     error: dict[str, Any] = {
         "type": type(exc).__name__,
@@ -152,7 +143,7 @@ def portable_error(exc: BaseException) -> dict:
         "cache_miss": isinstance(exc, CacheMissError),
         "gradio_error": None,
     }
-    if isinstance(exc, Error):
+    if isinstance(exc, AppError):
         error["gradio_error"] = {
             "message": exc.message,
             "duration": exc.duration,
@@ -174,7 +165,11 @@ def restore_error(error: dict) -> BaseException:
         restored = Error(**error["gradio_error"])
     else:
         restored = AppProcessError(error["type"], error["message"])
-    restored.__cause__ = RemoteTraceback(error["traceback"])
+    # A note prints after the exception, so the app's own frames and its
+    # original exception end the traceback, as they do with threads
+    restored.add_note(
+        "\nThe app's process raised it:\n" + error["traceback"].rstrip("\n")
+    )
     return restored
 
 
@@ -223,12 +218,13 @@ class FileCopies:
             with open(value["path"], "rb") as f:
                 data = f.read()
             digest = self.digests[key] = hashlib.sha256(data).hexdigest()
-        if digest in self.sent:
+        name = f"{digest}/{os.path.basename(value['path'])}"
+        if name in self.sent:
             data = None
         elif data is None:
             with open(value["path"], "rb") as f:
                 data = f.read()
-        self.sent.add(digest)
+        self.sent.add(name)
         return {**value, FILE: {"sha256": digest, "data": data}}
 
 
