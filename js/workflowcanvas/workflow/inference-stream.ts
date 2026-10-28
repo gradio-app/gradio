@@ -49,32 +49,20 @@ export async function stream_text_generation(
 			? `${opts.modelId}:${opts.provider}`
 			: opts.modelId;
 
-	const request = (max_tokens?: number): Promise<Response> =>
-		fetch(ROUTER_URL, {
-			method: "POST",
-			headers,
-			body: JSON.stringify({
-				model,
-				messages: [{ role: "user", content: opts.content }],
-				...(max_tokens ? { max_tokens } : {}),
-				...(opts.params ?? {}),
-				stream: true
-			}),
-			signal: opts.signal
-		});
+	const body = JSON.stringify({
+		model,
+		messages: [{ role: "user", content: opts.content }],
+		max_tokens: opts.maxTokens ?? 16384,
+		...(opts.params ?? {}),
+		stream: true
+	});
 
-	let res = await request(opts.maxTokens ?? 16384);
-	if (
-		res.status === 400 &&
-		opts.maxTokens === undefined &&
-		opts.params?.max_tokens === undefined
-	) {
-		const detail = await res
-			.clone()
-			.text()
-			.catch(() => "");
-		if (/context/i.test(detail)) res = await request();
-	}
+	const res = await fetch(ROUTER_URL, {
+		method: "POST",
+		headers,
+		body,
+		signal: opts.signal
+	});
 
 	if (!res.ok || !res.body) {
 		const detail = await res.text().catch(() => "");

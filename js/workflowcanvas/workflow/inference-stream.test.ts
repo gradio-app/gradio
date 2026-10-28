@@ -323,30 +323,3 @@ describe("stream_text_generation — errors", () => {
 		).rejects.toThrow();
 	});
 });
-
-describe("stream_text_generation — context window", () => {
-	test("retries without max_tokens when it overflows the context", async () => {
-		const rejected = {
-			status: 400,
-			clone: () => ({ text: async () => "maximum context length" })
-		} as unknown as Response;
-		const fetchMock = vi
-			.fn()
-			.mockResolvedValueOnce(rejected)
-			.mockResolvedValueOnce(
-				sseResponse([
-					'data: {"choices":[{"delta":{"content":"ok"},"finish_reason":"stop"}]}\n\n'
-				])
-			);
-		globalThis.fetch = fetchMock as unknown as typeof fetch;
-
-		await stream_text_generation({
-			modelId: "m",
-			content: "hi",
-			onChunk: () => {}
-		});
-		expect(JSON.parse(fetchMock.mock.calls[1][1].body)).not.toHaveProperty(
-			"max_tokens"
-		);
-	});
-});

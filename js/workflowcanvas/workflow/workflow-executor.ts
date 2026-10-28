@@ -357,15 +357,6 @@ export async function executeWorkflow(
 		for (const port of node.outputs) dataMap[node.id][port.id] = null;
 	}
 
-	function fed_by_failed_node(node: WFNode, port: Port): boolean {
-		return edges.some(
-			(e) =>
-				e.to_node_id === node.id &&
-				e.to_port_id === port.id &&
-				failed_nodes.has(e.from_node_id)
-		);
-	}
-
 	function missing_input_message(node: WFNode, port: Port): string {
 		const edge = edges.find(
 			(e) => e.to_node_id === node.id && e.to_port_id === port.id
@@ -498,10 +489,7 @@ export async function executeWorkflow(
 					throw new Error("Python function call not available");
 				const inputs = resolveInputs(node, edges, dataMap);
 				for (const port of node.inputs) {
-					if (
-						inputs[port.id] === null &&
-						(port.required || fed_by_failed_node(node, port))
-					) {
+					if (port.required && inputs[port.id] === null) {
 						throw new Error(missing_input_message(node, port));
 					}
 				}
@@ -543,10 +531,7 @@ export async function executeWorkflow(
 			try {
 				const inputs = resolveInputs(node, edges, dataMap);
 				for (const port of node.inputs) {
-					if (
-						inputs[port.id] === null &&
-						(port.required || fed_by_failed_node(node, port))
-					) {
+					if (port.required && inputs[port.id] === null) {
 						throw new Error(missing_input_message(node, port));
 					}
 				}
