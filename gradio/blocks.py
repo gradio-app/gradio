@@ -3107,6 +3107,7 @@ Received inputs:
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         executor: Literal["thread", "process"] | None = None,
+        replicas: int | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -3158,6 +3159,7 @@ Received inputs:
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             executor: Where the server runs relative to the app's functions. "process" (the default) runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. GRADIO_PROCESS_REPLICAS=N then runs the app's script in N processes, each serving its own sessions. "thread" runs the server in this process, with functions in its threads. Can be set with the GRADIO_EXECUTOR environment variable.
+            replicas: With executor="process", how many processes run the app's functions: the script runs again in each, which loads its own copy of any model, and each user's session stays on one process. Can be set with the GRADIO_PROCESS_REPLICAS environment variable. Defaults to 1.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -3202,6 +3204,9 @@ Received inputs:
         if self._is_running_in_reload_thread:
             # We have already launched the demo
             return None, None, None  # type: ignore
+
+        if not quiet and not self.is_running:
+            self._print_starting()
 
         if not self.exited:
             self.__exit__()
@@ -3327,10 +3332,19 @@ Received inputs:
                         **self._gateway_launch_kwargs(launch_kwargs),
                         "inline": False,
                         "inbrowser": False,
+                        "quiet": True,
                     },
                     app=_app,
                     launch_kwargs=launch_kwargs,
                 )
+                if not quiet:
+                    worker = self._process_worker  # type: ignore[attr-defined]
+                    self._print_running(
+                        str(self.local_url).rstrip("/"),
+                        self.share_url,
+                        app_processes=worker.replicas,
+                        gateway_pid=worker.gateway.pid,
+                    )
                 if self.mcp_server_obj:
                     self.mcp_server_obj._local_url = self.local_url
                 if self.mcp_server:
@@ -3616,18 +3630,12 @@ Received inputs:
                                 "above, or set ssr_mode=False."
                             )
 
-            if not self.is_colab and not quiet:
-                if self._node_is_proxy and self.node_port is not None:
-                    print(
-                        f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.node_port}, with SSR ⚡ (Node proxy -> Python :{self.server_port})"
-                    )
-                elif self.ssr_mode and not self._ssr_degraded:
-                    print(
-                        f"* Running on local URL:  {self.protocol}://{self.server_name}:{self.server_port}, with SSR ⚡ (dev mode)"
-                    )
-                else:
-                    s = "* Running on local URL:  {}://{}:{}"
-                    print(s.format(self.protocol, self.server_name, self.server_port))
+            port = (
+                self.node_port
+                if self._node_is_proxy and self.node_port is not None
+                else self.server_port
+            )
+            running_url = f"{self.protocol}://{self.server_name}:{port}"
 
             resp = httpx2.get(
                 f"{self.local_api_url}startup-events",
@@ -3699,11 +3707,6 @@ Received inputs:
                     self.share_url = urlunparse(
                         (self.share_server_protocol,) + parsed_url[1:]
                     )
-                print(f"* Running on public URL: {self.share_url}")
-                if not (quiet):
-                    print(
-                        "\nThis share link is temporary and will last for up to 1 week (best effort). For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
-                    )
             except Exception as e:
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
@@ -3724,9 +3727,13 @@ Received inputs:
                         f"\nCould not create share link. Missing file: {BINARY_PATH}. \n\nPlease check your internet connection. This can happen if your antivirus software blocks the download of this file. You can install manually by following these steps: \n\n1. Download this file: {BINARY_URL}\n2. Rename the downloaded file to: {BINARY_FILENAME}\n3. Move the file to this location: {BINARY_FOLDER}"
                     )
         else:
-            if not quiet:
-                print("* To create a public link, set `share=True` in `launch()`.")
             self.share_url = None
+
+        if not quiet and not self.is_colab and not self._is_running_in_reload_thread:
+            if "running_url" in locals():
+                self._print_running(running_url, self.share_url)
+        elif self.share_url and self.is_colab:
+            print(f"* Running on public URL: {self.share_url}")
 
         mcp_subpath = API_PREFIX + "/mcp"
         if self.mcp_server:
@@ -4016,6 +4023,78 @@ Received inputs:
             )
         return resolved
 
+    def _print_starting(self) -> None:
+        from gradio import __version__
+
+        if os.environ.get("GRADIO_PROCESS_REPLICA_FD") or os.environ.get(
+            "GRADIO_PROCESS_GATEWAY"
+        ):
+            return
+        mode = " in hot reload mode" if os.environ.get("GRADIO_WATCH_DIRS") else ""
+        print(
+            f"Gradio {__version__} · starting {self._script_name()}{mode}…", flush=True
+        )
+
+    @staticmethod
+    def _script_name() -> str:
+        script = sys.argv[0] if sys.argv else ""
+        return os.path.basename(script) if script.endswith(".py") else "the app"
+
+    def _print_running(
+        self,
+        url: str,
+        share_url: str | None,
+        app_processes: int = 1,
+        gateway_pid: int | None = None,
+    ) -> None:
+        """What `launch()` prints once the app is up: where it runs, its
+        processes, and one tip, picked from how it was launched."""
+        from gradio import __version__
+
+        lines = [f"Gradio {__version__} · running on {url}"]
+        if share_url:
+            lines.append(f"* public link: {share_url}")
+        pid = os.getpid()
+        if gateway_pid is None:
+            lines.append(f"* 1 process (PID {pid})")
+        elif app_processes == 1:
+            lines.append(f"* 1 app process (PID {pid})")
+            lines.append(f"* 1 gateway process (PID {gateway_pid})")
+        else:
+            replicas = app_processes - 1
+            lines.append(
+                f"* {app_processes} app processes (PID {pid} + {replicas} "
+                f"replica{'s' if replicas > 1 else ''})"
+            )
+            lines.append(f"* 1 gateway process (PID {gateway_pid})")
+        tip = self._launch_tip(share_url, app_processes, gateway_pid is not None)
+        if tip:
+            lines += ["", f"Tip: {tip}"]
+        print("\n".join(lines), flush=True)
+        if share_url:
+            print(
+                "\nThis share link is temporary and will last for up to 1 week (best effort). For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
+            )
+
+    def _launch_tip(
+        self, share_url: str | None, app_processes: int, process: bool
+    ) -> str | None:
+        if os.environ.get("GRADIO_WATCH_DIRS"):
+            return None
+        if not process:
+            return (
+                'use executor="process" (the default) to keep the UI responsive '
+                "while your functions run."
+            )
+        if not share_url and not self.space_id:
+            return "use launch(share=True) to get a public link."
+        if app_processes == 1:
+            return "use launch(replicas=2) to serve more users at once."
+        script = self._script_name()
+        if script != "the app":
+            return f"run `gradio {script}` to reload on save."
+        return None
+
     @staticmethod
     def _gateway_launch_kwargs(launch_kwargs: dict[str, Any]) -> dict[str, Any]:
         """The launch() arguments the gateway process starts the server with.
@@ -4041,6 +4120,7 @@ Received inputs:
                 "head_paths",
                 "i18n",
                 "mcp_server",
+                "replicas",
             ):
                 continue
             if value is None or value is defaults.get(name):

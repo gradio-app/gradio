@@ -106,7 +106,7 @@ function isPortFree(port: number): Promise<boolean> {
 
 /**
  * Poll the server with HTTP GET requests until it returns a response.
- * Gradio prints "Running on local URL:" before the server is fully ready,
+ * Gradio prints " · running on <url>" before the server is fully ready,
  * so we need to verify it actually responds to HTTP requests.
  */
 async function waitForServerReady(
@@ -251,7 +251,7 @@ export async function launchGradioApp(
 			// Check for Gradio's startup message
 			if (
 				!startupDetected &&
-				(data.includes("Running on local URL:") ||
+				(data.includes(" · running on ") ||
 					data.includes(`Uvicorn running on`))
 			) {
 				startupDetected = true;

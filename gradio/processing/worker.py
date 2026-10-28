@@ -179,7 +179,13 @@ class Worker:
         self.server_attributes: dict[str, Any] = {}
         self.failure: str | None = None
         self.replica_fd = replica_fd
-        self.replicas = max(int(os.environ.get("GRADIO_PROCESS_REPLICAS", "1")), 1)
+        self.replicas = max(
+            int(
+                launch_kwargs.get("replicas")
+                or os.environ.get("GRADIO_PROCESS_REPLICAS", "1")
+            ),
+            1,
+        )
         if self.replicas > 1 and os.environ.get("GRADIO_WATCH_DIRS"):
             print("Replicas are not started in reload mode.")
             self.replicas = 1

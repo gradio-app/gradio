@@ -123,12 +123,12 @@ def _dev(
             text.decode("utf-8")
             .replace("Changes detected in:", "[orange3]Changed detected in:[/]")
             .replace("Watching:", "[orange3]Watching:[/]")
-            .replace("Running on local URL", "[orange3]Backend Server[/]")
+            .replace(" · running on", " · [orange3]Backend Server[/] running on")
         )
 
         if "[orange3]Watching:[/]" in text:
             text += f"'{str(frontend_dir).strip()}',"
-        if "To create a public link" in text:
+        if text.startswith("Tip:"):
             continue
         print(text)
         if err:

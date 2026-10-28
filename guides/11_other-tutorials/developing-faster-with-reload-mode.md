@@ -43,7 +43,10 @@ Now, you'll see that after you'll see something like this:
 ```bash
 Watching: '/Users/freddy/sources/gradio/gradio', '/Users/freddy/sources/gradio/demo/'
 
-Running on local URL:  http://127.0.0.1:7860
+Gradio 7.0.0 · starting run.py in hot reload mode…
+Gradio 7.0.0 · running on http://127.0.0.1:7860
+* 1 app process (PID 4791)
+* 1 gateway process (PID 4812)
 ```
 
 The important part here is the line that says `Watching...` What's happening here is that Gradio will be observing the directory where `run.py` file lives, and if the file changes, it will automatically rerun the file for you. So you can focus on writing your code, and your Gradio demo will refresh automatically 🥳
