@@ -657,6 +657,20 @@ class TestDispatchModelEndpoint:
                 client, "chat_completion", {"text": "rebuild this page"}
             )
 
+    def test_chat_completion_retries_without_max_tokens_past_the_context(self):
+        client = MagicMock()
+        client.chat_completion.side_effect = [
+            ValueError("exceeds the model's maximum context length of 16384 tokens"),
+            self._chunks(content="ok"),
+        ]
+
+        out = _dispatch_model_endpoint(client, "chat_completion", {"text": "hello"})
+
+        assert json.loads(out) == ["ok"]
+        first, second = client.chat_completion.call_args_list
+        assert first.kwargs["max_tokens"] == workflow_module._CHAT_MAX_TOKENS
+        assert "max_tokens" not in second.kwargs
+
     def test_chat_completion_reports_finish_reason_when_empty(self):
         client = MagicMock()
         client.chat_completion.return_value = self._chunks(
