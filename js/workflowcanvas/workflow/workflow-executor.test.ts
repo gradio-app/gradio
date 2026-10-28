@@ -735,7 +735,7 @@ describe("executeWorkflow — cascading failure messages", () => {
 			kind: "fn",
 			label: "FLUX",
 			fn: downstreamFn,
-			inputs: [{ id: "in", label: "Prompt", type: "text", required: true }],
+			inputs: [{ id: "in", label: "Prompt", type: "text" }],
 			outputs: [{ id: "out", label: "Image", type: "image" }],
 			data: {},
 			x: 0,
