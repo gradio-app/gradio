@@ -1294,3 +1294,15 @@ def test_file_copies_send_each_file_once(tmp_path):
     with open(landed) as f:
         assert f.read() == "hello"
     assert protocol.unpack_files(second, str(tmp_path / "landed"))[0]["path"] == landed
+
+
+def test_notebooks_default_to_threads(monkeypatch):
+    from gradio import utils
+    from gradio.blocks import Blocks
+
+    monkeypatch.delenv("GRADIO_EXECUTOR", raising=False)
+    monkeypatch.setattr(utils, "ipython_check", lambda: True)
+    assert Blocks._resolve_executor(None) == "thread"
+    assert Blocks._resolve_executor("process") == "process"
+    monkeypatch.setattr(utils, "ipython_check", lambda: False)
+    assert Blocks._resolve_executor(None) == "process"
