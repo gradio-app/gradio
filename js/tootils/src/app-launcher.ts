@@ -252,6 +252,7 @@ export async function launchGradioApp(
 			if (
 				!startupDetected &&
 				(data.includes("* Running on: ") ||
+					data.includes("Running on local URL:") ||
 					data.includes(`Uvicorn running on`))
 			) {
 				startupDetected = true;

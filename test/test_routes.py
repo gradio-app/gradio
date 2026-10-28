@@ -3458,6 +3458,7 @@ def test_mount_gradio_app_args_match_launch_args():
         "_app",
         "num_workers",
         "executor",
+        "replicas",
     }
 
     missing_params = []
