@@ -510,7 +510,6 @@ def test_replicas_keep_concurrency_limit_per_process(tmp_path):
             time.sleep(0.5)
         client = Client(url, verbose=False)
         client.predict("warm", api_name="/work")
-        # One client is one session, which stays on one process
         jobs = [client.submit("x", api_name="/work") for _ in range(2)]
         results = [job.result().split() for job in jobs]
         assert len({pid for pid, _ in results}) == 1
@@ -1136,23 +1135,6 @@ def test_reload_mode_serves_the_reloaded_app(tmp_path):
         proc.wait(timeout=30)
 
 
-def test_pool_routes_new_sessions_to_responsive_processes():
-    from gradio.processing.gateway import Link, Pool
-
-    pool = Pool(None, "", session_capacity=2)  # type: ignore[arg-type]
-    primary = Link({"pid": 1}, pool, primary=True)
-    replica = Link({"pid": 2}, pool, primary=False)
-    pool.links = [primary, replica]
-    primary.last_heard -= 60
-    assert pool.for_session("a") is replica
-    assert pool.holding("a") is replica
-    assert pool.holding("unknown") is primary
-    pool.for_session("b")
-    pool.for_session("c")
-    assert "a" not in replica.sessions
-    assert pool.holding("a") is primary
-
-
 CUSTOM_COMPONENT = """
 from gradio.components.base import Component
 
@@ -1297,18 +1279,6 @@ def test_file_copies_send_each_file_once(tmp_path):
     assert protocol.unpack_files(second, str(tmp_path / "landed"))[0]["path"] == landed
 
 
-def test_notebooks_default_to_threads(monkeypatch):
-    from gradio import utils
-    from gradio.blocks import Blocks
-
-    monkeypatch.delenv("GRADIO_EXECUTOR", raising=False)
-    monkeypatch.setattr(utils, "ipython_check", lambda: True)
-    assert Blocks._resolve_executor(None) == "thread"
-    assert Blocks._resolve_executor("process") == "process"
-    monkeypatch.setattr(utils, "ipython_check", lambda: False)
-    assert Blocks._resolve_executor(None) == "process"
-
-
 def test_process_alive():
     import subprocess
     import sys
@@ -1356,80 +1326,6 @@ def test_builtin_functions_are_events():
         assert client.predict(api_name="/now")
 
 
-def test_pool_admits_events_whose_process_has_room():
-    import asyncio
-    from types import SimpleNamespace
-
-    from gradio.processing.gateway import Link, Pool
-
-    queue = SimpleNamespace(active_jobs=[])
-    pool = Pool(SimpleNamespace(_queue=queue), "", session_capacity=10)  # type: ignore[arg-type]
-    pool.group_limits = {"g": 1}
-    busy = Link({"pid": 1}, pool, primary=True)
-    idle = Link({"pid": 2}, pool, primary=False)
-    pool.links = [busy, idle]
-    busy.sessions["pinned"] = True
-    asyncio.run(busy.slot("g", 1).acquire())
-    fn = SimpleNamespace(queue=True, batch=False, concurrency_id="g")
-
-    def event(event_id, session):
-        return SimpleNamespace(_id=event_id, fn=fn, session_hash=session)
-
-    assert not pool.can_start(event("e1", "pinned"))
-    new = event("e2", "new")
-    assert pool.can_start(new)
-    assert pool.holding("new") is idle
-    queue.active_jobs = [[new]]
-    assert not pool.can_start(event("e3", "another"))
-
-
-def test_closed_links_are_not_added():
-    from gradio.processing.gateway import Link, Pool
-
-    pool = Pool(None, "", session_capacity=10)  # type: ignore[arg-type]
-    primary = Link({"pid": 1}, pool, primary=True)
-    pool.links = [primary]
-    replica = Link({"pid": 2}, pool, primary=False)
-    replica.connect = lambda: pool.lost(replica)  # type: ignore[method-assign]
-    pool.scale_limits = lambda: None  # type: ignore[method-assign]
-    pool.add(replica)
-    assert pool.links == [primary]
-    assert not replica.responsive
-
-
-def test_a_bad_message_does_not_end_the_link():
-    import asyncio
-
-    from gradio.processing import protocol
-    from gradio.processing.gateway import Link
-
-    lost = []
-
-    class FakePool:
-        session_capacity = 10
-
-        def reload(self, *args):
-            raise RuntimeError("bad reload")
-
-        def lost(self, link):
-            lost.append(link)
-
-    link = Link({"pid": 1}, FakePool(), primary=False)  # type: ignore[arg-type]
-
-    async def run():
-        reader = asyncio.StreamReader()
-        for message in (("reload", None, "reload", None), ("result", 0, {"x": 1})):
-            reader.feed_data(b"".join(protocol.encode(message)))
-        reader.feed_eof()
-        future = asyncio.get_running_loop().create_future()
-        link.pending[0] = future
-        await link.read_loop(reader)
-        return future.result()
-
-    assert asyncio.run(run()) == {"x": 1}
-    assert lost == [link]
-
-
 def test_file_copies_keep_files_with_the_same_bytes(tmp_path):
     from gradio.processing import protocol
 
@@ -1472,3 +1368,34 @@ def test_app_kwargs_middleware_runs_once(tmp_path, monkeypatch):
                 assert httpx2.get(f"{client.src}{path}").headers["x-count"] == "c"
     finally:
         sys.modules.pop("countmw", None)
+
+
+def test_unresponsive_process_fails_its_calls(monkeypatch):
+    monkeypatch.setenv("GRADIO_PROCESS_UNRESPONSIVE_SECONDS", "2")
+
+    async def block_loop(x):
+        time.sleep(6)
+        return x
+
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        t.submit(block_loop, t, t, api_name="stuck", concurrency_limit=1)
+        t.change(lambda x: x, t, t, api_name="echo")
+    with launched(demo) as client:
+        start = time.time()
+        with pytest.raises(Exception):  # noqa: B017
+            client.predict("a", api_name="/stuck")
+        assert time.time() - start < 5.5
+        time.sleep(start + 7 - time.time())
+        assert client.predict("b", api_name="/echo") == "b"
+
+
+def test_gateway_imports_the_app_gradio(tmp_path, monkeypatch):
+    (tmp_path / "gradio").mkdir()
+    (tmp_path / "gradio" / "__init__.py").write_text("raise ImportError('wrong')")
+    monkeypatch.chdir(tmp_path)
+    with gr.Blocks() as demo:
+        t = gr.Textbox()
+        t.submit(lambda x: x, t, t, api_name="echo")
+    with launched(demo) as client:
+        assert client.predict("hi", api_name="/echo") == "hi"

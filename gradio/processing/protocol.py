@@ -165,8 +165,6 @@ def restore_error(error: dict) -> BaseException:
         restored = Error(**error["gradio_error"])
     else:
         restored = AppProcessError(error["type"], error["message"])
-    # A note prints after the exception, so the app's own frames and its
-    # original exception end the traceback, as they do with threads
     restored.add_note(
         "\nThe app's process raised it:\n" + error["traceback"].rstrip("\n")
     )

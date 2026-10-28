@@ -214,7 +214,9 @@ class Worker:
         self.files = protocol.FileCopies()
 
     def send(self, message: Any) -> None:
-        """Writes a message from any thread (functions run in worker threads)."""
+        """Writes a message from any thread (functions run in worker threads).
+        A function's thread waits until the gateway has read it, so that its
+        progress updates can't outpace the gateway."""
         if self.loop is None or self.writer is None:
             return
         frames = protocol.encode(message)
@@ -224,8 +226,17 @@ class Worker:
             running = None
         if running is self.loop:
             self.writer.writelines(frames)
+        elif running is None:
+            with contextlib.suppress(Exception):
+                write = self._write(frames)
+                asyncio.run_coroutine_threadsafe(write, self.loop).result(30)
         else:
             self.loop.call_soon_threadsafe(self.writer.writelines, frames)
+
+    async def _write(self, frames: list[bytes]) -> None:
+        if self.writer is not None:
+            self.writer.writelines(frames)
+            await self.writer.drain()
 
     async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         from gradio.client_state import app_fingerprint

@@ -4016,7 +4016,6 @@ Received inputs:
         if os.environ.get("GRADIO_PROCESS_GATEWAY"):
             return "thread"
         explicit = executor or os.environ.get("GRADIO_EXECUTOR")
-        # In a notebook, launching quickly matters more than serving under load
         resolved = explicit or ("thread" if utils.ipython_check() else "process")
         if resolved not in ("thread", "process"):
             raise ValueError(

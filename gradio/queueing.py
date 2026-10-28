@@ -158,8 +158,6 @@ class Queue:
         self.event_ids_to_events: dict[str, Event] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
-        # Whether an event can start now, beyond its concurrency limit (the
-        # process executor's gateway checks the process that would run it)
         self.can_start: Callable[[Event], bool] | None = None
         self.stopped = False
         self.max_thread_count = concurrency_count

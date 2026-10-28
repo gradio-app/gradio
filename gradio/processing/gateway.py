@@ -32,9 +32,6 @@ if TYPE_CHECKING:
     from gradio.data_classes import PredictBodyInternal
     from gradio.routes import App
 
-HEARTBEAT_SECONDS = 5
-UNRESPONSIVE_SECONDS = 30
-
 
 class Link:
     """The connection to one of the app's processes. It lives on its own event
@@ -50,6 +47,9 @@ class Link:
         self.sessions: LRUCache[str, bool] = LRUCache(pool.session_capacity)
         self.last_heard = time.monotonic()
         self.closed = False
+        self.unresponsive_after = float(
+            os.environ.get("GRADIO_PROCESS_UNRESPONSIVE_SECONDS", "30")
+        )
         self.ids = itertools.count()
         self.pending: dict[int, asyncio.Future] = {}
         self.writer: asyncio.StreamWriter | None = None
@@ -77,17 +77,26 @@ class Link:
         self.loop.create_task(self.heartbeat())
 
     async def heartbeat(self) -> None:
-        """Pings the app's process, whose loop answers, so that a process whose
-        loop is stuck stops getting new sessions."""
+        """Pings the app's process, whose loop answers. One whose loop is stuck
+        gets no new sessions, and its calls fail, which frees their slots."""
         while self.writer is not None and not self.writer.is_closing():
             self.writer.writelines(protocol.encode(("ping",)))
-            await asyncio.sleep(HEARTBEAT_SECONDS)
+            await asyncio.sleep(min(5, self.unresponsive_after / 3))
+            if self.pending and not self.responsive:
+                for rid in self.pending:
+                    self.writer.writelines(protocol.encode(("cancel", rid)))
+                self.fail_pending(
+                    RuntimeError(
+                        f"The app's process (pid {self.address['pid']}) has not "
+                        f"responded for {self.unresponsive_after:g} seconds"
+                    )
+                )
 
     @property
     def responsive(self) -> bool:
         return (
             not self.closed
-            and time.monotonic() - self.last_heard < UNRESPONSIVE_SECONDS
+            and time.monotonic() - self.last_heard < self.unresponsive_after
         )
 
     async def read_loop(self, reader: asyncio.StreamReader) -> None:
@@ -143,6 +152,7 @@ class Link:
         self.pending[rid] = future
         self.writer.writelines(protocol.encode((kind, rid, payload)))
         try:
+            await self.writer.drain()
             return await future
         except asyncio.CancelledError:
             self.pending.pop(rid, None)

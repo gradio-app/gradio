@@ -1312,8 +1312,6 @@ class App(FastAPI):
                 raise HTTPException(
                     status_code=404, detail="Environment not supported."
                 )
-            # The gateway of executor="process" has the app's component
-            # classes' locations rather than the classes themselves
             served = getattr(app.get_blocks(), "_custom_component_locations", None)
             if served is not None:
                 if id not in served:

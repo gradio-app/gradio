@@ -58,6 +58,17 @@ def _gateway_env() -> dict[str, str]:
     return {**os.environ, "GRADIO_PROCESS_GATEWAY": "1"}
 
 
+def _gateway_command(*args: str) -> list[str]:
+    """Runs the gateway with the gradio this process imported. `python -m`
+    would look in the working directory first, which may hold another one."""
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    code = (
+        f"import runpy, sys; sys.path[0] = {root!r}; "
+        "runpy.run_module('gradio.processing.gateway', run_name='__main__')"
+    )
+    return [sys.executable, "-c", code, *args]
+
+
 def prewarm() -> None:
     """Starts the zygote, if opted into, unless it runs already or this process
     is a gateway."""
@@ -72,7 +83,7 @@ def prewarm() -> None:
             return
         read, write = os.pipe()
         _state.zygote = subprocess.Popen(
-            [sys.executable, "-m", "gradio.processing.gateway", "--zygote", str(write)],
+            _gateway_command("--zygote", str(write)),
             env=_gateway_env(),
             stdin=subprocess.PIPE,
             pass_fds=[write],
@@ -154,7 +165,7 @@ def start_gateway(bootstrap_path: str):
                 pass
     discard()
     return subprocess.Popen(
-        [sys.executable, "-m", "gradio.processing.gateway", bootstrap_path],
+        _gateway_command(bootstrap_path),
         env=_gateway_env(),
     )
 
