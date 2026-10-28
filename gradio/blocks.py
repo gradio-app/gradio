@@ -4050,7 +4050,10 @@ Received inputs:
         """What `launch()` prints once the app is up, under its "starting"
         line: where it runs, a public link or one tip picked from how it was
         launched, and its processes."""
-        lines = [f"* Running on: {url}"]
+        running = f"* Running on: {url}"
+        if sys.stdout.isatty():
+            running = f"\033[1m{running}\033[0m"
+        lines = [running]
         tip = self._launch_tip(share_url, app_processes, gateway_pid is not None)
         if share_url:
             lines.append(f"* Public link: {share_url}")
