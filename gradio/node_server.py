@@ -228,7 +228,7 @@ def start_node_process(
             print(f"No free port found in range {server_ports[0]}-{server_ports[-1]}.")
     else:
         print(
-            "Please install Node 20 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
+            "Please install Node 24 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
         )
     print(
         "You can explicitly specify a port by setting the environment variable GRADIO_NODE_SERVER_PORT."
