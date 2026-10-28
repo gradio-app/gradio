@@ -4,6 +4,7 @@ test("refreshing the page keeps its outputs and state", async ({ page }) => {
 	const total = page.getByLabel("Total");
 	await expect(total).toHaveValue("Welcome");
 	await page.getByRole("button", { name: "Add" }).click();
+	await expect(total).toHaveValue("Count: 1");
 	await page.getByRole("button", { name: "Add" }).click();
 	await expect(total).toHaveValue("Count: 2");
 
