@@ -1427,7 +1427,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self._deprecated_head_paths = deprecated_kwargs.get("head_paths")
 
         self.default_config = BlocksConfig(self)
-        self._gateway_fns: set[int] = set()
         super().__init__(render=False, **kwargs)
 
         self.mode = mode

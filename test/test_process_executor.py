@@ -522,8 +522,10 @@ def test_replicas_keep_concurrency_limit_per_process(tmp_path):
         proc.wait(timeout=30)
 
 
-def test_custom_component_assets_come_from_the_app(tmp_path, monkeypatch):
+def test_custom_component_assets_are_served_by_the_gateway(tmp_path, monkeypatch):
     import sys
+
+    from gradio import utils
 
     package = tmp_path / "mycomp"
     (package / "templates" / "component").mkdir(parents=True)
@@ -540,6 +542,7 @@ def test_custom_component_assets_come_from_the_app(tmp_path, monkeypatch):
         MyComp()
     with launched(demo) as client:
         class_id = MyComp.get_component_class_id()
+        monkeypatch.setattr(utils, "get_all_components", lambda: [])
         response = httpx2.get(
             f"{client.src}gradio_api/custom_component/{class_id}/client/component/index.js"
         )
@@ -627,7 +630,7 @@ def test_server_custom_routes_and_lifespan_work():
 
     server = gr.Server(lifespan=lifespan)
 
-    @server.get("/health", process="app")
+    @server.get("/health")
     def health():
         return {"pid": os.getpid()}
 
@@ -644,43 +647,104 @@ def test_server_custom_routes_and_lifespan_work():
         server.get_blocks().close()
 
 
-def test_server_middleware_wraps_every_route_once():
-    from starlette.middleware.base import BaseHTTPMiddleware
+GATEWAY_MODULE = """
+import os
 
-    class Tag(BaseHTTPMiddleware):
-        async def dispatch(self, request, call_next):
-            response = await call_next(request)
-            response.headers["x-tag"] = response.headers.get("x-tag", "") + "t"
-            return response
+from fastapi import APIRouter
+from fastapi.responses import HTMLResponse
+from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
-    app = gr.App()
-    app.add_middleware(Tag)  # type: ignore[arg-type]
+router = APIRouter()
 
-    @app.middleware("http")
-    async def count(request, call_next):
+
+@router.get("/", response_class=HTMLResponse)
+def landing():
+    return f"<p>welcome {os.getpid()}</p>"
+
+
+class Tag(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
         response = await call_next(request)
-        response.headers["x-count"] = response.headers.get("x-count", "") + "c"
+        response.headers["x-tag"] = response.headers.get("x-tag", "") + "t"
         return response
 
-    @app.get("/here", process="app")
+
+middleware = [Middleware(Tag)]
+"""
+
+
+@pytest.mark.parametrize("executor", ["process", "thread"])
+def test_gateway_module_serves_routes_and_middleware(executor, tmp_path, monkeypatch):
+    import sys
+
+    from fastapi import APIRouter
+    from fastapi.staticfiles import StaticFiles
+
+    (tmp_path / "webgate.py").write_text(GATEWAY_MODULE)
+    (tmp_path / "site").mkdir()
+    (tmp_path / "site" / "index.html").write_text("<h1>landing</h1>")
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    app = gr.App(gateway="webgate:router")
+    routed = APIRouter(prefix="/routed")
+
+    @routed.get("/pid")
+    def routed_pid():
+        return os.getpid()
+
+    @app.get("/here")
     def here():
         return os.getpid()
 
-    @app.api(name="echo")
+    @app.queue(name="echo")
+    def echo(x: str) -> str:
+        return f"{x} {os.getpid()}"
+
+    app.include_router(routed)
+    app.mount("/site", StaticFiles(directory=tmp_path / "site", html=True))
+    _, url, _ = app.launch(executor=executor, prevent_thread_lock=True)
+    try:
+        worker = getattr(app.get_blocks(), "_process_worker", None)
+        landing_pid = worker.gateway.pid if worker else os.getpid()
+        landing = httpx2.get(url)
+        assert landing.text == f"<p>welcome {landing_pid}</p>"
+        for path in ("", "config", "here", "routed/pid"):
+            assert httpx2.get(f"{url}{path}").headers["x-tag"] == "t"
+        assert httpx2.get(f"{url}here").json() == os.getpid()
+        assert httpx2.get(f"{url}routed/pid").json() == os.getpid()
+        assert "landing" in httpx2.get(f"{url}site/").text
+        assert Client(url, verbose=False).predict("a", api_name="/echo") == (
+            f"a {os.getpid()}"
+        )
+    finally:
+        app.get_blocks().close()
+        sys.modules.pop("webgate", None)
+
+
+def test_gateway_paths_are_checked():
+    with pytest.raises(ValueError, match="import paths"):
+        gr.App(gateway="webgate.router")
+    app = gr.App(gateway="os:path")
+    with pytest.raises(ValueError, match="APIRouter"):
+        app.launch(executor="thread", prevent_thread_lock=True)
+
+
+def test_server_middleware_points_to_the_gateway_module():
+    from starlette.middleware.base import BaseHTTPMiddleware
+
+    server = gr.App()
+    server.add_middleware(
+        BaseHTTPMiddleware,  # type: ignore[arg-type]
+        dispatch=lambda r, call_next: call_next(r),
+    )
+
+    @server.api(name="echo")
     def echo(x: str) -> str:
         return x
 
-    _, url, _ = app.launch(executor="process", prevent_thread_lock=True)
-    try:
-        for path in ("config", "here"):
-            response = httpx2.get(f"{url}{path}")
-            assert response.status_code == 200
-            assert response.headers["x-tag"] == "t"
-            assert response.headers["x-count"] == "c"
-        assert httpx2.get(f"{url}here").json() == os.getpid()
-        assert Client(url, verbose=False).predict("hi", api_name="/echo") == "hi"
-    finally:
-        app.get_blocks().close()
+    with pytest.raises(ValueError, match="gateway="):
+        server.launch(executor="process", prevent_thread_lock=True)
 
 
 def test_server_queue_and_app_alias():
@@ -1008,83 +1072,6 @@ def test_mcp_server_knows_its_local_url():
         assert demo.mcp_server_obj._local_url == local_url  # type: ignore[union-attr]
     finally:
         demo.close()
-
-
-GREETING = {"text": "hello"}
-
-
-def test_get_routes_run_in_the_gateway_unless_asked(tmp_path):
-    from fastapi import APIRouter
-    from fastapi.responses import HTMLResponse
-    from fastapi.staticfiles import StaticFiles
-
-    (tmp_path / "index.html").write_text("<h1>landing</h1>")
-    app = gr.App()
-    router = APIRouter(prefix="/routed")
-
-    @router.get("/pid")
-    def routed_pid():
-        return os.getpid()
-
-    @app.get("/", response_class=HTMLResponse)
-    def landing():
-        return f"<p>{GREETING['text']} {os.getpid()}</p>"
-
-    @app.get("/app-pid", process="app")
-    def app_pid():
-        return os.getpid()
-
-    @app.queue(name="heavy")
-    def heavy(x: str) -> str:
-        return f"{x} {os.getpid()}"
-
-    @app.queue(name="light", process="gateway")
-    def light(x: str) -> str:
-        return f"{x} {os.getpid()}"
-
-    app.include_router(router)
-    app.mount("/site", StaticFiles(directory=tmp_path, html=True), name="site")
-
-    _, url, _ = app.launch(executor="process", prevent_thread_lock=True)
-    try:
-        gateway_pid = app.get_blocks()._process_worker.gateway.pid  # type: ignore[attr-defined]
-        assert httpx2.get(url).text == f"<p>hello {gateway_pid}</p>"
-        assert httpx2.get(f"{url}app-pid").json() == os.getpid()
-        assert httpx2.get(f"{url}routed/pid").json() == os.getpid()
-        assert "landing" in httpx2.get(f"{url}site/").text
-        client = Client(url, verbose=False)
-        assert client.predict("a", api_name="/heavy") == f"a {os.getpid()}"
-        assert client.predict("b", api_name="/light") == f"b {gateway_pid}"
-    finally:
-        app.get_blocks().close()
-
-
-def test_gateway_routes_point_to_process_app():
-    from starlette.datastructures import State
-
-    from gradio.processing.gateway import explain_lifespan_state
-
-    def model():
-        return State().model
-
-    with pytest.raises(AttributeError, match="process='app'"):
-        explain_lifespan_state(model)()
-
-    app = gr.App()
-    big = b"x" * (25 * 2**20)
-
-    @app.get("/size")
-    def size():
-        return len(big)
-
-    with pytest.raises(Exception, match="process='app'"):
-        app.launch(executor="process", prevent_thread_lock=True)
-
-
-def test_process_argument_is_checked():
-    app = gr.App()
-    with pytest.raises(ValueError, match="process"):
-        app.get("/", process="elsewhere")  # type: ignore[arg-type]
 
 
 RELOAD_APP = """

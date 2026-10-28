@@ -414,7 +414,7 @@ async def call_process_api(
     record_history: bool = True,
 ):
     pool = getattr(app.get_blocks(), "_process_pool", None)
-    if pool is not None and not getattr(fn.fn, "_runs_in_gateway", False):
+    if pool is not None:
         from gradio.processing.gateway import forward_event
 
         return await forward_event(

@@ -4,9 +4,7 @@ Each message is JSON, as Gradio sends an event's output to the browser, and
 the bytes it holds (sealed gr.State values, files sent by value) follow it as
 frames of their own. So nothing the app's process sends is unpickled: the
 gateway reads only data, and an error crosses as its type, message and
-traceback. The one exception is code the app asks the gateway to run
-(`process="gateway"` functions, routes and middleware), which crosses pickled
-by value, on purpose.
+traceback.
 
 The connection is a loopback socket that only the gateway this process
 spawned can use: it sends the token first, as raw bytes that the app's
@@ -16,12 +14,10 @@ process checks before it reads anything else.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import io
 import os
 import pickle
 import struct
-import sys
 import types
 from typing import Any
 
@@ -396,67 +392,14 @@ def restore_request(request, lifespan_state: dict | None = None):
     )
 
 
-GATEWAY_COPY_LIMIT = 20 * 1024 * 1024
-
-
-def by_value(
-    value: Any,
-    what: str,
-    remedy: str = "Pass process='app' to run it in the app's process.",
-) -> bytes:
-    """`value`, with the functions it holds, pickled by value for the gateway
-    to run: the gateway does not import the app's modules, so each function
-    crosses with its code and the globals it uses, as they are now."""
-    import sysconfig
-
-    import cloudpickle
-
-    installed = {
-        os.path.realpath(sysconfig.get_paths()[key])
-        for key in ("stdlib", "platstdlib", "purelib", "platlib")
-    }
-    registered = []
-    for module in list(sys.modules.values()):
-        file = getattr(module, "__file__", None)
-        if module.__name__ == "__main__" or not file:
-            continue
-        path = os.path.realpath(file)
-        if any(path.startswith(prefix + os.sep) for prefix in installed):
-            continue
-        if module.__name__.split(".")[0] in ("gradio", "gradio_client"):
-            continue
-        with contextlib.suppress(ValueError):
-            cloudpickle.register_pickle_by_value(module)
-            registered.append(module)
-    try:
-        data = cloudpickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
-    except Exception as err:
-        raise NotPortable(
-            f"{what} runs in the gateway process, which needs a copy of it and "
-            f"of what it uses, but that could not be made ({err}). {remedy}"
-        ) from None
-    finally:
-        for module in registered:
-            cloudpickle.unregister_pickle_by_value(module)
-    if len(data) > GATEWAY_COPY_LIMIT:
-        raise NotPortable(
-            f"{what} runs in the gateway process, which needs a copy of it and "
-            f"of what it uses, but that copy is {len(data) // 2**20} MB (a model "
-            f"or large global?). {remedy}"
-        )
-    return data
-
-
-def describe_routes(app, gateway_routes: dict | None = None) -> list[tuple]:
+def describe_routes(app) -> list[tuple]:
     """The routes of a FastAPI app (a Server's own, before Gradio adds its
-    routes), in order, as the gateway serves them: it forwards most to the app's
-    process, and serves StaticFiles mounts and the routes in `gateway_routes`
-    (endpoint -> its decorator's arguments) itself."""
+    routes), in order, as the gateway serves them: it forwards them to the
+    app's process, and serves StaticFiles mounts itself."""
     from fastapi.routing import APIRoute, APIWebSocketRoute
     from starlette.routing import Mount, WebSocketRoute
     from starlette.staticfiles import StaticFiles
 
-    gateway_routes = gateway_routes or {}
     routes: list[tuple] = []
 
     def walk(entries, prefix: str) -> None:
@@ -467,19 +410,7 @@ def describe_routes(app, gateway_routes: dict | None = None) -> list[tuple]:
             route = getattr(entry, "original_route", entry)
             path = prefix + route.path
             if isinstance(route, APIRoute):
-                if route.endpoint in gateway_routes:
-                    routes.append(
-                        (
-                            "gateway",
-                            path,
-                            by_value(
-                                (route.endpoint, gateway_routes[route.endpoint]),
-                                f"The route {path}",
-                            ),
-                        )
-                    )
-                else:
-                    routes.append(("http", path, sorted(route.methods)))
+                routes.append(("http", path, sorted(route.methods)))
             elif isinstance(route, (APIWebSocketRoute, WebSocketRoute)):
                 routes.append(("websocket", path, None))
             elif isinstance(route, Mount) and isinstance(route.app, StaticFiles):

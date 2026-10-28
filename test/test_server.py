@@ -21,7 +21,7 @@ class TestServer:
 
         server = gr.Server()
 
-        @server.get("/state-check", process="app")
+        @server.get("/state-check")
         def state_check(request: Request):
             return PlainTextResponse(request.state.hello)
 

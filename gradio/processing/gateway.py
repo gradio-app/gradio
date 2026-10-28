@@ -528,15 +528,10 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
         def ids(key):
             return [blocks[i] for i in dep.get(key) or [] if i in blocks]
 
-        if settings["gateway_fn"] is not None:
-            fn = pickle.loads(settings["gateway_fn"])
-            fn._runs_in_gateway = True  # type: ignore[attr-defined]
-        elif dep["backend_fn"]:
-            fn = make_stub(dep["id"], dep["types"]["generator"], settings["cached"])
-        else:
-            fn = None
         fns[dep["id"]] = BlockFunction(
-            fn=fn,
+            fn=make_stub(dep["id"], dep["types"]["generator"], settings["cached"])
+            if dep["backend_fn"]
+            else None,
             inputs=ids("inputs"),
             outputs=ids("outputs"),
             preprocess=False,
@@ -578,26 +573,20 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
 
 def app_block(component: dict) -> Any:
     """What stands in the gateway for a block of the app's config: an id and
-    a type, or a gr.State or gr.api component, whose logic the gateway runs."""
+    a type, or a gr.State, whose storage the gateway's queue handles."""
     from gradio.components import State
-    from gradio.components.api_component import Api
 
     props = component["props"]
-    if props.get("name") == "state":
-        block: Any = State(
-            storage=props.get("storage", "server"),
-            time_to_live=props.get("time_to_live"),
-            render=False,
-        )
-    elif component["type"] == "api":
-        block = Api(
-            props.get("value"), props.get("_api_info") or {}, props.get("label")
-        )
-    else:
+    if props.get("name") != "state":
         return AppBlock(component)
-    block._id = component["id"]
-    block.app_config = component  # type: ignore[attr-defined]
-    return block
+    state = State(
+        storage=props.get("storage", "server"),
+        time_to_live=props.get("time_to_live"),
+        render=False,
+    )
+    state._id = component["id"]
+    state.app_config = component  # type: ignore[attr-defined]
+    return state
 
 
 def configure(blocks: Blocks, description: dict) -> None:
@@ -614,6 +603,7 @@ def configure(blocks: Blocks, description: dict) -> None:
     blocks.default_config.fn_id = max(blocks.fns, default=-1) + 1
     blocks.app_id = config["app_id"]
     blocks._state_fingerprint = description["fingerprint"]  # type: ignore[attr-defined]
+    blocks._custom_component_locations = description["custom_components"]  # type: ignore[attr-defined]
     if config.get("mode"):
         blocks.mode = config["mode"]
     if config.get("pages"):
@@ -704,7 +694,6 @@ def watch_app_process(pid: int, blocks: Blocks) -> None:
 
 
 FORWARDED_ROUTES = [
-    ("/custom_component/{id}/{environment}/{type}/{file_name}", ["GET"]),
     ("/component_server", ["POST"]),
     ("/component_server/", ["POST"]),
     ("/deep_link", ["GET"]),
@@ -725,42 +714,6 @@ async def logged_in_user(app: App, request: Request) -> str | None:
     return app.tokens.get(token)
 
 
-def explain_lifespan_state(endpoint):
-    """`endpoint`, a route that runs in the gateway, which points to
-    process='app' if it reads what the app's lifespan set on `request.state`,
-    since the lifespan runs in the app's process."""
-    import functools
-
-    def explained(err: AttributeError) -> AttributeError:
-        if "'State' object has no attribute" not in str(err):
-            return err
-        return AttributeError(
-            f"{err}. This route runs in the gateway process (the default for "
-            "GET routes with executor='process'), where the app's lifespan does "
-            "not run. Pass process='app' to run it in the app's process."
-        )
-
-    if inspect.iscoroutinefunction(endpoint):
-
-        @functools.wraps(endpoint)
-        async def run_async(*args, **kwargs):
-            try:
-                return await endpoint(*args, **kwargs)
-            except AttributeError as err:
-                raise explained(err) from err
-
-        return run_async
-
-    @functools.wraps(endpoint)
-    def run(*args, **kwargs):
-        try:
-            return endpoint(*args, **kwargs)
-        except AttributeError as err:
-            raise explained(err) from err
-
-    return run
-
-
 async def session_of(request: Request) -> str | None:
     """The session a forwarded request is for, so that it reaches the process
     that holds it."""
@@ -777,7 +730,9 @@ async def session_of(request: Request) -> str | None:
     return session_hash if isinstance(session_hash, str) else None
 
 
-def add_forwarded_routes(app, bootstrap: dict, pool: Pool) -> None:
+def add_forwarded_routes(
+    app, bootstrap: dict, pool: Pool, gateway_routers: list
+) -> None:
     from urllib.parse import quote
 
     from fastapi import Depends, HTTPException
@@ -849,21 +804,6 @@ def add_forwarded_routes(app, bootstrap: dict, pool: Pool) -> None:
     for kind, path, data in bootstrap["server_routes"]:
         if kind == "http":
             routes.append(APIRoute(path, to_app, methods=data, include_in_schema=False))
-        elif kind == "gateway":
-            endpoint, kwargs = pickle.loads(data)
-            kwargs = dict(kwargs)
-            routes.append(
-                APIRoute(
-                    path,
-                    explain_lifespan_state(endpoint),
-                    dependencies=[
-                        *app.router.dependencies,
-                        *(kwargs.pop("dependencies", None) or []),
-                    ],
-                    dependency_overrides_provider=app,
-                    **kwargs,
-                )
-            )
         elif kind == "static":
             static_files, name = data
             routes.append(Mount(path, app=static_files, name=name))
@@ -878,6 +818,11 @@ def add_forwarded_routes(app, bootstrap: dict, pool: Pool) -> None:
                     include_in_schema=False,
                 )
             )
+    for router in gateway_routers:
+        count = len(app.router.routes)
+        app.include_router(router)
+        routes[:0] = app.router.routes[count:]
+        del app.router.routes[count:]
     app.router.routes[:0] = routes
     app.router.routes.append(
         APIRoute("/{path:path}", to_app, methods=METHODS, include_in_schema=False)
@@ -971,10 +916,20 @@ def main(path: str) -> None:
             return result["user"]
 
         launch_kwargs["auth_dependency"] = auth_dependency
-    if bootstrap["middleware"] is not None:
+    gateway_routers = []
+    gateway_middleware: list = []
+    if bootstrap["gateway_routers"]:
+        from gradio.server import import_gateway
+
+        sys.path[:0] = [p for p in bootstrap["sys_path"] if p not in sys.path]
+        for import_path in bootstrap["gateway_routers"]:
+            router, middleware = import_gateway(import_path)
+            gateway_routers.append(router)
+            gateway_middleware += middleware
+    if gateway_middleware:
         launch_kwargs["app_kwargs"] = {
             **(launch_kwargs.get("app_kwargs") or {}),
-            "middleware": pickle.loads(bootstrap["middleware"]),
+            "middleware": gateway_middleware,
         }
     if bootstrap["check_dependencies"]:
         from fastapi import Depends
@@ -993,7 +948,7 @@ def main(path: str) -> None:
     app, local_url, share_url = blocks.launch(prevent_thread_lock=True, **launch_kwargs)
     serve_as_is(blocks, bootstrap)
     pool.scale_limits()
-    add_forwarded_routes(app, bootstrap, pool)
+    add_forwarded_routes(app, bootstrap, pool, gateway_routers)
     app.session_listener = pool.session_changed
     pool.primary.send(
         (

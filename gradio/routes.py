@@ -1312,23 +1312,37 @@ class App(FastAPI):
                 raise HTTPException(
                     status_code=404, detail="Environment not supported."
                 )
-            components = utils.get_all_components()
-            location = next(
-                (item for item in components if item.get_component_class_id() == id),
-                None,
-            )
-            if location is None:
-                raise HTTPException(status_code=404, detail="Component not found.")
+            # The gateway of executor="process" has the app's component
+            # classes' locations rather than the classes themselves
+            served = getattr(app.get_blocks(), "_custom_component_locations", None)
+            if served is not None:
+                if id not in served:
+                    raise HTTPException(status_code=404, detail="Component not found.")
+                template_dir, module_dir = served[id]
+            else:
+                components = utils.get_all_components()
+                location = next(
+                    (
+                        item
+                        for item in components
+                        if item.get_component_class_id() == id
+                    ),
+                    None,
+                )
+                if location is None:
+                    raise HTTPException(status_code=404, detail="Component not found.")
 
-            module_name = location.__module__
-            module_path = sys.modules[module_name].__file__
+                module_name = location.__module__
+                module_path = sys.modules[module_name].__file__
 
-            if module_path is None:
-                raise HTTPException(status_code=404, detail="Component not found.")
+                if module_path is None:
+                    raise HTTPException(status_code=404, detail="Component not found.")
+                template_dir = location.TEMPLATE_DIR
+                module_dir = str(Path(module_path).parent)
 
             try:
                 requested_path = utils.safe_join(
-                    location.TEMPLATE_DIR,
+                    template_dir,
                     UserProvidedPath(f"{type}/{file_name}"),
                 )
             except InvalidPathError:
@@ -1337,7 +1351,7 @@ class App(FastAPI):
                 ) from None
 
             path = routes_safe_join(
-                DeveloperPath(str(Path(module_path).parent)),
+                DeveloperPath(module_dir),
                 UserProvidedPath(requested_path),
             )
 
