@@ -44,7 +44,7 @@ Now, you'll see that after you'll see something like this:
 Watching: '/Users/freddy/sources/gradio/gradio', '/Users/freddy/sources/gradio/demo/'
 
 Gradio 7.0.0 · starting run.py in hot reload mode…
-Gradio 7.0.0 · running on http://127.0.0.1:7860
+* Running on: http://127.0.0.1:7860
 * 1 app process (PID 4791)
 * 1 gateway process (PID 4812)
 ```

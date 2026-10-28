@@ -123,12 +123,12 @@ def _dev(
             text.decode("utf-8")
             .replace("Changes detected in:", "[orange3]Changed detected in:[/]")
             .replace("Watching:", "[orange3]Watching:[/]")
-            .replace(" · running on", " · [orange3]Backend Server[/] running on")
+            .replace("* Running on:", "* [orange3]Backend Server[/]:")
         )
 
         if "[orange3]Watching:[/]" in text:
             text += f"'{str(frontend_dir).strip()}',"
-        if text.startswith("Tip:"):
+        if text.startswith("* Tip:"):
             continue
         print(text)
         if err:

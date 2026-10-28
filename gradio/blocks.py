@@ -4047,13 +4047,15 @@ Received inputs:
         app_processes: int = 1,
         gateway_pid: int | None = None,
     ) -> None:
-        """What `launch()` prints once the app is up: where it runs, its
-        processes, and one tip, picked from how it was launched."""
-        from gradio import __version__
-
-        lines = [f"Gradio {__version__} · running on {url}"]
+        """What `launch()` prints once the app is up, under its "starting"
+        line: where it runs, a public link or one tip picked from how it was
+        launched, and its processes."""
+        lines = [f"* Running on: {url}"]
+        tip = self._launch_tip(share_url, app_processes, gateway_pid is not None)
         if share_url:
-            lines.append(f"* public link: {share_url}")
+            lines.append(f"* Public link: {share_url}")
+        elif tip:
+            lines.append(f"* Tip: {tip}")
         pid = os.getpid()
         if gateway_pid is None:
             lines.append(f"* 1 process (PID {pid})")
@@ -4067,9 +4069,6 @@ Received inputs:
                 f"replica{'s' if replicas > 1 else ''})"
             )
             lines.append(f"* 1 gateway process (PID {gateway_pid})")
-        tip = self._launch_tip(share_url, app_processes, gateway_pid is not None)
-        if tip:
-            lines += ["", f"Tip: {tip}"]
         print("\n".join(lines), flush=True)
         if share_url:
             print(
