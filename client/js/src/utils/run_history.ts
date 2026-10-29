@@ -5,6 +5,7 @@ import {
 	delete_record,
 	prune_records,
 	read_record,
+	sends_chunks,
 	storage_available,
 	write_record,
 	type StoredRecord
@@ -580,9 +581,17 @@ function restore_run_impl(
 	);
 	if (!dependency) return false;
 
-	const inputs = Array.isArray(run.inputs)
-		? run.inputs
-		: Object.values((run.inputs ?? {}) as Record<string, unknown>);
+	const inputs = (
+		Array.isArray(run.inputs)
+			? run.inputs
+			: Object.values((run.inputs ?? {}) as Record<string, unknown>)
+	).map((value, index) =>
+		sends_chunks(
+			config.components.find((item) => item.id === dependency.inputs[index])
+		)
+			? undefined
+			: value
+	);
 	const outputs = Array.isArray(run.outputs)
 		? run.outputs
 		: run.outputs === null || run.outputs === undefined
@@ -592,7 +601,7 @@ function restore_run_impl(
 	const restore = (ids: number[], saved: unknown[]): void => {
 		for (const [index, id] of ids.entries()) {
 			const component = config.components.find((item) => item.id === id);
-			if (!component || index >= saved.length) continue;
+			if (!component || saved[index] === undefined) continue;
 			// `gr.State` travels as sealed tokens and is always saved as null, so
 			// writing it back would wipe out the component's real default.
 			if (component.type === "state") continue;

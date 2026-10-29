@@ -480,6 +480,22 @@ describe.skipIf(!in_browser)("replaying a run", () => {
 		]);
 	});
 
+	test("does not put back the frame a streaming input sent", () => {
+		stage_run_history_replay(scope, {
+			...stored,
+			inputs: [{ url: "data:image/jpeg;base64,frame" }, null]
+		});
+		const config = make_config();
+		(config.components[0].props as Record<string, unknown>).streaming = true;
+		const written: unknown[][] = [];
+
+		expect(
+			apply_run_history_replay(config, (_, values) => written.push(values))
+		).toBe(true);
+		expect(config.components[0].props.value).toBe("default in");
+		expect(written[0]).toEqual([undefined, null]);
+	});
+
 	test("matches the endpoint by api name when the fn index has moved", () => {
 		stage_run_history_replay(scope, { ...stored, fn_index: 99 });
 		const config = make_config();

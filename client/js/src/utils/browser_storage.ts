@@ -192,6 +192,17 @@ export function app_scope_key(
 }
 
 /**
+ * Whether a component sends chunks of a stream as its input (a streaming
+ * webcam sends its latest frame to every event that reads it). A chunk is
+ * not a value to put back: shown again, a frame would replace the camera.
+ */
+export function sends_chunks(
+	component: { props: Record<string, any> } | undefined
+): boolean {
+	return Boolean(component?.props.streaming);
+}
+
+/**
  * Writes a value a component was given into its props, the way the frontend
  * applies it: an update (`{"__type__": "update", ...}`) sets the props it
  * carries, and anything else is the component's new value.
