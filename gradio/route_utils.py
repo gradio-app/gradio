@@ -85,6 +85,7 @@ if TYPE_CHECKING:
 
 config_lock = threading.Lock()
 API_PREFIX = "/gradio_api"
+GATEWAY_USER_SCOPE_KEY = "gradio.gateway_user"
 
 
 mimetypes.init()
@@ -243,6 +244,8 @@ class Request:
 
     def __setstate__(self, state: dict[str, Any]):
         request_state = state.pop("request_state", None)
+        if request_state is None:
+            request_state = (state.get("kwargs") or {}).pop("request_state", None)
         self.__dict__ = state
         if request_state is not None:
             self.state = State(request_state)
@@ -410,6 +413,14 @@ async def call_process_api(
     root_path: str,
     record_history: bool = True,
 ):
+    pool = getattr(app.get_blocks(), "_process_pool", None)
+    if pool is not None:
+        from gradio.processing.gateway import forward_event
+
+        return await forward_event(
+            pool, app, body, gr_request, fn, root_path, record_history
+        )
+
     session_state, iterator = restore_session_state(app=app, body=body)
     # Each chunk of a stream calls the function afresh with that chunk; the
     # event id is only there for the call's context (gr.Info, progress)

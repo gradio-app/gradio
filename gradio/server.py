@@ -24,35 +24,52 @@ class _MCPNamespace:
     prompt = staticmethod(mcp.prompt)
 
 
+def import_gateway(path: str) -> tuple[fastapi.APIRouter, list]:
+    """The router at `path` ("module:router"), and the `middleware` list of its
+    module, if it has one."""
+    import importlib
+
+    module_name, attribute = path.split(":")
+    module = importlib.import_module(module_name)
+    router = getattr(module, attribute, None)
+    if not isinstance(router, fastapi.APIRouter):
+        raise ValueError(
+            f"`gateway={path!r}` should name a FastAPI APIRouter, but "
+            f"{module_name}.{attribute} is {type(router).__name__}."
+        )
+    return router, list(getattr(module, "middleware", None) or [])
+
+
 @document("api", "launch")
 class Server(App):
     """
-    Server is the Gradio API engine exposed on a FastAPI application (Server mode).
-    It inherits from FastAPI, so all standard FastAPI methods (.get(), .post(),
-    .add_middleware(), .include_router(), etc.) work directly on this instance.
+    Server is the Gradio API engine exposed on a FastAPI application (Server mode),
+    also available as `gr.App`. It inherits from FastAPI, so all standard FastAPI
+    methods (.get(), .post(), .add_middleware(), .include_router(), etc.) work
+    directly on this instance.
 
     New methods added on top of FastAPI:
-        api(): Decorator to register a Gradio API endpoint with queue,
-            SSE streaming, and concurrency control.
+        queue(): Decorator to register a Gradio API endpoint with queue,
+            SSE streaming, and concurrency control. `api()` is the same.
         mcp: Namespace with .tool(), .resource(), and .prompt() decorators
             to tag functions with MCP metadata.
         launch(): Creates an internal Blocks, registers deferred API
             endpoints, and starts the server.
 
     Example:
-        from gradio import Server
+        import gradio as gr
 
-        server = Server()
+        app = gr.App()
 
-        @server.api(name="hello")
+        @app.queue(name="hello")
         def hello(name: str) -> str:
             return f"Hello {name}"
 
-        @server.get("/")
+        @app.get("/")
         def root():
             return {"message": "Hello World"}
 
-        server.launch()
+        app.launch()
     Demos: server_app
     Guides: server-mode
     """
@@ -90,6 +107,7 @@ class Server(App):
         include_in_schema: bool = True,
         generate_unique_id_function: Any = None,
         separate_input_output_schemas: bool = True,
+        gateway: str | Sequence[str] | None = None,
         **extra: Any,
     ):
         """
@@ -124,6 +142,7 @@ class Server(App):
             include_in_schema: Whether to include all routes in the OpenAPI schema.
             generate_unique_id_function: Custom function to generate unique operation IDs.
             separate_input_output_schemas: Whether to generate separate input/output schemas.
+            gateway: Routers to serve from the gateway process, by import path ("module:router", or a list of them), such as "web:router" for `router` in web.py. With executor="process", the gateway imports that module, and never this script, so those routes stay responsive while queued functions run; keep models out of it. Middleware the module defines in a `middleware` list wraps every route, Gradio's included. With executor="thread", the routers and middleware are added to this app.
         """
         init_kwargs: dict[str, Any] = {
             "debug": debug,
@@ -170,6 +189,12 @@ class Server(App):
             init_kwargs["generate_unique_id_function"] = generate_unique_id_function
         super().__init__(**init_kwargs)
         self._deferred_apis: list[tuple[Callable, dict[str, Any]]] = []
+        self.gateway = [gateway] if isinstance(gateway, str) else list(gateway or [])
+        for path in self.gateway:
+            if path.count(":") != 1:
+                raise ValueError(
+                    f"`gateway` takes import paths like 'web:router', not {path!r}."
+                )
         self._mcp = _MCPNamespace()
 
     @property
@@ -177,7 +202,7 @@ class Server(App):
         """MCP decorator namespace: server.mcp.tool(), server.mcp.resource(), server.mcp.prompt()."""
         return self._mcp
 
-    def api(
+    def queue(
         self,
         fn: Callable | None = None,
         *,
@@ -195,6 +220,7 @@ class Server(App):
         """Decorator to register a function as a Gradio API endpoint.
 
         Goes through Gradio's queue with concurrency control and SSE streaming.
+        `api()` is the same decorator.
         """
         kwargs = {
             "api_name": name,
@@ -217,6 +243,8 @@ class Server(App):
             return func
 
         return wrapper
+
+    api = queue
 
     def launch(
         self,
@@ -275,6 +303,8 @@ class Server(App):
         head_paths: str | Path | Sequence[str | Path] | None = None,
         num_workers: int | None = None,
         resume_sessions: bool | None = None,
+        executor: Literal["thread", "process"] | None = None,
+        replicas: int | None = None,
     ) -> tuple[App, str, str]:
         """Launch the Gradio API server (Server mode).
 
@@ -285,6 +315,14 @@ class Server(App):
         """
         from gradio.blocks import Blocks
         from gradio.events import api as gr_api
+
+        if Blocks._resolve_executor(executor) == "process":
+            self._check_process_executor()
+        elif self.gateway and not getattr(self, "_gateway_added", False):
+            for router, middleware in map(import_gateway, self.gateway):
+                self.include_router(router)
+                self.user_middleware[0:0] = middleware
+            self._gateway_added = True
 
         with Blocks(mode="server") as blocks:
             for fn, api_kwargs in self._deferred_apis:
@@ -342,4 +380,18 @@ class Server(App):
             head_paths=head_paths,
             num_workers=num_workers,
             resume_sessions=resume_sessions,
+            executor=executor,
+            replicas=replicas,
         )
+
+    def _check_process_executor(self) -> None:
+        """With executor="process" the gateway serves Gradio's routes, so
+        middleware added to this app would not wrap them, as it does with
+        threads. The gateway runs the middleware of `gateway` modules."""
+        if self.user_middleware:
+            raise ValueError(
+                "With executor='process', a gr.App's middleware has to run in the "
+                "gateway process, which serves Gradio's routes. Define it in a "
+                "`middleware` list in a module passed as gr.App(gateway=...) "
+                "instead of calling add_middleware(), or use executor='thread'."
+            )

@@ -2,6 +2,7 @@
 	import type { ToastMessage, GroupedToastMessage } from "./types";
 	import ToastContent from "./ToastContent.svelte";
 	import { spring } from "svelte/motion";
+	import { on_page_info } from "@gradio/utils";
 
 	interface Props {
 		messages?: ToastMessage[];
@@ -13,8 +14,12 @@
 
 	let grouped_messages: GroupedToastMessage[] = $state([]);
 
+	// Keep the toasts in view of an embedding page while there are any.
 	$effect(() => {
-		scroll_to_top(messages);
+		if (!messages.length) return;
+		return on_page_info((page_info) =>
+			top.set(Math.max(0, page_info.scrollTop - page_info.offsetTop))
+		);
 	});
 
 	$effect(() => {
@@ -37,20 +42,6 @@
 		});
 
 		return Array.from(groups.values());
-	}
-
-	function scroll_to_top(_messages: ToastMessage[]): void {
-		if (_messages.length > 0) {
-			if ("parentIFrame" in window) {
-				window.parentIFrame?.getPageInfo((page_info) => {
-					if (page_info.scrollTop < page_info.offsetTop) {
-						top.set(0);
-					} else {
-						top.set(page_info.scrollTop - page_info.offsetTop);
-					}
-				});
-			}
-		}
 	}
 
 	function toggle_group(type: string): void {

@@ -149,7 +149,7 @@ def start_server(
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
             )
-            if get_space() is not None:
+            if get_space() is not None and not os.environ.get("GRADIO_PROCESS_GATEWAY"):
                 reloader = SpacesReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,
@@ -160,7 +160,7 @@ def start_server(
                 server = Server(
                     config=config, reloader=reloader, watchfn=watchfn_spaces
                 )
-            elif GRADIO_WATCH_DIRS:
+            elif GRADIO_WATCH_DIRS and not os.environ.get("GRADIO_PROCESS_GATEWAY"):
                 reloader = SourceFileReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,

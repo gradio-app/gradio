@@ -1,5 +1,15 @@
 # @gradio/dataset
 
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/utils@0.15.0
+- @gradio/client@2.7.2
+- @gradio/atoms@0.26.3
+- @gradio/upload@0.19.1
+- @gradio/textbox@0.14.3
+
 ## 0.8.0
 
 ### Features

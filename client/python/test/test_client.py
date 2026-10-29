@@ -103,7 +103,7 @@ class TestClientInitialization:
         import datetime
 
         start = datetime.datetime.now()
-        with connect(many_endpoint_demo):
+        with connect(many_endpoint_demo, executor="thread"):
             pass
         assert (datetime.datetime.now() - start).seconds < 5
 

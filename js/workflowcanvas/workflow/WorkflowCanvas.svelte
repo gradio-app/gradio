@@ -51,6 +51,7 @@
 	} from "./workflow-store";
 	import {
 		hasMissingNodeGeometry,
+		nodesOverlap,
 		migrateToV2,
 		toLegacyShape
 	} from "./workflow-migration";
@@ -326,9 +327,11 @@
 		// back. A first-time viewer gets the file's own arrangement when it has
 		// one — an author publishing a workflow still decides how it reads on
 		// first open, and since geometry is never written back, nothing a viewer
-		// does can overwrite that. Only a file with no coordinates is
-		// auto-arranged and fitted.
+		// does can overwrite that. A file with no coordinates is auto-arranged
+		// and fitted, and so is one whose cards turn out to overlap once they've
+		// measured.
 		let autoArrange = false;
+		let checkOverlap = false;
 		try {
 			if (initialValue) {
 				const parsed = JSON.parse(initialValue);
@@ -344,6 +347,7 @@
 				const unseen = layout_is_unseen(v2, stored);
 				const authored = unseen && !hasMissingNodeGeometry(parsed);
 				autoArrange = unseen && !authored;
+				checkOverlap = authored;
 				workflow.set(apply_layout(v2, stored, { park_unplaced: !authored }));
 			}
 		} catch {}
@@ -363,7 +367,26 @@
 			});
 		} else {
 			markArrangedBaseline();
+			overlapCheckPending = checkOverlap;
 		}
+	});
+
+	// Hydration can add ports and grow model cards, so check after it settles,
+	// once the cards have measured. Skipped if the viewer has moved anything.
+	let overlapCheckPending = $state(false);
+	$effect(() => {
+		if (!overlapCheckPending || !hydrationSettled) return;
+		overlapCheckPending = false;
+		requestAnimationFrame(() =>
+			requestAnimationFrame(() => {
+				const moved =
+					layout_signature(extract_layout(get(workflow))) !== arrangedBaseline;
+				if (moved || !nodesOverlap(flatView.nodes)) return;
+				autoLayout();
+				markArrangedBaseline();
+				requestAnimationFrame(zoomToFit);
+			})
+		);
 	});
 
 	// The arrangement this canvas started from — the file's own, or the one
@@ -662,7 +685,7 @@
 		] as [string, any][];
 		if (entries.length === 0) return false;
 		return entries.every(([nodeId, entry]) => {
-			const node = legacyView.nodes.find((n) => n.id === nodeId);
+			const node = flatView.nodes.find((n) => n.id === nodeId);
 			if (!node) return false;
 			const ports = [...(node.inputs ?? []), ...(node.outputs ?? [])];
 			const port = entry?.port_id
@@ -881,8 +904,9 @@
 		}
 	}
 
-	// v1 shape for read paths; writes go through v2 store actions.
-	const legacyView = $derived(toLegacyShape($workflow));
+	// Every node in one flat list (the v1 shape), for read paths; writes go
+	// through the v2 store actions.
+	const flatView = $derived(toLegacyShape($workflow));
 
 	const gridTile = $derived.by(() => {
 		let tile = 22 * viewport.zoom;
@@ -890,10 +914,10 @@
 		return tile;
 	});
 
-	const nodeCount = $derived(legacyView.nodes.length);
+	const nodeCount = $derived(flatView.nodes.length);
 	const hasTransforms = $derived($workflow.operators.length > 0);
 	const subgraphCount = $derived(
-		countSubgraphs(legacyView.nodes, $workflow.edges)
+		countSubgraphs(flatView.nodes, $workflow.edges)
 	);
 
 	const connectedPortsSet = $derived(() => {
@@ -1053,7 +1077,7 @@
 			isInput: boolean
 		) => {
 			if (readOnly) return;
-			const node = legacyView.nodes.find((n) => n.id === nodeId);
+			const node = flatView.nodes.find((n) => n.id === nodeId);
 			if (!node) return;
 			const template = getComponentForPortType(type);
 			if (!template) return;
@@ -1251,14 +1275,14 @@
 		if (e.button !== 0) return;
 		if ((e.target as HTMLElement).closest("input, select, textarea, label"))
 			return;
-		const node = legacyView.nodes.find((n) => n.id === nodeId);
+		const node = flatView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 		e.stopPropagation();
 		const drag_whole_group =
 			selectedNodeIds.has(nodeId) && selectedNodeIds.size > 1;
 		const groupStart = new Map<string, { x: number; y: number }>();
 		if (drag_whole_group) {
-			for (const n of legacyView.nodes) {
+			for (const n of flatView.nodes) {
 				if (selectedNodeIds.has(n.id)) {
 					groupStart.set(n.id, { x: n.x, y: n.y });
 				}
@@ -1426,9 +1450,7 @@
 					`${mode.fromNodeId}:${mode.fromPortId}:${direction}`
 				);
 				if (!isConnected) {
-					const srcNode = legacyView.nodes.find(
-						(n) => n.id === mode.fromNodeId
-					);
+					const srcNode = flatView.nodes.find((n) => n.id === mode.fromNodeId);
 					const template = getComponentForPortType(mode.type);
 					if (srcNode && template) {
 						if (mode.reversed) {
@@ -1590,7 +1612,7 @@
 		type: PortType,
 		reversed: boolean
 	): { id: string; direction: "input" | "output" } | null {
-		const target = legacyView.nodes.find((n) => n.id === nodeId);
+		const target = flatView.nodes.find((n) => n.id === nodeId);
 		if (!target) return null;
 		if (reversed) {
 			const out = target.outputs.find((p) => ports_compatible(p.type, type));
@@ -1622,7 +1644,7 @@
 	}
 
 	$effect(() => {
-		legacyView.nodes;
+		flatView.nodes;
 		// Defer until after Svelte commits this render so the handle elements
 		// have their final positions in the DOM.
 		const raf = requestAnimationFrame(() => {
@@ -1663,7 +1685,7 @@
 	): { x: number; y: number } | null {
 		const measured = portPositions.get(portKey(nodeId, portId, direction));
 		if (measured) return measured;
-		const node = legacyView.nodes.find((n) => n.id === nodeId);
+		const node = flatView.nodes.find((n) => n.id === nodeId);
 		if (!node) return null;
 		const ports = direction === "input" ? node.inputs : node.outputs;
 		const i = ports.findIndex((p) => p.id === portId);
@@ -1716,8 +1738,8 @@
 		const [sourceId, sourcePort, targetId, targetPort] = fromIsInput
 			? [toId, toPort, fromId, fromPort]
 			: [fromId, fromPort, toId, toPort];
-		const sourceNode = legacyView.nodes.find((n) => n.id === sourceId);
-		const targetNode = legacyView.nodes.find((n) => n.id === targetId);
+		const sourceNode = flatView.nodes.find((n) => n.id === sourceId);
+		const targetNode = flatView.nodes.find((n) => n.id === targetId);
 		if (!sourceNode || !targetNode) return;
 		const outPort = sourceNode.outputs.find((p) => p.id === sourcePort);
 		const inPort = targetNode.inputs.find((p) => p.id === targetPort);
@@ -1737,7 +1759,7 @@
 		portId: string,
 		reversed: boolean
 	): Port | undefined {
-		const node = legacyView.nodes.find((n) => n.id === nodeId);
+		const node = flatView.nodes.find((n) => n.id === nodeId);
 		return reversed
 			? node?.inputs.find((p) => p.id === portId)
 			: node?.outputs.find((p) => p.id === portId);
@@ -1813,7 +1835,7 @@
 			? "reference"
 			: "subject";
 		const newId = addNode(role, template, x, y);
-		const newNode = legacyView.nodes.find((n) => n.id === newId);
+		const newNode = flatView.nodes.find((n) => n.id === newId);
 		if (drop.reversed) {
 			const outputPort = newNode?.outputs.find((p: any) =>
 				ports_compatible(p.type, drop.type)
@@ -1956,12 +1978,12 @@
 	// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 	function resolveCurrentInputs(node: WFNode): Record<string, unknown> {
-		return resolveCurrentInputsImpl(node, legacyView.nodes, $workflow.edges);
+		return resolveCurrentInputsImpl(node, flatView.nodes, $workflow.edges);
 	}
 
 	const staleNodes = $derived(
 		computeStaleNodes(
-			legacyView.nodes,
+			flatView.nodes,
 			$workflow.edges,
 			nodeStatus,
 			nodeInputSnapshots
@@ -1984,7 +2006,7 @@
 	 * picker create, etc.) — without this, successive adds stack identically.
 	 */
 	function findFreeSpot(x: number, y: number): { x: number; y: number } {
-		return findFreeSpotImpl(legacyView.nodes, x, y);
+		return findFreeSpotImpl(flatView.nodes, x, y);
 	}
 
 	async function addTemplateToCanvas(
@@ -2015,7 +2037,7 @@
 			}
 		}
 		if (x === undefined || y === undefined) {
-			const nodes = legacyView.nodes;
+			const nodes = flatView.nodes;
 			x =
 				nodes.length > 0
 					? Math.max(...nodes.map((n) => n.x + n.width)) + 80
@@ -2042,7 +2064,7 @@
 		try {
 			const v2 = migrateToV2(t.workflow);
 			// Replacing the whole graph — release media the outgoing nodes held.
-			for (const node of legacyView.nodes) revoke_blob_urls(node.data);
+			for (const node of flatView.nodes) revoke_blob_urls(node.data);
 			workflow.set(v2);
 			showTemplatesOverlay = false;
 		} catch {}
@@ -2050,7 +2072,7 @@
 
 	// Layout only — safe for read-only viewers, same as dragging a card by hand.
 	function autoLayout(): void {
-		const sorted = topoSort(legacyView.nodes, $workflow.edges);
+		const sorted = topoSort(flatView.nodes, $workflow.edges);
 		const edges = $workflow.edges;
 		const depth = new Map<string, number>();
 		for (const node of sorted) {
@@ -2135,7 +2157,7 @@
 		abortController = new AbortController();
 
 		if (
-			legacyView.nodes.some((n) => n.source === "space" && n.space_id) &&
+			flatView.nodes.some((n) => n.source === "space" && n.space_id) &&
 			!auth.token
 		) {
 			showToast(
@@ -2268,7 +2290,7 @@
 					delete nodeRunStarts[nodeId];
 				}
 				if (status === "done") {
-					const node = legacyView.nodes.find((n) => n.id === nodeId);
+					const node = flatView.nodes.find((n) => n.id === nodeId);
 					if (node) {
 						nodeInputSnapshots = {
 							...nodeInputSnapshots,
@@ -2277,7 +2299,7 @@
 					}
 				}
 				if (error) {
-					const node = legacyView.nodes.find((n) => n.id === nodeId);
+					const node = flatView.nodes.find((n) => n.id === nodeId);
 					const label =
 						node?.label ?? node?.space_id ?? node?.model_id ?? "Node";
 					if (errorType === "quota" || errorType === "gpu") {
@@ -2339,7 +2361,7 @@
 			try {
 				const inputs: Record<string, unknown> = {};
 				for (const ref of wfToRun.references) {
-					const node = legacyView.nodes.find((n) => n.id === ref.id);
+					const node = flatView.nodes.find((n) => n.id === ref.id);
 					const outPort = node?.outputs?.[0];
 					if (!node || !outPort) continue;
 					// User-supplied media lives in a `blob:` object URL that dies
@@ -2356,7 +2378,7 @@
 				}
 				const outputs: Record<string, unknown> = {};
 				for (const subj of wfToRun.subjects) {
-					const node = legacyView.nodes.find((n) => n.id === subj.id);
+					const node = flatView.nodes.find((n) => n.id === subj.id);
 					const inPort = node?.inputs?.[0];
 					if (!node || !inPort) continue;
 					outputs[subj.id] = {
@@ -2444,7 +2466,7 @@
 	}
 
 	function zoomToFit(): void {
-		const nodes = legacyView.nodes;
+		const nodes = flatView.nodes;
 		if (nodes.length === 0) {
 			viewport = { x: 0, y: 0, zoom: 1 };
 			return;
@@ -2516,7 +2538,7 @@
 		const rw = Math.abs(x2 - x1);
 		const rh = Math.abs(y2 - y1);
 		const out = new Set<string>();
-		for (const n of legacyView.nodes) {
+		for (const n of flatView.nodes) {
 			if (rects_intersect(n.x, n.y, n.width, n.height, rx, ry, rw, rh)) {
 				out.add(n.id);
 			}
@@ -2571,7 +2593,7 @@
 	}
 
 	function duplicateNode(id: string): void {
-		const node = legacyView.nodes.find((n) => n.id === id);
+		const node = flatView.nodes.find((n) => n.id === id);
 		if (!node) return;
 		const { id: _, data: __, ...template } = node;
 		const new_id = addNode(
@@ -2640,10 +2662,10 @@
 		if (
 			e.key === "a" &&
 			(e.metaKey || e.ctrlKey) &&
-			legacyView.nodes.length > 0
+			flatView.nodes.length > 0
 		) {
 			e.preventDefault();
-			selectedNodeIds = new Set(legacyView.nodes.map((n) => n.id));
+			selectedNodeIds = new Set(flatView.nodes.map((n) => n.id));
 			selectedEdgeIds = new Set($workflow.edges.map((edge) => edge.id));
 		}
 		if (e.key === "0" && (e.metaKey || e.ctrlKey)) {
@@ -2665,7 +2687,7 @@
 	}
 
 	function openPickerForNode(nodeId: string): void {
-		const node = legacyView.nodes.find((n) => n.id === nodeId);
+		const node = flatView.nodes.find((n) => n.id === nodeId);
 		if (!node) return;
 
 		// Components no longer open the picker — only transform nodes can have
@@ -2772,7 +2794,7 @@
 			(template.source === "space" || template.source === "model") &&
 			(!drop || drop.positionOnly);
 		if (isOperatorFresh) {
-			const operatorNode = legacyView.nodes.find((n) => n.id === newId);
+			const operatorNode = flatView.nodes.find((n) => n.id === newId);
 			if (operatorNode) {
 				const compGap = 24;
 				const compH = 180;
@@ -2841,7 +2863,7 @@
 
 		// Wiring from an existing port drag
 		if (drop && !drop.positionOnly) {
-			const newNode = legacyView.nodes.find((n) => n.id === newId);
+			const newNode = flatView.nodes.find((n) => n.id === newId);
 			if (drop.reversed) {
 				const outputPort = newNode?.outputs.find((p: any) =>
 					ports_compatible(p.type, drop.type)
@@ -3206,7 +3228,7 @@
 		>
 			<!-- Edges layer (SVG). overflow:visible so edges aren't clipped. -->
 			<svg class="edges-layer" width="1" height="1" style="overflow: visible;">
-				{#each legacyView.edges as edge (edge.id)}
+				{#each flatView.edges as edge (edge.id)}
 					{@const path = edgePath(edge)}
 					{#if path}
 						<path
@@ -3241,7 +3263,7 @@
 			</svg>
 
 			<!-- Nodes layer -->
-			{#each legacyView.nodes as n (n.id)}
+			{#each flatView.nodes as n (n.id)}
 				<div
 					class="node-pos-wrap"
 					class:node-pos-selected={selectedNodeIds.has(n.id)}
@@ -3699,7 +3721,7 @@
 					);
 				}
 				for (const [nodeId, output] of Object.entries(outputs)) {
-					const node = legacyView.nodes.find((n) => n.id === nodeId);
+					const node = flatView.nodes.find((n) => n.id === nodeId);
 					const inPortId = output.port_id ?? node?.inputs?.[0]?.id ?? "in_0";
 					updateNodeData(
 						nodeId,
