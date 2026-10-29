@@ -661,6 +661,7 @@ class TestQueuedEventsAndStreams:
             data=SimpleNamespace(client_state=carried),
             signal=_asyncio.Event(),
             streaming=True,
+            session_hash="s",
         )
         demo._queue.event_ids_to_events["streaming-event"] = event
         try:

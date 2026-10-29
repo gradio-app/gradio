@@ -202,6 +202,8 @@ class Pool:
         self.lock = threading.Lock()
         self.limits: dict[int, int | None] = {}
         self.reserved: dict[str, tuple[Link, str]] = {}
+        # The process where each running stream holds a slot between chunks
+        self.streams: dict[str, Link] = {}
         self.group_limits: dict[str, int] = {}
         self.expected = 1
 
@@ -322,19 +324,14 @@ class Pool:
     def with_slot(self, event_id: str | None) -> Link | None:
         """The process where the stream `event_id` holds a slot between
         chunks, which is where its later chunks go."""
-        if event_id is None:
-            return None
-        with self.lock:
-            return next((link for link in self.links if event_id in link.held), None)
+        link = self.streams.get(event_id) if event_id is not None else None
+        return link if link is not None and not link.closed else None
 
     def end_event(self, event: Any) -> None:
         """The queue is done with `event`: a stream gives back the slot that it
         held between chunks. A generator's goes back when it is closed."""
-        if not event.streaming:
-            return
-        with self.lock:
-            links = list(self.links)
-        for link in links:
+        link = self.streams.pop(event._id, None)
+        if link is not None:
             link.release(event._id)
 
     def process_limit(self, fn: BlockFunction) -> int | None:
@@ -529,6 +526,8 @@ async def forward_event(
         # yields, until the queue ends it (`Pool.end_event`)
         if (has_iterator or streaming) and queue_event_id is not None:
             link.held[queue_event_id] = slot
+            if streaming:
+                pool.streams[queue_event_id] = link
         else:
             slot.release()
     elif not has_iterator and not streaming:

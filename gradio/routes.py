@@ -1424,8 +1424,10 @@ class App(FastAPI):
             if event is None or not event.streaming:
                 return Response(status_code=404)
             new_body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
-            # A chunk is new input to the function, not the next step of a
-            # generator, and the queue passes its own id for the event's slot
+            # A chunk runs in the event's session. It is new input to the
+            # function, not the next step of a generator, and the queue passes
+            # its own id for the event's slot.
+            new_body.session_hash = event.session_hash
             new_body.event_id = None
             # A streaming event's later chunks carry only their data: the
             # browser-held gr.State values verified when the event joined (and

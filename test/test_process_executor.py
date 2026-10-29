@@ -578,7 +578,7 @@ def test_replicas_keep_a_running_stream_to_its_process(tmp_path):
                 pids[name].append(message["output"]["data"][0])
                 # The first stream keeps sending chunks, a little apart, until
                 # the second one has started. They name no session, and still
-                # go to the process that holds the stream.
+                # run in the stream's session, on its process.
                 if name == "first" and not stop.is_set():
                     time.sleep(0.2)
                     chunk = {"data": body["data"], "fn_index": 0}
