@@ -3344,7 +3344,6 @@ Received inputs:
                         self.share_url,
                         app_processes=worker.replicas,
                         gateway_pid=worker.gateway.pid,
-                        autoscale=worker.autoscale,
                     )
                 if self.mcp_server_obj:
                     self.mcp_server_obj._local_url = self.local_url
@@ -4047,7 +4046,6 @@ Received inputs:
         share_url: str | None,
         app_processes: int = 1,
         gateway_pid: int | None = None,
-        autoscale: bool = False,
     ) -> None:
         """What `launch()` prints once the app is up, under its "starting"
         line: where it runs, a public link or one tip picked from how it was
@@ -4056,9 +4054,7 @@ Received inputs:
         if sys.stdout.isatty():
             running = f"\033[1m{running}\033[0m"
         lines = [running]
-        tip = self._launch_tip(
-            share_url, 2 if autoscale else app_processes, gateway_pid is not None
-        )
+        tip = self._launch_tip(share_url, app_processes, gateway_pid is not None)
         if share_url:
             lines.append(f"* Public link: {share_url}")
         elif tip:
@@ -4067,8 +4063,7 @@ Received inputs:
         if gateway_pid is None:
             lines.append(f"* 1 app & gateway process (PID {pid})")
         elif app_processes == 1:
-            scaled = ", replicas added as needed" if autoscale else ""
-            lines.append(f"* 1 app process (PID {pid}{scaled})")
+            lines.append(f"* 1 app process (PID {pid})")
             lines.append(f"* 1 gateway process (PID {gateway_pid})")
         else:
             replicas = app_processes - 1

@@ -143,7 +143,7 @@ class Link:
         elif kind == "replica":
             self.pool.add_replica(message[1])
         elif kind == "replica_failed":
-            self.pool.replica_failed(message[1] if len(message) > 1 else None)
+            self.pool.replica_failed()
         elif kind == "reload":
             self.pool.reload(*message[1:])
 
@@ -250,10 +250,10 @@ class Pool:
         if self.autoscaler is not None:
             self.autoscaler.replica_lost(link)
 
-    def replica_failed(self, error: str | None) -> None:
+    def replica_failed(self) -> None:
         self.expected = max(self.expected - 1, 1)
         if self.autoscaler is not None:
-            self.autoscaler.replica_failed(error)
+            self.autoscaler.replica_failed()
 
     def remove(self, link: Link) -> None:
         with self.lock:

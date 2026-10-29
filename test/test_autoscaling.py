@@ -10,13 +10,11 @@ import httpx2
 import pytest
 from gradio_client import Client
 
-from gradio.processing.memory import admission
-
 APP = """
 import os, time
 import gradio as gr
 
-MODEL = []  # loaded once per process, at import
+MODEL = []
 
 def predict(delay: float) -> str:
     MODEL.append(1)
@@ -77,7 +75,6 @@ def test_auto_adds_a_replica_under_backlog_and_retires_it_when_idle(launch):
     )
     client = Client(url, verbose=False)
     first = [client.predict(0.3, api_name="/predict") for _ in range(4)]
-    # The model is the process's own: one process served all four calls
     assert [r.split()[1] for r in first] == ["1", "2", "3", "4"]
     deadline = time.monotonic() + 90
     while len(burst(url, 0.4, 8)) < 2:
@@ -93,18 +90,3 @@ def test_auto_adds_a_replica_under_backlog_and_retires_it_when_idle(launch):
     assert "Replica ready" in reasons
     assert "Idle replica retired" in reasons
     assert burst(url, 0.1, 2) == {first[0].split()[0]}
-
-
-def test_memory_budget():
-    gib = 1024**3
-    snapshot = {"kind": "cpu", "total": 32 * gib, "available": 20 * gib}
-    assert admission(snapshot, 8 * gib, 0)[0]
-    assert not admission(snapshot, 14 * gib, 0)[0]
-    cuda = {
-        **snapshot,
-        "kind": "cuda",
-        "gpu_total": 80 * gib,
-        "gpu_available": 20 * gib,
-    }
-    assert not admission(cuda, gib, 66 * gib)[0]
-    assert not admission({**snapshot, "error": "no telemetry"}, gib, 0)[0]

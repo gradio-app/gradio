@@ -627,16 +627,14 @@ class Worker:
     def start_replica(self, restart: bool = True) -> None:
         """Runs the app's script again, as a replica that serves sessions the
         gateway sends it. It reports its address on a pipe, which is passed on
-        to the gateway. One the autoscaler started is not restarted if it
-        exits; the autoscaler decides whether to start another."""
+        to the gateway. One the autoscaler started is not restarted."""
         script = sys.argv[0] if sys.argv else ""
         if not os.path.isfile(script):
-            message = (
+            print(
                 "Replicas need the app to be run as a script or a module "
                 "(python app.py or python -m app)."
             )
-            print(message)
-            self.send(("replica_failed", message))
+            self.send(("replica_failed",))
             return
         from gradio import client_state
 
@@ -662,14 +660,13 @@ class Worker:
                     self.send(("replica", address))
             started = time.monotonic()
             process.wait()
-            self.replica_processes.remove(process)
             if address is not None:
                 self.replica_addresses.remove(address)
             if self.shutting_down or process.pid in self.retired:
                 self.retired.discard(process.pid)
                 return
             if address is None:
-                self.send(("replica_failed", f"exited with code {process.returncode}"))
+                self.send(("replica_failed",))
                 return
             if not restart:
                 return
@@ -681,7 +678,7 @@ class Worker:
                     f"restarted {REPLICA_RESTARTS - 1} times and kept exiting, so it "
                     "is not restarted again."
                 )
-                self.send(("replica_failed", "it kept exiting"))
+                self.send(("replica_failed",))
                 return
             delay = min(2**self.replica_failures, 60) if self.replica_failures else 0
             print(

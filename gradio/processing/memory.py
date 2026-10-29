@@ -23,7 +23,6 @@ class Memory:
 
             pynvml.nvmlInit()
             if pynvml.nvmlDeviceGetCount():
-                # PoC: one visible physical GPU, no MIG or device remapping.
                 self.nvml = pynvml
                 self.device = pynvml.nvmlDeviceGetHandleByIndex(0)
                 self.kind = "cuda"
@@ -42,8 +41,7 @@ class Memory:
         }
         if self.telemetry_error:
             result["error"] = self.telemetry_error
-        # Containers often expose host RAM through psutil. Honor an existing
-        # cgroup limit when readable; no cgroup creation or enforcement required.
+        # A container's memory limit, which psutil doesn't see
         if platform.system() == "Linux":
             for limit_path, usage_path in [
                 ("/sys/fs/cgroup/memory.max", "/sys/fs/cgroup/memory.current"),

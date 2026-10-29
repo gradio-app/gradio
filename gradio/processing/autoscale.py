@@ -22,8 +22,6 @@ if TYPE_CHECKING:
     from gradio.blocks import Blocks
     from gradio.processing.gateway import Link, Pool
 
-POLICY_VERSION = "gateway-2"
-
 
 def _setting(name: str, default: float) -> float:
     return float(os.environ.get(f"GRADIO_AUTOSCALE_{name}", default))
@@ -107,11 +105,11 @@ class Autoscaler:
             }
             self.record("Replica ready", pid=link.address["pid"])
 
-    def replica_failed(self, error: str | None) -> None:
+    def replica_failed(self) -> None:
         with self.lock:
             self.starting = False
             self.cooldown_until = time.monotonic() + self.cooldown_seconds
-            self.record("Replica initialization failed", error=error)
+            self.record("Replica failed to start")
 
     def replica_lost(self, link: Link) -> None:
         with self.lock:
@@ -217,7 +215,6 @@ class Autoscaler:
     def status(self) -> dict[str, Any]:
         with self.lock:
             return {
-                "policy_version": POLICY_VERSION,
                 "max_replicas": self.max_replicas,
                 "waiting": self.waiting(),
                 "baseline_seconds": statistics.median(self.samples)
