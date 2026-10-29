@@ -73,9 +73,13 @@ When running Gradio applications in Docker, there are a few important things to 
 
 In the Docker environment, setting `GRADIO_SERVER_NAME="0.0.0.0"` as an environment variable (or directly in your Gradio app's `launch()` function) is crucial for allowing connections from outside the container. And the `EXPOSE 7860` directive in the Dockerfile tells Docker to expose Gradio's default port on the container to enable external access to the Gradio app. 
 
-#### Enable Stickiness for Multiple Replicas
+#### Running Multiple Replicas
 
-When deploying Gradio apps with multiple replicas, such as on AWS ECS, it's important to enable stickiness with `sessionAffinity: ClientIP`. This ensures that all requests from the same user are routed to the same instance. This is important because Gradio's communication protocol requires multiple separate connections from the frontend to the backend in order for events to be processed correctly. (If you use Terraform, you'll want to add a [stickiness block](https://registry.terraform.io/providers/hashicorp/aws/3.14.1/docs/resources/lb_target_group#stickiness) into your target group definition.)
+When deploying Gradio apps with multiple replicas, such as on AWS ECS, each event runs on a single request when browsers reach your app over HTTPS, so it works whichever replica the load balancer picks. A few things to keep in mind:
+
+- Over plain HTTP, browsers send all of a tab's events through one shared stream, which needs every request from a user to reach the same replica. Serve the app over HTTPS, or set `GRADIO_BROWSER_STREAMS=per_event` (see [environment variables](/guides/environment-variables)).
+- Set `GRADIO_SECRET_KEY` to the same value on every replica, so that `gr.State` values work on all of them.
+- Some features still keep data in a single server process: uploaded and generated files (unless the replicas share storage), logins with `auth=`, `@gr.render`, and resuming a running job after the page is refreshed. If your app uses them, enable stickiness with `sessionAffinity: ClientIP` so that all requests from the same user are routed to the same instance. (If you use Terraform, you'll want to add a [stickiness block](https://registry.terraform.io/providers/hashicorp/aws/3.14.1/docs/resources/lb_target_group#stickiness) into your target group definition.)
 
 #### Deploying Behind a Proxy
 

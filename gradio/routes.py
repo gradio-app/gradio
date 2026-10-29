@@ -210,6 +210,26 @@ class ORJSONResponse(JSONResponse):
         return ORJSONResponse._render(content).decode("utf-8")
 
 
+def format_simple_api_message(message: EventMessage) -> str | None:
+    """Formats a queue message as the `/call` API streams it."""
+    msg = message.model_dump()
+    if isinstance(message, ProcessCompletedMessage):
+        event = "complete" if message.success else "error"
+        data = msg["output"].get("data") if message.success else msg["output"]
+    elif isinstance(message, ProcessGeneratingMessage):
+        event = "generating" if message.success else "error"
+        data = msg["output"].get("data") if message.success else msg["output"]
+    elif isinstance(message, HeartbeatMessage):
+        event = "heartbeat"
+        data = None
+    elif isinstance(message, UnexpectedErrorMessage):
+        event = "error"
+        data = message.message
+    else:
+        return None
+    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
+
 class OwnEventStreamResponse(StreamingResponse):
     """sse_v4: streams one event's messages on the request that submitted it,
     ending with its completion.
@@ -231,8 +251,12 @@ class OwnEventStreamResponse(StreamingResponse):
         session_hash: str,
         on_abandoned: Callable[[str], Awaitable[None]],
         acknowledges: bool = False,
+        format_message: Callable[[EventMessage], str | None] | None = None,
     ):
         self.request = request
+        self.format_message = format_message or (
+            lambda message: f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
+        )
         self.queue = queue
         self.event_id = event_id
         self.session_hash = session_hash
@@ -253,7 +277,9 @@ class OwnEventStreamResponse(StreamingResponse):
                 message = UnexpectedErrorMessage(
                     message="Server stopped unexpectedly.", success=False
                 )
-            yield f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
+            text = self.format_message(message)
+            if text is not None:
+                yield text
             if isinstance(message, (ProcessCompletedMessage, UnexpectedErrorMessage)):
                 self.finished = True
                 return
@@ -1111,6 +1137,7 @@ class App(FastAPI):
                     str(root),
                     space_id=space_id,
                     api_prefix=api_prefix,
+                    single_request=True,
                 )
                 ep_info["code_snippets"]["cli"] = cli_snippets[ep_name]
             return prepared_info
@@ -1237,7 +1264,8 @@ class App(FastAPI):
                                                 "event_id": {"type": "string"}
                                             },
                                         }
-                                    }
+                                    },
+                                    "text/event-stream": {"schema": {"type": "string"}},
                                 },
                             }
                         },
@@ -1289,7 +1317,7 @@ class App(FastAPI):
                         f"{ret_name} ({ret_type})" + "" if not desc else f"desc: {desc}"
                     )  # type: ignore
                 path_item["post"]["description"] += (  # type: ignore
-                    f"Output must be fetched from GET /gradio_api/call{endpoint_path}/{{event_id}}. Returns an array of {len(returns_info)} elements of the following format: {returns_info}"
+                    f"With `Accept: text/event-stream`, the output streams on this response as server-sent events, ending with `event: complete`. Otherwise this returns an event_id, and the output must be fetched from GET /gradio_api/call{endpoint_path}/{{event_id}}. Returns an array of {len(returns_info)} elements of the following format: {returns_info}"
                 )
 
                 schema["paths"][f"/gradio_api/call/v2{endpoint_path}"] = path_item  # type: ignore
@@ -1860,7 +1888,14 @@ class App(FastAPI):
             )
             prepare_simple_api_data(full_body, fn)
             full_body.fn_index = fn._id
-            return await queue_join_helper(full_body, request, username)
+            own_stream = "text/event-stream" in request.headers.get("accept", "")
+            return await queue_join_helper(
+                full_body,
+                request,
+                username,
+                own_stream=own_stream,
+                format_message=format_simple_api_message,
+            )
 
         @router.post("/call/{api_name}", dependencies=[Depends(login_check)])
         @router.post("/call/{api_name}/", dependencies=[Depends(login_check)])
@@ -1876,7 +1911,14 @@ class App(FastAPI):
             )
             prepare_simple_api_data(full_body, fn)
             full_body.fn_index = fn._id
-            return await queue_join_helper(full_body, request, username)
+            own_stream = "text/event-stream" in request.headers.get("accept", "")
+            return await queue_join_helper(
+                full_body,
+                request,
+                username,
+                own_stream=own_stream,
+                format_message=format_simple_api_message,
+            )
 
         @router.post("/queue/join", dependencies=[Depends(login_check)])
         async def queue_join(
@@ -1905,6 +1947,7 @@ class App(FastAPI):
             username: str,
             own_stream: bool = False,
             acknowledgements: bool = False,
+            format_message: Callable[[EventMessage], str | None] | None = None,
         ):
             blocks = app.get_blocks()
 
@@ -1957,6 +2000,7 @@ class App(FastAPI):
                     cast(str, body.session_hash),
                     on_abandoned=cancel_own_stream_event,
                     acknowledges=attach,
+                    format_message=format_message,
                 )
             return {"event_id": event_id}
 
@@ -2023,28 +2067,6 @@ class App(FastAPI):
             request: fastapi.Request,
             event_id: str,
         ):
-            def process_msg(message: EventMessage) -> str | None:
-                msg = message.model_dump()
-                if isinstance(message, ProcessCompletedMessage):
-                    event = "complete" if message.success else "error"
-                    data = (
-                        msg["output"].get("data") if message.success else msg["output"]
-                    )
-                elif isinstance(message, ProcessGeneratingMessage):
-                    event = "generating" if message.success else "error"
-                    data = (
-                        msg["output"].get("data") if message.success else msg["output"]
-                    )
-                elif isinstance(message, HeartbeatMessage):
-                    event = "heartbeat"
-                    data = None
-                elif isinstance(message, UnexpectedErrorMessage):
-                    event = "error"
-                    data = message.message
-                else:
-                    return None
-                return f"event: {event}\ndata: {json.dumps(data)}\n\n"
-
             queue = app.get_blocks()._queue
             event = queue.event_ids_to_events.get(event_id)
             if event is not None:
@@ -2064,7 +2086,9 @@ class App(FastAPI):
                     ),
                     event_id,
                 )
-            return await queue_data_helper(request, session_hash, process_msg)
+            return await queue_data_helper(
+                request, session_hash, format_simple_api_message
+            )
 
         @router.get("/queue/data", dependencies=[Depends(login_check)])
         async def queue_data(

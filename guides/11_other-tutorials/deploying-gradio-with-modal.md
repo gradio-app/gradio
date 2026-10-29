@@ -110,7 +110,7 @@ After the image builds Modal will print the URL to your webapp and to your Modal
 ## Important Considerations
 
 ### Sticky Sessions
-Gradio relies on a REST API, which is itself stateless. But it does require sticky sessions, meaning that every request from a particular client must be routed to the same container.
+Each event in a Gradio app runs on a single request, and `gr.State` values are kept in the browser (set `GRADIO_SECRET_KEY` to the same value in every container), so many apps work when requests from a client reach different containers. Some features still keep data in a single container, though: uploaded and generated files, logins with `auth=`, `@gr.render`, and resuming a running job after the page is refreshed. If your app uses any of them, it requires sticky sessions, meaning that every request from a particular client must be routed to the same container.
 
 A simple way to satisfy this constraint is to set `max_containers = 1` in the `@app.function` decorator and setting the `max_inputs` argument of `@modal.concurrent` to a fairly large number - as we did above. This means that Modal won't spin up more than one container to serve requests to your app which effectively satisfies the sticky session requirement.
 
