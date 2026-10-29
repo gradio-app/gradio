@@ -1,20 +1,16 @@
 # Autoscaling the process executor
 
-`launch(executor="process")` (#14003) runs Gradio's server in a gateway
-process while the process that built the app runs every event. This demo adds
-copies of that process:
+`launch(executor="process")` (the default in 7.0) runs Gradio's server in a
+gateway process while the process that built the app runs every event, and
+`launch(replicas=N)` runs N copies of that process. `replicas="auto"` lets the
+gateway decide:
 
 ```python
-app.launch(executor="process", replicas="auto")   # or replicas=2, or GRADIO_PROCESS_REPLICAS
+app.launch(replicas="auto")   # or GRADIO_PROCESS_REPLICAS=auto
 ```
 
-- **Replicas** re-run the app script, so each loads its own copy of the
-  models at import. No `resource()` decorator is needed. A session stays on
-  the replica that first served it, since its `gr.State` and generators live
-  there, while new sessions go to the least busy replica.
-- **`concurrency_limit` applies per replica.** The gateway's queue admits
-  that many events per serving replica.
-- **`replicas="auto"`** (at most two for now) is run by the gateway. It
+- **`replicas="auto"`** (at most two by default, `GRADIO_AUTOSCALE_MAX_REPLICAS`)
+  is run by the gateway. It
   starts with one process and records its service times. When events keep
   waiting for 0.5 s while every process is busy, it checks memory headroom:
   the first process's observed peak plus 25%, plus a 15% reserve (at least
@@ -23,8 +19,19 @@ app.launch(executor="process", replicas="auto")   # or replicas=2, or GRADIO_PRO
   only if sustained throughput improves by at least 10% without median
   latency exceeding 2.5× the baseline. It retires the replica after 60 s
   idle or when the memory reserve runs low. Real events are never replayed.
-- `GET /gradio_api/processes` lists the processes, their peak memory and
-  every scaling decision.
+- `GET /gradio_api/processes` lists the processes, and under `autoscale` their
+  peak memory and every scaling decision.
+- A replica re-runs the app script, so it loads its own copy of the models at
+  import. A session stays on the process that first served it, and
+  `concurrency_limit` applies per process, as with fixed replicas.
+
+## Try it on Spaces
+
+Each Space shows its processes and the autoscaler's decisions live. Open one in
+several tabs and send requests from all of them at once:
+[pure Python on CPU](https://huggingface.co/spaces/abidlabs/autoscale-python),
+[Kokoro TTS on an L4](https://huggingface.co/spaces/abidlabs/autoscale-kokoro),
+[Qwen2.5 7B on an A100](https://huggingface.co/spaces/abidlabs/autoscale-qwen).
 
 ## Running the benchmark
 
@@ -40,7 +47,7 @@ llama.cpp on Metal). Results are in [RESULTS.md](RESULTS.md).
 
 ## Limits
 
-- At most two replicas, one machine and one GPU.
+- One machine and one GPU (every replica uses GPU 0).
 - Replicas need the app to be run as a script (`python app.py`).
 - Server-side state of a session whose replica retires is lost. Browser-held
   `gr.State` survives, since every process shares the signing secret.
