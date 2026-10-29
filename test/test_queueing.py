@@ -126,7 +126,7 @@ class TestQueueing:
 
         demo.queue()
 
-        with connect(demo) as client:
+        with connect(demo, executor="thread") as client:
             first = client.submit("x", fn_index=0)
             assert first.result(timeout=5) == "Hello, x!"
 
@@ -258,7 +258,7 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
         output = gr.Textbox()
         mic.stream(on_chunk, chunk, output)
 
-    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     # A real client rather than TestClient, which would set the event's
     # asyncio signal from another thread and cannot drop an endless response
     client = httpx2.Client(base_url=local_url.rstrip("/") + API_PREFIX, timeout=10)
@@ -326,7 +326,7 @@ def test_detached_queue_session_can_resume():
         start.click(slow, None, output)
 
     demo.queue(default_concurrency_limit=1)
-    app, _, _ = demo.launch(prevent_thread_lock=True)
+    app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     test_client = TestClient(app)
 
     try:
@@ -420,7 +420,7 @@ def test_expired_detached_session_is_fully_cleaned_up():
         demo.unload(unloaded.set)
 
     demo.queue(default_concurrency_limit=1)
-    app, _, _ = demo.launch(prevent_thread_lock=True)
+    app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     test_client = TestClient(app)
 
     try:
@@ -482,7 +482,7 @@ def test_expired_session_runs_unload_after_its_events_are_gone():
     with gr.Blocks() as demo:
         demo.unload(unloaded.set)
 
-    app, _, _ = demo.launch(prevent_thread_lock=True)
+    app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     try:
         queue = demo._queue
         request = fastapi.Request(
@@ -615,7 +615,7 @@ class TestQueueDoesNotAccumulate:
             out = gr.Textbox()
             box.submit(lambda x: x, box, out)
 
-        with connect(demo) as client:
+        with connect(demo, executor="thread") as client:
             for _ in range(5):
                 client.predict("a", api_name="/lambda")
 
@@ -628,7 +628,7 @@ class TestQueueDoesNotAccumulate:
             box.submit(lambda x: x, box, out)
 
         demo._queue.ANALYTICS_MAX_EVENTS = 3
-        with connect(demo) as client:
+        with connect(demo, executor="thread") as client:
             for _ in range(8):
                 client.predict("a", api_name="/lambda")
 

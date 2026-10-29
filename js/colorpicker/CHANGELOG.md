@@ -1,5 +1,13 @@
 # @gradio/colorpicker
 
+## 0.5.16
+
+### Dependency updates
+
+- @gradio/statustracker@0.16.0
+- @gradio/utils@0.15.0
+- @gradio/atoms@0.26.3
+
 ## 0.5.15
 
 ### Dependency updates

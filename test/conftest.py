@@ -1,3 +1,7 @@
+import os
+
+os.environ.setdefault("GRADIO_GATEWAY_ZYGOTE", "1")
+
 import inspect
 import pathlib
 import shutil
