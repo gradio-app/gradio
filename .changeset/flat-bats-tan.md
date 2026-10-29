@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Keep a running stream's process slot between chunks
+fix:Keep a running stream's process slot between chunks
