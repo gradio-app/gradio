@@ -159,6 +159,7 @@ class Queue:
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.can_start: Callable[[Event], bool] | None = None
+        self.end_event: Callable[[Event], None] | None = None
         self.stopped = False
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
@@ -1155,6 +1156,7 @@ class Queue:
                     fn=fn,
                     root_path=root_path,
                     record_history=fn.connection != "stream",
+                    event_id=events[0]._id if not batch else None,
                 )
                 end = time.monotonic()
                 first_iteration = end - start
@@ -1258,6 +1260,7 @@ class Queue:
                             fn=fn,
                             root_path=root_path,
                             record_history=fn.connection != "stream",
+                            event_id=events[0]._id if not batch else None,
                         )
                         end = time.monotonic()
                         for event in awake_events:
@@ -1382,6 +1385,9 @@ class Queue:
                 start_times.discard(begin_time)
                 if not start_times:
                     del event_queue.start_times_per_fn[fn]
+            if self.end_event is not None:
+                for event in events:
+                    self.end_event(event)
             try:
                 self.active_jobs[self.active_jobs.index(events)] = None
             except ValueError:

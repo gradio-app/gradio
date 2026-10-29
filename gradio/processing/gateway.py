@@ -319,6 +319,12 @@ class Pool:
             self.reserved[event._id] = (link, fn.concurrency_id)
             return True
 
+    def end_event(self, event: Any) -> None:
+        """The queue is done with `event`: gives back the slot that it held in
+        its process between calls."""
+        for link in self.links:
+            link.release(event._id)
+
     def process_limit(self, fn: BlockFunction) -> int | None:
         """How many events of `fn`'s concurrency group one process runs at
         once: the smallest limit of the events in it, as with threads."""
@@ -432,6 +438,8 @@ async def forward_event(
     fn: BlockFunction,
     root_path: str,
     record_history: bool = True,
+    *,
+    event_id: str | None = None,
 ) -> dict[str, Any]:
     """`route_utils.call_process_api`, run in the app's process that holds the
     event's session."""
@@ -453,11 +461,16 @@ async def forward_event(
         else None
     )
     streaming = fn.connection == "stream"
+    holder = event_id if event_id is not None else body.event_id
     slot = None
     returned = False
     link.running += 1
     try:
-        if limit is not None and (iterator is None or streaming):
+        if (
+            limit is not None
+            and (iterator is None or streaming)
+            and holder not in link.held
+        ):
             candidate = link.slot(fn.concurrency_id, limit)
             pool.reserved.pop(body.event_id or "", None)
             await candidate.acquire()
@@ -500,11 +513,13 @@ async def forward_event(
     finally:
         link.running -= 1
     if slot is not None:
-        if has_iterator and not streaming and body.event_id is not None:
-            link.held[body.event_id] = slot
+        # A stream keeps its slot between chunks, as a generator does between
+        # yields, until the queue ends it (`Pool.end_event`)
+        if (has_iterator or streaming) and holder is not None:
+            link.held[holder] = slot
         else:
             slot.release()
-    elif not has_iterator:
+    elif not has_iterator and not streaming:
         link.release(body.event_id)
     if body.event_id is not None:
         app.iterators[body.event_id] = (  # type: ignore[assignment]
@@ -968,6 +983,7 @@ def main(path: str) -> None:
     ).start()
     blocks.queue(**bootstrap["queue_kwargs"])
     blocks._queue.can_start = blocks._process_pool.can_start  # type: ignore[attr-defined]
+    blocks._queue.end_event = blocks._process_pool.end_event  # type: ignore[attr-defined]
     pool: Pool = blocks._process_pool  # type: ignore[attr-defined]
     pool.add(
         Link(
