@@ -207,6 +207,12 @@ class Worker:
         ):
             print("Replicas are not started in reload mode.")
             self.replicas, self.autoscale = 1, False
+        if self.autoscale and not os.path.isfile(sys.argv[0] if sys.argv else ""):
+            print(
+                'replicas="auto" needs the app to be run as a script or a module '
+                "(python app.py or python -m app), so it is off."
+            )
+            self.autoscale = False
         self.retired: set[int] = set()
         self.reloader: Any = None
         self.replica_processes: list[subprocess.Popen] = []

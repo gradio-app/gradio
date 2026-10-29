@@ -36,6 +36,8 @@ class Autoscaler:
         self.backlog_seconds = _setting("BACKLOG_SECONDS", 0.5)
         self.idle_seconds = _setting("IDLE_SECONDS", 60)
         self.cooldown_seconds = _setting("COOLDOWN_SECONDS", 60)
+        self.trial_seconds = _setting("TRIAL_SECONDS", 10)
+        self.trial_events = int(_setting("TRIAL_EVENTS", 12))
         self.memory = Memory()
         self.lock = threading.RLock()
         self.samples: list[float] = []
@@ -47,7 +49,11 @@ class Autoscaler:
         self.cooldown_until = 0.0
         self.last_activity = time.monotonic()
         self.trial: dict[str, Any] | None = None
-        self.throughputs: dict[int, float] = {}
+        # Per process count: seconds with every process busy and events
+        # waiting, and the events that finished then
+        self.load: dict[int, list[float]] = {}
+        self.saturated = False
+        self.last_tick = time.monotonic()
         pool.autoscaler = self
 
     def record(self, reason: str, **extra) -> None:
@@ -71,42 +77,42 @@ class Autoscaler:
             ):
                 # A process's first event includes its warmup
                 self.samples = [*self.samples, seconds][-20:]
-            trial = self.trial
-            if trial is None or trial["start"] is None:
-                return
-            trial["durations"].append(seconds)
-            if len(trial["durations"]) < 6 or not trial["continuous"]:
-                return
-            throughput = len(trial["durations"]) / (time.monotonic() - trial["start"])
-            count = len(self.pool.serving())
-            before = self.throughputs.get(count - 1, (count - 1) / trial["baseline"])
-            latency = statistics.median(trial["durations"])
-            self.record(
-                "Replica performance observed",
-                processes=count,
-                throughput=throughput,
-                throughput_before=before,
-                median_seconds=latency,
+            if self.saturated:
+                self.load.setdefault(len(self.pool.serving()), [0.0, 0])[1] += 1
+                if self.trial is not None:
+                    self.trial["durations"].append(seconds)
+
+    def throughput(self, count: int) -> float | None:
+        busy, events = self.load.get(count, (0.0, 0))
+        return events / busy if busy > 0 and events >= 3 else None
+
+    def judge(self, trial: dict[str, Any], count: int) -> None:
+        """Keeps the newest replica if, under load, throughput improved on that
+        with one process fewer, without making requests much slower."""
+        throughput = self.throughput(count) or 0.0
+        before = self.throughput(count - 1) or (count - 1) / trial["baseline"]
+        latency = statistics.median(trial["durations"])
+        self.record(
+            "Replica performance observed",
+            processes=count,
+            throughput=throughput,
+            throughput_before=before,
+            median_seconds=latency,
+        )
+        if throughput < before * 1.1 or latency > trial["baseline"] * 2.5:
+            self.retire(
+                self.pool.serving()[-1],
+                "Extra replica did not improve sustained throughput/latency",
             )
-            if throughput < before * 1.1 or latency > trial["baseline"] * 2.5:
-                self.retire(
-                    self.pool.serving()[-1],
-                    "Extra replica did not improve sustained throughput/latency",
-                )
-            else:
-                self.record("Extra replica retained: throughput improved")
-                self.throughputs[count] = throughput
-                self.trial = None
+        else:
+            self.record("Extra replica retained: throughput improved")
+            self.trial = None
 
     def replica_added(self, link: Link) -> None:
         with self.lock:
             self.starting = False
-            self.trial = {
-                "start": None,
-                "durations": [],
-                "baseline": statistics.median(self.samples),
-                "continuous": False,
-            }
+            self.trial = {"baseline": statistics.median(self.samples), "durations": []}
+            self.load.pop(len(self.pool.serving()), None)
             self.record("Replica ready", pid=link.address["pid"])
 
     def replica_failed(self) -> None:
@@ -148,9 +154,14 @@ class Autoscaler:
                 peak["ram"] = max(peak["ram"], usage.get("ram", 0))
                 peak["gpu"] = max(peak["gpu"], usage.get("gpu", 0))
             now = time.monotonic()
+            elapsed, self.last_tick = now - self.last_tick, now
             serving = self.pool.serving()
             waiting = self.waiting()
             busy = bool(serving) and all(link.active for link in serving)
+            saturated = bool(waiting) and busy and len(serving) == len(links)
+            if saturated and self.saturated:
+                self.load.setdefault(len(serving), [0.0, 0])[0] += elapsed
+            self.saturated = saturated
             self.backlog_since = (
                 (self.backlog_since or now) if waiting and busy else None
             )
@@ -185,15 +196,13 @@ class Autoscaler:
                         replicas[-1], "Memory reserve depleted; draining extra replica"
                     )
                     return
-            trial = self.trial
-            if trial is not None:
-                continuous = (
-                    waiting and busy and all(link.completed > 0 for link in serving)
-                )
-                if continuous and not trial["continuous"]:
-                    trial.update(start=now, durations=[], continuous=True)
-                elif not waiting and not busy:
-                    trial["continuous"] = False
+            busy_seconds, events = self.load.get(len(serving), (0.0, 0))
+            if (
+                self.trial is not None
+                and busy_seconds >= self.trial_seconds
+                and events >= self.trial_events
+            ):
+                self.judge(self.trial, len(serving))
             if (
                 replicas
                 and not self.starting
@@ -222,6 +231,7 @@ class Autoscaler:
             return {
                 "max_replicas": self.max_replicas,
                 "waiting": self.waiting(),
+                "trial_pending": self.trial is not None,
                 "baseline_seconds": statistics.median(self.samples)
                 if self.samples
                 else None,
