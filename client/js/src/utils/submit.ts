@@ -520,9 +520,13 @@ export function submit(
 				history_run_id,
 				history_inputs(input_data || [])
 			);
+			// A chunk is not the streamed component's value either: restored on a
+			// reload, a webcam frame would be shown in place of the camera
 			that.session_store.record(
 				dependency.inputs,
-				input_data || [],
+				(input_data || []).map((value, index) =>
+					streamed_inputs.has(dependency.inputs[index]) ? undefined : value
+				),
 				config.components
 			);
 			payload = {

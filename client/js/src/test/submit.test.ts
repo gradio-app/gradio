@@ -154,6 +154,14 @@ describe("submit iterator", () => {
 			expect(run.api_name).toBe("/predict");
 			expect(run.inputs).toEqual([null, 7]);
 			expect(sent).toEqual(["hi", 3]);
+			const [streamed, other] = dependency.inputs.map((id) => ({
+				id,
+				type: app.config!.components.find((c) => c.id === id)!.type,
+				props: {} as Record<string, unknown>
+			}));
+			app.session_store.restore_into([streamed, other]);
+			expect(streamed.props).toEqual({});
+			expect(other.props.value).toBe(3);
 			await iterator.return();
 		}
 	);
