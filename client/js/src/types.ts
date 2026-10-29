@@ -208,11 +208,7 @@ export interface Config {
 	>;
 	pages: [string, string, boolean][];
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
-	// Protocols the server accepts besides `protocol`, which stays at the
-	// newest one older clients understand. Absent on servers before sse_v4.
 	supported_protocols?: ("sse_v3" | "sse_v4")[];
-	// Whether browsers stream each event on its own request (sse_v4) or on the
-	// session's shared stream. "auto" picks per event on HTTP/2 and later.
 	browser_streams?: "auto" | "per_event" | "per_session";
 	max_file_size?: number;
 	theme_hash?: number;

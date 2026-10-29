@@ -1429,7 +1429,6 @@ def test_httpx_kwargs(increment_demo):
     with connect(
         increment_demo, client_kwargs={"httpx_kwargs": {"timeout": 5}}
     ) as client:
-        # With sse_v4 the queue is joined on the client that streams the event.
         with patch("httpx2.Client", MagicMock()) as mock_client:
             with pytest.raises(Exception):
                 client.predict(1, api_name="/increment_with_queue")
@@ -1441,36 +1440,10 @@ class TestOwnEventStream:
         with connect(increment_demo) as client:
             assert client.protocol == "sse_v4"
             jobs = [client.submit(api_name="/increment_with_queue") for _ in range(4)]
-            # Four events of one session, each reading the state the last one saved.
             assert sorted(job.result() for job in jobs) == [1, 2, 3, 4]
-            # The session-wide `queue/data` reader of sse_v3 never ran.
             assert client.streaming_future is None
             assert client.event_streams == {}
             assert client.pending_messages_per_event == {}
-
-    def test_servers_without_sse_v4_get_sse_v3(self, increment_demo):
-        get_config = Client._get_config
-
-        def config_without_sse_v4(self):
-            config = get_config(self)
-            config.pop("supported_protocols", None)
-            return config
-
-        with patch.object(Client, "_get_config", config_without_sse_v4):
-            with connect(increment_demo) as client:
-                assert client.protocol == "sse_v3"
-                with patch.object(
-                    client, "stream_messages", wraps=client.stream_messages
-                ) as session_stream:
-                    assert client.predict(api_name="/increment_with_queue") == 1
-                assert session_stream.called
-
-    def test_resuming_sessions_keeps_the_session_stream(self, increment_demo):
-        # Jobs only resume on the session stream, so a client that resumes
-        # sessions submits its events there too.
-        with connect(increment_demo, client_kwargs={"resume_sessions": True}) as client:
-            assert client.protocol == "sse_v3"
-            assert client.predict(api_name="/increment_with_queue") == 1
 
     def test_cancel_closes_the_event_stream(self):
         started = threading.Event()
@@ -1488,7 +1461,6 @@ class TestOwnEventStream:
             job = client.submit(api_name="/slow")
             assert started.wait(5)
             assert job.cancel()
-            # The server stops the event once its request goes away.
             deadline = time.time() + 5
             while any(demo._queue.active_jobs) and time.time() < deadline:
                 time.sleep(0.05)

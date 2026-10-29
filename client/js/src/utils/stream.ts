@@ -159,12 +159,6 @@ export async function open_stream(this: Client): Promise<void> {
 	};
 }
 
-// Whether events should each stream on their own request (sse_v4) rather than
-// on the session's shared stream. A browser speaking HTTP/1.1 allows six
-// connections per origin, across all its tabs, so there it uses the shared
-// stream. Browsers only speak HTTP/2 or 3 over TLS, so this mostly means local
-// apps and apps served over plain HTTP. The server's `browser_streams` setting
-// overrides the choice.
 export function streams_per_event(config: Config): boolean {
 	const mode = config.browser_streams ?? "auto";
 	if (mode !== "auto") return mode === "per_event";
@@ -175,8 +169,6 @@ export function streams_per_event(config: Config): boolean {
 	return /^h[23]/.test(negotiated_protocol(config.root));
 }
 
-// The protocol the browser last negotiated with the app's origin, from the
-// page's Resource Timing entries, or "" if no entry says.
 function negotiated_protocol(root: string): string {
 	if (typeof performance?.getEntriesByType !== "function") return "";
 	let origin: string;

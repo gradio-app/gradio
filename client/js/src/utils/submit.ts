@@ -122,9 +122,6 @@ export function submit(
 			? []
 			: map_data_to_params(data, endpoint_info);
 
-		// sse_v4 streams each event on the request that submits it. Servers that
-		// support it keep advertising sse_v3 as `protocol` for older clients, and
-		// still serve it, which a browser on HTTP/1.1 uses instead.
 		let protocol: Config["protocol"] | "sse_v4" =
 			config.supported_protocols?.includes("sse_v4")
 				? streams_per_event(config)
@@ -220,8 +217,6 @@ export function submit(
 		let stream: EventSource | null;
 		let event_id_final = "";
 		let event_id_cb: () => string = () => event_id_final;
-		// sse_v4: the request that submitted this event and streams its messages,
-		// while it does. If it drops, the event continues on the session stream.
 		let own_stream_controller: AbortController | null = null;
 		let own_stream_callback: ((data: unknown) => Promise<void>) | null = null;
 		let own_stream_active = false;
@@ -265,9 +260,6 @@ export function submit(
 			if (own_stream_active && !own_stream_cancelled) {
 				own_stream_cancelled = true;
 				abort_own_stream();
-				// Report the completion `/cancel` would have sent on this stream, and
-				// let listeners handle it before `cancel` resolves, as with sse_v3:
-				// the frontend marks the event complete only afterwards.
 				if (own_stream_callback && !own_stream_finished) {
 					await own_stream_callback({
 						msg: "process_completed",
@@ -277,8 +269,6 @@ export function submit(
 					});
 					await new Promise((resolve) => setTimeout(resolve, 0));
 				}
-				// Closing the request does not stop the event on a server that keeps
-				// it for a page that resumes, so ask for that as below.
 			}
 			let reset_request = {};
 			let cancel_request = {};
@@ -290,10 +280,6 @@ export function submit(
 					throw new Error("Could not resolve app config");
 				}
 
-				// An event whose request closed is kept for the page to resume, so
-				// only `/cancel` stops it. Behind a load balancer without session
-				// affinity that can reach a process without the event, which says
-				// so, and then we try again.
 				const attempts =
 					own_stream_cancelled && options.resume_sessions ? 8 : 1;
 				for (let attempt = 0; attempt < attempts; attempt++) {
@@ -372,8 +358,6 @@ export function submit(
 			});
 		}
 
-		// Handles a queued event's messages, from its own stream (sse_v4) or the
-		// session stream.
 		function create_queue_callback(
 			queue_event_id: string
 		): (data: unknown) => Promise<void> {
@@ -464,7 +448,6 @@ export function submit(
 						fire_event({
 							type: "data",
 							time: new Date(),
-							// A cancelled event completes with no output data.
 							data: data.data
 								? handle_payload(
 										data.data,
@@ -561,8 +544,6 @@ export function submit(
 			this.events_to_resume.add(resume_event_id);
 		}
 
-		// A ZeroGPU Space embedded in an iframe gets the headers that identify the
-		// user's quota from the parent page.
 		async function get_join_headers(): Promise<Record<string, string>> {
 			let hostname = "";
 			if (typeof window !== "undefined" && typeof document !== "undefined") {
@@ -583,7 +564,6 @@ export function submit(
 			return { ...addt_headers, ...(headers || {}) } as Record<string, string>;
 		}
 
-		// Reports a queue/join that did not succeed, and says whether it did so.
 		function report_join_error(response: any, status: number): boolean {
 			if (status === 503) {
 				fire_event({
@@ -630,7 +610,6 @@ export function submit(
 			return true;
 		}
 
-		// sse_v4: submits the event and reads its messages from the response.
 		async function stream_own_event(
 			headers: Record<string, string>,
 			on_event_id: () => void
@@ -640,8 +619,6 @@ export function submit(
 			own_stream_controller = controller;
 			own_stream_active = true;
 			that.own_stream_controllers.add(controller);
-			// Same scheduling as the session stream in `open_stream`: yield to the
-			// browser between messages, except in hidden tabs, which throttle timers.
 			const deliver = (message: unknown): void => {
 				const callback = own_stream_callback;
 				if (own_stream_cancelled || !callback) return;
@@ -659,8 +636,6 @@ export function submit(
 				const url = new URL(
 					`${config.root}${api_prefix}/${SSE_DATA_URL}?${url_params}`
 				);
-				// Like the session stream: lets the server keep the event, and its
-				// messages, for this page to resume if the request drops.
 				if (options.resume_sessions) {
 					url.searchParams.set("acknowledgements", "true");
 				}
@@ -685,8 +660,6 @@ export function submit(
 				let response: Response;
 				try {
 					response = await post(state_payload());
-					// As in `post_with_state`: a server that has not cached a value
-					// the client referred to asks for it in full, once.
 					if (response.status === 409) {
 						const missing = (await response.json().catch(() => null))?.detail
 							?.missing_state;
@@ -712,8 +685,6 @@ export function submit(
 					report_join_error(body, response.status);
 					return;
 				}
-				// Not every fetch implementation fails a pending read when the request
-				// is aborted, so the abort is raced against each read.
 				const aborted = new Promise<never>((_, reject) => {
 					controller.signal.addEventListener(
 						"abort",
@@ -752,27 +723,17 @@ export function submit(
 						}
 						deliver(data);
 					}
-				} catch (e) {
-					// Aborted, or the connection dropped. Handled below.
-				}
+				} catch (e) {}
 				if (own_stream_finished) return;
 				if (controller.signal.aborted) {
-					// By `cancel`, which reports the completion itself, or by
-					// `Client.close`. When sessions resume, that is the page
-					// unloading: the submission stays open, as on the session
-					// stream, since ending it would acknowledge the event and so
-					// stop the next page from resuming it. Otherwise it ends quietly.
 					if (!own_stream_cancelled && !options.resume_sessions) close();
 				} else if (!own_stream_callback || !event_id) {
 					report_join_error({ error: BROKEN_CONNECTION_MSG }, 500);
 				} else if (options.resume_sessions) {
-					// The server keeps the event for this page: follow it on the
-					// session stream, which replays what it sent, as after a refresh.
 					own_stream_active = false;
 					delete pending_diff_streams[event_id];
 					that.events_to_resume.add(event_id);
 					if (stream_status.open) {
-						// Reopened with the ids of the events to resume
 						close_stream(stream_status, that.abort_controller);
 						unclosed_events.forEach((id) => {
 							that.events_to_resume.add(id);
@@ -1091,8 +1052,6 @@ export function submit(
 					}
 				});
 			} else if (protocol == "sse_v4") {
-				// queue/join responds with this event's own messages, so nothing
-				// depends on a second request reaching the same server process.
 				fire_event({
 					type: "status",
 					stage: "pending",
@@ -1101,8 +1060,6 @@ export function submit(
 					fn_index,
 					time: new Date()
 				});
-				// `job` settles once the event id is known, so `send_chunk` and
-				// `wait_for_id` work while the event is still streaming.
 				return get_join_headers().then(
 					(combined_headers) =>
 						new Promise<void>((resolve_id, reject) => {

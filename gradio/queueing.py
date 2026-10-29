@@ -83,9 +83,6 @@ class Event:
         self.run_time: float = 0
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
-        # True when the client receives this event's messages on the same
-        # request that submitted it (sse_v4), instead of on the session-wide
-        # `queue/data` stream.
         self.own_stream = False
 
     @property
@@ -157,8 +154,6 @@ class Queue:
         self.pending_messages_per_session: LRUCache[str, AsyncQueue[EventMessage]] = (
             LRUCache(2000)
         )
-        # Messages for events that stream on their own request (sse_v4). An
-        # entry lives exactly as long as that request is open.
         self.pending_messages_per_event: dict[str, AsyncQueue[EventMessage]] = {}
         self.pending_event_ids_session: dict[str, set[str]] = {}
         self.resumable_sessions: dict[str, ResumableSession] = {}
@@ -295,7 +290,6 @@ class Queue:
         if resumable is not None and resumable.acknowledges:
             resumable.history.append(event_message)
         if event.own_stream:
-            # Once the event's request has closed there is no one to deliver to.
             own_messages = self.pending_messages_per_event.get(event._id)
             if own_messages is not None:
                 own_messages.put_nowait(event_message)

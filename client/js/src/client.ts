@@ -100,7 +100,6 @@ export class Client {
 		typeof window !== "undefined" && typeof document !== "undefined";
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
-	// sse_v4: one request per in-flight event, each streaming its own messages.
 	own_stream_controllers: Set<AbortController> = new Set();
 	current_payload: any;
 

@@ -107,7 +107,6 @@ test("test stopping generation", async ({ page }) => {
 	await submit_button.click();
 
 	await expect(stop_button).toBeVisible();
-	// Stop takes effect at once, so wait for the reply to start streaming.
 	await expect(bot_message).toContainText("You typed:");
 	await stop_button.click();
 

@@ -181,10 +181,6 @@ class Client:
             self._login(auth)
 
         self.config = self._get_config()
-        # sse_v4 streams each event on the request that submits it. Servers that
-        # support it keep advertising sse_v3 as "protocol" for older clients.
-        # This client resumes jobs only through the session stream, so it stays
-        # on that when resuming sessions.
         self.protocol: Literal[
             "ws", "sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"
         ] = (
@@ -237,8 +233,6 @@ class Client:
         # Helpers only finish once the reader has delivered their messages, so it
         # gets a thread of its own instead of queueing behind them.
         self.stream_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        # sse_v4 reads each event's own stream, so it needs a reader per event in
-        # flight. The headroom covers readers still closing after their job.
         self.event_stream_executor = concurrent.futures.ThreadPoolExecutor(
             max_workers=2 * max_workers
         )
@@ -261,7 +255,6 @@ class Client:
 
         self.stream_open = False
         self.streaming_future: Future | None = None
-        # sse_v4: the open response of each event in flight, closed to cancel it.
         self.event_streams: dict[str, httpx2.Response] = {}
         self.pending_messages_per_event: dict[str, deque[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
@@ -621,8 +614,6 @@ class Client:
                     )
                 if event_id is not None:
                     self.event_streams.pop(event_id, None)
-                    # A job still waiting learns that its stream ended without a
-                    # result, as with the shared reader.
                     with self.pending_lock:
                         pending_messages = self.pending_messages_per_event.get(event_id)
                     if pending_messages is not None:
@@ -912,8 +903,6 @@ class Client:
         if self.protocol not in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"):
             raise ValueError(f"Cannot resume jobs using protocol: {self.protocol}")
         if self.protocol == "sse_v4":
-            # Jobs resume on the session stream, and from now on this client
-            # resumes sessions, which it only does on that stream.
             self.protocol = self.config.get("protocol", "sse_v3")
             for endpoint in self.endpoints.values():
                 if isinstance(endpoint, Endpoint):
@@ -1592,9 +1581,6 @@ class Endpoint:
                     **client.httpx_kwargs,
                 )
             if self.protocol == "sse_v4":
-                # This client does not resume events, so closing the event's
-                # request cancels it on the process running it, even when the
-                # POST above reached a different one.
                 client.close_event_stream(helper.event_id)
 
         return _cancel

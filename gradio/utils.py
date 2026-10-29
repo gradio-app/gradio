@@ -592,14 +592,20 @@ def get_browser_streams() -> Literal["auto", "per_event", "per_session"]:
     shared stream), or "auto", which uses per_event when the browser speaks
     HTTP/2 or later to the app and per_session on HTTP/1.1.
     """
+    modes: dict[str, Literal["auto", "per_event", "per_session"]] = {
+        "auto": "auto",
+        "per_event": "per_event",
+        "per_session": "per_session",
+    }
     value = os.environ.get("GRADIO_BROWSER_STREAMS", "auto").strip().lower()
-    if value not in ("auto", "per_event", "per_session"):
+    mode = modes.get(value)
+    if mode is None:
         warnings.warn(
             f"Ignoring GRADIO_BROWSER_STREAMS={value!r}: expected 'auto', "
             "'per_event' or 'per_session'."
         )
         return "auto"
-    return value
+    return mode
 
 
 def is_hosted_notebook() -> bool:
