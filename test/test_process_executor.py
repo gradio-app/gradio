@@ -549,14 +549,17 @@ def test_replicas_keep_a_running_stream_to_its_process(tmp_path):
     url = f"http://127.0.0.1:{port}/"
     try:
         deadline = time.time() + 120
+        processes = []
         while time.time() < deadline:
             try:
                 status = httpx2.get(f"{url}gradio_api/processes").json()
-                if len(status.get("processes", [])) == 2 and not status["starting"]:
+                processes = status.get("processes", [])
+                if len(processes) == 2 and not status["starting"]:
                     break
             except (httpx2.HTTPError, ValueError):
                 pass
             time.sleep(0.5)
+        assert len(processes) == 2
         with open("test/test_files/audio_sample.wav", "rb") as f:
             (path,) = httpx2.post(f"{url}gradio_api/upload", files={"files": f}).json()
         pids = {"first": [], "second": []}
@@ -574,27 +577,32 @@ def test_replicas_keep_a_running_stream_to_its_process(tmp_path):
                     return
                 pids[name].append(message["output"]["data"][0])
                 # The first stream keeps sending chunks, a little apart, until
-                # the second one has started
+                # the second one has started. They name no session, and still
+                # go to the process that holds the stream.
                 if name == "first" and not stop.is_set():
                     time.sleep(0.2)
-                    http.post(f"gradio_api/stream/{event_id}", json=body)
+                    chunk = {"data": body["data"], "fn_index": 0}
+                    http.post(f"gradio_api/stream/{event_id}", json=chunk)
                 else:
                     http.post(f"gradio_api/stream/{event_id}/close")
 
             _queue_messages(url, body, on_message)
 
-        first = threading.Thread(target=stream, args=("first",))
+        first = threading.Thread(target=stream, args=("first",), daemon=True)
         first.start()
         deadline = time.time() + 30
         while len(pids["first"]) < 2 and time.time() < deadline:
             time.sleep(0.05)
         # Its later chunks run too, without waiting for the slot it holds
         assert len(pids["first"]) >= 2
-        stream("second")
+        second = threading.Thread(target=stream, args=("second",), daemon=True)
+        second.start()
+        second.join(timeout=30)
         stop.set()
         first.join(timeout=30)
-        assert not first.is_alive()
+        assert not first.is_alive() and not second.is_alive()
         assert pids["second"]
+        assert len(set(pids["first"])) == 1
         assert pids["first"][0] != pids["second"][0]
     finally:
         import signal

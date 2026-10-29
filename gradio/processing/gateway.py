@@ -319,10 +319,20 @@ class Pool:
             self.reserved[event._id] = (link, fn.concurrency_id)
             return True
 
+    def with_slot(self, event_id: str | None) -> Link | None:
+        """The process where `event_id` holds a slot between calls, which is
+        where its later calls go."""
+        if event_id is None:
+            return None
+        with self.lock:
+            return next((link for link in self.links if event_id in link.held), None)
+
     def end_event(self, event: Any) -> None:
         """The queue is done with `event`: gives back the slot that it held in
         its process between calls."""
-        for link in self.links:
+        with self.lock:
+            links = list(self.links)
+        for link in links:
             link.release(event._id)
 
     def process_limit(self, fn: BlockFunction) -> int | None:
@@ -439,7 +449,7 @@ async def forward_event(
     root_path: str,
     record_history: bool = True,
     *,
-    event_id: str | None = None,
+    queue_event_id: str | None = None,
 ) -> dict[str, Any]:
     """`route_utils.call_process_api`, run in the app's process that holds the
     event's session."""
@@ -449,10 +459,11 @@ async def forward_event(
     session_state, iterator = route_utils.restore_session_state(app=app, body=body)
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
+    holder = queue_event_id
     link = (
         iterator.link
         if isinstance(iterator, RemoteIterator)
-        else pool.for_session(body.session_hash)
+        else pool.with_slot(holder) or pool.for_session(body.session_hash)
     )
     probing = caching._probe_mode_active.get()
     limit = (
@@ -461,7 +472,6 @@ async def forward_event(
         else None
     )
     streaming = fn.connection == "stream"
-    holder = event_id if event_id is not None else body.event_id
     slot = None
     returned = False
     link.running += 1
@@ -472,7 +482,7 @@ async def forward_event(
             and holder not in link.held
         ):
             candidate = link.slot(fn.concurrency_id, limit)
-            pool.reserved.pop(body.event_id or "", None)
+            pool.reserved.pop(holder or "", None)
             await candidate.acquire()
             slot = candidate
         sent_body = body.model_dump(exclude={"request", "client_state"})
@@ -506,7 +516,7 @@ async def forward_event(
         if slot is not None:
             slot.release()
         elif iterator is not None:
-            link.release(body.event_id)
+            link.release(holder)
         if returned and body.event_id is not None:
             link.send(("close_iterator", body.event_id))
         raise
@@ -520,7 +530,7 @@ async def forward_event(
         else:
             slot.release()
     elif not has_iterator and not streaming:
-        link.release(body.event_id)
+        link.release(holder)
     if body.event_id is not None:
         app.iterators[body.event_id] = (  # type: ignore[assignment]
             RemoteIterator(link, body.event_id) if has_iterator else None

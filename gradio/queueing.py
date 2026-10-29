@@ -1081,7 +1081,8 @@ class Queue:
             if body is None:
                 raise ValueError("No event data")
             username = events[0].username
-            body.event_id = events[0]._id if not batch else None
+            queue_event_id = events[0]._id if not batch else None
+            body.event_id = queue_event_id
             try:
                 body.request = events[0].request
             except ValueError:
@@ -1156,7 +1157,7 @@ class Queue:
                     fn=fn,
                     root_path=root_path,
                     record_history=fn.connection != "stream",
-                    event_id=events[0]._id if not batch else None,
+                    queue_event_id=queue_event_id,
                 )
                 end = time.monotonic()
                 first_iteration = end - start
@@ -1260,7 +1261,7 @@ class Queue:
                             fn=fn,
                             root_path=root_path,
                             record_history=fn.connection != "stream",
-                            event_id=events[0]._id if not batch else None,
+                            queue_event_id=queue_event_id,
                         )
                         end = time.monotonic()
                         for event in awake_events:
