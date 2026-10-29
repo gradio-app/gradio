@@ -31,7 +31,7 @@ class Autoscaler:
     def __init__(self, pool: Pool, blocks: Blocks):
         self.pool = pool
         self.blocks = blocks
-        self.max_replicas = int(_setting("MAX_REPLICAS", 2))
+        self.max_replicas = int(_setting("MAX_REPLICAS", 4))
         self.min_samples = 3
         self.backlog_seconds = _setting("BACKLOG_SECONDS", 0.5)
         self.idle_seconds = _setting("IDLE_SECONDS", 60)
@@ -47,6 +47,7 @@ class Autoscaler:
         self.cooldown_until = 0.0
         self.last_activity = time.monotonic()
         self.trial: dict[str, Any] | None = None
+        self.throughputs: dict[int, float] = {}
         pool.autoscaler = self
 
     def record(self, reason: str, **extra) -> None:
@@ -77,21 +78,24 @@ class Autoscaler:
             if len(trial["durations"]) < 6 or not trial["continuous"]:
                 return
             throughput = len(trial["durations"]) / (time.monotonic() - trial["start"])
-            baseline = 1 / trial["baseline"]
+            count = len(self.pool.serving())
+            before = self.throughputs.get(count - 1, (count - 1) / trial["baseline"])
             latency = statistics.median(trial["durations"])
             self.record(
                 "Replica performance observed",
+                processes=count,
                 throughput=throughput,
-                baseline_throughput=baseline,
+                throughput_before=before,
                 median_seconds=latency,
             )
-            if throughput < baseline * 1.1 or latency > trial["baseline"] * 2.5:
+            if throughput < before * 1.1 or latency > trial["baseline"] * 2.5:
                 self.retire(
                     self.pool.serving()[-1],
                     "Extra replica did not improve sustained throughput/latency",
                 )
             else:
                 self.record("Extra replica retained: throughput improved")
+                self.throughputs[count] = throughput
                 self.trial = None
 
     def replica_added(self, link: Link) -> None:
@@ -153,6 +157,7 @@ class Autoscaler:
             if (
                 len(serving) < self.max_replicas
                 and not self.starting
+                and self.trial is None
                 and len(serving) == len(links)
                 and len(self.samples) >= self.min_samples
                 and self.backlog_since is not None
