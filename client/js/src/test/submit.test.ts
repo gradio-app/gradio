@@ -160,11 +160,40 @@ describe("submit iterator", () => {
 				props: {} as Record<string, unknown>
 			}));
 			app.session_store.restore_into([streamed, other]);
-			expect(streamed.props).toEqual({});
+			expect(streamed.props).toEqual({ value: null });
 			expect(other.props.value).toBe(3);
 			await iterator.return();
 		}
 	);
+
+	test("clears a streamed component's saved value when another event reads it", async () => {
+		const app = await Client.connect("hmb/hello_world");
+		app.stream_status.open = true;
+		const [click, stream] = app.config!.dependencies;
+		const cam = click.inputs[0];
+		stream.targets = [[cam, "stream"]];
+		app.session_store.record(
+			[cam],
+			[{ url: "data:image/jpeg;base64,frame" }],
+			app.config!.components
+		);
+		server.resetHandlers(
+			http.post(`${direct_space_url}/queue/join`, () =>
+				HttpResponse.json({ event_id: "click-event" })
+			)
+		);
+
+		const iterator = app.submit("/predict", ["frame"]);
+		await iterator.wait_for_id();
+		const restored = {
+			id: cam,
+			type: app.config!.components.find((c) => c.id === cam)!.type,
+			props: {} as Record<string, unknown>
+		};
+		app.session_store.restore_into([restored]);
+		expect(restored.props).toEqual({ value: null });
+		await iterator.return();
+	});
 
 	test("next() after the iterator is closed resolves to {done: true}", async () => {
 		const app = await Client.connect("hmb/hello_world");

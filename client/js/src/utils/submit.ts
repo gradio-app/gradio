@@ -152,17 +152,28 @@ export function submit(
 		// UI submits through an undocumented dependency — `gr.ChatInterface` does
 		// — records nothing for its in-app use.
 		const is_documented_endpoint = dependency.api_visibility === "public";
+		const emptying = (
+			dependencies: { targets: [number, string][] }[]
+		): ((values: unknown[]) => unknown[]) => {
+			const streamed = new Set(
+				dependencies.flatMap((item) =>
+					item.targets
+						.filter(([, event]) => event === "stream")
+						.map(([id]) => id)
+				)
+			);
+			return (values) =>
+				values.map((value, index) =>
+					streamed.has(dependency.inputs[index]) ? null : value
+				);
+		};
 		// A chunk is not the input of an input stream, so the streamed component
 		// is saved empty; the event's other inputs are kept.
-		const streamed_inputs = new Set(
-			dependency.targets
-				.filter(([, event]) => event === "stream")
-				.map(([id]) => id)
-		);
-		const history_inputs = (values: unknown[]): unknown[] =>
-			values.map((value, index) =>
-				streamed_inputs.has(dependency.inputs[index]) ? null : value
-			);
+		const history_inputs = emptying([dependency]);
+		// Nor is it the component's value: every event that reads a streaming
+		// webcam gets its latest frame, which a reload would show in place of
+		// the camera.
+		const session_inputs = emptying(config.dependencies);
 		// Either side may opt out: the app for everyone who uses it, and this
 		// caller for itself.
 		const history_enabled =
@@ -520,13 +531,9 @@ export function submit(
 				history_run_id,
 				history_inputs(input_data || [])
 			);
-			// A chunk is not the streamed component's value either: restored on a
-			// reload, a webcam frame would be shown in place of the camera
 			that.session_store.record(
 				dependency.inputs,
-				(input_data || []).map((value, index) =>
-					streamed_inputs.has(dependency.inputs[index]) ? undefined : value
-				),
+				session_inputs(input_data || []),
 				config.components
 			);
 			payload = {
