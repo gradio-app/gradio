@@ -1441,7 +1441,7 @@ class App(FastAPI):
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
             event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            if event is None:
+            if event is None or not event.streaming:
                 return Response(status_code=404)
             event.run_time = math.inf
             event.closed = True

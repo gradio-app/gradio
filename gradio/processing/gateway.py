@@ -321,11 +321,17 @@ class Pool:
             self.reserved[event._id] = (link, fn.concurrency_id)
             return True
 
-    def with_slot(self, event_id: str | None) -> Link | None:
+    def with_slot(self, event_id: str | None, session_hash: str | None) -> Link | None:
         """The process where the stream `event_id` holds a slot between
-        chunks, which is where its later chunks go."""
+        chunks, which is where its later chunks go. Each chunk keeps the
+        stream's session fresh there, as `for_session` would."""
         link = self.streams.get(event_id) if event_id is not None else None
-        return link if link is not None and not link.closed else None
+        if link is None or link.closed:
+            return None
+        if session_hash:
+            with self.lock:
+                link.sessions[session_hash] = True
+        return link
 
     def end_event(self, event: Any) -> None:
         """The queue is done with `event`: a stream gives back the slot that it
@@ -462,7 +468,7 @@ async def forward_event(
     link = (
         iterator.link
         if isinstance(iterator, RemoteIterator)
-        else pool.with_slot(queue_event_id if streaming else None)
+        else pool.with_slot(queue_event_id if streaming else None, body.session_hash)
         or pool.for_session(body.session_hash)
     )
     probing = caching._probe_mode_active.get()
@@ -526,7 +532,9 @@ async def forward_event(
         # yields, until the queue ends it (`Pool.end_event`)
         if (has_iterator or streaming) and queue_event_id is not None:
             link.held[queue_event_id] = slot
-            if streaming:
+            # A stream generator's slot goes back when it is closed, with its
+            # close_iterator, as for any generator
+            if streaming and not has_iterator:
                 pool.streams[queue_event_id] = link
         else:
             slot.release()

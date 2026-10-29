@@ -462,6 +462,14 @@ class Queue:
             )
         elif resumable is not None:
             unload_request = resumable.unload_request
+        # End the session's events first: a stream keeps its process slot
+        # until it ends, and an unload in its concurrency group needs it
+        for event_id in self.pending_event_ids_session.get(session_hash, set()):
+            pending_event = self.event_ids_to_events.get(event_id)
+            if pending_event is not None:
+                pending_event.run_time = float("inf")
+                pending_event.closed = True
+                pending_event.signal.set()
         if unload_request is not None and run_unload_fns:
             request, username, route_path = unload_request
             body = PredictBodyInternal(
@@ -499,12 +507,6 @@ class Queue:
                     traceback.print_exception(result)
         app.mark_session_closed(session_hash)
         caching.clear_session_caches(session_hash)
-        for event_id in self.pending_event_ids_session.get(session_hash, set()):
-            pending_event = self.event_ids_to_events.get(event_id)
-            if pending_event is not None:
-                pending_event.run_time = float("inf")
-                pending_event.closed = True
-                pending_event.signal.set()
 
     def expire_detached_sessions(self) -> list[asyncio.Task]:
         """Starts ending the detached sessions whose time is up. They end in the
