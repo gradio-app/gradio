@@ -3107,7 +3107,7 @@ Received inputs:
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         executor: Literal["thread", "process"] | None = None,
-        replicas: int | None = None,
+        replicas: int | Literal["auto"] | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -3159,7 +3159,7 @@ Received inputs:
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             executor: Where the server runs relative to the app's functions. "process" (the default, except in Jupyter notebooks and IPython) runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. GRADIO_PROCESS_REPLICAS=N then runs the app's script in N processes, each serving its own sessions. "thread" (the default in notebooks, where launching quickly matters most) runs the server in this process, with functions in its threads. Can be set with the GRADIO_EXECUTOR environment variable.
-            replicas: With executor="process", how many processes run the app's functions: the script runs again in each, which loads its own copy of any model, and each user's session stays on one process. Can be set with the GRADIO_PROCESS_REPLICAS environment variable. Defaults to 1.
+            replicas: With executor="process", how many processes run the app's functions: the script runs again in each, which loads its own copy of any model, and each user's session stays on one process. "auto" (experimental) starts with one and adds a second when events keep waiting and memory allows it, keeping it only if throughput improves, and retires it when idle. Can be set with the GRADIO_PROCESS_REPLICAS environment variable. Defaults to 1.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -3344,6 +3344,7 @@ Received inputs:
                         self.share_url,
                         app_processes=worker.replicas,
                         gateway_pid=worker.gateway.pid,
+                        autoscale=worker.autoscale,
                     )
                 if self.mcp_server_obj:
                     self.mcp_server_obj._local_url = self.local_url
@@ -4046,6 +4047,7 @@ Received inputs:
         share_url: str | None,
         app_processes: int = 1,
         gateway_pid: int | None = None,
+        autoscale: bool = False,
     ) -> None:
         """What `launch()` prints once the app is up, under its "starting"
         line: where it runs, a public link or one tip picked from how it was
@@ -4054,7 +4056,9 @@ Received inputs:
         if sys.stdout.isatty():
             running = f"\033[1m{running}\033[0m"
         lines = [running]
-        tip = self._launch_tip(share_url, app_processes, gateway_pid is not None)
+        tip = self._launch_tip(
+            share_url, 2 if autoscale else app_processes, gateway_pid is not None
+        )
         if share_url:
             lines.append(f"* Public link: {share_url}")
         elif tip:
@@ -4063,7 +4067,8 @@ Received inputs:
         if gateway_pid is None:
             lines.append(f"* 1 app & gateway process (PID {pid})")
         elif app_processes == 1:
-            lines.append(f"* 1 app process (PID {pid})")
+            scaled = ", replicas added as needed" if autoscale else ""
+            lines.append(f"* 1 app process (PID {pid}{scaled})")
             lines.append(f"* 1 gateway process (PID {gateway_pid})")
         else:
             replicas = app_processes - 1
