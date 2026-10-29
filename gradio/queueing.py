@@ -10,6 +10,7 @@ import traceback
 import uuid
 from asyncio import Queue as AsyncQueue
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -157,6 +158,7 @@ class Queue:
         self.event_ids_to_events: dict[str, Event] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
+        self.can_start: Callable[[Event], bool] | None = None
         self.stopped = False
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
@@ -494,8 +496,7 @@ class Queue:
                 if isinstance(result, BaseException):
                     print(f"An unload event of session {session_hash} failed:")
                     traceback.print_exception(result)
-        if session_hash in app.state_holder.session_data:
-            app.state_holder.session_data[session_hash].is_closed = True
+        app.mark_session_closed(session_hash)
         caching.clear_session_caches(session_hash)
         for event_id in self.pending_event_ids_session.get(session_hash, set()):
             pending_event = self.event_ids_to_events.get(event_id)
@@ -750,7 +751,16 @@ class Queue:
                 event_queue.concurrency_limit is None
                 or event_queue.current_concurrency < event_queue.concurrency_limit
             ):
-                first_event = event_queue.queue[0]
+                first_event = next(
+                    (
+                        event
+                        for event in event_queue.queue
+                        if self.can_start is None or self.can_start(event)
+                    ),
+                    None,
+                )
+                if first_event is None:
+                    continue
                 block_fn = first_event.fn
                 events = [first_event]
                 batch = block_fn.batch

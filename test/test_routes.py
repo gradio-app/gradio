@@ -143,7 +143,7 @@ class TestRoutes:
                 api_name="details_endpoint",
             )
 
-        app, _, _ = demo.launch(prevent_thread_lock=True)
+        app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
         try:
             client = TestClient(app)
             full_config = client.get("/config").json()
@@ -2300,6 +2300,27 @@ class TestPassingRequest:
         output = dict(response.json())
         assert output["data"] == ["test"]
 
+    def test_request_state_survives_pickling(self):
+        from starlette.requests import Request as StarletteRequest
+
+        request = gr.Request(
+            StarletteRequest(
+                {
+                    "type": "http",
+                    "method": "GET",
+                    "scheme": "http",
+                    "server": ("localhost", 7860),
+                    "path": "/",
+                    "query_string": b"",
+                    "headers": [],
+                    "client": ("127.0.0.1", 1234),
+                    "state": {"identity": "alice"},
+                }
+            )
+        )
+        unpickled = pickle.loads(pickle.dumps(request))
+        assert unpickled.state.identity == "alice"
+
 
 def test_predict_route_is_blocked_if_api_open_false():
     io = Interface(
@@ -2509,7 +2530,7 @@ def test_api_name_set_for_all_events(connect):
         btn8.click(part, i, o)
 
     with closing(demo) as io:
-        app, _, _ = io.launch(prevent_thread_lock=True)
+        app, _, _ = io.launch(prevent_thread_lock=True, executor="thread")
         client = TestClient(app)
         assert client.post(
             f"{API_PREFIX}/api/greet", json={"data": ["freddy"], "session_hash": "foo"}
@@ -3436,6 +3457,8 @@ def test_mount_gradio_app_args_match_launch_args():
         "i18n",
         "_app",
         "num_workers",
+        "executor",
+        "replicas",
     }
 
     missing_params = []

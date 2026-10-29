@@ -1,5 +1,17 @@
 # website
 
+## 0.81.2
+
+### Dependency updates
+
+- @gradio/statustracker@0.16.0
+- @gradio/code@0.20.1
+- @gradio/html@0.14.1
+- @gradio/paramviewer@0.12.1
+- @gradio/button@0.8.4
+- @gradio/tabitem@0.10.1
+- @gradio/tabs@0.11.2
+
 ## 0.81.1
 
 ### Dependency updates
