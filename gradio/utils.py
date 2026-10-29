@@ -585,6 +585,23 @@ def colab_check() -> bool:
     return is_colab
 
 
+def get_browser_streams() -> Literal["auto", "per_event", "per_session"]:
+    """
+    How browsers receive queued events' messages, from GRADIO_BROWSER_STREAMS:
+    "per_event" (sse_v4, one request per event), "per_session" (the session's
+    shared stream), or "auto", which uses per_event when the browser speaks
+    HTTP/2 or later to the app and per_session on HTTP/1.1.
+    """
+    value = os.environ.get("GRADIO_BROWSER_STREAMS", "auto").strip().lower()
+    if value not in ("auto", "per_event", "per_session"):
+        warnings.warn(
+            f"Ignoring GRADIO_BROWSER_STREAMS={value!r}: expected 'auto', "
+            "'per_event' or 'per_session'."
+        )
+        return "auto"
+    return value
+
+
 def is_hosted_notebook() -> bool:
     """
     Check if Gradio app is launching from a hosted notebook such as Kaggle or Sagemaker.

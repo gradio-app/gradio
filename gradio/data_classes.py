@@ -417,6 +417,7 @@ class BlocksConfigDict(TypedDict):
     theme: str | None
     protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
     supported_protocols: list[Literal["sse_v3", "sse_v4"]]
+    browser_streams: Literal["auto", "per_event", "per_session"]
     body_css: BodyCSS
     fill_height: bool
     fill_width: bool

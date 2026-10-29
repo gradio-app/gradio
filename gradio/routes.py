@@ -248,7 +248,7 @@ class OwnEventStreamResponse(StreamingResponse):
         while True:
             try:
                 message = await asyncio.wait_for(messages.get(), timeout=heartbeat_rate)
-            except (TimeoutError, asyncio.TimeoutError):
+            except TimeoutError:
                 # Keeps proxies from closing an idle connection while the event
                 # waits in the queue.
                 message = HeartbeatMessage()
@@ -1379,7 +1379,10 @@ class App(FastAPI):
             else:
                 config["i18n_translations"] = None
             config = route_utils.update_root_in_config(config, root)
-            return ORJSONResponse(content=config)
+            # Lets a page on another origin (an embed) read which HTTP version
+            # its browser negotiated here, which the JS client uses to decide
+            # how to stream events (see `browser_streams`).
+            return ORJSONResponse(content=config, headers={"Timing-Allow-Origin": "*"})
 
         @app.get("/static/{path:path}")
         async def static_resource(path: str):
@@ -2001,8 +2004,13 @@ class App(FastAPI):
 
         @router.post("/cancel")
         async def cancel_event(body: CancelBody):
-            await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
             blocks = app.get_blocks()
+            # Whether this process has the event, queued or running. Behind a
+            # load balancer without session affinity, a client retries until it
+            # reaches the one that does.
+            found = body.event_id in blocks._queue.event_ids_to_events
+            cancelled = await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
+            found = found or body.event_id in cancelled
             # Need to complete the job so that the client disconnects
             session_open = (
                 body.session_hash in blocks._queue.pending_messages_per_session
@@ -2023,7 +2031,7 @@ class App(FastAPI):
                     body.session_hash
                 ].put_nowait(message)
             await close_event_iterator(body.event_id)
-            return {"success": True}
+            return {"success": True, "found": found}
 
         @router.post("/queue/close", dependencies=[Depends(login_check)])
         async def close_queue_session(body: QueueCloseBody):

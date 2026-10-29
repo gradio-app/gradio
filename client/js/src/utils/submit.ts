@@ -33,7 +33,7 @@ import {
 	WS_PROTOCOL_MSG
 } from "../constants";
 import { events } from "fetch-event-stream";
-import { apply_diff_stream, close_stream } from "./stream";
+import { apply_diff_stream, close_stream, streams_per_event } from "./stream";
 import { clear_resumable_event, track_resumable_event } from "./session";
 import type { StatePayload } from "./session_store";
 import { Client } from "../client";
@@ -123,10 +123,13 @@ export function submit(
 			: map_data_to_params(data, endpoint_info);
 
 		// sse_v4 streams each event on the request that submits it. Servers that
-		// support it keep advertising sse_v3 as `protocol` for older clients.
+		// support it keep advertising sse_v3 as `protocol` for older clients, and
+		// still serve it, which a browser on HTTP/1.1 uses instead.
 		let protocol: Config["protocol"] | "sse_v4" =
 			config.supported_protocols?.includes("sse_v4")
-				? "sse_v4"
+				? streams_per_event(config)
+					? "sse_v4"
+					: "sse_v3"
 				: (config.protocol ?? "ws");
 		if (protocol === "ws") {
 			throw new Error(WS_PROTOCOL_MSG);
@@ -287,12 +290,23 @@ export function submit(
 					throw new Error("Could not resolve app config");
 				}
 
-				if ("event_id" in cancel_request) {
-					await fetch(`${config.root}${api_prefix}/${CANCEL_URL}`, {
-						headers: { "Content-Type": "application/json" },
-						method: "POST",
-						body: JSON.stringify(cancel_request)
-					});
+				// An event whose request closed is kept for the page to resume, so
+				// only `/cancel` stops it. Behind a load balancer without session
+				// affinity that can reach a process without the event, which says
+				// so, and then we try again.
+				const attempts =
+					own_stream_cancelled && options.resume_sessions ? 8 : 1;
+				for (let attempt = 0; attempt < attempts; attempt++) {
+					const response = await fetch(
+						`${config.root}${api_prefix}/${CANCEL_URL}`,
+						{
+							headers: { "Content-Type": "application/json" },
+							method: "POST",
+							body: JSON.stringify(cancel_request)
+						}
+					);
+					const result = await response.json().catch(() => null);
+					if (result?.found !== false) break;
 				}
 
 				await fetch(`${config.root}${api_prefix}/${RESET_URL}`, {
@@ -450,13 +464,16 @@ export function submit(
 						fire_event({
 							type: "data",
 							time: new Date(),
-							data: handle_payload(
-								data.data,
-								dependency,
-								config!.components,
-								"output",
-								options.with_null_state
-							),
+							// A cancelled event completes with no output data.
+							data: data.data
+								? handle_payload(
+										data.data,
+										dependency,
+										config!.components,
+										"output",
+										options.with_null_state
+									)
+								: data.data,
 							endpoint: _endpoint,
 							fn_index
 						});

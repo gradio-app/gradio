@@ -51,7 +51,10 @@ async function connect_v4(
 		http.get(`${direct_space_url}/${CONFIG_URL}`, () =>
 			HttpResponse.json({
 				...config_response,
-				supported_protocols: ["sse_v3", "sse_v4"]
+				supported_protocols: ["sse_v3", "sse_v4"],
+				// In browser mode the mocked server speaks HTTP/1.1, where the
+				// client would otherwise use the session stream.
+				browser_streams: "per_event"
 			})
 		)
 	);

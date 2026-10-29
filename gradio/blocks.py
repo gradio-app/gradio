@@ -2853,6 +2853,7 @@ Received inputs:
             # the newest version they all understand.
             "protocol": "sse_v3",
             "supported_protocols": ["sse_v3", "sse_v4"],
+            "browser_streams": utils.get_browser_streams(),
             "body_css": {  # type: ignore
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
