@@ -24,7 +24,7 @@ def load():
 
     torch.set_num_threads(1)
     if WORKLOAD == "kokoro":
-        from kokoro import KPipeline
+        from kokoro import KPipeline  # ty: ignore[unresolved-import]
 
         return KPipeline(
             lang_code="a", device="cuda" if torch.cuda.is_available() else "cpu"
@@ -54,7 +54,7 @@ def load():
             "tokenizer": tokenizer,
             "name": name,
         }
-    import llama_cpp
+    import llama_cpp  # ty: ignore[unresolved-import]
 
     models = Path(
         os.environ.get("AUTOSCALE_GGUF_DIR", "/tmp/gradio-calibration-models")
