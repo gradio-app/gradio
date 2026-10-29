@@ -1374,6 +1374,9 @@ class Queue:
             if not isinstance(e, Error) or e.print_exception:
                 traceback.print_exc()
         finally:
+            if self.end_event is not None:
+                for event in events:
+                    self.end_event(event)
             if PROFILING_ENABLED:
                 trace = get_current_trace()
                 if trace is not None:
@@ -1386,9 +1389,6 @@ class Queue:
                 start_times.discard(begin_time)
                 if not start_times:
                     del event_queue.start_times_per_fn[fn]
-            if self.end_event is not None:
-                for event in events:
-                    self.end_event(event)
             try:
                 self.active_jobs[self.active_jobs.index(events)] = None
             except ValueError:

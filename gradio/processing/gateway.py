@@ -320,16 +320,18 @@ class Pool:
             return True
 
     def with_slot(self, event_id: str | None) -> Link | None:
-        """The process where `event_id` holds a slot between calls, which is
-        where its later calls go."""
+        """The process where the stream `event_id` holds a slot between
+        chunks, which is where its later chunks go."""
         if event_id is None:
             return None
         with self.lock:
             return next((link for link in self.links if event_id in link.held), None)
 
     def end_event(self, event: Any) -> None:
-        """The queue is done with `event`: gives back the slot that it held in
-        its process between calls."""
+        """The queue is done with `event`: a stream gives back the slot that it
+        held between chunks. A generator's goes back when it is closed."""
+        if not event.streaming:
+            return
         with self.lock:
             links = list(self.links)
         for link in links:
@@ -459,11 +461,12 @@ async def forward_event(
     session_state, iterator = route_utils.restore_session_state(app=app, body=body)
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
-    holder = queue_event_id
+    streaming = fn.connection == "stream"
     link = (
         iterator.link
         if isinstance(iterator, RemoteIterator)
-        else pool.with_slot(holder) or pool.for_session(body.session_hash)
+        else pool.with_slot(queue_event_id if streaming else None)
+        or pool.for_session(body.session_hash)
     )
     probing = caching._probe_mode_active.get()
     limit = (
@@ -471,7 +474,6 @@ async def forward_event(
         if fn.queue and not fn.is_validator_function and not probing
         else None
     )
-    streaming = fn.connection == "stream"
     slot = None
     returned = False
     link.running += 1
@@ -479,10 +481,10 @@ async def forward_event(
         if (
             limit is not None
             and (iterator is None or streaming)
-            and holder not in link.held
+            and queue_event_id not in link.held
         ):
             candidate = link.slot(fn.concurrency_id, limit)
-            pool.reserved.pop(holder or "", None)
+            pool.reserved.pop(queue_event_id or "", None)
             await candidate.acquire()
             slot = candidate
         sent_body = body.model_dump(exclude={"request", "client_state"})
@@ -516,7 +518,7 @@ async def forward_event(
         if slot is not None:
             slot.release()
         elif iterator is not None:
-            link.release(holder)
+            link.release(queue_event_id)
         if returned and body.event_id is not None:
             link.send(("close_iterator", body.event_id))
         raise
@@ -525,12 +527,12 @@ async def forward_event(
     if slot is not None:
         # A stream keeps its slot between chunks, as a generator does between
         # yields, until the queue ends it (`Pool.end_event`)
-        if (has_iterator or streaming) and holder is not None:
-            link.held[holder] = slot
+        if (has_iterator or streaming) and queue_event_id is not None:
+            link.held[queue_event_id] = slot
         else:
             slot.release()
     elif not has_iterator and not streaming:
-        link.release(holder)
+        link.release(queue_event_id)
     if body.event_id is not None:
         app.iterators[body.event_id] = (  # type: ignore[assignment]
             RemoteIterator(link, body.event_id) if has_iterator else None

@@ -1421,7 +1421,7 @@ class App(FastAPI):
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
             event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            if event is None:
+            if event is None or not event.streaming:
                 return Response(status_code=404)
             new_body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             # A chunk is new input to the function, not the next step of a
