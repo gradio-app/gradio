@@ -565,7 +565,10 @@ export interface ReplayTarget {
 	}[];
 }
 
-/** Told which values a replayed run wrote, index-aligned with the component ids. */
+/**
+ * Told which values a replayed run wrote, index-aligned with the component
+ * ids. A slot it left alone, such as a streaming input, is `undefined`.
+ */
 export type ReplayListener = (ids: number[], values: unknown[]) => void;
 
 function restore_run_impl(
