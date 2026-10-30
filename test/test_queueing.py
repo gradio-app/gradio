@@ -3,6 +3,7 @@ import json
 import sys
 import threading
 import time
+from typing import Any, cast
 from unittest.mock import patch
 
 import fastapi
@@ -248,15 +249,18 @@ def test_heartbeat_task_cancelled_after_stream_completes():
 def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
     calls = []
 
-    def on_chunk(chunk):
+    def on_chunk(chunk, count):
         calls.append(chunk)
-        return f"got {chunk}"
+        return f"got {chunk}", count + 1
 
     with gr.Blocks() as demo:
         mic = gr.Audio(sources=["microphone"], streaming=True)
         chunk = gr.Textbox()
         output = gr.Textbox()
-        mic.stream(on_chunk, chunk, output)
+        count = gr.State(0)
+        mic.stream(on_chunk, [chunk, count], [output, count])
+        # Only a gr.State with .change listeners has its changes reported
+        count.change(lambda c: None, count, None)
 
     _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     # A real client rather than TestClient, which would set the event's
@@ -266,7 +270,7 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
         r = client.post(
             "/queue/join",
             json={
-                "data": ["a"],
+                "data": ["a", None],
                 "fn_index": 0,
                 "event_data": None,
                 "session_hash": "sess",
@@ -305,7 +309,15 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
                 if line.startswith("data")
             ]
             completed = [m for m in messages if m["msg"] == "process_completed"]
-            assert [m["output"]["data"] for m in completed] == [["got a"]]
+            assert [m["output"]["data"][0] for m in completed] == ["got a"]
+            # The page runs the gr.State's .change listeners for each report,
+            # and the last chunk's change went out with that chunk
+            reports = [
+                m["output"].get("changed_state_ids") or []
+                for m in messages
+                if m["msg"] in ("process_streaming", "process_completed")
+            ]
+            assert sum(count._id in ids for ids in reports) == 1
     finally:
         client.close()
         demo.close()
@@ -670,6 +682,59 @@ def test_resuming_one_event_keeps_messages_waiting_for_another():
         demo.close()
 
 
+def test_an_acknowledged_stream_does_not_cut_off_the_open_message_stream():
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(lambda x: "chunk", audio, heard)
+        gr.Button().click(lambda: "clicked", None, heard)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    messages = []
+
+    def read_messages():
+        with httpx2.Client(timeout=30) as http:
+            with http.stream(
+                "GET",
+                f"{api}/queue/data",
+                params={"session_hash": "s", "acknowledgements": "true"},
+            ) as response:
+                for line in response.iter_lines():
+                    if line.startswith("data:"):
+                        messages.append(json.loads(line[5:]))
+
+    try:
+        with httpx2.Client(timeout=10) as http:
+            stream_event = _join(http, api, "s")
+            reader = threading.Thread(target=read_messages, daemon=True)
+            reader.start()
+            _wait_for(
+                lambda: any(m.get("msg") == "process_streaming" for m in messages)
+            )
+            # The page stops the stream while its message stream stays open, as
+            # when a gr.Audio stream is stopped: the acknowledgement goes out
+            # before the close request
+            http.post(f"{api}/reset", json={"event_id": stream_event})
+            http.post(f"{api}/stream/{stream_event}/close")
+            time.sleep(0.5)
+            click_event = http.post(
+                f"{api}/queue/join",
+                json={"data": [], "fn_index": 1, "session_hash": "s"},
+            ).json()["event_id"]
+            # The next event's result arrives on the same open stream
+            _wait_for(
+                lambda: any(
+                    m.get("msg") == "process_completed"
+                    and m.get("event_id") == click_event
+                    for m in messages
+                ),
+                timeout=3,
+                message="The open message stream missed the next event",
+            )
+    finally:
+        demo.close()
+
+
 def test_history_is_only_kept_for_clients_that_may_resume():
     with gr.Blocks() as demo:
         name = gr.Textbox()
@@ -685,5 +750,612 @@ def test_history_is_only_kept_for_clients_that_may_resume():
         assert not any(
             resumable.history for resumable in demo._queue.resumable_sessions.values()
         )
+    finally:
+        demo.close()
+
+
+@pytest.mark.parametrize("leave", ["cancel", "reset"])
+def test_the_line_moves_up_when_someone_leaves_it(leave):
+    from gradio.server_messages import EstimationMessage
+
+    with gr.Blocks() as demo:
+        gr.Button().click(lambda: time.sleep(3), None, None, concurrency_limit=1)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    queue = demo._queue
+
+    def ranks(session_hash):
+        # Peeks at the messages waiting for the page, without taking them
+        waiting = queue.pending_messages_per_session[session_hash]._queue  # type: ignore
+        return [m.rank for m in waiting if isinstance(m, EstimationMessage)]
+
+    try:
+        with httpx2.Client(timeout=10) as http:
+
+            def join(session_hash):
+                return http.post(
+                    f"{api}/queue/join",
+                    json={"data": [], "fn_index": 0, "session_hash": session_hash},
+                ).json()["event_id"]
+
+            join("running")
+            _wait_for(lambda: queue.get_active_worker_count() == 1)
+            ahead = join("ahead")
+            join("behind")
+            _wait_for(lambda: ranks("behind") == [1])
+            # Someone ahead leaves the line: by the button (cancel) or by
+            # closing the page (reset), while nothing new starts
+            if leave == "cancel":
+                http.post(
+                    f"{api}/cancel",
+                    json={"event_id": ahead, "fn_index": 0, "session_hash": "ahead"},
+                )
+            else:
+                http.post(f"{api}/reset", json={"event_id": ahead})
+            _wait_for(
+                lambda: ranks("behind")[-1:] == [0],
+                timeout=1.5,
+                message="The event behind did not hear that it moved up",
+            )
+    finally:
+        demo.close()
+
+
+def _history_session(demo):
+    """A session whose history is kept, and a stand-in for its events."""
+    from types import SimpleNamespace
+
+    queue = demo._queue
+    queue.pending_messages_per_session["s"] = asyncio.Queue()
+    resumable = queue.resumable_sessions.setdefault(
+        "s", queueing.ResumableSession(acknowledges=True)
+    )
+
+    def event(event_id, types_generator, connection="sse"):
+        return cast(
+            queueing.Event,
+            SimpleNamespace(
+                _id=event_id,
+                alive=True,
+                session_hash="s",
+                fn=SimpleNamespace(
+                    types_generator=types_generator, connection=connection
+                ),
+            ),
+        )
+
+    return queue, resumable, event
+
+
+def test_history_keeps_only_the_latest_output_of_a_stream():
+    from gradio.server_messages import ProcessGeneratingMessage, ServerMessage
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue, resumable, event = _history_session(demo)
+        stream = event("stream", True)
+        generating = event("generating", True)
+        for i in range(3):
+            for e, msg in (
+                (stream, ServerMessage.process_streaming),
+                (generating, ServerMessage.process_generating),
+            ):
+                queue.send_message(
+                    e,
+                    ProcessGeneratingMessage(
+                        msg=msg, output={"i": i, "data": [f"value {i}"]}, success=True
+                    ),
+                )
+        # A wake-up with nothing new: every output skipped
+        queue.send_message(
+            stream,
+            ProcessGeneratingMessage(
+                msg=ServerMessage.process_streaming,
+                output={"i": 3, "data": [{"__type__": "update"}]},
+                success=True,
+            ),
+        )
+        kept = [(m.event_id, cast(Any, m).output["i"]) for m in resumable.history]
+        # Each call of a stream sends whole values, even from a generator
+        # function; a stream that runs for hours must not fill the history,
+        # and a call that changed nothing adds nothing
+        assert kept == [
+            ("generating", 0),
+            ("generating", 1),
+            ("stream", 2),
+            ("generating", 2),
+        ]
+    finally:
+        demo.close()
+
+
+def test_history_of_a_stream_keeps_no_logs_or_progress():
+    from gradio.server_messages import (
+        LogMessage,
+        ProcessGeneratingMessage,
+        ProgressMessage,
+        ServerMessage,
+    )
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue, resumable, event = _history_session(demo)
+        stream = event("stream", False, connection="stream")
+        other = event("other", True)
+        for i in range(3):
+            for e in (stream, other):
+                queue.send_message(
+                    e, LogMessage(log=f"chunk {i}", level="info", title="")
+                )
+                queue.send_message(e, ProgressMessage(progress_data=[]))
+            queue.send_message(
+                stream,
+                ProcessGeneratingMessage(
+                    msg=ServerMessage.process_streaming,
+                    output={"data": [f"value {i}"]},
+                    success=True,
+                ),
+            )
+        assert [m.msg for m in resumable.history if m.event_id == "stream"] == [
+            ServerMessage.process_streaming
+        ]
+        assert len([m for m in resumable.history if m.event_id == "other"]) == 6
+    finally:
+        demo.close()
+
+
+def _replay(messages):
+    """What a page holds after applying the outputs of the messages in order."""
+    data, state, changed = {}, {}, []
+    for message in messages:
+        output = cast(Any, message).output
+        for i, value in enumerate(output["data"]):
+            held = data.get(i, {"__type__": "update"})
+            if isinstance(value, dict) and value.get("__type__") == "update":
+                data[i] = {**held, **value}
+            else:
+                data[i] = {**held, "value": value}
+        state.update(output.get("state") or {})
+        changed += [
+            i for i in output.get("changed_state_ids") or [] if i not in changed
+        ]
+    return data, state, changed
+
+
+def test_history_of_a_stream_keeps_outputs_that_later_calls_skip():
+    from gradio.server_messages import ProcessGeneratingMessage, ServerMessage
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue, resumable, event = _history_session(demo)
+        stream = event("stream", False)
+        skip = {"__type__": "update"}
+        sent = []
+        for output in (
+            {"data": ["text", skip]},
+            {
+                "data": [skip, "image"],
+                "state": {"n": 1, "m": 1},
+                "changed_state_ids": [3],
+            },
+            # Only the browser-held state changed
+            {"data": [skip, skip], "state": {"n": 2}, "changed_state_ids": [4]},
+            {"data": [{"__type__": "update", "visible": False}, skip]},
+            # A call that changed no state sends none
+            {"data": [skip, skip], "state": {}, "changed_state_ids": []},
+            # None tells the client to drop its token
+            {"data": [skip, skip], "state": {"m": None}},
+            # A new value keeps the props an earlier call set
+            {"data": ["new text", skip]},
+        ):
+            message = ProcessGeneratingMessage(
+                msg=ServerMessage.process_streaming, output=output, success=True
+            )
+            sent.append(message.model_copy(deep=True))
+            queue.send_message(stream, message)
+        assert (
+            _replay(resumable.history)
+            == _replay(sent)
+            == (
+                {
+                    0: {"__type__": "update", "value": "new text", "visible": False},
+                    1: {"__type__": "update", "value": "image"},
+                },
+                {"n": 2, "m": None},
+                # Each one runs the .change listeners of that gr.State
+                [3, 4],
+            )
+        )
+        assert len(resumable.history) < len(sent)
+        # The messages still waiting for the client are not changed
+        waiting = queue.pending_messages_per_session["s"]
+        assert [m.output for m in waiting._queue] == [m.output for m in sent]  # type: ignore
+    finally:
+        demo.close()
+
+
+def test_history_of_streams_keeps_the_order_of_writes_to_a_shared_output():
+    from gradio.server_messages import ProcessGeneratingMessage, ServerMessage
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue, resumable, event = _history_session(demo)
+        a, b = event("a", False), event("b", False)
+        sent = []
+        for e, value in (
+            (a, "old"),
+            (b, "new"),
+            # A quiet stream wakes with nothing new
+            (a, {"__type__": "update"}),
+            (a, {"__type__": "update", "visible": False}),
+            (b, {"__type__": "update", "visible": True}),
+            (a, "newest"),
+        ):
+            message = ProcessGeneratingMessage(
+                msg=ServerMessage.process_streaming,
+                output={"data": [value]},
+                success=True,
+            )
+            sent.append(message.model_copy(deep=True))
+            queue.send_message(e, message)
+            assert _replay(resumable.history) == _replay(sent)
+        assert _replay(sent)[0] == {
+            0: {"__type__": "update", "value": "newest", "visible": True}
+        }
+    finally:
+        demo.close()
+
+
+@pytest.mark.parametrize("time_limit", [10, None])
+def test_eta_of_a_stream_waiting_for_a_slot(time_limit):
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(
+            lambda x: "chunk",
+            audio,
+            heard,
+            concurrency_limit=1,
+            time_limit=time_limit,
+        )
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    try:
+        with httpx2.Client(timeout=10) as http:
+
+            def join(session_hash):
+                return http.post(
+                    f"{api}/queue/join",
+                    json={"data": [None], "fn_index": 0, "session_hash": session_hash},
+                ).json()["event_id"]
+
+            stream_queue = demo._queue.event_queue_per_concurrency_id
+
+            def wait_for_streams(count):
+                deadline = time.monotonic() + 5
+                group = stream_queue[demo.fns[0].concurrency_id]
+                while group.current_concurrency != count:
+                    if time.monotonic() > deadline:
+                        pytest.fail(f"Expected {count} running streams")
+                    time.sleep(0.05)
+
+            # A stream that already ran gives the queue a processing time for
+            # the function, which must not be taken as the time a stream holds
+            # its slot
+            http.post(f"{api}/stream/{join('earlier')}/close")
+            wait_for_streams(0)
+
+            join("first")
+            wait_for_streams(1)
+            join("second")
+            join("third")
+
+            etas = {}
+            for session_hash in ("second", "third"):
+                with http.stream(
+                    "GET", f"{api}/queue/data", params={"session_hash": session_hash}
+                ) as messages:
+                    for line in messages.iter_lines():
+                        if line.startswith("data:"):
+                            message = json.loads(line[5:])
+                            if message.get("msg") == "estimation":
+                                etas[session_hash] = message["rank_eta"]
+                                break
+        if time_limit is None:
+            # A stream without a time limit can hold its slot for any time
+            assert etas == {"second": None, "third": None}
+        else:
+            # The first stream frees its slot within its time limit, and each
+            # stream ahead in line can then hold it for a full time limit
+            # (plus the few milliseconds the first call of a stream takes)
+            assert 8 < etas["second"] <= 10.5
+            assert 18 < etas["third"] <= 20.5
+    finally:
+        demo.close()
+
+
+def test_streams_waiting_for_chunks_do_not_block_other_events():
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(lambda x: "chunk", audio, heard, concurrency_limit=None)
+        button = gr.Button()
+        clicked = gr.Textbox()
+        button.click(lambda: "clicked", None, clicked)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, max_threads=2)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    client = grc.Client(local_url)
+    stream_queue = demo._queue.event_queue_per_concurrency_id
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_ids = {}
+            for session_hash in ("a", "b"):
+                response = http.post(
+                    f"{api}/queue/join",
+                    json={"data": [None], "fn_index": 0, "session_hash": session_hash},
+                )
+                event_ids[session_hash] = response.json()["event_id"]
+            deadline = time.monotonic() + 5
+            while stream_queue[demo.fns[0].concurrency_id].current_concurrency < 2:
+                if time.monotonic() > deadline:
+                    pytest.fail("The streams did not start")
+                time.sleep(0.05)
+
+            # Both streams now wait for their next chunk. Before a waiting
+            # stream gave its worker slot back, they held both slots and the
+            # click never ran.
+            assert client.submit(fn_index=1).result(timeout=5) == "clicked"
+
+            # A stream that gets a chunk takes a slot again and keeps going
+            http.post(
+                f"{api}/stream/{event_ids['a']}",
+                json={"data": [None], "fn_index": 0, "session_hash": "a"},
+            )
+            streamed = 0
+            with http.stream(
+                "GET", f"{api}/queue/data", params={"session_hash": "a"}
+            ) as messages:
+                for line in messages.iter_lines():
+                    if not line.startswith("data:"):
+                        continue
+                    message = json.loads(line[5:])
+                    if message.get("msg") == "process_streaming":
+                        assert message["output"]["data"] == ["chunk"]
+                        streamed += 1
+                        if streamed == 2:
+                            break
+            assert demo._queue.get_active_worker_count() == 0
+    finally:
+        client.close()
+        demo.close()
+
+
+def _launch_audio_stream(fn, concurrency_limit=1):
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(fn, audio, heard, concurrency_limit=concurrency_limit)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+
+    def group():
+        return demo._queue.event_queue_per_concurrency_id[demo.fns[0].concurrency_id]
+
+    return demo, f"{local_url.rstrip('/')}{API_PREFIX}", group
+
+
+def _wait_for(condition, timeout=5.0, message="Timed out"):
+    deadline = time.monotonic() + timeout
+    while not condition():
+        if time.monotonic() > deadline:
+            pytest.fail(message)
+        time.sleep(0.05)
+
+
+def _join(http, api, session_hash):
+    return http.post(
+        f"{api}/queue/join",
+        json={"data": [None], "fn_index": 0, "session_hash": session_hash},
+    ).json()["event_id"]
+
+
+@pytest.mark.asyncio
+async def test_waking_a_stream_leaves_no_timer_behind():
+    event = type("E", (), {})()
+    event.signal = asyncio.Event()
+    event.signal.set()
+    assert await queueing.Queue.wait_for_event_or_timeout(event, 60) == "signal"
+    await asyncio.sleep(0)
+    # A stream woken many times a second must not leave a sleeping task each time
+    timers = [t for t in asyncio.all_tasks() if "Queue.timeout" in repr(t)]
+    assert timers == []
+
+
+@pytest.mark.asyncio
+async def test_cancelling_a_stream_wait_leaves_no_timer_behind():
+    event = type("E", (), {})()
+    event.signal = asyncio.Event()
+    waiting = asyncio.create_task(queueing.Queue.wait_for_batch([event], [3600]))
+    await asyncio.sleep(0.01)
+    # As /cancel does to the event's task
+    waiting.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await waiting
+    await asyncio.sleep(0)
+    left = [
+        t
+        for t in asyncio.all_tasks()
+        if "Queue.timeout" in repr(t) or "Queue.wait_for_event" in repr(t)
+    ]
+    assert left == []
+
+
+@pytest.mark.asyncio
+async def test_a_wait_woken_as_it_times_out_counts_as_woken():
+    for _ in range(20):
+        event = type("E", (), {"signal": asyncio.Event()})()
+        event.signal.set()
+        # Both the wake and the timeout are done by the time the wait returns
+        assert await queueing.Queue.wait_for_event_or_timeout(event, 0) == "signal"
+
+
+@pytest.mark.asyncio
+async def test_a_batch_wait_tells_which_events_woke():
+    for _ in range(20):
+        events = [type("E", (), {"signal": asyncio.Event()})() for _ in range(4)]
+        events[2].signal.set()
+        awake, closed = await queueing.Queue.wait_for_batch(events, [0.01] * 4)
+        assert awake == [events[2]]
+        assert closed == [events[0], events[1], events[3]]
+
+
+def test_a_stream_event_dropped_by_its_session_frees_its_slot():
+    demo, api, group = _launch_audio_stream(lambda x: "chunk")
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: group().current_concurrency == 1)
+            # The page acknowledges the event away, as a reload does for a
+            # stream it cannot continue
+            http.post(f"{api}/reset", json={"event_id": event_id})
+            _wait_for(
+                lambda: group().current_concurrency == 0,
+                timeout=3,
+                message="The dropped stream kept its slot",
+            )
+    finally:
+        demo.close()
+
+
+def test_stream_chunks_keep_the_event_id():
+    from gradio.context import LocalContext
+
+    seen = []
+
+    async def record(x):
+        seen.append(LocalContext.event_id.get(None))
+        return "chunk"
+
+    demo, api, group = _launch_audio_stream(record)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: len(seen) == 1)
+            # A chunk as the browser sends it, without the event id
+            http.post(
+                f"{api}/stream/{event_id}",
+                json={"data": [None], "fn_index": 0, "session_hash": "s"},
+            )
+            _wait_for(lambda: len(seen) == 2)
+            # gr.Info, progress and the like rely on it in every call
+            assert seen == [event_id, event_id]
+    finally:
+        demo.close()
+
+
+def test_each_chunk_calls_a_generator_stream_function_afresh():
+    calls = []
+
+    def respond(x):
+        calls.append(x)
+        yield "first"
+        yield "second"
+
+    demo, api, group = _launch_audio_stream(respond)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: len(calls) == 1)
+            http.post(
+                f"{api}/stream/{event_id}",
+                json={"data": [None], "fn_index": 0, "session_hash": "s"},
+            )
+            outputs = []
+            with http.stream(
+                "GET", f"{api}/queue/data", params={"session_hash": "s"}
+            ) as messages:
+                for line in messages.iter_lines():
+                    if line.startswith("data:"):
+                        message = json.loads(line[5:])
+                        if message.get("msg") == "process_streaming":
+                            outputs.append(message["output"]["data"])
+                            if len(outputs) == 2:
+                                break
+            # The second chunk runs the function with that chunk, instead of
+            # taking the next value from the first chunk's generator
+            assert len(calls) == 2
+            assert outputs == [["first"], ["first"]]
+    finally:
+        demo.close()
+
+
+def test_leaving_the_line_completes_the_event_for_the_client():
+    demo, api, group = _launch_audio_stream(lambda x: "chunk")
+    try:
+        with httpx2.Client(timeout=10) as http:
+            _join(http, api, "a")
+            _wait_for(lambda: group().current_concurrency == 1)
+            waiting = _join(http, api, "b")
+            _wait_for(lambda: len(group().queue) == 1)
+            http.post(f"{api}/stream/{waiting}/close")
+            assert not group().queue
+            # The client hears that the event is over, so it stops treating it
+            # as running
+            completed = False
+            with http.stream(
+                "GET", f"{api}/queue/data", params={"session_hash": "b"}
+            ) as messages:
+                for line in messages.iter_lines():
+                    if line.startswith("data:"):
+                        message = json.loads(line[5:])
+                        if message.get("msg") == "process_completed":
+                            completed = message.get("event_id") == waiting
+                            break
+            assert completed
+    finally:
+        demo.close()
+
+
+def test_a_stream_dropped_while_waiting_for_a_worker_does_not_run_again():
+    calls = []
+
+    def record(x):
+        calls.append(time.monotonic())
+        return "chunk"
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(record, audio, heard)
+        gr.Button().click(lambda: time.sleep(2), None, None)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, max_threads=1)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: len(calls) == 1)
+            # A long job takes the only worker slot while the stream waits
+            http.post(
+                f"{api}/queue/join",
+                json={"data": [], "fn_index": 1, "session_hash": "busy"},
+            )
+            _wait_for(lambda: demo._queue.get_active_worker_count() == 1)
+            # The next chunk wakes the stream, which waits for the slot...
+            http.post(
+                f"{api}/stream/{event_id}",
+                json={"data": [None], "fn_index": 0, "session_hash": "s"},
+            )
+            time.sleep(0.2)
+            # ...and its session drops it meanwhile (e.g. a reload)
+            http.post(f"{api}/reset", json={"event_id": event_id})
+            time.sleep(2.5)
+            assert len(calls) == 1
     finally:
         demo.close()

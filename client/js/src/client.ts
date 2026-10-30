@@ -44,7 +44,13 @@ import {
 	parse_and_set_cookies
 } from "./helpers/init_helpers";
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
-import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
+import {
+	get_zerogpu_headers,
+	initialize_zerogpu_handshake,
+	shared_request,
+	with_timeout,
+	ZEROGPU_HEADERS_TIMEOUT_MS
+} from "./helpers/zerogpu";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { clear_run_history, load_run_history } from "./utils/run_history";
 import { SessionStore } from "./utils/session_store";
@@ -58,6 +64,14 @@ import {
 	COMPONENT_SERVER_URL
 } from "./constants";
 declare const BROWSER_BUILD: boolean;
+
+// Server function calls made at once (e.g. the ICE candidates of a gr.WebRTC
+// connection) share one round trip to the embedding page. Queue submissions
+// keep asking for their own headers.
+const get_server_call_zerogpu_headers = shared_request(
+	() => get_zerogpu_headers(),
+	ZEROGPU_HEADERS_TIMEOUT_MS
+);
 
 export class Client {
 	app_reference: string;
@@ -89,6 +103,9 @@ export class Client {
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
+	// Events this page acknowledged; messages that still arrive for them
+	// (e.g. the completion of a stopped stream) are dropped
+	acknowledged_events: Set<string> = new Set();
 	events_to_resume: Set<string> = new Set();
 	stream_reconnect_attempts = 0;
 	stream_reconnect_timer: ReturnType<typeof setTimeout> | null = null;
@@ -681,16 +698,27 @@ export class Client {
 	public async component_server(
 		component_id: number,
 		fn_name: string,
-		data: unknown | { binary: boolean; data: Record<string, any> }
+		data: unknown | { binary: boolean; data: Record<string, any> },
+		options: { zerogpu_headers?: boolean } = {}
 	): Promise<unknown> {
 		if (!this.config) {
 			throw new Error(CONFIG_ERROR_MSG);
 		}
 
-		const headers: {
-			Authorization?: string;
-			"Content-Type"?: "application/json";
-		} = {};
+		// A server function that starts ZeroGPU work (gr.WebRTC's offer starts
+		// the stream's handler) asks for the visitor's headers, so that the
+		// work is attributed to the visitor like that of a queued event. It
+		// does not wait on the embedding page for long: without an answer the
+		// call goes out without the headers.
+		const headers: Record<string, string> = options.zerogpu_headers
+			? {
+					...((await with_timeout(
+						get_server_call_zerogpu_headers(),
+						ZEROGPU_HEADERS_TIMEOUT_MS,
+						null
+					)) ?? {})
+				}
+			: {};
 
 		const { token } = this.options;
 		const { session_hash } = this;

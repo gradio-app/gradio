@@ -658,7 +658,9 @@ class TestQueuedEventsAndStreams:
         app = launch(demo, executor="thread")
         carried = object()
         event = SimpleNamespace(
-            data=SimpleNamespace(client_state=carried), signal=_asyncio.Event()
+            data=SimpleNamespace(client_state=carried),
+            signal=_asyncio.Event(),
+            fn=SimpleNamespace(batch=False),
         )
         demo._queue.event_ids_to_events["streaming-event"] = event
         try:

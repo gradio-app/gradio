@@ -120,9 +120,19 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         return event in cls.EVENTS
 
 
-def server(fn):
-    fn._is_server_fn = True
-    return fn
+def server(fn=None, *, zerogpu_headers: bool = False):
+    """
+    Marks a component method as a server function, which the frontend can call.
+    With `zerogpu_headers=True`, the call carries the visitor's ZeroGPU headers
+    on a ZeroGPU Space, for a function that starts GPU work.
+    """
+
+    def mark(fn):
+        fn._is_server_fn = True
+        fn._zerogpu_headers = zerogpu_headers
+        return fn
+
+    return mark if fn is None else mark(fn)
 
 
 class Component(ComponentBase, Block):
@@ -232,6 +242,13 @@ class Component(ComponentBase, Block):
             config["info"] = self.info
         if len(self.server_fns):
             config["server_fns"] = [fn.__name__ for fn in self.server_fns]
+            zerogpu_server_fns = [
+                fn.__name__
+                for fn in self.server_fns
+                if getattr(fn, "_zerogpu_headers", False)
+            ]
+            if zerogpu_server_fns:
+                config["zerogpu_server_fns"] = zerogpu_server_fns
         config.pop("render", None)
         return config
 
