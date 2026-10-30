@@ -39,6 +39,11 @@ class Autoscaler:
         self.trial_seconds = _setting("TRIAL_SECONDS", 10)
         self.trial_events = int(_setting("TRIAL_EVENTS", 12))
         self.memory = Memory()
+        if self.memory.telemetry_error:
+            print(
+                f'replicas="auto" cannot read GPU memory ({self.memory.telemetry_error}), '
+                "so it will not add replicas."
+            )
         self.lock = threading.RLock()
         self.samples: list[float] = []
         self.events: list[dict] = []

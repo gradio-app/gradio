@@ -3,33 +3,88 @@
 import ctypes
 import os
 import platform
+import shutil
+import subprocess
+import time
 from pathlib import Path
 from typing import Any
 
 import psutil
 
+GPU_SECONDS = 2
+
+
+def nvidia_smi(query: str, fields: str) -> list[list[str]]:
+    output = subprocess.run(
+        ["nvidia-smi", f"--query-{query}={fields}", "--format=csv,noheader,nounits"],
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=True,
+    ).stdout
+    return [
+        [field.strip() for field in line.split(",")]
+        for line in output.splitlines()
+        if line.strip()
+    ]
+
+
+def megabytes(value: str) -> int:
+    return int(value) * 2**20 if value.isdigit() else 0
+
 
 class Memory:
     def __init__(self):
-        self.nvml = None
-        self.device = None
         self.kind = "cpu"
         self.telemetry_error = None
+        self.gpu: tuple[float, dict[str, Any]] | None = None
         if platform.system() == "Darwin":
             self.kind = "unified"
             self.libproc = ctypes.CDLL("/usr/lib/libproc.dylib")
-        try:
-            import pynvml  # ty: ignore[unresolved-import]
+        elif shutil.which("nvidia-smi"):
+            self.kind = "cuda"
+        elif os.path.exists("/dev/nvidiactl"):
+            self.kind = "cuda"
+            self.telemetry_error = "nvidia-smi was not found"
 
-            pynvml.nvmlInit()
-            if pynvml.nvmlDeviceGetCount():
-                self.nvml = pynvml
-                self.device = pynvml.nvmlDeviceGetHandleByIndex(0)
-                self.kind = "cuda"
-        except Exception as exc:  # noqa: BLE001 -- optional device telemetry
-            if os.path.exists("/dev/nvidiactl"):
-                self.kind = "cuda"
-                self.telemetry_error = str(exc)
+    def gpu_sample(self, pids) -> dict[str, Any]:
+        """Free memory on the GPUs the app's processes use, and how much each
+        uses, from nvidia-smi. It's read every GPU_SECONDS, as it takes about
+        100 ms."""
+        if self.gpu is not None and time.monotonic() - self.gpu[0] < GPU_SECONDS:
+            return self.gpu[1]
+        gpus = {
+            uuid: (int(index), megabytes(total), megabytes(free))
+            for index, uuid, total, free in nvidia_smi(
+                "gpu", "index,uuid,memory.total,memory.free"
+            )
+        }
+        used: dict[str, dict[int, int]] = {}
+        for pid, uuid, memory in nvidia_smi("compute-apps", "pid,gpu_uuid,used_memory"):
+            if pid.isdigit() and int(pid) in pids:
+                used.setdefault(uuid, {})[int(pid)] = megabytes(memory)
+        app_gpus = [uuid for uuid in gpus if uuid in used] or self.visible(gpus)
+        result: dict[str, Any] = {"processes": {}}
+        if app_gpus:
+            # With several GPUs, the one with the least free memory decides
+            _, total, free = min((gpus[uuid] for uuid in app_gpus), key=lambda g: g[2])
+            result.update(gpu_total=total, gpu_available=free)
+        for per_process in used.values():
+            for pid, memory in per_process.items():
+                current = result["processes"].get(pid, 0)
+                result["processes"][pid] = max(current, memory)
+        self.gpu = (time.monotonic(), result)
+        return result
+
+    @staticmethod
+    def visible(gpus: dict[str, tuple[int, int, int]]) -> list[str]:
+        """The app's first GPU before it has used any: the first of
+        CUDA_VISIBLE_DEVICES, by UUID or index, or else GPU 0."""
+        first = os.environ.get("CUDA_VISIBLE_DEVICES", "0").split(",")[0].strip()
+        for uuid, (index, _, _) in gpus.items():
+            if first in (uuid, str(index)) or (first and uuid.startswith(first)):
+                return [uuid]
+        return []
 
     def sample(self, pids):
         vm = psutil.virtual_memory()
@@ -73,15 +128,21 @@ class Memory:
                 result["processes"][pid] = {"ram": rss, "gpu": 0}
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
-        if self.nvml:
+        if self.kind == "cuda" and not self.telemetry_error:
             try:
-                mem = self.nvml.nvmlDeviceGetMemoryInfo(self.device)
-                result.update(gpu_total=mem.total, gpu_available=mem.free)
-                for p in self.nvml.nvmlDeviceGetComputeRunningProcesses(self.device):
-                    if p.pid in result["processes"] and p.usedGpuMemory is not None:
-                        result["processes"][p.pid]["gpu"] = p.usedGpuMemory
-            except Exception as exc:  # noqa: BLE001 -- disable expansion on provider failure
-                result["error"] = str(exc)
+                gpu = self.gpu_sample(set(pids))
+            except (OSError, subprocess.SubprocessError, ValueError) as exc:
+                result["error"] = f"nvidia-smi failed: {exc}"
+                return result
+            if "gpu_total" in gpu:
+                result.update(
+                    gpu_total=gpu["gpu_total"], gpu_available=gpu["gpu_available"]
+                )
+            else:
+                result["kind"] = "cpu"
+            for pid, memory in gpu["processes"].items():
+                if pid in result["processes"]:
+                    result["processes"][pid]["gpu"] = memory
         return result
 
 
