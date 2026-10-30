@@ -191,7 +191,8 @@ class Pool:
     """The app's processes: the one that launched the app, and its replicas,
     which re-ran its script. A session stays on the process that first served
     it, since its state and generators live there; a new one goes to the
-    least busy. Each process runs as many of an event at once as its
+    least busy, and among equally busy ones to the one that was given the
+    fewest sessions. Each process runs as many of an event at once as its
     `concurrency_limit` allows."""
 
     def __init__(self, blocks: Blocks, fingerprint: str, session_capacity: int):
@@ -258,7 +259,10 @@ class Pool:
                 candidates = [link for link in self.links if link.responsive]
                 link = min(
                     candidates or self.links,
-                    key=lambda link: link.running + len(link.held),
+                    key=lambda link: (
+                        link.running + len(link.held),
+                        len(link.sessions),
+                    ),
                 )
                 if session_hash:
                     link.sessions[session_hash] = True
@@ -313,7 +317,14 @@ class Pool:
             link = self._holder(event.session_hash)
             if link is None:
                 candidates = [link for link in self.links if link.responsive]
-                link = max(candidates or self.links, key=free)
+                link = max(
+                    candidates or self.links,
+                    key=lambda link: (
+                        free(link),
+                        -(link.running + len(link.held)),
+                        -len(link.sessions),
+                    ),
+                )
                 if free(link) > 0 and event.session_hash:
                     link.sessions[event.session_hash] = True
             if free(link) <= 0:

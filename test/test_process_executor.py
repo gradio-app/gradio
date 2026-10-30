@@ -529,6 +529,7 @@ with gr.Blocks() as demo:
     mic = gr.Audio(sources=["microphone"], streaming=True)
     out = gr.Textbox()
     mic.stream(lambda chunk: str(os.getpid()), mic, out, concurrency_limit=1)
+    gr.Button().click(lambda: str(os.getpid()), None, out)
 
 demo.launch(server_port=int(os.environ["PORT"]))
 """
@@ -563,6 +564,11 @@ def test_replicas_keep_a_running_stream_to_its_process(tmp_path):
         with open("test/test_files/audio_sample.wav", "rb") as f:
             (path,) = httpx2.post(f"{url}gradio_api/upload", files={"files": f}).json()
         pids = {"first": [], "second": []}
+        # Each session first runs a quick event while nothing else runs, so the
+        # processes look equally busy when they are placed
+        for name in pids:
+            body = {"data": [], "fn_index": 1, "session_hash": name}
+            assert _queue_messages(url, body)[-1]["success"]
         stop = threading.Event()
 
         def stream(name):
