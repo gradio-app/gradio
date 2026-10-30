@@ -223,7 +223,8 @@ class TestExamplesDataset:
             )
 
 
-def test_example_caching_relaunch(connect):
+@patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
+def test_example_caching_relaunch(patched_cache_folder, connect):
     def combine(a, b):
         return a + " " + b
 
