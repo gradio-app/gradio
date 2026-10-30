@@ -29,6 +29,7 @@ import {
 	get_resumable_session_hash,
 	has_session,
 	has_shown_page,
+	page_shown,
 	set_session_in_use,
 	track_session,
 	type ResumableJob
@@ -75,7 +76,6 @@ export class Client {
 	session_store: SessionStore = new SessionStore();
 
 	private cookies: string | null = null;
-	private restored_session_hash = false;
 	// Whether this tab resumed a session it had shown this page in, and so the
 	// outputs and state it saved carry over rather than starting afresh.
 	session_restored = false;
@@ -293,15 +293,11 @@ export class Client {
 				// The app turned resuming off (`launch(resume_sessions=False)`), so
 				// every page load starts a new session, as before Gradio 7
 				this.options.resume_sessions = false;
-				if (this.restored_session_hash) {
-					this.session_hash = Math.random().toString(36).substring(2);
-					this.restored_session_hash = false;
-				}
 				forget_session();
 			}
 			const resumable =
 				this.options.resume_sessions && typeof sessionStorage !== "undefined"
-					? this.resume_session(config)
+					? await this.resume_session(config)
 					: false;
 			await Promise.all([
 				// Without resuming nothing needs to outlive the page, so the
@@ -395,13 +391,16 @@ export class Client {
 	 * Returns whether this tab has shown this page in that session before, so
 	 * that what the session saved for it can be restored.
 	 */
-	private resume_session(config: Config): boolean {
+	private async resume_session(config: Config): Promise<boolean> {
+		await page_shown();
+		const session_hash = this.options.session_hash
+			? null
+			: get_resumable_session_hash();
 		let resumable = false;
-		if (this.restored_session_hash && !has_session(config, this.session_hash)) {
-			this.session_hash = Math.random().toString(36).substring(2);
-		} else if (this.restored_session_hash) {
+		if (session_hash && has_session(config, session_hash)) {
+			this.session_hash = session_hash;
 			// A page shown for the first time in the session still loads.
-			resumable = has_shown_page(config, this.session_hash);
+			resumable = has_shown_page(config, session_hash);
 		}
 		track_session(config, this.session_hash);
 		if (typeof document !== "undefined") {
@@ -460,12 +459,8 @@ export class Client {
 		}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
-		const session_hash =
-			options.session_hash ||
-			(options.resume_sessions ? get_resumable_session_hash() : null);
-		if (session_hash) {
-			client.session_hash = session_hash;
-			client.restored_session_hash = !options.session_hash;
+		if (options.session_hash) {
+			client.session_hash = options.session_hash;
 		}
 		await client.init();
 		return client;
