@@ -329,6 +329,7 @@ describe("Client class", () => {
 							expect(has_shown_page(app_config, app.session_hash)).toBe(true);
 						} finally {
 							delete (document as { prerendering?: boolean }).prerendering;
+							document.dispatchEvent(new Event("prerenderingchange"));
 						}
 					}
 				);
