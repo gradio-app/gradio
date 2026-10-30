@@ -29,6 +29,7 @@ import {
 	get_resumable_session_hash,
 	has_session,
 	has_shown_page,
+	page_shown,
 	set_session_in_use,
 	track_session,
 	type ResumableJob
@@ -460,6 +461,7 @@ export class Client {
 		}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
+		if (options.resume_sessions) await page_shown();
 		const session_hash =
 			options.session_hash ||
 			(options.resume_sessions ? get_resumable_session_hash() : null);

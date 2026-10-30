@@ -19,6 +19,7 @@ import { SPACE_NOT_FOUND_MSG } from "../constants";
 import {
 	get_resumable_events,
 	get_resumable_session_hash,
+	has_shown_page,
 	set_session_in_use,
 	track_resumable_event,
 	track_session,
@@ -291,6 +292,28 @@ describe("Client class", () => {
 					app.close();
 					expect(get_resumable_session_hash()).toBe(app.session_hash);
 				});
+
+				test.skipIf(typeof document === "undefined")(
+					"waits until a prerendered page is shown to track the session",
+					async () => {
+						Object.defineProperty(document, "prerendering", {
+							value: true,
+							configurable: true
+						});
+						const connecting = Client.connect(direct_app_reference, {
+							resume_sessions: true
+						});
+						await new Promise((resolve) => setTimeout(resolve, 100));
+						// What the page wrote to sessionStorage while prerendering is
+						// dropped when it is shown
+						sessionStorage.clear();
+						delete (document as { prerendering?: boolean }).prerendering;
+						document.dispatchEvent(new Event("prerenderingchange"));
+
+						const app = await connecting;
+						expect(has_shown_page(app_config, app.session_hash)).toBe(true);
+					}
+				);
 			}
 		);
 
