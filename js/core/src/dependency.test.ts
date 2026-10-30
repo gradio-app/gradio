@@ -337,6 +337,136 @@ describe("DependencyManager.dispatch", () => {
 		);
 	});
 
+	test.each([
+		["completes", { type: "status", stage: "complete", queue: true }],
+		["fails", { type: "status", stage: "error", queue: true, message: "boom" }]
+	])(
+		"runs a deferred always_last event with its own event data, for that dependency only, when the running call %s",
+		async (_, first_run_result) => {
+			const always_last = dependency(0, "always_last", []);
+			always_last.targets = [
+				[1, "click"],
+				[2, "change"]
+			];
+			always_last.trigger_mode = "always_last";
+			const other_click_listener = dependency(1, "other", []);
+			other_click_listener.targets = [[1, "click"]];
+			let finish_first_run!: () => void;
+			const first_run = new Promise<void>((resolve) => {
+				finish_first_run = resolve;
+			});
+			const calls: [number, unknown, number | null][] = [];
+			const calls_to = (fn_index: number) =>
+				calls.filter(([i]) => i === fn_index);
+			const client = {
+				submit: (
+					fn_index: number,
+					_data: unknown,
+					event_data: unknown,
+					trigger_id: number | null
+				) => {
+					calls.push([fn_index, event_data, trigger_id]);
+					const is_first_run = calls_to(0).length === 1 && fn_index === 0;
+					return (async function* () {
+						if (is_first_run) {
+							await first_run;
+							yield first_run_result;
+						} else {
+							yield { type: "status", stage: "complete", queue: true };
+						}
+					})();
+				}
+			} as unknown as Client;
+			const dependency_manager = manager(
+				[always_last, other_click_listener],
+				client
+			);
+
+			const click = dependency_manager.dispatch({
+				type: "event",
+				event_name: "click",
+				target_id: 1,
+				event_data: "click data"
+			});
+			await vi.waitFor(() => expect(calls_to(0)).toHaveLength(1));
+			for (const event_data of ["stale change data", "change data"]) {
+				await dependency_manager.dispatch({
+					type: "event",
+					event_name: "change",
+					target_id: 2,
+					event_data
+				});
+			}
+			expect(calls_to(0)).toHaveLength(1);
+			finish_first_run();
+			await click;
+
+			const expected = [
+				[0, "click data", 1],
+				[1, "click data", 1],
+				[0, "change data", 2]
+			];
+			await vi.waitFor(() =>
+				expect(calls).toEqual(expect.arrayContaining(expected))
+			);
+			expect(calls).toHaveLength(expected.length);
+		}
+	);
+
+	test("drops the deferred always_last events of cancelled calls", async () => {
+		const dependencies = [0, 1].map((id) => {
+			const always_last = dependency(id, `always_last_${id}`, [10 + id]);
+			always_last.targets = [[2 + id, "change"]];
+			always_last.trigger_mode = "always_last";
+			return always_last;
+		});
+		let finish_runs!: () => void;
+		const runs_finished = new Promise<void>((resolve) => {
+			finish_runs = resolve;
+		});
+		const calls: [number, unknown][] = [];
+		const client = {
+			submit: (fn_index: number, _data: unknown, event_data: unknown) => {
+				calls.push([fn_index, event_data]);
+				const submission = (async function* () {
+					await runs_finished;
+					// What the client yields for the empty output the backend sends
+					// to finish a cancelled job
+					yield { type: "data", data: undefined };
+					yield { type: "status", stage: "complete", queue: true };
+				})();
+				return Object.assign(submission, {
+					// Both runs end while the first cancel request is in flight
+					cancel: async () => {
+						finish_runs();
+						await new Promise((resolve) => setTimeout(resolve, 10));
+					}
+				});
+			}
+		} as unknown as Client;
+		const dependency_manager = manager(dependencies, client);
+		const change = (id: number, event_data: string) =>
+			dependency_manager.dispatch({
+				type: "event",
+				event_name: "change",
+				target_id: 2 + id,
+				event_data
+			});
+
+		const runs = [change(0, "a"), change(1, "x")];
+		await vi.waitFor(() => expect(calls).toHaveLength(2));
+		await change(0, "ab");
+		await change(1, "xy");
+		await dependency_manager.cancel([0, 1]);
+		await Promise.all(runs);
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		expect(calls).toEqual([
+			[0, "a"],
+			[1, "x"]
+		]);
+	});
+
 	test("sends the root Blocks id as the trigger of a load event and its .failure() step", async () => {
 		const on_load = dependency(0, "on_load", [10]);
 		on_load.targets = [[0, "load"]];
