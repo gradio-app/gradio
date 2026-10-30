@@ -107,12 +107,10 @@ test("test stopping generation", async ({ page }) => {
 	await submit_button.click();
 
 	await expect(stop_button).toBeVisible();
+	await expect(bot_message).toContainText("You typed:");
 	await stop_button.click();
 
 	await expect(submit_button).toBeVisible();
-
-	// Verify the bot message has some content
-	await expect(bot_message).toContainText("You typed:");
 
 	const content = await bot_message.textContent();
 	await expect.poll(async () => bot_message.textContent()).toBe(content);

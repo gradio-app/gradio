@@ -100,6 +100,7 @@ export class Client {
 		typeof window !== "undefined" && typeof document !== "undefined";
 	abort_controller: AbortController | null = null;
 	stream_instance: EventSource | null = null;
+	own_stream_controllers: Set<AbortController> = new Set();
 	current_payload: any;
 
 	get_url_config(url: string | null = null): Config {
@@ -532,6 +533,8 @@ export class Client {
 			this.stream_reconnect_timer = null;
 		}
 		close_stream(this.stream_status, this.abort_controller);
+		this.own_stream_controllers.forEach((controller) => controller.abort());
+		this.own_stream_controllers.clear();
 		this.heartbeat_controller?.abort();
 		this.heartbeat_controller = null;
 		this.heartbeat_event = null;
