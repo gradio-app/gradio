@@ -208,6 +208,8 @@ export interface Config {
 	>;
 	pages: [string, string, boolean][];
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
+	supported_protocols?: ("sse_v3" | "sse_v4")[];
+	browser_streams?: "auto" | "per_event" | "per_session";
 	max_file_size?: number;
 	theme_hash?: number;
 	username: string | null;

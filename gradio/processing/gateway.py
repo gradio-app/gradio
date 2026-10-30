@@ -57,6 +57,10 @@ class Link:
         self.running = 0
         self.slots: dict[str, asyncio.Semaphore] = {}
         self.held: dict[str, asyncio.Semaphore] = {}
+        self.started: dict[str, float] = {}
+        self.completed = 0
+        self.draining = False
+        self.on_drained: Any = None
         self.loop = asyncio.new_event_loop()
         threading.Thread(
             target=self.loop.run_forever, daemon=True, name="gradio-gateway-link"
@@ -91,6 +95,11 @@ class Link:
                         f"responded for {self.unresponsive_after:g} seconds"
                     )
                 )
+
+    @property
+    def active(self) -> bool:
+        """Whether an event is running here, or a generator is between steps."""
+        return self.running > 0 or bool(self.started)
 
     @property
     def responsive(self) -> bool:
@@ -134,7 +143,7 @@ class Link:
         elif kind == "replica":
             self.pool.add_replica(message[1])
         elif kind == "replica_failed":
-            self.pool.expected -= 1
+            self.pool.replica_failed()
         elif kind == "reload":
             self.pool.reload(*message[1:])
 
@@ -207,10 +216,15 @@ class Pool:
         self.streams: dict[str, Link] = {}
         self.group_limits: dict[str, int] = {}
         self.expected = 1
+        self.autoscaler: Any = None
 
     @property
     def primary(self) -> Link:
         return self.links[0]
+
+    def serving(self) -> list[Link]:
+        """The processes that take new sessions: all but one being retired."""
+        return [link for link in self.links if not link.draining]
 
     def add(self, link: Link) -> None:
         link.connect()
@@ -219,6 +233,8 @@ class Pool:
                 return
             self.links.append(link)
         self.scale_limits()
+        if self.autoscaler is not None and not link.primary:
+            self.autoscaler.replica_added(link)
 
     def add_replica(self, address: dict) -> None:
         threading.Thread(
@@ -234,6 +250,44 @@ class Pool:
                 self.links.remove(link)
         link.fail_pending(RuntimeError("A replica of the app exited"))
         self.scale_limits()
+        if self.autoscaler is not None:
+            self.autoscaler.replica_lost(link)
+
+    def replica_failed(self) -> None:
+        self.expected = max(self.expected - 1, 1)
+        if self.autoscaler is not None:
+            self.autoscaler.replica_failed()
+
+    def remove(self, link: Link) -> None:
+        with self.lock:
+            link.closed = True
+            if link in self.links:
+                self.links.remove(link)
+        self.scale_limits()
+
+    def drain(self, link: Link, drained) -> None:
+        """Sends `link` no new sessions, and its sessions' next events go to
+        another process; `drained` is called once its events have finished."""
+        with self.lock:
+            link.draining = True
+            link.sessions.clear()
+            link.on_drained = drained
+        self.scale_limits()
+        self.check_drained(link)
+
+    def check_drained(self, link: Link) -> None:
+        with self.lock:
+            drained = link.on_drained if link.draining and not link.active else None
+            link.on_drained = None if drained else link.on_drained
+        if drained is not None:
+            drained()
+
+    def finished(self, link: Link, event_id: str, success: bool) -> None:
+        started = link.started.pop(event_id, None)
+        if success and started is not None:
+            link.completed += 1
+            if self.autoscaler is not None:
+                self.autoscaler.finished(link, time.monotonic() - started)
 
     def _holder(self, session_hash: str | None) -> Link | None:
         """The process that holds `session_hash`. Each process keeps as many
@@ -256,9 +310,10 @@ class Pool:
         with self.lock:
             link = self._holder(session_hash)
             if link is None:
-                candidates = [link for link in self.links if link.responsive]
+                serving = self.serving() or self.links
+                candidates = [link for link in serving if link.responsive]
                 link = min(
-                    candidates or self.links,
+                    candidates or serving,
                     key=lambda link: (
                         link.running + len(link.held),
                         len(link.sessions),
@@ -278,7 +333,7 @@ class Pool:
         for fn_id, fn in list(blocks_config.fns.items()):
             if getattr(fn, "rendered_in_id", None) == render_id:
                 del blocks_config.fns[fn_id]
-        count = max(len(self.links), 1)
+        count = max(len(self.serving()), 1)
         for fn_id, fn in event_table(render, fn_settings, blocks_config.blocks).items():
             fn.rendered_in_id = render_id  # type: ignore[attr-defined]
             limit = fn.concurrency_limit
@@ -316,9 +371,10 @@ class Pool:
         with self.lock:
             link = self._holder(event.session_hash)
             if link is None:
-                candidates = [link for link in self.links if link.responsive]
+                serving = self.serving() or self.links
+                candidates = [link for link in serving if link.responsive]
                 link = max(
-                    candidates or self.links,
+                    candidates or serving,
                     key=lambda link: (
                         free(link),
                         -(link.running + len(link.held)),
@@ -370,7 +426,7 @@ class Pool:
                     self.group_limits[fn.concurrency_id] = (
                         limit if current is None else min(current, limit)
                     )
-        count = max(len(self.links), 1)
+        count = max(len(self.serving()), 1)
         for fn in self.blocks.fns.values():
             limit = self.limits.get(fn._id)
             fn.concurrency_limit = None if limit is None else limit * count
@@ -434,11 +490,18 @@ class Pool:
                 {
                     "pid": link.address["pid"],
                     "running": link.running,
+                    "completed": link.completed,
                     "responsive": link.responsive,
+                    "retiring": link.draining,
                 }
                 for link in self.links
             ],
             "starting": max(self.expected - len(self.links), 0),
+            **(
+                {"autoscale": self.autoscaler.status()}
+                if self.autoscaler is not None
+                else {}
+            ),
         }
 
 
@@ -454,6 +517,9 @@ class RemoteIterator:
     async def aclose(self) -> None:
         self.link.release(self.event_id)
         self.link.send(("close_iterator", self.event_id))
+        if self.event_id is not None:
+            self.link.pool.finished(self.link, self.event_id, success=False)
+        self.link.pool.check_drained(self.link)
 
 
 async def forward_event(
@@ -501,6 +567,8 @@ async def forward_event(
             pool.reserved.pop(queue_event_id or "", None)
             await candidate.acquire()
             slot = candidate
+        if iterator is None and body.event_id is not None:
+            link.started.setdefault(body.event_id, time.monotonic())
         sent_body = body.model_dump(exclude={"request", "client_state"})
         if protocol.files_by_value():
             sent_body["data"] = link.files.pack(sent_body["data"])
@@ -535,9 +603,13 @@ async def forward_event(
             link.release(queue_event_id)
         if returned and body.event_id is not None:
             link.send(("close_iterator", body.event_id))
+        if body.event_id is not None:
+            pool.finished(link, body.event_id, success=False)
         raise
     finally:
         link.running -= 1
+        if not link.active:
+            pool.check_drained(link)
     if slot is not None:
         # A stream keeps its slot between chunks, as a generator does between
         # yields, until the queue ends it (`Pool.end_event`)
@@ -551,6 +623,9 @@ async def forward_event(
             slot.release()
     elif not has_iterator and not streaming:
         link.release(queue_event_id)
+    if not has_iterator and body.event_id is not None:
+        pool.finished(link, body.event_id, success=True)
+        pool.check_drained(link)
     if body.event_id is not None:
         app.iterators[body.event_id] = (  # type: ignore[assignment]
             RemoteIterator(link, body.event_id) if has_iterator else None
@@ -1080,6 +1155,10 @@ def main(path: str) -> None:
     app, local_url, share_url = blocks.launch(prevent_thread_lock=True, **launch_kwargs)
     serve_as_is(blocks, bootstrap)
     pool.scale_limits()
+    if bootstrap["autoscale"]:
+        from gradio.processing.autoscale import Autoscaler
+
+        Autoscaler(pool, blocks).start()
     add_forwarded_routes(app, bootstrap, pool, gateway_routers)
     app.session_listener = pool.session_changed
     pool.primary.send(
