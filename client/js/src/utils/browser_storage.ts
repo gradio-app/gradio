@@ -192,6 +192,36 @@ export function app_scope_key(
 }
 
 /**
+ * Whether a component is a streaming `gr.Image`, which only takes the webcam.
+ * Its value is only ever a frame: the latest one, sent to every event that
+ * reads it, or one a stream returned into it. A frame put back would cover
+ * the live camera, so it is never restored. A streaming `gr.Audio` sends and
+ * shows its own value (a file the user uploaded, generated speech), so it is
+ * not one of them. The chunks of a `.stream()` event's own input are left out
+ * where the event is submitted.
+ */
+export function is_streaming_webcam(
+	component: { type: string; props: Record<string, any> } | undefined
+): boolean {
+	return component?.type === "image" && Boolean(component.props.streaming);
+}
+
+/**
+ * What of a value `component` was given can be put back into it: all of it,
+ * except the frame of a streaming webcam (an update keeps its other props).
+ */
+export function without_frame(
+	component: { type: string; props: Record<string, any> } | undefined,
+	value: unknown
+): unknown {
+	if (!is_streaming_webcam(component)) return value;
+	if (!is_update(value)) return undefined;
+	const update = { ...value };
+	delete update.value;
+	return update;
+}
+
+/**
  * Writes a value a component was given into its props, the way the frontend
  * applies it: an update (`{"__type__": "update", ...}`) sets the props it
  * carries, and anything else is the component's new value.

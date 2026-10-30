@@ -34,6 +34,7 @@ import {
 } from "../constants";
 import { events } from "fetch-event-stream";
 import { apply_diff_stream, close_stream, streams_per_event } from "./stream";
+import { is_streaming_webcam } from "./browser_storage";
 import { clear_resumable_event, track_resumable_event } from "./session";
 import type { StatePayload } from "./session_store";
 import { Client } from "../client";
@@ -805,7 +806,13 @@ export function submit(
 			);
 			that.session_store.record(
 				dependency.inputs,
-				input_data || [],
+				(input_data || []).map((value, index) => {
+					const id = dependency.inputs[index];
+					const component = config.components.find((c) => c.id === id);
+					return streamed_inputs.has(id) || is_streaming_webcam(component)
+						? undefined
+						: value;
+				}),
 				config.components
 			);
 			payload = {

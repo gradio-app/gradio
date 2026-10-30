@@ -480,6 +480,53 @@ describe.skipIf(!in_browser)("replaying a run", () => {
 		]);
 	});
 
+	test("does not put back the frame a streaming input sent", () => {
+		stage_run_history_replay(scope, {
+			...stored,
+			inputs: [{ url: "data:image/jpeg;base64,frame" }, null]
+		});
+		const config = make_config();
+		config.components[0].type = "image";
+		(config.components[0].props as Record<string, unknown>).streaming = true;
+		const written: unknown[][] = [];
+
+		expect(
+			apply_run_history_replay(config, (_, values) => written.push(values))
+		).toBe(true);
+		expect(config.components[0].props.value).toBe("default in");
+		expect(written[0]).toEqual([undefined, null]);
+	});
+
+	test("does not put a frame into a streaming webcam it was the output of", () => {
+		stage_run_history_replay(scope, stored);
+		const config = make_config();
+		(config.components[2].props as Record<string, unknown>).streaming = true;
+		const written: unknown[][] = [];
+
+		expect(
+			apply_run_history_replay(config, (_, values) => written.push(values))
+		).toBe(true);
+		expect(config.components[2].props.value).toBe(null);
+		expect(written[1]).toEqual([undefined, "described"]);
+	});
+
+	test("puts back a file uploaded into a streaming audio", () => {
+		stage_run_history_replay(scope, {
+			...stored,
+			inputs: [{ url: "speech.wav" }, null]
+		});
+		const config = make_config();
+		config.components[0].type = "audio";
+		(config.components[0].props as Record<string, unknown>).streaming = true;
+		const written: unknown[][] = [];
+
+		expect(
+			apply_run_history_replay(config, (_, values) => written.push(values))
+		).toBe(true);
+		expect(config.components[0].props.value).toEqual({ url: "speech.wav" });
+		expect(written[0]).toEqual([{ url: "speech.wav" }, null]);
+	});
+
 	test("matches the endpoint by api name when the fn index has moved", () => {
 		stage_run_history_replay(scope, { ...stored, fn_index: 99 });
 		const config = make_config();
