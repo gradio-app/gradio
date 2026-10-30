@@ -205,6 +205,7 @@
 				: (gradio.props.buttons ?? []).includes("download")}
 			theme_mode={resolved_theme_mode}
 			ondownload_error={(detail) => gradio.dispatch("error", detail)}
+			onerror={(detail) => gradio.dispatch("error", detail)}
 		></InteractiveImageEditor>
 	</Block>
 {/if}
