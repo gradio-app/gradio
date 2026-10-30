@@ -464,6 +464,35 @@ class TestServerSideRecording:
         assert r.status_code == 200
         assert r.json()["data"] == ["hello world"]
 
+    def test_a_password_textbox_is_recorded_empty(self, monkeypatch):
+        monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
+        hub = FakeHub()
+        io = gr.Interface(
+            lambda prompt, key: prompt,
+            ["text", gr.Textbox(type="password")],
+            "text",
+            api_name="ask",
+        )
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        try:
+            with (
+                patch("gradio.history.resolve_token", return_value="tok"),
+                patch("gradio.history.HfApi", return_value=hub),
+                TestClient(app) as client,
+            ):
+                r = client.post(
+                    "/gradio_api/run/ask",
+                    json={"data": ["hi", "sk-secret"]},
+                    headers={"X-Gradio-History-Bucket": "alice/hist"},
+                )
+                assert r.status_code == 200, r.text
+                assert _wait_for(lambda: len(hub.files) == 1)
+                (record,) = [json.loads(v) for v in hub.files.values()]
+                assert record["inputs"] == ["hi", None]
+        finally:
+            io.close()
+            close_all()
+
     def test_an_input_stream_is_recorded_once_without_its_chunk(self, monkeypatch):
         monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
         hub = FakeHub()
