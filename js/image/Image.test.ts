@@ -516,6 +516,30 @@ describe("Props: sources", () => {
 			}
 		}
 	});
+
+	test("denied camera permission dispatches an error", async () => {
+		const get_user_media = vi
+			.spyOn(navigator.mediaDevices, "getUserMedia")
+			.mockRejectedValue(new DOMException("denied", "NotAllowedError"));
+
+		try {
+			const { getByRole, listen } = await render(Image, {
+				...default_props,
+				sources: ["webcam"]
+			});
+			const error = listen("error");
+
+			await fireEvent.click(
+				getByRole("button", { name: "Click to Access Webcam" })
+			);
+
+			await waitFor(() =>
+				expect(error).toHaveBeenCalledWith("image.allow_webcam_access")
+			);
+		} finally {
+			get_user_media.mockRestore();
+		}
+	});
 });
 
 describe("Props: interactive", () => {
