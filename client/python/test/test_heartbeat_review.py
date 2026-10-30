@@ -275,7 +275,10 @@ def test_per_request_clients_release_heartbeats(monkeypatch):
         for heartbeat in heartbeats:
             heartbeat.join(2)
         assert not any(heartbeat.is_alive() for heartbeat in heartbeats)
-        wait_for(lambda: len(unloaded) == 32)
+        wait_for(
+            lambda: len(unloaded) == 32,
+            timeout=demo._queue.close_grace_period + 5,
+        )
     finally:
         demo.close()
 
