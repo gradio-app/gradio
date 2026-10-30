@@ -240,6 +240,7 @@
 				mode="image"
 				include_audio={false}
 				i18n={gradio.i18n}
+				onerror={(detail) => gradio.dispatch("error", detail)}
 				upload={(...args) => gradio.shared.client.upload(...args)}
 			/>
 		{:else if active_source === "webcam-video"}
@@ -260,6 +261,7 @@
 				mode="video"
 				include_audio={false}
 				i18n={gradio.i18n}
+				onerror={(detail) => gradio.dispatch("error", detail)}
 				upload={(...args) => gradio.shared.client.upload(...args)}
 			/>
 		{/if}
