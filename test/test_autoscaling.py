@@ -1,6 +1,7 @@
 """`launch(replicas="auto")`: the gateway adds and retires app processes."""
 
 import os
+import socket
 import subprocess
 import sys
 import time
@@ -24,6 +25,14 @@ def predict(delay: float) -> str:
 demo = gr.Interface(predict, "number", "text", api_name="predict")
 demo.launch(server_port=int(os.environ["PORT"]), replicas="auto")
 """
+
+
+def free_port():
+    """A port the OS reports free. It is outside the 7860+ range that other
+    tests' `launch()` calls scan, so a parallel test can't take it first."""
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
 
 
 @pytest.fixture
@@ -68,7 +77,7 @@ def burst(url, delay, count):
 
 def test_auto_adds_a_replica_under_backlog_and_retires_it_when_idle(launch):
     url = launch(
-        7952,
+        free_port(),
         GRADIO_AUTOSCALE_BACKLOG_SECONDS="0.1",
         GRADIO_AUTOSCALE_IDLE_SECONDS="2",
         GRADIO_AUTOSCALE_COOLDOWN_SECONDS="1",
