@@ -97,6 +97,12 @@ jobs:
           test: true
           skip_build: true
           skip_docs_gen: true
+      # SSR needs Node 24.22.0+, and the runner's cached Node 24 can be older, in
+      # which case Gradio falls back to client-side rendering and the SSR tests
+      # time out. install-all-deps is pinned to @7.0-dev, so set it here too.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.22.0
       - name: download built frontend templates
         uses: actions/download-artifact@v4
         with:
