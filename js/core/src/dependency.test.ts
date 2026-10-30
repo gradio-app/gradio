@@ -413,6 +413,122 @@ describe("DependencyManager.dispatch", () => {
 		}
 	);
 
+	test("starts every listener of an event without waiting for the others to finish", async () => {
+		const slow = dependency(0, "slow", []);
+		slow.targets = [[1, "click"]];
+		const quick = dependency(1, "quick", []);
+		quick.targets = [[1, "click"]];
+		let finish_slow!: () => void;
+		const slow_done = new Promise<void>((resolve) => {
+			finish_slow = resolve;
+		});
+		const submitted: number[] = [];
+		const client = {
+			submit: (fn_index: number) => {
+				submitted.push(fn_index);
+				return (async function* () {
+					if (fn_index === 0) await slow_done;
+					yield { type: "status", stage: "complete", queue: true };
+				})();
+			}
+		} as unknown as Client;
+		const dependency_manager = manager([slow, quick], client);
+
+		const click = dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+		await vi.waitFor(() => expect(submitted).toContain(1));
+		finish_slow();
+		await click;
+	});
+
+	test("runs the other listeners when a validator rejects one, without clearing its error", async () => {
+		const validated = dependency(0, "validated", [20]);
+		validated.targets = [[1, "click"]];
+		validated.inputs = [10];
+		const other = dependency(1, "other", [30]);
+		other.targets = [[1, "click"]];
+		other.inputs = [10];
+		let release_other!: () => void;
+		const other_released = new Promise<void>((resolve) => {
+			release_other = resolve;
+		});
+		const submitted: number[] = [];
+		const client = {
+			submit: (fn_index: number) => {
+				submitted.push(fn_index);
+				return (async function* () {
+					if (fn_index === 1) await other_released;
+					yield fn_index === 0
+						? {
+								type: "status",
+								stage: "error",
+								queue: true,
+								message: [{ is_valid: false, message: "bad" }]
+							}
+						: { type: "status", stage: "complete", queue: true };
+				})();
+			}
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[validated, other],
+			client,
+			update_state
+		);
+		const validation_errors = () =>
+			update_state.mock.calls
+				.filter(
+					([id, state]) =>
+						id === 10 && state.loading_status?.validation_error !== undefined
+				)
+				.map(([, state]) => state.loading_status.validation_error);
+
+		const click = dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+		await vi.waitFor(() => expect(validation_errors()).toContain("bad"));
+		release_other();
+		await click;
+
+		expect(validation_errors().at(-1)).toBe("bad");
+		expect(submitted).toContain(1);
+	});
+
+	test("leaves the input's loading status alone when sending a chunk to an open stream", async () => {
+		const stream = dependency(0, "stream", []);
+		stream.targets = [[1, "stream"]];
+		stream.inputs = [10];
+		stream.connection = "stream";
+		stream.trigger_mode = "multiple";
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager([stream], {} as Client, update_state);
+		const send_chunk = vi.fn();
+		dependency_manager.submissions.set(0, {
+			send_chunk
+		} as unknown as ReturnType<Client["submit"]>);
+
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "stream",
+			target_id: 1,
+			event_data: null
+		});
+
+		expect(send_chunk).toHaveBeenCalled();
+		expect(
+			update_state.mock.calls.filter(
+				([id, state]) => id === 10 && state.loading_status
+			)
+		).toEqual([]);
+	});
+
 	test("drops the deferred always_last events of cancelled calls", async () => {
 		const dependencies = [0, 1].map((id) => {
 			const always_last = dependency(id, `always_last_${id}`, [10 + id]);
