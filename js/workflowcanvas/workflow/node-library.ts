@@ -140,10 +140,6 @@ export const TASK_SCHEMAS: Record<string, TaskSchema> = {
 		],
 		outputs: [{ id: "out_0", label: "Video", type: "video" }]
 	},
-	"depth-estimation": {
-		inputs: [{ id: "in_0", label: "Image", type: "image" }],
-		outputs: [{ id: "out_0", label: "Depth", type: "image" }]
-	},
 	"image-text-to-text": {
 		inputs: [
 			{ id: "in_0", label: "Image", type: "image" },
