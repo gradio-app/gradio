@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Don't restore a streamed input's chunk as its value after a reload
+fix:Don't restore a streaming webcam's frame after a reload
