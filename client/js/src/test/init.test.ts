@@ -296,22 +296,40 @@ describe("Client class", () => {
 				test.skipIf(typeof document === "undefined")(
 					"waits until a prerendered page is shown to track the session",
 					async () => {
+						let info_requested = false;
+						server.use(
+							http.get(`${root}/info`, () => {
+								info_requested = true;
+								return HttpResponse.json(response_api_info);
+							})
+						);
 						Object.defineProperty(document, "prerendering", {
 							value: true,
 							configurable: true
 						});
-						const connecting = Client.connect(direct_app_reference, {
-							resume_sessions: true
-						});
-						await new Promise((resolve) => setTimeout(resolve, 100));
-						// What the page wrote to sessionStorage while prerendering is
-						// dropped when it is shown
-						sessionStorage.clear();
-						delete (document as { prerendering?: boolean }).prerendering;
-						document.dispatchEvent(new Event("prerenderingchange"));
+						try {
+							const connecting = Client.connect(direct_app_reference, {
+								resume_sessions: true
+							});
+							// The config and API info still load while prerendering
+							await vi.waitFor(() => expect(info_requested).toBe(true));
+							const result = await Promise.race([
+								connecting.then(() => "connected"),
+								new Promise((resolve) => setTimeout(resolve, 100, "waiting"))
+							]);
+							expect(result).toBe("waiting");
 
-						const app = await connecting;
-						expect(has_shown_page(app_config, app.session_hash)).toBe(true);
+							// What the page wrote to sessionStorage while prerendering is
+							// dropped when it is shown
+							sessionStorage.clear();
+							delete (document as { prerendering?: boolean }).prerendering;
+							document.dispatchEvent(new Event("prerenderingchange"));
+
+							const app = await connecting;
+							expect(has_shown_page(app_config, app.session_hash)).toBe(true);
+						} finally {
+							delete (document as { prerendering?: boolean }).prerendering;
+						}
 					}
 				);
 			}
