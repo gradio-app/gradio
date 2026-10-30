@@ -2,6 +2,12 @@
 
 ## 1.13.0
 
+### Dependency updates
+
+- @gradio/image@0.28.6
+
+## 1.13.0
+
 ### Features
 
 - [#13971](https://github.com/gradio-app/gradio/pull/13971) [`b3c050c`](https://github.com/gradio-app/gradio/commit/b3c050c7d445a9d3d9ae5fd76adef8d5e6052874) - fit gr.workflow in full screen layouts.  Thanks @hannahblair!
