@@ -368,7 +368,11 @@ class Queue:
         has_unacknowledged_history = resumable and any(
             message.event_id for message in resumable.history
         )
-        if not pending_ids and not has_unacknowledged_history:
+        if (
+            not pending_ids
+            and not has_unacknowledged_history
+            and not (resumable and resumable.active_streams)
+        ):
             self.pending_event_ids_session.pop(session_hash, None)
             await self.delete_session(session_hash)
         else:
@@ -398,6 +402,7 @@ class Queue:
         event = self.event_ids_to_events.get(event_id)
         if event is not None:
             event.own_stream = False
+            self.pending_event_ids_session.setdefault(session_hash, set()).add(event_id)
 
     def mark_session_attached(self, session_hash: str) -> None:
         resumable = self.start_history(session_hash)
@@ -653,9 +658,10 @@ class Queue:
                 and body.session_hash not in self.pending_messages_per_session
             ):
                 self.pending_messages_per_session[body.session_hash] = AsyncQueue()
-            if body.session_hash not in self.pending_event_ids_session:
-                self.pending_event_ids_session[body.session_hash] = set()
-        self.pending_event_ids_session[body.session_hash].add(event._id)
+            if not own_stream:
+                self.pending_event_ids_session.setdefault(body.session_hash, set()).add(
+                    event._id
+                )
         self.event_ids_to_events[event._id] = event
         body.event_id = event._id if not fn.batch else None
 
@@ -923,14 +929,19 @@ class Queue:
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None
     ) -> None:
+        def matches(event: Event) -> bool:
+            if event._id == event_id:
+                return True
+            return event.session_hash == session_hash and not event.own_stream
+
         events = {
             event._id: event
-            for current_event_id, event in self.event_ids_to_events.items()
-            if event.session_hash == session_hash or current_event_id == event_id
+            for event in self.event_ids_to_events.values()
+            if matches(event)
         }
         for job in self.active_jobs:
             for event in job or []:
-                if event.session_hash == session_hash or event._id == event_id:
+                if matches(event):
                     events[event._id] = event
 
         for event in events.values():

@@ -12,6 +12,7 @@ import os
 import re
 import secrets
 import shutil
+import socket
 import tempfile
 import threading
 import time
@@ -256,6 +257,8 @@ class Client:
         self.stream_open = False
         self.streaming_future: Future | None = None
         self.event_streams: dict[str, httpx2.Response] = {}
+        self._event_stream_client: httpx2.Client | None = None
+        self._event_stream_client_lock = threading.Lock()
         self.pending_messages_per_event: dict[str, deque[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
         self.pending_lock = threading.Lock()
@@ -268,6 +271,27 @@ class Client:
         self._kill_heartbeat.set()
         if self.heartbeat.is_alive():
             self.heartbeat.join(timeout=1)
+        self._close_event_streams()
+
+    def _close_event_streams(self):
+        for event_id in list(getattr(self, "event_streams", {})):
+            self.close_event_stream(event_id)
+        if hasattr(self, "event_stream_executor"):
+            self.event_stream_executor.shutdown(wait=False)
+        client = getattr(self, "_event_stream_client", None)
+        if client is not None:
+            with contextlib.suppress(Exception):
+                client.close()
+
+    def _get_event_stream_client(self) -> httpx2.Client:
+        with self._event_stream_client_lock:
+            if self._event_stream_client is None:
+                httpx_kwargs = self.httpx_kwargs.copy()
+                httpx_kwargs.setdefault("timeout", httpx2.Timeout(timeout=None))
+                self._event_stream_client = httpx2.Client(
+                    verify=self.ssl_verify, **httpx_kwargs
+                )
+            return self._event_stream_client
 
     @staticmethod
     def _stream_heartbeat(
@@ -562,48 +586,47 @@ class Client:
         def read_event_stream():
             event_id = None
             try:
-                httpx_kwargs = self.httpx_kwargs.copy()
-                httpx_kwargs.setdefault("timeout", httpx2.Timeout(timeout=None))
-                with httpx2.Client(verify=self.ssl_verify, **httpx_kwargs) as client:
-                    with client.stream(
-                        "POST",
-                        self.sse_data_url,
-                        json={**data, **hash_data},
-                        headers={**headers, "Accept": "text/event-stream"},
-                        cookies=self.cookies,
-                    ) as response:
-                        if response.status_code != 200:
-                            response.read()
-                            if response.status_code == 503:
-                                raise QueueError("Queue is full! Please try again.")
-                            validation_message = utils.extract_validation_message(
-                                response
-                            )
-                            if validation_message is not None:
-                                raise ValidationError(validation_message)
-                            response.raise_for_status()
-                        for message in utils.iter_sse_messages(response):
-                            if message["msg"] == ServerMessage.heartbeat:
-                                continue
+                client = self._get_event_stream_client()
+                with client.stream(
+                    "POST",
+                    self.sse_data_url,
+                    json={**data, **hash_data},
+                    headers={
+                        **{k: v for k, v in headers.items() if k.lower() != "accept"},
+                        "Accept": "text/event-stream",
+                    },
+                    cookies=self.cookies,
+                ) as response:
+                    if response.status_code != 200:
+                        response.read()
+                        if response.status_code == 503:
+                            raise QueueError("Queue is full! Please try again.")
+                        validation_message = utils.extract_validation_message(response)
+                        if validation_message is not None:
+                            raise ValidationError(validation_message)
+                        response.raise_for_status()
+                    for message in utils.iter_sse_messages(response):
+                        if message["msg"] == ServerMessage.heartbeat:
+                            continue
+                        if event_id is None:
+                            event_id = message.get("event_id")
                             if event_id is None:
-                                event_id = message.get("event_id")
-                                if event_id is None:
-                                    raise ValueError(
-                                        message.get("message")
-                                        or "The server did not start the event."
-                                    )
-                                with self.pending_lock:
-                                    self.pending_messages_per_event[event_id] = deque()
-                                self.event_streams[event_id] = response
-                                joined.set_result(event_id)
-                            with self.pending_lock:
-                                pending_messages = self.pending_messages_per_event.get(
-                                    event_id
+                                raise ValueError(
+                                    message.get("message")
+                                    or "The server did not start the event."
                                 )
-                            if pending_messages is not None:
-                                pending_messages.append(message)
-                            if message["msg"] == ServerMessage.process_completed:
-                                return
+                            with self.pending_lock:
+                                self.pending_messages_per_event[event_id] = deque()
+                            self.event_streams[event_id] = response
+                            joined.set_result(event_id)
+                        with self.pending_lock:
+                            pending_messages = self.pending_messages_per_event.get(
+                                event_id
+                            )
+                        if pending_messages is not None:
+                            pending_messages.append(message)
+                        if message["msg"] == ServerMessage.process_completed:
+                            return
             except BaseException as e:
                 if not joined.done():
                     joined.set_exception(e)
@@ -626,9 +649,15 @@ class Client:
         """Closes an sse_v4 event's request, which cancels the event on the server
         process running it."""
         response = self.event_streams.pop(event_id, None) if event_id else None
-        if response is not None:
-            with contextlib.suppress(Exception):
-                response.close()
+        if response is None:
+            return
+        network_stream = response.extensions.get("network_stream")
+        sock = network_stream.get_extra_info("socket") if network_stream else None
+        if sock is not None:
+            with contextlib.suppress(OSError):
+                sock.shutdown(socket.SHUT_RDWR)
+        with contextlib.suppress(Exception):
+            response.close()
 
     @classmethod
     def duplicate(
@@ -890,7 +919,7 @@ class Client:
             A list of Job objects in the same order as the provided jobs.
         Example:
             from gradio_client import Client
-            client = Client(src="gradio/calculator")
+            client = Client(src="gradio/calculator", resume_sessions=True)
             job = client.submit(5, "add", 4, api_name="/predict")
             resumable_job = {"event_id": job.wait_for_id(), "fn_index": job.fn_index}
             session_hash = client.session_hash
@@ -1294,6 +1323,7 @@ class Client:
             self.helper_executor.shutdown(wait=False)
         if hasattr(self, "stream_executor"):
             self.stream_executor.shutdown(wait=False)
+        self._close_event_streams()
 
     def _space_name_to_src(self, space) -> str | None:
         space_info = huggingface_hub.space_info(space, token=self.token)

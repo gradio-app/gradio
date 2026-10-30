@@ -222,6 +222,11 @@ export function submit(
 		let own_stream_active = false;
 		let own_stream_cancelled = false;
 		let own_stream_finished = false;
+		let own_stream_completion_delivered = false;
+		let resolve_own_stream_started: () => void = () => {};
+		const own_stream_started = new Promise<void>((resolve) => {
+			resolve_own_stream_started = resolve;
+		});
 		const abort_own_stream = (): void => {
 			own_stream_controller?.abort();
 		};
@@ -259,8 +264,12 @@ export function submit(
 		async function cancel(): Promise<void> {
 			if (own_stream_active && !own_stream_cancelled) {
 				own_stream_cancelled = true;
+				if (!own_stream_callback) {
+					await own_stream_started;
+				}
 				abort_own_stream();
-				if (own_stream_callback && !own_stream_finished) {
+				if (!own_stream_callback) close();
+				if (own_stream_callback && !own_stream_completion_delivered) {
 					await own_stream_callback({
 						msg: "process_completed",
 						output: {},
@@ -281,7 +290,7 @@ export function submit(
 				}
 
 				const attempts =
-					own_stream_cancelled && options.resume_sessions ? 8 : 1;
+					own_stream_cancelled && options.resume_sessions ? 32 : 1;
 				for (let attempt = 0; attempt < attempts; attempt++) {
 					const response = await fetch(
 						`${config.root}${api_prefix}/${CANCEL_URL}`,
@@ -619,9 +628,15 @@ export function submit(
 			own_stream_controller = controller;
 			own_stream_active = true;
 			that.own_stream_controllers.add(controller);
-			const deliver = (message: unknown): void => {
+			const deliver = (message: any): void => {
 				const callback = own_stream_callback;
 				if (own_stream_cancelled || !callback) return;
+				if (
+					message?.msg === "process_completed" ||
+					message?.msg === "unexpected_error"
+				) {
+					own_stream_completion_delivered = true;
+				}
 				if (
 					typeof window !== "undefined" &&
 					typeof document !== "undefined" &&
@@ -647,11 +662,15 @@ export function submit(
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
-							Accept: "text/event-stream",
 							...(options.token
 								? { Authorization: `Bearer ${options.token}` }
 								: {}),
-							...headers
+							...Object.fromEntries(
+								Object.entries(headers).filter(
+									([key]) => key.toLowerCase() !== "accept"
+								)
+							),
+							Accept: "text/event-stream"
 						},
 						body: JSON.stringify({ ...payload, session_hash, state }),
 						credentials: options.credentials ?? "same-origin",
@@ -685,21 +704,24 @@ export function submit(
 					report_join_error(body, response.status);
 					return;
 				}
-				const aborted = new Promise<never>((_, reject) => {
-					controller.signal.addEventListener(
-						"abort",
-						() => reject(new Error("aborted")),
-						{ once: true }
-					);
-				});
-				aborted.catch(() => {});
 				const messages = events(response, controller.signal);
+				const next_message = (): Promise<IteratorResult<{ data?: string }>> =>
+					new Promise((resolve, reject) => {
+						const on_abort = (): void => reject(new Error("aborted"));
+						if (controller.signal.aborted) return on_abort();
+						controller.signal.addEventListener("abort", on_abort, {
+							once: true
+						});
+						messages
+							.next()
+							.then(resolve, reject)
+							.finally(() =>
+								controller.signal.removeEventListener("abort", on_abort)
+							);
+					});
 				try {
 					while (true) {
-						const { value: message, done } = await Promise.race([
-							messages.next(),
-							aborted
-						]);
+						const { value: message, done } = await next_message();
 						if (done) break;
 						if (!message.data) continue;
 						const data = JSON.parse(message.data);
@@ -714,6 +736,7 @@ export function submit(
 							}
 							own_stream_callback = create_queue_callback(event_id);
 							on_event_id();
+							resolve_own_stream_started();
 						}
 						if (
 							data.msg === "process_completed" ||
@@ -747,6 +770,7 @@ export function submit(
 			} finally {
 				own_stream_active = false;
 				that.own_stream_controllers.delete(controller);
+				resolve_own_stream_started();
 			}
 		}
 

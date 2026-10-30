@@ -147,7 +147,6 @@ from gradio.server_messages import (
 from gradio.state_holder import StateHolder
 from gradio.themes import ThemeClass as Theme
 from gradio.utils import (
-    cancel_tasks,
     get_node_path,
     get_upload_folder,
     safe_aclose_iterator,
@@ -1395,7 +1394,7 @@ class App(FastAPI):
             else:
                 config["i18n_translations"] = None
             config = route_utils.update_root_in_config(config, root)
-            return ORJSONResponse(content=config, headers={"Timing-Allow-Origin": "*"})
+            return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
         async def static_resource(path: str):
@@ -1888,7 +1887,7 @@ class App(FastAPI):
             )
             prepare_simple_api_data(full_body, fn)
             full_body.fn_index = fn._id
-            own_stream = "text/event-stream" in request.headers.get("accept", "")
+            own_stream = route_utils.accepts_event_stream(request)
             return await queue_join_helper(
                 full_body,
                 request,
@@ -1911,7 +1910,7 @@ class App(FastAPI):
             )
             prepare_simple_api_data(full_body, fn)
             full_body.fn_index = fn._id
-            own_stream = "text/event-stream" in request.headers.get("accept", "")
+            own_stream = route_utils.accepts_event_stream(request)
             return await queue_join_helper(
                 full_body,
                 request,
@@ -1932,7 +1931,7 @@ class App(FastAPI):
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Session hash not found.",
                 )
-            own_stream = "text/event-stream" in request.headers.get("accept", "")
+            own_stream = route_utils.accepts_event_stream(request)
             return await queue_join_helper(
                 body,
                 request,
@@ -2030,7 +2029,7 @@ class App(FastAPI):
         async def cancel_event(body: CancelBody):
             blocks = app.get_blocks()
             found = body.event_id in blocks._queue.event_ids_to_events
-            cancelled = await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
+            cancelled = await utils.cancel_event_tasks({body.event_id})
             found = found or body.event_id in cancelled
             # Need to complete the job so that the client disconnects
             session_open = (
