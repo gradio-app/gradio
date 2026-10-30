@@ -192,14 +192,17 @@ export function app_scope_key(
 }
 
 /**
- * Whether a component sends chunks of a stream as its input (a streaming
- * webcam sends its latest frame to every event that reads it). A chunk is
- * not a value to put back: shown again, a frame would replace the camera.
+ * Whether a component sends chunks of a stream as its input to every event
+ * that reads it. A streaming `gr.Image` does: its value stays empty while
+ * events get the webcam's latest frame, and a frame put back would replace
+ * the camera. A streaming `gr.Audio` sends its own value, which can be a
+ * file the user uploaded, so it is not one of them. The chunks of a
+ * `.stream()` event's own input are left out where the event is submitted.
  */
 export function sends_chunks(
-	component: { props: Record<string, any> } | undefined
+	component: { type: string; props: Record<string, any> } | undefined
 ): boolean {
-	return Boolean(component?.props.streaming);
+	return component?.type === "image" && Boolean(component.props.streaming);
 }
 
 /**

@@ -171,6 +171,7 @@ describe("submit iterator", () => {
 		app.stream_status.open = true;
 		const cam_id = app.config!.dependencies[0].inputs[0];
 		const cam = app.config!.components.find((c) => c.id === cam_id)!;
+		cam.type = "image";
 		cam.props.streaming = true;
 		server.resetHandlers(
 			http.post(`${direct_space_url}/queue/join`, () =>
@@ -189,6 +190,31 @@ describe("submit iterator", () => {
 		};
 		app.session_store.restore_into([restored]);
 		expect(restored.props).toEqual({});
+		await iterator.return();
+	});
+
+	test("saves a file uploaded into a streaming audio for another event", async () => {
+		const app = await Client.connect("hmb/hello_world");
+		app.stream_status.open = true;
+		const mic_id = app.config!.dependencies[0].inputs[0];
+		const mic = app.config!.components.find((c) => c.id === mic_id)!;
+		mic.type = "audio";
+		mic.props.streaming = true;
+		server.resetHandlers(
+			http.post(`${direct_space_url}/queue/join`, () =>
+				HttpResponse.json({ event_id: "click-event" })
+			)
+		);
+
+		const iterator = app.submit("/predict", [{ url: "speech.wav" }]);
+		await iterator.wait_for_id();
+		const restored = {
+			id: mic.id,
+			type: mic.type,
+			props: {} as Record<string, unknown>
+		};
+		app.session_store.restore_into([restored]);
+		expect(restored.props.value).toEqual({ url: "speech.wav" });
 		await iterator.return();
 	});
 
