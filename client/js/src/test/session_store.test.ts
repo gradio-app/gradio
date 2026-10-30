@@ -193,6 +193,30 @@ describe("SessionStore: safety and limits", () => {
 		expect(textbox[0].props.value).toBe("typed text");
 	});
 
+	test("never puts a frame back into a streaming webcam", () => {
+		const store = new SessionStore();
+		const streaming = [
+			{ id: 1, type: "image", props: { streaming: true } },
+			{ id: 2, type: "audio", props: { streaming: true } }
+		];
+		// e.g. the output of the webcam's own stream, and generated speech
+		store.record(
+			[1, 2],
+			[
+				{ __type__: "update", value: { url: "frame.webp" }, label: "Cam" },
+				{ url: "speech.wav" }
+			],
+			streaming
+		);
+
+		store.restore_into(streaming);
+		expect(streaming[0].props).toEqual({ streaming: true, label: "Cam" });
+		expect(streaming[1].props).toEqual({
+			streaming: true,
+			value: { url: "speech.wav" }
+		});
+	});
+
 	test.skipIf(typeof indexedDB === "undefined")(
 		"keeps each user's session apart",
 		async () => {

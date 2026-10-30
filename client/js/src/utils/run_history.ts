@@ -5,8 +5,8 @@ import {
 	delete_record,
 	prune_records,
 	read_record,
-	sends_chunks,
 	storage_available,
+	without_frame,
 	write_record,
 	type StoredRecord
 } from "./browser_storage";
@@ -567,7 +567,7 @@ export interface ReplayTarget {
 
 /**
  * Told which values a replayed run wrote, index-aligned with the component
- * ids. A slot it left alone, such as a streaming input, is `undefined`.
+ * ids. A slot it left alone, such as a streaming webcam's frame, is `undefined`.
  */
 export type ReplayListener = (ids: number[], values: unknown[]) => void;
 
@@ -584,22 +584,27 @@ function restore_run_impl(
 	);
 	if (!dependency) return false;
 
-	const inputs = (
+	const frameless = (ids: number[], values: unknown[]): unknown[] =>
+		values.map((value, index) =>
+			without_frame(
+				config.components.find((item) => item.id === ids[index]),
+				value
+			)
+		);
+	const inputs = frameless(
+		dependency.inputs,
 		Array.isArray(run.inputs)
 			? run.inputs
 			: Object.values((run.inputs ?? {}) as Record<string, unknown>)
-	).map((value, index) =>
-		sends_chunks(
-			config.components.find((item) => item.id === dependency.inputs[index])
-		)
-			? undefined
-			: value
 	);
-	const outputs = Array.isArray(run.outputs)
-		? run.outputs
-		: run.outputs === null || run.outputs === undefined
-			? []
-			: [run.outputs];
+	const outputs = frameless(
+		dependency.outputs,
+		Array.isArray(run.outputs)
+			? run.outputs
+			: run.outputs === null || run.outputs === undefined
+				? []
+				: [run.outputs]
+	);
 
 	const restore = (ids: number[], saved: unknown[]): void => {
 		for (const [index, id] of ids.entries()) {

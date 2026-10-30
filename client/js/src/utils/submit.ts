@@ -33,7 +33,7 @@ import {
 	WS_PROTOCOL_MSG
 } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
-import { sends_chunks } from "./browser_storage";
+import { is_streaming_webcam } from "./browser_storage";
 import { clear_resumable_event, track_resumable_event } from "./session";
 import type { StatePayload } from "./session_store";
 import { Client } from "../client";
@@ -526,7 +526,7 @@ export function submit(
 				(input_data || []).map((value, index) => {
 					const id = dependency.inputs[index];
 					const component = config.components.find((c) => c.id === id);
-					return streamed_inputs.has(id) || sends_chunks(component)
+					return streamed_inputs.has(id) || is_streaming_webcam(component)
 						? undefined
 						: value;
 				}),
