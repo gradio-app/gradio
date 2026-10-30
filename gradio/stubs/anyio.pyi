@@ -24,6 +24,19 @@ class CapacityLimiter:
         exc_tb: Optional[TracebackType],
     ) -> None: ...
 
+class CancelScope:
+    def __init__(self, *, deadline: float = ..., shield: bool = False) -> None: ...
+    def cancel(self) -> None: ...
+    @property
+    def cancel_called(self) -> bool: ...
+    def __enter__(self) -> CancelScope: ...
+    def __exit__(
+        self,
+        exc_type: Optional[type],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> Optional[bool]: ...
+
 class to_thread:
     @staticmethod
     def run_sync(

@@ -83,6 +83,7 @@ class Event:
         self.run_time: float = 0
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
+        self.own_stream = False
 
     @property
     def streaming(self):
@@ -153,6 +154,7 @@ class Queue:
         self.pending_messages_per_session: LRUCache[str, AsyncQueue[EventMessage]] = (
             LRUCache(2000)
         )
+        self.pending_messages_per_event: dict[str, AsyncQueue[EventMessage]] = {}
         self.pending_event_ids_session: dict[str, set[str]] = {}
         self.resumable_sessions: dict[str, ResumableSession] = {}
         self.event_ids_to_events: dict[str, Event] = {}
@@ -287,6 +289,11 @@ class Queue:
         resumable = self.resumable_sessions.get(event.session_hash)
         if resumable is not None and resumable.acknowledges:
             resumable.history.append(event_message)
+        if event.own_stream:
+            own_messages = self.pending_messages_per_event.get(event._id)
+            if own_messages is not None:
+                own_messages.put_nowait(event_message)
+            return
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
 
@@ -361,7 +368,11 @@ class Queue:
         has_unacknowledged_history = resumable and any(
             message.event_id for message in resumable.history
         )
-        if not pending_ids and not has_unacknowledged_history:
+        if (
+            not pending_ids
+            and not has_unacknowledged_history
+            and not (resumable and resumable.active_streams)
+        ):
             self.pending_event_ids_session.pop(session_hash, None)
             await self.delete_session(session_hash)
         else:
@@ -380,6 +391,18 @@ class Queue:
                 )
             resumable.acknowledges = True
         return resumable
+
+    def move_to_session_stream(self, event_id: str, session_hash: str) -> None:
+        """Hands an sse_v4 event whose request closed early over to its session's
+        `queue/data` stream, where a page resuming it after a refresh reads the
+        rest. Everything it sent so far is already in the session's history."""
+        self.pending_messages_per_event.pop(event_id, None)
+        if session_hash not in self.pending_messages_per_session:
+            self.pending_messages_per_session[session_hash] = AsyncQueue()
+        event = self.event_ids_to_events.get(event_id)
+        if event is not None:
+            event.own_stream = False
+            self.pending_event_ids_session.setdefault(session_hash, set()).add(event_id)
 
     def mark_session_attached(self, session_hash: str) -> None:
         resumable = self.start_history(session_hash)
@@ -554,7 +577,11 @@ class Queue:
         return total_len
 
     async def push(
-        self, body: PredictBodyInternal, request: fastapi.Request, username: str | None
+        self,
+        body: PredictBodyInternal,
+        request: fastapi.Request,
+        username: str | None,
+        own_stream: bool = False,
     ) -> tuple[
         bool,
         str | list[dict[str, Any]],
@@ -622,12 +649,19 @@ class Queue:
         event.data = body
         if body.session_hash is None:
             body.session_hash = event.session_hash
+        if own_stream:
+            event.own_stream = True
+            self.pending_messages_per_event[event._id] = AsyncQueue()
         async with self.pending_message_lock:
-            if body.session_hash not in self.pending_messages_per_session:
+            if (
+                not own_stream
+                and body.session_hash not in self.pending_messages_per_session
+            ):
                 self.pending_messages_per_session[body.session_hash] = AsyncQueue()
-            if body.session_hash not in self.pending_event_ids_session:
-                self.pending_event_ids_session[body.session_hash] = set()
-        self.pending_event_ids_session[body.session_hash].add(event._id)
+            if not own_stream:
+                self.pending_event_ids_session.setdefault(body.session_hash, set()).add(
+                    event._id
+                )
         self.event_ids_to_events[event._id] = event
         body.event_id = event._id if not fn.batch else None
 
@@ -692,11 +726,13 @@ class Queue:
             except CacheMissError:
                 pass  # Fall through to normal queue path
             except Exception:
+                self.pending_messages_per_event.pop(event._id, None)
                 raise
 
         try:
             event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
         except KeyError as e:
+            self.pending_messages_per_event.pop(event._id, None)
             raise KeyError(
                 "Event not found in queue. If you are deploying this Gradio app with multiple replicas, please enable stickiness to ensure that all requests from the same user are routed to the same instance."
             ) from e
@@ -893,14 +929,19 @@ class Queue:
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None
     ) -> None:
+        def matches(event: Event) -> bool:
+            if event._id == event_id:
+                return True
+            return event.session_hash == session_hash and not event.own_stream
+
         events = {
             event._id: event
-            for current_event_id, event in self.event_ids_to_events.items()
-            if event.session_hash == session_hash or current_event_id == event_id
+            for event in self.event_ids_to_events.values()
+            if matches(event)
         }
         for job in self.active_jobs:
             for event in job or []:
-                if event.session_hash == session_hash or event._id == event_id:
+                if matches(event):
                     events[event._id] = event
 
         for event in events.values():

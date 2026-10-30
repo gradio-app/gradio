@@ -157,7 +157,11 @@ def _space_id_to_skill_id(space_id: str) -> str:
 
 
 def _render_endpoint_section(
-    api_name: str, endpoint_info: dict, space_id: str, src_url: str
+    api_name: str,
+    endpoint_info: dict,
+    space_id: str,
+    src_url: str,
+    single_request: bool = False,
 ) -> str:
     params = endpoint_info.get("parameters", [])
     returns = endpoint_info.get("returns", [])
@@ -198,7 +202,11 @@ def _render_endpoint_section(
         lines.append("")
 
     snippets = generate_code_snippets(
-        api_name, endpoint_info, src_url, space_id=space_id
+        api_name,
+        endpoint_info,
+        src_url,
+        space_id=space_id,
+        single_request=single_request,
     )
 
     lines.append("**Python:**\n")
@@ -238,6 +246,7 @@ def _generate_space_skill(space_id: str) -> tuple[str, str]:
 
     api_info = cast(dict, client.view_api(print_info=False, return_format="dict"))
     src_url = client.src
+    single_request = "sse_v4" in client.config.get("supported_protocols", [])
 
     skill_id = _space_id_to_skill_id(space_id)
 
@@ -267,7 +276,9 @@ def _generate_space_skill(space_id: str) -> tuple[str, str]:
         lines.append("## API Endpoints\n")
         for api_name, endpoint_info in named.items():
             lines.append(
-                _render_endpoint_section(api_name, endpoint_info, space_id, src_url)
+                _render_endpoint_section(
+                    api_name, endpoint_info, space_id, src_url, single_request
+                )
             )
 
     if not named and unnamed:
@@ -275,7 +286,11 @@ def _generate_space_skill(space_id: str) -> tuple[str, str]:
         for fn_index, endpoint_info in unnamed.items():
             lines.append(
                 _render_endpoint_section(
-                    f"fn_index={fn_index}", endpoint_info, space_id, src_url
+                    f"fn_index={fn_index}",
+                    endpoint_info,
+                    space_id,
+                    src_url,
+                    single_request,
                 )
             )
 

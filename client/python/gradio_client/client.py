@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
+import contextlib
 import hashlib
 import json
 import math
@@ -11,6 +12,7 @@ import os
 import re
 import secrets
 import shutil
+import socket
 import tempfile
 import threading
 import time
@@ -180,8 +182,13 @@ class Client:
             self._login(auth)
 
         self.config = self._get_config()
-        self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = (
-            self.config.get("protocol", "ws")
+        self.protocol: Literal[
+            "ws", "sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"
+        ] = (
+            "sse_v4"
+            if "sse_v4" in self.config.get("supported_protocols", [])
+            and not resume_sessions
+            else self.config.get("protocol", "ws")
         )
         api_prefix: str = self.config.get("api_prefix", "")
         self.api_prefix = api_prefix.lstrip("/") + "/"
@@ -227,6 +234,9 @@ class Client:
         # Helpers only finish once the reader has delivered their messages, so it
         # gets a thread of its own instead of queueing behind them.
         self.stream_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        self.event_stream_executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=2 * max_workers
+        )
 
         self.analytics_enabled = (
             analytics_enabled or os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
@@ -246,6 +256,9 @@ class Client:
 
         self.stream_open = False
         self.streaming_future: Future | None = None
+        self.event_streams: dict[str, httpx2.Response] = {}
+        self._event_stream_client: httpx2.Client | None = None
+        self._event_stream_client_lock = threading.Lock()
         self.pending_messages_per_event: dict[str, deque[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
         self.pending_lock = threading.Lock()
@@ -258,6 +271,27 @@ class Client:
         self._kill_heartbeat.set()
         if self.heartbeat.is_alive():
             self.heartbeat.join(timeout=1)
+        self._close_event_streams()
+
+    def _close_event_streams(self):
+        for event_id in list(getattr(self, "event_streams", {})):
+            self.close_event_stream(event_id)
+        if hasattr(self, "event_stream_executor"):
+            self.event_stream_executor.shutdown(wait=False)
+        client = getattr(self, "_event_stream_client", None)
+        if client is not None:
+            with contextlib.suppress(Exception):
+                client.close()
+
+    def _get_event_stream_client(self) -> httpx2.Client:
+        with self._event_stream_client_lock:
+            if self._event_stream_client is None:
+                httpx_kwargs = self.httpx_kwargs.copy()
+                httpx_kwargs.setdefault("timeout", httpx2.Timeout(timeout=None))
+                self._event_stream_client = httpx2.Client(
+                    verify=self.ssl_verify, **httpx_kwargs
+                )
+            return self._event_stream_client
 
     @staticmethod
     def _stream_heartbeat(
@@ -447,6 +481,8 @@ class Client:
         headers = self.add_zero_gpu_headers(self.headers)
         if request_headers is not None:
             headers = {**request_headers, **headers}
+        if protocol == "sse_v4":
+            return self._submit_event_stream(data, hash_data, headers)
         req = httpx2.post(
             self.sse_data_url,
             json={**data, **hash_data},
@@ -539,6 +575,89 @@ class Client:
             response.raise_for_status()
         except httpx2.HTTPError:
             pass
+
+    def _submit_event_stream(self, data, hash_data, headers) -> str:
+        """sse_v4: joins the queue on a request whose response streams this event's
+        messages, read on a thread of its own into the same per-event queue the
+        shared sse_v3 reader fills. Returns once the server has announced the
+        event id, or raises what the join failed with."""
+        joined: Future[str] = Future()
+
+        def read_event_stream():
+            event_id = None
+            try:
+                client = self._get_event_stream_client()
+                with client.stream(
+                    "POST",
+                    self.sse_data_url,
+                    json={**data, **hash_data},
+                    headers={
+                        **{k: v for k, v in headers.items() if k.lower() != "accept"},
+                        "Accept": "text/event-stream",
+                    },
+                    cookies=self.cookies,
+                ) as response:
+                    if response.status_code != 200:
+                        response.read()
+                        if response.status_code == 503:
+                            raise QueueError("Queue is full! Please try again.")
+                        validation_message = utils.extract_validation_message(response)
+                        if validation_message is not None:
+                            raise ValidationError(validation_message)
+                        response.raise_for_status()
+                    for message in utils.iter_sse_messages(response):
+                        if message["msg"] == ServerMessage.heartbeat:
+                            continue
+                        if event_id is None:
+                            event_id = message.get("event_id")
+                            if event_id is None:
+                                raise ValueError(
+                                    message.get("message")
+                                    or "The server did not start the event."
+                                )
+                            with self.pending_lock:
+                                self.pending_messages_per_event[event_id] = deque()
+                            self.event_streams[event_id] = response
+                            joined.set_result(event_id)
+                        with self.pending_lock:
+                            pending_messages = self.pending_messages_per_event.get(
+                                event_id
+                            )
+                        if pending_messages is not None:
+                            pending_messages.append(message)
+                        if message["msg"] == ServerMessage.process_completed:
+                            return
+            except BaseException as e:
+                if not joined.done():
+                    joined.set_exception(e)
+            finally:
+                if not joined.done():
+                    joined.set_exception(
+                        ValueError("The event's stream ended before it started.")
+                    )
+                if event_id is not None:
+                    self.event_streams.pop(event_id, None)
+                    with self.pending_lock:
+                        pending_messages = self.pending_messages_per_event.get(event_id)
+                    if pending_messages is not None:
+                        pending_messages.append(None)
+
+        self.event_stream_executor.submit(read_event_stream)
+        return joined.result()
+
+    def close_event_stream(self, event_id: str | None) -> None:
+        """Closes an sse_v4 event's request, which cancels the event on the server
+        process running it."""
+        response = self.event_streams.pop(event_id, None) if event_id else None
+        if response is None:
+            return
+        network_stream = response.extensions.get("network_stream")
+        sock = network_stream.get_extra_info("socket") if network_stream else None
+        if sock is not None:
+            with contextlib.suppress(OSError):
+                sock.shutdown(socket.SHUT_RDWR)
+        with contextlib.suppress(Exception):
+            response.close()
 
     @classmethod
     def duplicate(
@@ -745,6 +864,7 @@ class Client:
             "sse_v2",
             "sse_v2.1",
             "sse_v3",
+            "sse_v4",
         ):
             headers = headers or {}
             headers["x-gradio-user"] = "api"
@@ -799,7 +919,7 @@ class Client:
             A list of Job objects in the same order as the provided jobs.
         Example:
             from gradio_client import Client
-            client = Client(src="gradio/calculator")
+            client = Client(src="gradio/calculator", resume_sessions=True)
             job = client.submit(5, "add", 4, api_name="/predict")
             resumable_job = {"event_id": job.wait_for_id(), "fn_index": job.fn_index}
             session_hash = client.session_hash
@@ -809,8 +929,13 @@ class Client:
             resumed_job.result()
             >> 9.0
         """
-        if self.protocol not in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
+        if self.protocol not in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"):
             raise ValueError(f"Cannot resume jobs using protocol: {self.protocol}")
+        if self.protocol == "sse_v4":
+            self.protocol = self.config.get("protocol", "sse_v3")
+            for endpoint in self.endpoints.values():
+                if isinstance(endpoint, Endpoint):
+                    endpoint.protocol = self.protocol
         if self.stream_open:
             raise ValueError("Cannot resume jobs while the queue stream is active.")
         if session_hash is not None and session_hash != self.session_hash:
@@ -1198,6 +1323,7 @@ class Client:
             self.helper_executor.shutdown(wait=False)
         if hasattr(self, "stream_executor"):
             self.stream_executor.shutdown(wait=False)
+        self._close_event_streams()
 
     def _space_name_to_src(self, space) -> str | None:
         space_info = huggingface_hub.space_info(space, token=self.token)
@@ -1484,6 +1610,8 @@ class Endpoint:
                     verify=client.ssl_verify,
                     **client.httpx_kwargs,
                 )
+            if self.protocol == "sse_v4":
+                client.close_event_stream(helper.event_id)
 
         return _cancel
 
@@ -1506,7 +1634,7 @@ class Endpoint:
 
             if self.protocol == "sse":
                 result = self._sse_fn_v0(data, hash_data, helper)  # type: ignore
-            elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
+            elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"):
                 event_id = client.send_data(
                     data, hash_data, self.protocol, helper.request_headers
                 )
@@ -1778,7 +1906,7 @@ class Endpoint:
         self,
         helper: Communicator,
         event_id: str,
-        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
+        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3", "sse_v4"],
     ):
         return utils.get_pred_from_sse_v1plus(
             helper,

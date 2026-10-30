@@ -266,6 +266,16 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_RESUME_SESSIONS=False
   ```
 
+### 29. `GRADIO_BROWSER_STREAMS`
+
+- **Description**: How the browser receives the messages of queued events. With `per_event`, each event streams on the request that submits it, so it works behind a load balancer without session affinity. With `per_session`, all of a tab's events share one stream, which uses fewer connections. `auto` uses `per_event` when the browser speaks HTTP/2 or later to the app (which needs HTTPS), and `per_session` on HTTP/1.1, where browsers allow only six connections per origin. The Python client and the JavaScript client outside a browser always stream per event.
+- **Default**: `auto`
+- **Options**: `auto`, `per_event`, `per_session`
+- **Example**:
+  ```sh
+  export GRADIO_BROWSER_STREAMS=per_event
+  ```
+
 ## How to Set Environment Variables
 
 To set environment variables in your terminal, use the `export` command followed by the variable name and its value. For example:
