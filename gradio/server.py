@@ -171,6 +171,31 @@ class Server(App):
         super().__init__(**init_kwargs)
         self._deferred_apis: list[tuple[Callable, dict[str, Any]]] = []
         self._mcp = _MCPNamespace()
+        self._hardware_executor = None
+        if os.environ.get("GRADIO_HARDWARE_APP") and not os.environ.get(
+            "GRADIO_HARDWARE_WORKER"
+        ):
+            from gradio.hardware.executor import Executor
+            from gradio.hardware.ui import install
+
+            self._hardware_executor = Executor(
+                os.environ["GRADIO_HARDWARE_APP"],
+                os.environ.get("GRADIO_HARDWARE", "host"),
+            )
+            install(self, self._hardware_executor)
+
+    def resource(self, fn=None):
+        """Lazily initialize a resource once, in the process that uses it."""
+        from gradio.hardware.resource import resource
+
+        return resource(fn) if fn is not None else resource
+
+    def queue(self, fn=None, **kwargs):
+        """Register a queued API endpoint. Equivalent to api(queue=True)."""
+        if kwargs.get("queue") is False:
+            raise ValueError("Use api(queue=False) for an unqueued API endpoint.")
+        kwargs["queue"] = True
+        return self.api(fn, **kwargs)
 
     @property
     def mcp(self) -> _MCPNamespace:
@@ -282,12 +307,27 @@ class Server(App):
         Returns:
             Tuple of (fastapi_app, local_url, share_url).
         """
+        if os.environ.get("GRADIO_HARDWARE_WORKER"):
+            return self, "", ""
+
         from gradio.blocks import Blocks
         from gradio.events import api as gr_api
 
         with Blocks(mode="server") as blocks:
-            for fn, api_kwargs in self._deferred_apis:
+            for index, (fn, api_kwargs) in enumerate(self._deferred_apis):
+                if self._hardware_executor and api_kwargs.get("queue", True):
+                    fn = self._hardware_executor.wrap(fn, index)
                 gr_api(fn=fn, **api_kwargs)
+
+        if self._hardware_executor:
+            prefix = (
+                root_path
+                if isinstance(root_path, str) and root_path.startswith("/")
+                else ""
+            )
+            head = (
+                head or ""
+            ) + f'<script defer src="{prefix}/__gradio_hardware/overlay.js"></script>'
 
         os.environ["GRADIO_SERVER_MODE_ENABLED"] = "1"
 
