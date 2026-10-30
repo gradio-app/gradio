@@ -25,9 +25,47 @@ export type PortType =
  * tile and a markdown reference can prompt a text input. */
 const TEXTUAL = new Set<PortType>(["text", "markdown"]);
 
+export function is_textual(type: PortType): boolean {
+	return TEXTUAL.has(type);
+}
+
 export function ports_compatible(a: PortType, b: PortType): boolean {
 	if (a === "any" || b === "any" || a === b) return true;
 	return TEXTUAL.has(a) && TEXTUAL.has(b);
+}
+
+export type TextInputType = "text" | "password" | "email";
+
+export function is_secret(node: unknown): boolean {
+	return (node as { type?: string } | null)?.type === "password";
+}
+
+const SECRET_WORDS = new Set([
+	"token",
+	"secret",
+	"password",
+	"passwd",
+	"apikey"
+]);
+const KEY_QUALIFIERS = new Set(["api", "secret", "access", "private"]);
+// `max_token`, `num_token`, `use_auth_token` name a setting, not a credential.
+const NOT_SECRET = new Set(["max", "min", "num", "use"]);
+
+function is_secret_name(name: string): boolean {
+	const words = name
+		.replace(/([a-z])([A-Z])/g, "$1_$2")
+		.toLowerCase()
+		.split(/[^a-z0-9]+/)
+		.filter(Boolean);
+	if (words.some((w) => NOT_SECRET.has(w))) return false;
+	const last = words[words.length - 1];
+	const prev = words[words.length - 2];
+	return SECRET_WORDS.has(last) || (last === "key" && KEY_QUALIFIERS.has(prev));
+}
+
+/** Matched by name only: the credential word must end the name. */
+export function is_secret_port(port: { id?: string; label?: string }): boolean {
+	return is_secret_name(port.label ?? "") || is_secret_name(port.id ?? "");
 }
 
 export interface Port {
@@ -64,6 +102,7 @@ export type NodeStatus = "idle" | "running" | "done" | "error";
 
 export interface WFNode {
 	id: string;
+	type?: TextInputType;
 	kind: "input" | "transform" | "output" | "component";
 	label: string;
 	source: "local" | "space" | "model" | "dataset" | "fn";
@@ -150,6 +189,7 @@ export interface BaseNode {
 export interface ReferenceNode extends BaseNode {
 	role: "reference";
 	asset_type: PortType;
+	type?: TextInputType;
 	/** Inline literal value, or in a later iteration an `hf://...` URI. */
 	value?: NodeDataValue;
 }

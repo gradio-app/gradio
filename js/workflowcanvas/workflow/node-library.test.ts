@@ -1,5 +1,10 @@
 import { describe, test, expect } from "vitest";
-import { LIBRARY, getComponentForPortType, TASK_SCHEMAS } from "./node-library";
+import {
+	API_KEY_TEMPLATE,
+	LIBRARY,
+	getComponentForPortType,
+	TASK_SCHEMAS
+} from "./node-library";
 import { PORT_REGISTRY } from "./workflow-modalities";
 
 describe("LIBRARY.components", () => {
@@ -41,6 +46,19 @@ describe("LIBRARY.components", () => {
 		const types = LIBRARY.components.map((c) => c.outputs[0]?.type);
 		expect(types).not.toContain("file");
 		expect(types).not.toContain("any");
+	});
+});
+
+describe("API_KEY_TEMPLATE", () => {
+	test("is a plain text component with gr.Textbox's password type", () => {
+		expect(API_KEY_TEMPLATE.type).toBe("password");
+		expect(API_KEY_TEMPLATE.outputs[0]?.type).toBe("text");
+		expect(API_KEY_TEMPLATE.inputs[0]?.type).toBe("text");
+	});
+
+	test("is not in LIBRARY.components, so text ports keep the Text node", () => {
+		expect(LIBRARY.components).not.toContain(API_KEY_TEMPLATE);
+		expect(getComponentForPortType("text")?.type).toBeUndefined();
 	});
 });
 
