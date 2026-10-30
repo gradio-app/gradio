@@ -23,7 +23,8 @@ runs:
         version: 10.17.0
     - uses: actions/setup-node@v4
       with:
-        node-version: 24
+        # SSR needs Node 24.22.0+, and a bare `24` can resolve to an older cached release.
+        node-version: 24.22.0
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
     - name: Install deps
