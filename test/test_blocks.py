@@ -69,12 +69,12 @@ class TestBlocksMethods:
             # self.share is False when instantiating the class
             assert not demo.share
             # share default is True, if share is None in colab and queueing
-            demo.launch(prevent_thread_lock=True)
+            demo.launch(prevent_thread_lock=True, executor="thread")
             assert demo.share
             demo.close()
             # share is also true, if share is None in colab with queueing
             demo.queue()
-            demo.launch(prevent_thread_lock=True)
+            demo.launch(prevent_thread_lock=True, executor="thread")
             assert demo.share
             demo.close()
 
@@ -293,7 +293,7 @@ class TestBlocksMethods:
             t2 = gr.Textbox()
             t2.change(lambda x: x, t2, t1)
 
-        demo.launch(prevent_thread_lock=True)
+        demo.launch(prevent_thread_lock=True, executor="thread")
         mock_anlaytics.assert_called()
 
     def test_show_error(self):
@@ -2794,7 +2794,10 @@ def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
     with gr.Blocks() as demo:
         n1 = gr.Number(value=0)
         state = gr.State(
-            value=0, time_to_live=1, delete_callback=lambda v: delete_fn(v)
+            value=0,
+            storage="server",
+            time_to_live=1,
+            delete_callback=lambda v: delete_fn(v),
         )
         button = gr.Button("Increment")
         button.click(test_fn, [state], [n1, state], api_name="increment")

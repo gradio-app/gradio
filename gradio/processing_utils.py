@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urljoin, urlparse
 
-import httpx
+import httpx2
 import numpy as np
 import safehttpx as sh
 from gradio_client import utils as client_utils
@@ -43,7 +43,7 @@ with warnings.catch_warnings():
 sync_transport = None
 async_transport = None
 
-sync_client = httpx.Client(transport=sync_transport)
+sync_client = httpx2.Client(transport=sync_transport)
 
 log = logging.getLogger(__name__)
 
@@ -85,9 +85,9 @@ def _get_original_url_from_proxy(url: str, proxy_url: str) -> str | None:
         return None
 
     try:
-        parsed_original_url = httpx.URL(original_url)
-        parsed_proxy_url = httpx.URL(proxy_url)
-    except httpx.InvalidURL:
+        parsed_original_url = httpx2.URL(original_url)
+        parsed_proxy_url = httpx2.URL(proxy_url)
+    except httpx2.InvalidURL:
         return None
     if (
         parsed_original_url.scheme,
@@ -132,6 +132,13 @@ def get_pil_metadata(pil_image):
 
 
 def encode_pil_to_bytes(pil_image, format="png"):
+    if format.lower() == "png" and pil_image.mode == "I":
+        raise OSError(
+            "Cannot save a 32-bit integer (I-mode) image as PNG without losing data. "
+            "If all pixel values are between 0 and 65535, explicitly convert the "
+            "image with image.convert('I;16') before returning it. Otherwise, use "
+            "a format such as TIFF to preserve the 32-bit integer values."
+        )
     with BytesIO() as output_bytes:
         if format.lower() == "gif":
             frames = [frame.copy() for frame in ImageSequence.Iterator(pil_image)]
@@ -348,9 +355,9 @@ def lru_cache_async(maxsize: int = 128):
 MAX_REDIRECTS = 20
 
 
-async def async_ssrf_protected_get(url: str) -> httpx.Response:
+async def async_ssrf_protected_get(url: str) -> httpx2.Response:
     """SSRF-protected GET: routes through `safehttpx` with the public hostname
-    allow-list and re-validates each redirect. Returns the `httpx.Response`
+    allow-list and re-validates each redirect. Returns the `httpx2.Response`
     without raising on non-2xx status (callers decide how to handle that)."""
     response = await sh.get(
         url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
@@ -546,7 +553,7 @@ def move_files_to_cache(
         if (
             block.proxy_url
             and client_utils.is_http_url_like(payload.path)
-            and httpx.URL(payload.path).host == httpx.URL(block.proxy_url).host
+            and httpx2.URL(payload.path).host == httpx2.URL(block.proxy_url).host
         ):
             url = f"{API_PREFIX}/proxy={payload.path}"
         elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
@@ -688,7 +695,7 @@ async def async_move_files_to_cache(
         if (
             block.proxy_url
             and client_utils.is_http_url_like(payload.path)
-            and httpx.URL(payload.path).host == httpx.URL(block.proxy_url).host
+            and httpx2.URL(payload.path).host == httpx2.URL(block.proxy_url).host
         ):
             url = f"{API_PREFIX}/proxy={payload.path}"
         elif block.proxy_url and not client_utils.is_http_url_like(payload.path):

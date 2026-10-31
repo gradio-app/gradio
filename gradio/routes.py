@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import dataclasses
+import functools
 import hashlib
 import inspect
 import io
@@ -18,6 +19,7 @@ import sys
 import time
 import traceback
 import warnings
+from collections import Counter
 from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from pathlib import Path
 from typing import (
@@ -32,13 +34,12 @@ from urllib.parse import urlencode
 
 import anyio
 import fastapi
-import httpx
+import httpx2
 import markupsafe
 import orjson
 from fastapi import (
     APIRouter,
     BackgroundTasks,
-    Body,
     Depends,
     FastAPI,
     HTTPException,
@@ -76,6 +77,12 @@ from gradio import (
     utils,
 )
 from gradio.brotli_middleware import BrotliMiddleware
+from gradio.client_state import (
+    ClientState,
+    MissingStateError,
+    StateCache,
+    has_shared_secret,
+)
 from gradio.context import Context
 from gradio.data_classes import (
     APIInfo,
@@ -88,11 +95,10 @@ from gradio.data_classes import (
     JsonData,
     PredictBody,
     PredictBodyInternal,
+    QueueCloseBody,
     ResetBody,
     SimplePredictBody,
     UserProvidedPath,
-    VibeCodeBody,
-    VibeEditBody,
 )
 from gradio.exceptions import Error, InvalidPathError
 from gradio.helpers import special_args
@@ -105,6 +111,7 @@ from gradio.route_utils import (  # noqa: F401
     API_PREFIX,
     BUILD_PATH_LIB,
     DEFAULT_TEMP_DIR,
+    GATEWAY_USER_SCOPE_KEY,
     STATIC_PATH_LIB,
     STATIC_TEMPLATE_LIB,
     VERSION,
@@ -140,16 +147,15 @@ from gradio.server_messages import (
 from gradio.state_holder import StateHolder
 from gradio.themes import ThemeClass as Theme
 from gradio.utils import (
-    cancel_tasks,
     get_node_path,
     get_upload_folder,
     safe_aclose_iterator,
 )
 
 if TYPE_CHECKING:
-    from gradio.blocks import Block
+    from gradio.blocks import Block, BlockFunction
+    from gradio.queueing import Queue
 
-import difflib
 import re
 import shutil
 import tempfile
@@ -203,6 +209,107 @@ class ORJSONResponse(JSONResponse):
         return ORJSONResponse._render(content).decode("utf-8")
 
 
+def format_simple_api_message(message: EventMessage) -> str | None:
+    """Formats a queue message as the `/call` API streams it."""
+    msg = message.model_dump()
+    if isinstance(message, ProcessCompletedMessage):
+        event = "complete" if message.success else "error"
+        data = msg["output"].get("data") if message.success else msg["output"]
+    elif isinstance(message, ProcessGeneratingMessage):
+        event = "generating" if message.success else "error"
+        data = msg["output"].get("data") if message.success else msg["output"]
+    elif isinstance(message, HeartbeatMessage):
+        event = "heartbeat"
+        data = None
+    elif isinstance(message, UnexpectedErrorMessage):
+        event = "error"
+        data = message.message
+    else:
+        return None
+    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
+
+class OwnEventStreamResponse(StreamingResponse):
+    """sse_v4: streams one event's messages on the request that submitted it,
+    ending with its completion.
+
+    If the client leaves first, a client that can resume (`acknowledges`, as with
+    the session stream) gets the event back on its session's `queue/data` stream:
+    the event keeps running for as long as the session is kept. Any other
+    client's event is cancelled, through `on_abandoned`.
+
+    Cleanup runs in `__call__`, which Starlette always awaits, rather than in the
+    generator: that never starts if the client has left before the response.
+    """
+
+    def __init__(
+        self,
+        request: fastapi.Request,
+        queue: Queue,
+        event_id: str,
+        session_hash: str,
+        on_abandoned: Callable[[str], Awaitable[None]],
+        acknowledges: bool = False,
+        format_message: Callable[[EventMessage], str | None] | None = None,
+    ):
+        self.request = request
+        self.format_message = format_message or (
+            lambda message: f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
+        )
+        self.queue = queue
+        self.event_id = event_id
+        self.session_hash = session_hash
+        self.on_abandoned = on_abandoned
+        self.acknowledges = acknowledges
+        self.finished = False
+        super().__init__(self.stream(), media_type="text/event-stream")
+
+    async def stream(self) -> AsyncIterator[str]:
+        messages = self.queue.pending_messages_per_event[self.event_id]
+        heartbeat_rate = utils.get_heartbeat_rate()
+        while True:
+            try:
+                message = await asyncio.wait_for(messages.get(), timeout=heartbeat_rate)
+            except TimeoutError:
+                message = HeartbeatMessage()
+            if self.queue.stopped:
+                message = UnexpectedErrorMessage(
+                    message="Server stopped unexpectedly.", success=False
+                )
+            text = self.format_message(message)
+            if text is not None:
+                yield text
+            if isinstance(message, (ProcessCompletedMessage, UnexpectedErrorMessage)):
+                self.finished = True
+                return
+            if await self.request.is_disconnected():
+                return
+
+    async def __call__(self, scope, receive, send) -> None:
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            with anyio.CancelScope(shield=True):
+                await self.close()
+
+    async def close(self) -> None:
+        queue = self.queue
+        if not self.finished and self.acknowledges and queue.resume_ttl > 0:
+            queue.move_to_session_stream(self.event_id, self.session_hash)
+        else:
+            queue.pending_messages_per_event.pop(self.event_id, None)
+            event_ids = queue.pending_event_ids_session.get(self.session_hash)
+            if event_ids is not None:
+                event_ids.discard(self.event_id)
+                if not event_ids:
+                    queue.pending_event_ids_session.pop(self.session_hash, None)
+            if not self.finished:
+                await self.on_abandoned(self.event_id)
+            queue.event_ids_to_events.pop(self.event_id, None)
+        if self.acknowledges:
+            await queue.mark_session_detached(self.session_hash)
+
+
 def toorjson(value):
     return markupsafe.Markup(
         ORJSONResponse._render_str(value)
@@ -217,12 +324,12 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 # Shared transport keeps the connection pool warm without sharing an
-# `httpx.AsyncClient` (and therefore a cookie jar) across `/proxy=` requests.
+# `httpx2.AsyncClient` (and therefore a cookie jar) across `/proxy=` requests.
 # A single shared `AsyncClient` would persist `Set-Cookie` headers from one
 # proxied response and replay them on subsequent requests to any sibling
 # `*.hf.space` URL — see GHSA-2mr9-9r47-px2g.
-_proxy_transport = httpx.AsyncHTTPTransport(
-    limits=httpx.Limits(
+_proxy_transport = httpx2.AsyncHTTPTransport(
+    limits=httpx2.Limits(
         max_connections=100,
         max_keepalive_connections=20,
     ),
@@ -230,6 +337,16 @@ _proxy_transport = httpx.AsyncHTTPTransport(
 
 
 file_upload_statuses = FileUploadProgress()
+
+
+# Cached so it only warns once: the app is created several times per launch,
+# and again on every reload
+@functools.cache
+def _warn_vibe_mode_removed() -> None:
+    warnings.warn(
+        "GRADIO_VIBE_MODE is set, but the vibe editor has been removed from Gradio, so it has no effect.",
+        UserWarning,
+    )
 
 
 class App(FastAPI):
@@ -251,8 +368,21 @@ class App(FastAPI):
         self.monitoring_enabled = False
         self.blocks: gradio.Blocks | None = None
         self.state_holder = StateHolder()
+        self.state_cache = StateCache()
+        # The newest gr.State value this server issued, by session and
+        # component, so that an event that waited in the queue starts from it
+        self.latest_state: utils.LRUCache[str, tuple[str, float]] = utils.LRUCache(
+            10000
+        )
         self.iterators: dict[str, AsyncIterator] = {}
         self.iterators_to_reset: set[str] = set()
+        # Open heartbeat connections per session, so that a page that
+        # reconnects (e.g. after a refresh) keeps its session.
+        self.heartbeat_sessions: Counter[str] = Counter()
+        # Sessions whose `unload` events have run, so that the heartbeat and the
+        # queue, which can both end a session, run them only once
+        self.unloaded_sessions: utils.LRUCache[str, bool] = utils.LRUCache(10000)
+        self.session_listener: Callable[[str, bool], None] | None = None
         self.lock = utils.safe_get_lock()
         self.stop_event = utils.safe_get_stop_event()
         self.cookie_id = secrets.token_urlsafe(32)
@@ -297,18 +427,42 @@ class App(FastAPI):
         )
         self.state_holder.set_blocks(blocks)
 
+    def claim_unload(self, session_hash: str) -> bool:
+        """Whether this caller should run the session's `unload` events: true
+        only the first time it is asked since the session was last active."""
+        if session_hash in self.unloaded_sessions:
+            return False
+        self.unloaded_sessions[session_hash] = True
+        return True
+
+    def reopen_session(self, session_hash: str) -> None:
+        """A session's page came back (e.g. a tab that was away), so it is
+        active again: its `unload` events may run again when it next ends."""
+        self.unloaded_sessions.pop(session_hash, None)
+        if session_hash in self.state_holder.session_data:
+            self.state_holder.session_data[session_hash].is_closed = False
+        if self.session_listener is not None:
+            self.session_listener(session_hash, False)
+
+    def mark_session_closed(self, session_hash: str) -> None:
+        """The session's page went away, so its state is deleted after a while."""
+        if session_hash in self.state_holder.session_data:
+            self.state_holder.session_data[session_hash].is_closed = True
+        if self.session_listener is not None:
+            self.session_listener(session_hash, True)
+
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
             raise ValueError("No Blocks has been configured for this app.")
         return self.blocks
 
     def build_proxy_request(self, url_path):
-        url = httpx.URL(route_utils.requote_proxied_url(url_path))
+        url = httpx2.URL(route_utils.requote_proxied_url(url_path))
         assert self.blocks  # noqa: S101
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(
-            url.host == httpx.URL(root).host for root in self.blocks.proxy_urls
+            url.host == httpx2.URL(root).host for root in self.blocks.proxy_urls
         )
         if not is_safe_url:
             raise PermissionError("This URL cannot be proxied.")
@@ -320,7 +474,7 @@ class App(FastAPI):
         if Context.token is not None:
             headers["Authorization"] = f"Bearer {Context.token}"
         # Build a plain request rather than `client.build_request` so that
-        # the proxy does not share an `httpx.AsyncClient` (or cookie jar)
+        # the proxy does not share an `httpx2.AsyncClient` (or cookie jar)
         # across calls (see GHSA-2mr9-9r47-px2g).
         return url, headers
 
@@ -385,6 +539,8 @@ class App(FastAPI):
         debug: bool = False,
         parent_app: fastapi.FastAPI | None = None,
     ) -> App:
+        if os.getenv("GRADIO_VIBE_MODE"):
+            _warn_vibe_mode_removed()
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
         mcp_subpath = App.setup_mcp_server(blocks, app_kwargs, mcp_server)
@@ -425,6 +581,8 @@ class App(FastAPI):
         @router.get("/user")
         @router.get("/user/")
         async def get_current_user(request: fastapi.Request) -> str | None:
+            if GATEWAY_USER_SCOPE_KEY in request.scope:
+                return request.scope[GATEWAY_USER_SCOPE_KEY]
             if app.auth_dependency is not None:
                 user = app.auth_dependency(request)
                 if inspect.isawaitable(user):
@@ -715,6 +873,7 @@ class App(FastAPI):
                     )
                 config = get_page_config(source_config, page, components)  # type: ignore
                 config["username"] = user
+                config["session_user"] = route_utils.session_identity(request, user)
                 config["deep_link_state"] = deep_link_state
                 # Update root after loading the deep link state (if applicable)
                 # so that static files are served from the correct root
@@ -852,6 +1011,19 @@ class App(FastAPI):
                     },
                 )
 
+        @app.get("/gradio_api/session_status", dependencies=[Depends(login_check)])
+        def session_status(session_hash: str):
+            """Whether this server still has a session, e.g. for a reloaded page
+            that resumed it: if not (the server restarted, or the page reached
+            another replica), what the page's load events set up on the server
+            is gone, so they have to run again. `state_persists` says whether
+            this server can read gr.State tokens sealed by another process: if
+            it cannot, a session it does not know cannot carry on at all."""
+            return {
+                "known": session_hash in app.state_holder,
+                "state_persists": has_shared_secret(),
+            }
+
         @app.get("/gradio_api/deep_link", dependencies=[Depends(login_check)])
         def deep_link(session_hash: str):
             if session_hash in app.state_holder:
@@ -964,6 +1136,7 @@ class App(FastAPI):
                     str(root),
                     space_id=space_id,
                     api_prefix=api_prefix,
+                    single_request=True,
                 )
                 ep_info["code_snippets"]["cli"] = cli_snippets[ep_name]
             return prepared_info
@@ -1090,7 +1263,8 @@ class App(FastAPI):
                                                 "event_id": {"type": "string"}
                                             },
                                         }
-                                    }
+                                    },
+                                    "text/event-stream": {"schema": {"type": "string"}},
                                 },
                             }
                         },
@@ -1142,7 +1316,7 @@ class App(FastAPI):
                         f"{ret_name} ({ret_type})" + "" if not desc else f"desc: {desc}"
                     )  # type: ignore
                 path_item["post"]["description"] += (  # type: ignore
-                    f"Output must be fetched from GET /gradio_api/call{endpoint_path}/{{event_id}}. Returns an array of {len(returns_info)} elements of the following format: {returns_info}"
+                    f"With `Accept: text/event-stream`, the output streams on this response as server-sent events, ending with `event: complete`. Otherwise this returns an event_id, and the output must be fetched from GET /gradio_api/call{endpoint_path}/{{event_id}}. Returns an array of {len(returns_info)} elements of the following format: {returns_info}"
                 )
 
                 schema["paths"][f"/gradio_api/call/v2{endpoint_path}"] = path_item  # type: ignore
@@ -1207,12 +1381,13 @@ class App(FastAPI):
                 or blocks.custom_mount_path,
             )
             config["username"] = user
+            config["session_user"] = route_utils.session_identity(request, user)
+            if components is not None:
+                # Never assign `source_config["components"]` here: that
+                # aliases the live app config, which the root-url rewrite
+                # below then mutates in place for every later request.
+                config["components"] = components  # type: ignore
             if deep_link:
-                if components is not None:
-                    # Never assign `source_config["components"]` here: that
-                    # aliases the live app config, which the root-url rewrite
-                    # below then mutates in place for every later request.
-                    config["components"] = components  # type: ignore
                 config["deep_link_state"] = deep_link_state
             if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:
                 config["i18n_translations"] = blocks.i18n_instance.translations_dict
@@ -1240,23 +1415,35 @@ class App(FastAPI):
                 raise HTTPException(
                     status_code=404, detail="Environment not supported."
                 )
-            components = utils.get_all_components()
-            location = next(
-                (item for item in components if item.get_component_class_id() == id),
-                None,
-            )
-            if location is None:
-                raise HTTPException(status_code=404, detail="Component not found.")
+            served = getattr(app.get_blocks(), "_custom_component_locations", None)
+            if served is not None:
+                if id not in served:
+                    raise HTTPException(status_code=404, detail="Component not found.")
+                template_dir, module_dir = served[id]
+            else:
+                components = utils.get_all_components()
+                location = next(
+                    (
+                        item
+                        for item in components
+                        if item.get_component_class_id() == id
+                    ),
+                    None,
+                )
+                if location is None:
+                    raise HTTPException(status_code=404, detail="Component not found.")
 
-            module_name = location.__module__
-            module_path = sys.modules[module_name].__file__
+                module_name = location.__module__
+                module_path = sys.modules[module_name].__file__
 
-            if module_path is None:
-                raise HTTPException(status_code=404, detail="Component not found.")
+                if module_path is None:
+                    raise HTTPException(status_code=404, detail="Component not found.")
+                template_dir = location.TEMPLATE_DIR
+                module_dir = str(Path(module_path).parent)
 
             try:
                 requested_path = utils.safe_join(
-                    location.TEMPLATE_DIR,
+                    template_dir,
                     UserProvidedPath(f"{type}/{file_name}"),
                 )
             except InvalidPathError:
@@ -1265,7 +1452,7 @@ class App(FastAPI):
                 ) from None
 
             path = routes_safe_join(
-                DeveloperPath(str(Path(module_path).parent)),
+                DeveloperPath(module_dir),
                 UserProvidedPath(requested_path),
             )
 
@@ -1304,9 +1491,9 @@ class App(FastAPI):
         async def reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             try:
-                proxy_client = httpx.AsyncClient(
+                proxy_client = httpx2.AsyncClient(
                     transport=_proxy_transport,
-                    timeout=httpx.Timeout(10.0),
+                    timeout=httpx2.Timeout(10.0),
                 )
                 url, headers = app.build_proxy_request(url_path)
                 rp_req = proxy_client.build_request("GET", url, headers=headers)
@@ -1339,8 +1526,13 @@ class App(FastAPI):
             event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
             if event is None:
                 return Response(status_code=404)
-            body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
-            event.data = body
+            new_body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
+            # A streaming event's later chunks carry only their data: the
+            # browser-held gr.State values verified when the event joined (and
+            # updated by each chunk since) carry on from one chunk to the next.
+            if event.data is not None:
+                new_body.client_state = event.data.client_state
+            event.data = new_body
             event.signal.set()
             return {"msg": "success"}
 
@@ -1457,10 +1649,10 @@ class App(FastAPI):
         async def file_deprecated(path: str, request: fastapi.Request):
             return await file(path, request)
 
-        @router.post("/reset/")
-        @router.post("/reset")
-        async def reset_iterator(body: ResetBody):  # noqa: ARG001
-            # No-op, all the cancelling/reset logic handled by /cancel
+        @router.post("/reset/", dependencies=[Depends(login_check)])
+        @router.post("/reset", dependencies=[Depends(login_check)])
+        async def reset_iterator(body: ResetBody):
+            await app.get_blocks()._queue.acknowledge_event(body.event_id)
             return {"success": True}
 
         @router.get("/heartbeat/{session_hash}")
@@ -1471,11 +1663,73 @@ class App(FastAPI):
             username: str = Depends(get_current_user),
         ):
             """Clients make a persistent connection to this endpoint to keep the session alive.
-            When the client disconnects, the session state is deleted.
+            When the client disconnects and does not reconnect within a short grace
+            period (as a refreshed page does), the session state is deleted.
             """
             heartbeat_rate = utils.get_heartbeat_rate()
 
+            async def close_session():
+                queue = app.get_blocks()._queue
+                # Give the page time to reconnect, unless the server is stopping.
+                with contextlib.suppress(asyncio.TimeoutError):
+                    await asyncio.wait_for(
+                        app.stop_event.wait(), queue.close_grace_period
+                    )
+                # Keep the session if its page reconnected (e.g. after a
+                # refresh), or if an earlier disconnect already closed it.
+                if app.heartbeat_sessions.get(session_hash) != 0:
+                    return
+                del app.heartbeat_sessions[session_hash]
+                # The queue closes sessions that still have jobs running, and
+                # runs their `unload` events then.
+                if queue.pending_event_ids_session.get(session_hash):
+                    queue.remember_unload_request(
+                        session_hash,
+                        request,
+                        username,
+                        f"{API_PREFIX}/heartbeat/{session_hash}",
+                    )
+                    return
+                # The queue may have ended the session (and run unload) already
+                if not app.claim_unload(session_hash):
+                    return
+
+                req = Request(request, username, session_hash=session_hash)
+                root_path = route_utils.get_root_url(
+                    request=request,
+                    route_path=f"{API_PREFIX}/heartbeat/{session_hash}",
+                    root_path=app.root_path,
+                )
+                body = PredictBodyInternal(
+                    session_hash=session_hash, data=[], request=request
+                )
+                unload_fn_indices = [
+                    i
+                    for i, dep in app.get_blocks().fns.items()
+                    if any(t for t in dep.targets if t[1] == "unload")
+                ]
+                # This will mark the state to be deleted in an hour
+                app.mark_session_closed(session_hash)
+                caching.clear_session_caches(session_hash)
+                # Streams only; diff state is dropped by the queue when
+                # the run ends
+                for run in (
+                    app.get_blocks().pending_streams.pop(session_hash, {}).values()
+                ):
+                    for stream in run.values():
+                        stream.end_stream()
+                for fn_index in unload_fn_indices:
+                    await route_utils.call_process_api(
+                        app=app,
+                        body=body,
+                        gr_request=req,
+                        fn=app.get_blocks().fns[fn_index],
+                        root_path=root_path,
+                    )
+
             async def iterator():
+                app.heartbeat_sessions[session_hash] += 1
+                app.reopen_session(session_hash)
                 stop_stream_task = asyncio.create_task(app.stop_event.wait())
                 while True:
                     try:
@@ -1490,60 +1744,12 @@ class App(FastAPI):
                         if stop_stream_task in done:
                             raise asyncio.CancelledError()
                     except asyncio.CancelledError:
+                        app.heartbeat_sessions[session_hash] -= 1
                         if not stop_stream_task.done():
                             stop_stream_task.cancel()
-
-                        req = Request(request, username, session_hash=session_hash)
-                        root_path = route_utils.get_root_url(
-                            request=request,
-                            route_path=f"{API_PREFIX}/heartbeat/{session_hash}",
-                            root_path=app.root_path,
-                        )
-                        body = PredictBodyInternal(
-                            session_hash=session_hash, data=[], request=request
-                        )
-                        unload_fn_indices = [
-                            i
-                            for i, dep in app.get_blocks().fns.items()
-                            if any(t for t in dep.targets if t[1] == "unload")
-                        ]
-                        for fn_index in unload_fn_indices:
-                            # The task running this loop has been cancelled
-                            # so we add tasks in the background
-                            background_tasks.add_task(
-                                route_utils.call_process_api,
-                                app=app,
-                                body=body,
-                                gr_request=req,
-                                fn=app.get_blocks().fns[fn_index],
-                                root_path=root_path,
-                            )
-                        # This will mark the state to be deleted in an hour
-                        if session_hash in app.state_holder.session_data:
-                            app.state_holder.session_data[session_hash].is_closed = True
-                        caching.clear_session_caches(session_hash)
-                        # Streams only; diff state is dropped by the queue when
-                        # the run ends
-                        for run in (
-                            app.get_blocks()
-                            .pending_streams.pop(session_hash, {})
-                            .values()
-                        ):
-                            for stream in run.values():
-                                stream.end_stream()
-                        for (
-                            event_id
-                        ) in app.get_blocks()._queue.pending_event_ids_session.get(
-                            session_hash, []
-                        ):
-                            event = app.get_blocks()._queue.event_ids_to_events.get(
-                                event_id
-                            )
-                            if event is None:
-                                continue
-                            event.run_time = math.inf
-                            event.closed = True
-                            event.signal.set()
+                        # The task running this loop has been cancelled
+                        # so we close the session in the background
+                        background_tasks.add_task(close_session)
                         return
 
             return StreamingResponse(iterator(), media_type="text/event-stream")
@@ -1572,6 +1778,8 @@ class App(FastAPI):
                     detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
+            if body.state is not None:
+                resolve_client_state(body, fn, username, request)
             gr_request = route_utils.compile_gr_request(
                 body,
                 fn=fn,
@@ -1600,6 +1808,33 @@ class App(FastAPI):
                     status_code=500,
                 )
             return ORJSONResponse(output)
+
+        def resolve_client_state(
+            body: PredictBodyInternal,
+            fn: BlockFunction,
+            username: str | None,
+            request: fastapi.Request,
+        ) -> None:
+            """Verifies the browser-held gr.State values sent with an event. If the
+            client sent references to values this server has not cached, answers
+            409 with their ids so that the client sends the values themselves.
+            Values are only accepted from the user they were issued to."""
+            try:
+                body.client_state = ClientState.resolve(
+                    app.get_blocks(),
+                    fn,
+                    body.state or {},
+                    app.state_cache,
+                    username=route_utils.session_identity(request, username),
+                    session_hash=body.session_hash,
+                )
+            except MissingStateError as err:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail={"missing_state": err.ids},
+                ) from None
+            # The tokens are no longer needed once verified
+            body.state = {}
 
         def prepare_simple_api_data(body: PredictBody, fn: Any) -> None:
             if len(body.data) == len(fn.inputs):
@@ -1652,7 +1887,14 @@ class App(FastAPI):
             )
             prepare_simple_api_data(full_body, fn)
             full_body.fn_index = fn._id
-            return await queue_join_helper(full_body, request, username)
+            own_stream = route_utils.accepts_event_stream(request)
+            return await queue_join_helper(
+                full_body,
+                request,
+                username,
+                own_stream=own_stream,
+                format_message=format_simple_api_message,
+            )
 
         @router.post("/call/{api_name}", dependencies=[Depends(login_check)])
         @router.post("/call/{api_name}/", dependencies=[Depends(login_check)])
@@ -1668,25 +1910,43 @@ class App(FastAPI):
             )
             prepare_simple_api_data(full_body, fn)
             full_body.fn_index = fn._id
-            return await queue_join_helper(full_body, request, username)
+            own_stream = route_utils.accepts_event_stream(request)
+            return await queue_join_helper(
+                full_body,
+                request,
+                username,
+                own_stream=own_stream,
+                format_message=format_simple_api_message,
+            )
 
         @router.post("/queue/join", dependencies=[Depends(login_check)])
         async def queue_join(
             body: PredictBody,
             request: fastapi.Request,
             username: str = Depends(get_current_user),
+            acknowledgements: bool = False,
         ):
             if body.session_hash is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Session hash not found.",
                 )
-            return await queue_join_helper(body, request, username)
+            own_stream = route_utils.accepts_event_stream(request)
+            return await queue_join_helper(
+                body,
+                request,
+                username,
+                own_stream=own_stream,
+                acknowledgements=acknowledgements,
+            )
 
         async def queue_join_helper(
             body: PredictBody,
             request: fastapi.Request,
             username: str,
+            own_stream: bool = False,
+            acknowledgements: bool = False,
+            format_message: Callable[[EventMessage], str | None] | None = None,
         ):
             blocks = app.get_blocks()
 
@@ -1699,9 +1959,28 @@ class App(FastAPI):
                     detail="Queue is stopped.",
                 )
             body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
-            success, event_id, state = await blocks._queue.push(
-                body=body, request=request, username=username
-            )
+            if body.state is not None and body.fn_index is not None:
+                try:
+                    fn = route_utils.get_fn(blocks=blocks, api_name=None, body=body)
+                except KeyError:
+                    fn = None
+                if fn is not None:
+                    resolve_client_state(body, fn, username, request)
+            attach = own_stream and acknowledgements
+            if attach:
+                blocks._queue.mark_session_attached(cast(str, body.session_hash))
+            try:
+                success, event_id, state = await blocks._queue.push(
+                    body=body, request=request, username=username, own_stream=own_stream
+                )
+            except BaseException:
+                if attach:
+                    await blocks._queue.mark_session_detached(
+                        cast(str, body.session_hash)
+                    )
+                raise
+            if attach and not success:
+                await blocks._queue.mark_session_detached(cast(str, body.session_hash))
             error_map = {
                 "queue_full": status.HTTP_503_SERVICE_UNAVAILABLE,
                 "validator_error": status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -1712,12 +1991,46 @@ class App(FastAPI):
             if not success:
                 status_code = error_map[state]
                 raise HTTPException(status_code=status_code, detail=event_id)
+            if own_stream:
+                return OwnEventStreamResponse(
+                    request,
+                    blocks._queue,
+                    cast(str, event_id),
+                    cast(str, body.session_hash),
+                    on_abandoned=cancel_own_stream_event,
+                    acknowledges=attach,
+                    format_message=format_message,
+                )
             return {"event_id": event_id}
+
+        async def cancel_own_stream_event(event_id: str):
+            """Does for a single event what `/cancel` does for a session's
+            events of one function: drops it from the queue, or stops it if it
+            is running."""
+            queue = app.get_blocks()._queue
+            await queue.clean_events(event_id=event_id)
+            await utils.cancel_event_tasks({event_id})
+            await close_event_iterator(event_id)
+
+        async def close_event_iterator(event_id: str):
+            if event_id not in app.iterators:
+                return
+            async with app.lock:
+                if event_id not in app.iterators:
+                    return
+                try:
+                    await safe_aclose_iterator(app.iterators[event_id])
+                except Exception:
+                    pass
+                del app.iterators[event_id]
+                app.iterators_to_reset.add(event_id)
 
         @router.post("/cancel")
         async def cancel_event(body: CancelBody):
-            await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
             blocks = app.get_blocks()
+            found = body.event_id in blocks._queue.event_ids_to_events
+            cancelled = await utils.cancel_event_tasks({body.event_id})
+            found = found or body.event_id in cancelled
             # Need to complete the job so that the client disconnects
             session_open = (
                 body.session_hash in blocks._queue.pending_messages_per_session
@@ -1727,21 +2040,22 @@ class App(FastAPI):
                 in blocks._queue.pending_event_ids_session.get(body.session_hash, {})
             )
             await blocks._queue.remove_from_queue(body.event_id)
-            if session_open and event_running:
-                message = ProcessCompletedMessage(
-                    output={}, success=True, event_id=body.event_id
-                )
+            message = ProcessCompletedMessage(
+                output={}, success=True, event_id=body.event_id
+            )
+            own_messages = blocks._queue.pending_messages_per_event.get(body.event_id)
+            if own_messages is not None:
+                own_messages.put_nowait(message)
+            elif session_open and event_running:
                 blocks._queue.pending_messages_per_session[
                     body.session_hash
                 ].put_nowait(message)
-            if body.event_id in app.iterators:
-                async with app.lock:
-                    try:
-                        await safe_aclose_iterator(app.iterators[body.event_id])
-                    except Exception:
-                        pass
-                    del app.iterators[body.event_id]
-                    app.iterators_to_reset.add(body.event_id)
+            await close_event_iterator(body.event_id)
+            return {"success": True, "found": found}
+
+        @router.post("/queue/close", dependencies=[Depends(login_check)])
+        async def close_queue_session(body: QueueCloseBody):
+            app.get_blocks()._queue.mark_session_closing(body.session_hash)
             return {"success": True}
 
         @router.get(
@@ -1752,28 +2066,6 @@ class App(FastAPI):
             request: fastapi.Request,
             event_id: str,
         ):
-            def process_msg(message: EventMessage) -> str | None:
-                msg = message.model_dump()
-                if isinstance(message, ProcessCompletedMessage):
-                    event = "complete" if message.success else "error"
-                    data = (
-                        msg["output"].get("data") if message.success else msg["output"]
-                    )
-                elif isinstance(message, ProcessGeneratingMessage):
-                    event = "generating" if message.success else "error"
-                    data = (
-                        msg["output"].get("data") if message.success else msg["output"]
-                    )
-                elif isinstance(message, HeartbeatMessage):
-                    event = "heartbeat"
-                    data = None
-                elif isinstance(message, UnexpectedErrorMessage):
-                    event = "error"
-                    data = message.message
-                else:
-                    return None
-                return f"event: {event}\ndata: {json.dumps(data)}\n\n"
-
             queue = app.get_blocks()._queue
             event = queue.event_ids_to_events.get(event_id)
             if event is not None:
@@ -1793,25 +2085,40 @@ class App(FastAPI):
                     ),
                     event_id,
                 )
-            return await queue_data_helper(request, session_hash, process_msg)
+            return await queue_data_helper(
+                request, session_hash, format_simple_api_message
+            )
 
         @router.get("/queue/data", dependencies=[Depends(login_check)])
         async def queue_data(
             request: fastapi.Request,
             session_hash: str,
+            resume_event_id: list[str] = fastapi.Query(default=[]),
+            acknowledgements: bool = False,
         ):
             def process_msg(message: EventMessage) -> str:
                 return f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
 
-            return await queue_data_helper(request, session_hash, process_msg)
+            return await queue_data_helper(
+                request,
+                session_hash,
+                process_msg,
+                resume_event_id,
+                acknowledgements,
+            )
 
         async def queue_data_helper(
             request: fastapi.Request,
             session_hash: str,
             process_msg: Callable[[EventMessage], str | None],
+            resume_event_ids: list[str] | None = None,
+            acknowledgements: bool = False,
         ):
             blocks = app.get_blocks()
             heartbeat_rate = utils.get_heartbeat_rate()
+
+            if resume_event_ids:
+                blocks._queue.resume_session(session_hash, resume_event_ids)
 
             async def heartbeat():
                 while blocks.is_running:
@@ -1823,11 +2130,21 @@ class App(FastAPI):
                         await queue.put(HeartbeatMessage())
 
             async def sse_stream(request: fastapi.Request):
+                if acknowledgements:
+                    blocks._queue.mark_session_attached(session_hash)
                 heartbeat_task = asyncio.create_task(heartbeat())
+                remaining_resume_event_ids = set(resume_event_ids or [])
+
+                async def close_session() -> None:
+                    if acknowledgements:
+                        await blocks._queue.mark_session_detached(session_hash)
+                    else:
+                        await blocks._queue.delete_session(session_hash)
+
                 try:
                     while True:
                         if await request.is_disconnected():
-                            await blocks._queue.clean_events(session_hash=session_hash)
+                            await close_session()
                             heartbeat_task.cancel()
                             return
 
@@ -1845,7 +2162,7 @@ class App(FastAPI):
                                 session_hash
                             ]
                             message = await asyncio.wait_for(messages.get(), timeout=10)
-                        except (TimeoutError, asyncio.TimeoutError):
+                        except TimeoutError:
                             pass
 
                         if blocks._queue.stopped:
@@ -1858,49 +2175,70 @@ class App(FastAPI):
                             if response is not None:
                                 yield response
                             if (
+                                isinstance(message, UnexpectedErrorMessage)
+                                and message.session_not_found
+                                and message.event_id
+                            ):
+                                remaining_resume_event_ids.discard(message.event_id)
+                            if (
                                 isinstance(message, ProcessCompletedMessage)
                                 and message.event_id
                             ):
+                                remaining_resume_event_ids.discard(message.event_id)
                                 # It's possible that the event_id has already been removed
                                 # for example, the user sent two duplicate `/cancel` requests.
                                 # The first one would have removed the event_id from pending_event_ids_session
                                 if (
                                     message.event_id
-                                    in (
-                                        blocks._queue.pending_event_ids_session[
-                                            session_hash
-                                        ]
+                                    in blocks._queue.pending_event_ids_session.get(
+                                        session_hash, set()
                                     )
                                 ):
                                     blocks._queue.pending_event_ids_session[
                                         session_hash
                                     ].remove(message.event_id)
-                                if message.msg == ServerMessage.server_stopped or (
+                            all_events_delivered = (
+                                not remaining_resume_event_ids
+                                if resume_event_ids
+                                else not blocks._queue.pending_event_ids_session.get(
+                                    session_hash, set()
+                                )
+                            )
+                            if message.msg == ServerMessage.server_stopped or (
+                                all_events_delivered
+                                and (
                                     message.msg == ServerMessage.process_completed
-                                    and (
-                                        len(
-                                            blocks._queue.pending_event_ids_session[
-                                                session_hash
-                                            ]
-                                        )
-                                        == 0
+                                    or (
+                                        isinstance(message, UnexpectedErrorMessage)
+                                        and message.session_not_found
                                     )
-                                ):
-                                    message = CloseStreamMessage()
-                                    response = process_msg(message)
-                                    if response is not None:
-                                        yield response
-                                    heartbeat_task.cancel()
-                                    return
+                                )
+                            ):
+                                message = CloseStreamMessage()
+                                response = process_msg(message)
+                                if response is not None:
+                                    yield response
+                                if acknowledgements:
+                                    await blocks._queue.mark_session_detached(
+                                        session_hash
+                                    )
+                                else:
+                                    blocks._queue.resumable_sessions.pop(
+                                        session_hash, None
+                                    )
+                                heartbeat_task.cancel()
+                                return
+                except asyncio.CancelledError:
+                    await close_session()
+                    heartbeat_task.cancel()
+                    raise
                 except BaseException as e:
                     message = UnexpectedErrorMessage(
                         message=str(e),
                         session_not_found=isinstance(e, HTTPException),
                     )
                     response = process_msg(message)
-                    if isinstance(e, asyncio.CancelledError):
-                        del blocks._queue.pending_messages_per_session[session_hash]
-                        await blocks._queue.clean_events(session_hash=session_hash)
+                    await close_session()
                     if response is not None:
                         yield response
                     heartbeat_task.cancel()
@@ -2067,7 +2405,7 @@ class App(FastAPI):
                 await asyncio.wait_for(
                     file_upload_statuses.is_tracked(upload_id), timeout=3
                 )
-            except (asyncio.TimeoutError, TimeoutError):
+            except TimeoutError:
                 return PlainTextResponse("Upload not found", status_code=404)
 
             return StreamingResponse(
@@ -2358,302 +2696,6 @@ class App(FastAPI):
                     background=BackgroundTask(lambda: cleanup_files([input_path])),
                 )
 
-        vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
-        vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
-        chat_history = {"history": ""}
-        hash_to_chat_history = {}
-
-        def limit_chat_history(history: str, max_pairs: int = 5) -> str:
-            """Limit chat history in the prompt to the last max_pairs user-assistant pairs."""
-            if not history.strip():
-                return ""
-
-            user_messages = history.split("\nUser: ")
-            if len(user_messages) <= max_pairs:
-                return history
-
-            recent_messages = user_messages[-max_pairs:]
-
-            if len(recent_messages) > 0:
-                if recent_messages[0].startswith("User: "):
-                    result = recent_messages[0]
-                else:
-                    result = "User: " + recent_messages[0]
-
-                for msg in recent_messages[1:]:
-                    result += "\nUser: " + msg
-
-                return result
-
-            return ""
-
-        control_token_re = re.compile(r"<\|[^>]*\|>")
-        final_start_re = re.compile(
-            r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
-        )
-        end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
-        reasoning_block_re = re.compile(
-            r"<\s*reasoning\s*>\s*(?P<body>.*?)\s*<\s*/\s*reasoning\s*>",
-            re.IGNORECASE | re.DOTALL,
-        )
-        think_block_re = re.compile(
-            r"<\s*think\s*>.*?<\s*/\s*think\s*>", re.IGNORECASE | re.DOTALL
-        )
-
-        # Remove analysis and weird markers from gpt-oss
-        def clean_out_markers(raw: str) -> str:
-            if not raw:
-                return raw
-
-            m = final_start_re.search(raw)
-            if m:
-                text = raw[m.end() :]
-                m_end = end_re.search(text)
-                if m_end:
-                    text = text[: m_end.start()]
-                return text.strip()
-
-            text = control_token_re.sub("", raw)
-            return text.strip()
-
-        def strip_think_blocks(text: str) -> str:
-            """Remove any <think> ... </think> blocks entirely"""
-            return think_block_re.sub("", text)
-
-        def split_reasoning_code(text: str) -> tuple[str, str]:
-            """
-            Extract all <reasoning>...</reasoning> and code. If multiple, concatenate with blank lines, de-duping exact copies.
-            """
-            reasoning_chunks = []
-            seen = set()
-            for m in reasoning_block_re.finditer(text):
-                body = m.group("body").strip()
-                if body and body not in seen:
-                    reasoning_chunks.append(body)
-                    seen.add(body)
-
-            reasoning_text = "\n\n".join(reasoning_chunks).strip()
-            code_text = reasoning_block_re.sub("", text).strip()
-
-            return reasoning_text, code_text
-
-        if blocks.vibe_mode:
-            from huggingface_hub import InferenceClient
-
-            inference_client = InferenceClient()
-
-        @router.post("/vibe-edit/")
-        @router.post("/vibe-edit")
-        async def vibe_edit(body: VibeEditBody):
-            if not blocks.vibe_mode:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
-                )
-
-            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
-
-            with open(GRADIO_WATCH_DEMO_PATH) as f:
-                original_code = f.read()
-
-            snapshot_hash = secrets.token_hex(16)
-            snapshot_file = vibe_edit_history_dir / f"{snapshot_hash}.py"
-
-            with open(snapshot_file, "w") as f:
-                f.write(original_code)
-
-            hash_to_chat_history[snapshot_hash] = chat_history["history"]
-
-            content = ""
-            limited_history = limit_chat_history(chat_history["history"])
-
-            prompt = f"""
-You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
-Existing code:
-```python
-{original_code}
-```
-
-Prompt:
-{body.prompt}
-
-History:
-{limited_history if limited_history else "No chat history."}
-"""
-
-            system_prompt = load_system_prompt()
-            content = (
-                inference_client.chat_completion(
-                    model="openai/gpt-oss-120b",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt},
-                    ],
-                    max_tokens=10000,
-                )
-                .choices[0]
-                .message.content
-            )
-
-            if content is None:
-                raise HTTPException(status_code=500, detail="Error generating code")
-
-            content = clean_out_markers(content)
-            content = strip_think_blocks(content)
-
-            chat_history["history"] += f"\nUser: {body.prompt}\nAssistant: {content}\n"
-
-            reasoning, content = split_reasoning_code(content)
-
-            if "```python\n" in content:
-                start = content.index("```python\n") + len("```python\n")
-                end = content.find("\n```", start)
-                content = content[start:end] if end != -1 else content[start:]
-
-            # Calculate diff stats
-            original_lines = original_code.splitlines(keepends=True)
-            new_lines = content.splitlines(keepends=True)
-            diff = list(difflib.unified_diff(original_lines, new_lines, n=0))
-
-            lines_added = 0
-            lines_removed = 0
-            for line in diff:
-                if line.startswith("+") and not line.startswith("+++"):
-                    lines_added += 1
-                elif line.startswith("-") and not line.startswith("---"):
-                    lines_removed += 1
-
-            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
-                f.write(content)
-
-            return {
-                "hash": snapshot_hash,
-                "diff_stats": {
-                    "lines_added": lines_added,
-                    "lines_removed": lines_removed,
-                },
-                "reasoning": reasoning,
-            }
-
-        @router.post("/undo-vibe-edit/")
-        @router.post("/undo-vibe-edit")
-        async def undo_vibe_edit(hash: str = Body(..., embed=True)):
-            if not blocks.vibe_mode:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
-                )
-
-            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
-
-            snapshot_file = vibe_edit_history_dir / f"{hash}.py"
-
-            if not snapshot_file.exists():
-                raise HTTPException(status_code=404, detail="Snapshot not found")
-
-            # Restore the file from the snapshot
-            with open(snapshot_file) as f:
-                saved_content = f.read()
-
-            with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
-                f.write(saved_content)
-
-            chat_history["history"] = hash_to_chat_history.get(hash, "")
-
-            return {"success": True}
-
-        @router.get("/vibe-code/")
-        @router.get("/vibe-code")
-        async def get_vibe_code():
-            if not blocks.vibe_mode:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
-                )
-
-            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
-
-            try:
-                with open(GRADIO_WATCH_DEMO_PATH) as f:
-                    code = f.read()
-                return {"code": code}
-            except FileNotFoundError:
-                raise HTTPException(
-                    status_code=404, detail="Demo file not found"
-                ) from None
-            except Exception as e:
-                raise HTTPException(
-                    status_code=500, detail=f"Error reading file: {str(e)}"
-                ) from e
-
-        @router.post("/vibe-code/")
-        @router.post("/vibe-code")
-        async def update_vibe_code(body: VibeCodeBody):
-            if not blocks.vibe_mode:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
-                )
-
-            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
-
-            try:
-                with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
-                    f.write(body.code)
-                return {"success": True}
-            except Exception as e:
-                raise HTTPException(
-                    status_code=500, detail=f"Error writing file: {str(e)}"
-                ) from e
-
-        @router.post("/vibe-starter-queries/")
-        @router.post("/vibe-starter-queries")
-        async def get_vibe_starter_queries():
-            if not blocks.vibe_mode:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
-                )
-
-            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
-
-            with open(GRADIO_WATCH_DEMO_PATH) as f:
-                code = f.read()
-
-            prompt = f"""
-You are a prompt generator for a gradio vibe editor. Given the following existing code, return a list of starter queries that can be used to generate a new code.
-Existing code:
-```python
-{code}
-```
-"""
-
-            system_prompt = load_system_prompt(starter_queries=True)
-            content = (
-                inference_client.chat_completion(
-                    model="openai/gpt-oss-120b",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt},
-                    ],
-                    max_tokens=10000,
-                )
-                .choices[0]
-                .message.content
-            )
-
-            if content is None:
-                raise HTTPException(status_code=500, detail="Error generating code")
-
-            content = strip_think_blocks(content)
-            content = clean_out_markers(content)
-
-            starter_queries = content.split("\n")
-
-            return {
-                "starter_queries": starter_queries,
-            }
-
         def cleanup_files(files):
             for file in files:
                 try:
@@ -2689,85 +2731,6 @@ Existing code:
 ########
 # Helper functions
 ########
-
-
-def load_system_prompt(starter_queries: bool = False):
-    prompt_rules = """Generate code for using the Gradio python library.
-
-The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
-
-RULES:
-Respond with code written in valid Python syntax, along with one coherent explanation surrounded by <reasoning> tags.
-Any text that is not code, should be surrounded by one large <reasoning> tag.
-Never include backticks in your response such as ``` or ```python.
-Do not include any code that is not necessary for the app to run.
-Respond with a full Gradio app.
-Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
-Do not add comments explaining the code, unless they are very necessary to understand the code.
-Make sure the code includes all necessary imports.
-Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag. Make sure it's easy to parse. Use markdown formatting when it makes sense, including bullet points if there are multiple changes.
-
-
-Here's an example of a valid response:
-
-<reasoning>
-I created a simple Gradio app that greets the user. It defines a function then creates a gradio interface and launches it.
-</reasoning>
-
-import gradio as gr
-
-def greet(name):
-    return "Hello " + name + "!"
-
-demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
-
-demo.launch()
-"""
-    if starter_queries:
-        prompt_rules = """
-        You are a prompt generator for a gradio vibe editor.
-
-        Given python code of a gradio app, return a list of starter queries that can be used to generate new code.
-        Make sure the queries are short, useful and actually possible with Gradio.
-        The queries should be really simple and easy to understand.
-        You should respond with at most three queries, each on a new line. Do not include any other text.
-        Make sure the features you suggest are actually supported by Gradio, and documented in the docs section below.
-        Never suggest a query with more than one gradio feature or concept.
-        You may suggest queries that are not related to Gradio, but they must be related to the existing code and app. Never suggest queries that require external packages or libraries other than gradio.
-        Don't suggest adding a clear button if the app is an Interface, because Interface already has a clear button.
-
-        Here's an example of a gradio app:
-
-        ```python
-        import gradio as gr
-
-        def greet(name):
-            return "Hello " + name + "!"
-
-        demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
-
-        demo.launch()
-        ```
-
-        Here's an example of a valid response:
-        Add a title to the app
-        Add examples
-        Rewrite this app using Blocks
-
-        Here's an example of another valid response:
-        Add another textbox for name
-        Change the theme
-        Greet the user in many languages
-
-        """
-    try:
-        with httpx.Client() as client:
-            response = client.get("https://www.gradio.app/llms.txt")
-            system_prompt = response.text
-    except Exception:
-        system_prompt = ""
-    system_prompt = prompt_rules + system_prompt + prompt_rules
-    return system_prompt
 
 
 def get_types(cls_set: list[type]):
@@ -2813,6 +2776,7 @@ def mount_gradio_app(
     pwa: bool | None = None,
     i18n: I18n | None = None,
     mcp_server: bool | None = None,
+    resume_sessions: bool | None = None,
     theme: Theme | str | None = None,
     css: str | None = None,
     css_paths: str | Path | Sequence[str | Path] | None = None,
@@ -2845,6 +2809,7 @@ def mount_gradio_app(
         i18n: If provided, the i18n instance to use for this gradio app.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.
         mcp_server: If True, the MCP server will be launched on the gradio app. If None, will use GRADIO_MCP_SERVER environment variable or default to False.
+        resume_sessions: If True (the default), a refreshed page keeps its outputs and `gr.State` values and reattaches to jobs that were still running. If False, a refresh starts a new session, as before Gradio 7. If None, the GRADIO_RESUME_SESSIONS environment variable is used, and defaults to True if it is not set.
         theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
         css: Custom css as a code string. This css will be included in the demo webpage.
         css_paths: Custom css as a pathlib.Path to a css file or a list of such paths. This css files will be read, concatenated, and included in the demo webpage. If the `css` parameter is also set, the css from `css` will be included first.
@@ -2880,6 +2845,7 @@ def mount_gradio_app(
         footer_links = [link for link in footer_links if link != "runs"]
     blocks.footer_links = footer_links
     blocks.max_file_size = utils._parse_file_size(max_file_size)
+    blocks.resume_sessions = utils.resolve_resume_sessions(resume_sessions)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     blocks.custom_mount_path = path

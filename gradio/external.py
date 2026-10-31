@@ -12,7 +12,7 @@ from collections.abc import Callable, Generator
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
-import httpx
+import httpx2
 import huggingface_hub
 from gradio_client import Client
 from gradio_client.client import Endpoint
@@ -213,7 +213,7 @@ def from_model(
 
     def custom_post_binary(data):
         data = to_binary({"path": data})
-        response = httpx.request("POST", api_url, headers=headers, content=data)
+        response = httpx2.request("POST", api_url, headers=headers, content=data)
         return save_base64_to_cache(
             external_utils.encode_to_base64(response), cache_dir=GRADIO_CACHE
         )
@@ -526,7 +526,7 @@ def from_spaces(
     if token not in [False, None]:
         headers["Authorization"] = f"Bearer {token}"
     iframe_url = (
-        httpx.get(
+        httpx2.get(
             f"https://huggingface.co/api/spaces/{space_name}/host", headers=headers
         )
         .json()
@@ -538,9 +538,9 @@ def from_spaces(
             f"Could not find Space: {space_name}. If it is a private or gated Space, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `token` parameter."
         )
 
-    config_request = httpx.get(iframe_url + "/config", headers=headers)
+    config_request = httpx2.get(iframe_url + "/config", headers=headers)
     if config_request.status_code == 404:
-        r = httpx.get(iframe_url, headers=headers)
+        r = httpx2.get(iframe_url, headers=headers)
 
         result = re.search(
             r"window.gradio_config = (.*?);[\s]*</script>", r.text
@@ -648,7 +648,7 @@ def from_spaces_interface(
     # The function should call the API with preprocessed data
     def fn(*data):
         data = json.dumps({"data": data})
-        response = httpx.post(api_url, headers=headers, data=data)  # type: ignore
+        response = httpx2.post(api_url, headers=headers, data=data)  # type: ignore
         result = json.loads(response.content.decode("utf-8"))
         if "error" in result and "429" in result["error"]:
             raise TooManyRequestsError("Too many requests to the Hugging Face API")
@@ -759,9 +759,9 @@ def _is_text_encoded_file(path: str) -> bool:
 
 def _text_encoded_file_as_prompt(path: str) -> str:
     if is_http_url_like(path):
-        response = httpx.get(path)
+        response = httpx2.get(path)
         response.raise_for_status()
-        name, contents = Path(httpx.URL(path).path).name, response.text
+        name, contents = Path(httpx2.URL(path).path).name, response.text
     else:
         name, contents = Path(path).name, Path(path).read_text()
     return f"\n## {name}\n{contents}"
@@ -973,7 +973,7 @@ def load_openapi(
         spec = openapi_spec
     elif isinstance(openapi_spec, str):
         if is_http_url_like(openapi_spec):
-            response = httpx.get(openapi_spec)
+            response = httpx2.get(openapi_spec)
             response.raise_for_status()
             content = response.text
         else:

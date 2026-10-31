@@ -16,7 +16,7 @@ Using virtual environments ensures that you can work on multiple Python projects
 
 To install Gradio on a Windows system in a virtual environment, follow these steps:
 
-1. **Install Python**: Ensure you have Python 3.10 or higher installed. You can download it from [python.org](https://www.python.org/). You can verify the installation by running `python --version` or `python3 --version` in Command Prompt.
+1. **Install Python**: Ensure you have Python 3.11 or higher installed. You can download it from [python.org](https://www.python.org/). You can verify the installation by running `python --version` or `python3 --version` in Command Prompt.
 
 
 2. **Create a Virtual Environment**:
@@ -60,9 +60,9 @@ To install Gradio on a Windows system in a virtual environment, follow these ste
 The installation steps on MacOS and Linux are similar to Windows but with some differences in commands.
 
 1. **Install Python**:
-   Python usually comes pre-installed on MacOS and most Linux distributions. You can verify the installation by running `python --version` in the terminal (note that depending on how Python is installed, you might have to use `python3` instead of `python` throughout these steps). 
-   
-   Ensure you have Python 3.10 or higher installed. If you do not have it installed, you can download it from [python.org](https://www.python.org/). 
+   Python usually comes pre-installed on MacOS and most Linux distributions. You can verify the installation by running `python --version` in the terminal (note that depending on how Python is installed, you might have to use `python3` instead of `python` throughout these steps).
+
+   Ensure you have Python 3.11 or higher installed. If you do not have it installed, you can download it from [python.org](https://www.python.org/).
 
 2. **Create a Virtual Environment**:
    Open Terminal and navigate to your project directory. Then create a virtual environment using:

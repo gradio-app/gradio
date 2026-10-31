@@ -5,6 +5,15 @@ from gradio.themes.utils.theme_dropdown import create_theme_dropdown
 
 dropdown, js = create_theme_dropdown()
 
+css = """
+.panel {
+    border: solid var(--panel-border-width) var(--panel-border-color);
+    border-radius: var(--container-radius);
+    background: var(--panel-background-fill);
+    padding: var(--spacing-lg);
+}
+"""
+
 with gr.Blocks() as demo:
     with gr.Row(equal_height=True):
         with gr.Column(scale=10):
@@ -45,7 +54,7 @@ with gr.Blocks() as demo:
     gr.CheckboxGroup(["A", "B", "C"], label="Checkbox Group")
 
     with gr.Row():
-        with gr.Column(variant="panel", scale=1):
+        with gr.Column(elem_classes="panel", scale=1):
             gr.Markdown("## Panel 1")
             radio = gr.Radio(
                 ["A", "B", "C"],
@@ -61,7 +70,7 @@ with gr.Blocks() as demo:
                 interactive=True,
             )
             check = gr.Checkbox(label="Go")
-        with gr.Column(variant="panel", scale=2):
+        with gr.Column(elem_classes="panel", scale=2):
             img = gr.Image(
                 "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg",
                 label="Image",
@@ -143,4 +152,4 @@ with gr.Blocks() as demo:
 
 
 if __name__ == "__main__":
-    demo.queue().launch(theme=gr.themes.Default())
+    demo.queue().launch(theme=gr.themes.Default(), css=css)

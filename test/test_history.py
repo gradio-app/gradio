@@ -17,7 +17,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
+import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
@@ -411,7 +411,7 @@ def recording_app(monkeypatch):
         return f"hello {name}"
 
     io = gr.Interface(greet, "text", "text", api_name="greet")
-    app, _, _ = io.launch(prevent_thread_lock=True)
+    app, _, _ = io.launch(prevent_thread_lock=True, executor="thread")
     with (
         patch("gradio.history.resolve_token", return_value="tok"),
         patch("gradio.history.HfApi", return_value=hub),
@@ -479,13 +479,13 @@ class TestServerSideRecording:
             out = gr.Textbox()
             mic.stream(on_chunk, [mic, threshold], out)
 
-        app, local_url, _ = demo.launch(prevent_thread_lock=True)
+        app, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
         completed = None
         try:
             with (
                 patch("gradio.history.resolve_token", return_value="tok"),
                 patch("gradio.history.HfApi", return_value=hub),
-                httpx.Client(base_url=local_url, timeout=30) as client,
+                httpx2.Client(base_url=local_url, timeout=30) as client,
             ):
                 with open("test/test_files/audio_sample.wav", "rb") as f:
                     (path,) = client.post(
@@ -539,7 +539,7 @@ class TestServerSideRecording:
                 [button.click, timer.tick], lambda: "x", None, out, api_name="story"
             ).then(lambda: "y", None, out, api_name="after_story")
             demo.load(lambda: "z", None, out, api_name="on_load")
-        app, _, _ = demo.launch(prevent_thread_lock=True)
+        app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
         with (
             patch("gradio.history.resolve_token", return_value="tok"),
             patch("gradio.history.HfApi", return_value=hub),
@@ -604,9 +604,9 @@ class TestServerSideRecording:
             ),
             patch("gradio.history.HfApi", side_effect=lambda token: hubs[token]),
         ):
-            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
             try:
-                with httpx.Client(base_url=local_url, timeout=30) as client:
+                with httpx2.Client(base_url=local_url, timeout=30) as client:
 
                     def join(text, session_hash, headers=None):
                         body = {
@@ -672,9 +672,9 @@ class TestServerSideRecording:
             patch("gradio.history.resolve_token", return_value="tok"),
             patch("gradio.history.HfApi", return_value=hub),
         ):
-            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
             try:
-                with httpx.Client(base_url=local_url, timeout=30) as client:
+                with httpx2.Client(base_url=local_url, timeout=30) as client:
 
                     def join(text, trigger_id):
                         body = {
@@ -905,7 +905,7 @@ class TestWorkflowRecording:
                 lambda x: x, box, out, api_name="public_one", api_visibility="public"
             )
             gr.Button().click(lambda x: x, box, out, api_visibility="private")
-        app, _, _ = demo.launch(prevent_thread_lock=True)
+        app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
         internal = next(f for f in demo.fns.values() if f.api_visibility != "public")
         with (
             patch("gradio.history.resolve_token", return_value="tok"),

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 import huggingface_hub
 import pytest
 
@@ -275,7 +275,7 @@ def test_get_tabular_examples_replaces_nan_with_str_nan():
     mock_response.status_code = 200
     mock_response.text = textwrap.dedent(readme)
 
-    with patch("gradio.external.httpx.get", return_value=mock_response):
+    with patch("gradio.external.httpx2.get", return_value=mock_response):
         examples = get_tabular_examples("foo-model")
         assert examples["measurement_2"] == [14.206, 15.094, "NaN"]
 
@@ -482,11 +482,11 @@ def test_format_conversation_replays_remote_text_files_as_text(monkeypatch):
 
     def fake_get(url, *args, **kwargs):
         assert url == "https://example.com/files/notes.txt"
-        return httpx.Response(
-            200, text="remote notes", request=httpx.Request("GET", url)
+        return httpx2.Response(
+            200, text="remote notes", request=httpx2.Request("GET", url)
         )
 
-    monkeypatch.setattr(httpx, "get", fake_get)
+    monkeypatch.setattr(httpx2, "get", fake_get)
 
     history = [
         {

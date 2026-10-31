@@ -15,7 +15,11 @@
 	import { init_media_recorder } from "../streaming/media_recorder";
 	import type { IMediaRecorderConstructor } from "extendable-media-recorder";
 	import { SelectSource } from "@gradio/atoms";
-	import type { WaveformOptions, SubtitleData } from "../shared/types";
+	import type {
+		WaveformOptions,
+		MicrophoneOptions,
+		SubtitleData
+	} from "../shared/types";
 	import type { CustomButton as CustomButtonType } from "@gradio/utils";
 
 	let {
@@ -34,6 +38,7 @@
 		waveform_settings,
 		trim_region_settings = {},
 		waveform_options = {},
+		microphone_options = {},
 		dragging = $bindable(false),
 		active_source = $bindable<"microphone" | "upload">("microphone"),
 		handle_reset_value = () => {},
@@ -85,6 +90,7 @@
 		waveform_settings: Record<string, any>;
 		trim_region_settings?: Record<string, any>;
 		waveform_options?: WaveformOptions;
+		microphone_options?: MicrophoneOptions;
 		dragging?: boolean;
 		active_source?: "microphone" | "upload";
 		handle_reset_value?: () => void;
@@ -196,7 +202,9 @@
 		let stream: MediaStream | null;
 
 		try {
-			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+			stream = await navigator.mediaDevices.getUserMedia({
+				audio: microphone_options.constraints ?? true
+			});
 		} catch (err) {
 			if (!navigator.mediaDevices) {
 				onerror?.(i18n("audio.no_device_support"));
@@ -359,6 +367,7 @@
 					{i18n}
 					{waveform_settings}
 					{waveform_options}
+					{microphone_options}
 					waiting={stream_state === "waiting"}
 				/>
 			{:else}
@@ -370,10 +379,12 @@
 					{dispatch_blob}
 					{waveform_settings}
 					{waveform_options}
+					{microphone_options}
 					{handle_reset_value}
 					onstartrecording={() => onstart_recording?.()}
 					onpauserecording={() => onpause_recording?.()}
 					onstoprecording={() => onstop_recording?.()}
+					{onerror}
 				/>
 			{/if}
 		{:else if active_source === "upload"}

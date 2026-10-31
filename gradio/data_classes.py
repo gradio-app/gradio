@@ -14,6 +14,7 @@ from typing import (
     Any,
     Literal,
     NewType,
+    NotRequired,
     Union,
 )
 
@@ -34,7 +35,7 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import TypedDict
 
 from gradio.i18n import I18nData
 
@@ -51,6 +52,10 @@ class CancelBody(BaseModel):
     session_hash: str
     fn_index: int
     event_id: str
+
+
+class QueueCloseBody(BaseModel):
+    session_hash: str
 
 
 class SimplePredictBody(BaseModel):
@@ -101,6 +106,10 @@ class PredictBody(BaseModel):
     batched: bool | None = (
         False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
     )
+    # Browser-held gr.State values, by component id: {"ref": ...} for a value
+    # the server may have cached, or {"token": ...} for the value itself.
+    # None means the client does not hold state, so it is kept on the server.
+    state: dict[str, dict[str, str]] | None = None
 
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema, handler):
@@ -117,6 +126,7 @@ class PredictBody(BaseModel):
                 "trigger_id": {"type": "integer"},
                 "simple_format": {"type": "boolean"},
                 "batched": {"type": "boolean"},
+                "state": {"type": "object"},
             },
             "required": ["data"],
         }
@@ -128,6 +138,8 @@ class PredictBodyInternal(PredictBody):
     request: PydanticStarletteRequest | None = (
         None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
     )
+    # The verified browser-held gr.State values for this event (a ClientState)
+    client_state: Any = Field(default=None, exclude=True)
     batch_trigger_ids: list[int | None] | None = (
         None  # trigger_id of each event in a queued batch, in the order of data
     )
@@ -135,14 +147,6 @@ class PredictBodyInternal(PredictBody):
 
 class ResetBody(BaseModel):
     event_id: str
-
-
-class VibeEditBody(BaseModel):
-    prompt: str
-
-
-class VibeCodeBody(BaseModel):
-    code: str
 
 
 class ComponentServerJSONBody(BaseModel):
@@ -231,6 +235,7 @@ class FileDataDict(TypedDict):
 
 class FileDataMeta(TypedDict):
     _type: Literal["gradio.FileData"]
+    mirrored: NotRequired[bool]
 
 
 @document()
@@ -391,8 +396,11 @@ class BlocksConfigDict(TypedDict):
     deep_link_state: NotRequired[Literal["valid", "invalid", "none"]]
     mode: str
     app_id: int
+    # Identifies the app's structure, the same across restarts and replicas
+    app_key: str
+    resume_sessions: NotRequired[bool]
+    session_user: NotRequired[str | None]
     dev_mode: bool
-    vibe_mode: bool
     analytics_enabled: bool
     components: list[dict[str, Any]]
     css: str | None
@@ -408,6 +416,8 @@ class BlocksConfigDict(TypedDict):
     stylesheets: list[str]
     theme: str | None
     protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
+    supported_protocols: list[Literal["sse_v3", "sse_v4"]]
+    browser_streams: Literal["auto", "per_event", "per_session"]
     body_css: BodyCSS
     fill_height: bool
     fill_width: bool

@@ -33,7 +33,8 @@
 		"@gradio/audio": "workspace:^"
 	},
 	"devDependencies": {
-		"@gradio/preview": "workspace:^"
+		"@gradio/preview": "workspace:^",
+		"wavesurfer.js": "7.11.0"
 	},
 	"peerDependencies": {
 		"svelte": "^5.48.0"

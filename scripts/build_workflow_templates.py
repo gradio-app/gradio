@@ -16,7 +16,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Optional
 
-import httpx
+import httpx2
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 logger = logging.getLogger("build_workflow_templates")
@@ -323,7 +323,7 @@ def fetch_api(space_id: str) -> dict:
     last: Exception | None = None
     for path in ("/gradio_api/info", "/info", "/api/info"):
         try:
-            resp = httpx.get(space_url(space_id) + path, timeout=30)
+            resp = httpx2.get(space_url(space_id) + path, timeout=30)
             resp.raise_for_status()
             return resp.json()
         except Exception as e:  # noqa: BLE001 — try the next path

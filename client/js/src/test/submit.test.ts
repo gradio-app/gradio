@@ -11,6 +11,8 @@ import { HttpResponse, http } from "msw";
 
 import { Client } from "../client";
 import {
+	clear_run_history,
+	load_run_history,
 	read_run_history,
 	set_run_history_storage
 } from "../utils/run_history";
@@ -89,10 +91,7 @@ describe("submit iterator", () => {
 		"sends the selected history bucket with queued submissions",
 		async () => {
 			const app = await Client.connect("hmb/hello_world");
-			const scope = {
-				app_id: app.config?.app_id,
-				username: app.config?.username
-			};
+			const scope = app.config!;
 			set_run_history_storage(scope, {
 				type: "bucket",
 				bucket_id: "alice/app-history"
@@ -120,9 +119,16 @@ describe("submit iterator", () => {
 			const app = await Client.connect("hmb/hello_world");
 			app.stream_status.open = true;
 			const scope = {
+				root: app.config?.root,
+				app_key: app.config?.app_key,
 				app_id: app.config?.app_id,
 				username: app.config?.username
 			};
+			// Runs and the storage choice saved by earlier tests outlive them,
+			// in IndexedDB
+			await load_run_history(scope);
+			set_run_history_storage(scope, { type: "browser" });
+			clear_run_history(scope);
 			const dependency = app.config!.dependencies[0];
 			dependency.connection = "stream";
 			dependency.targets = [[dependency.inputs[0], "stream"]];

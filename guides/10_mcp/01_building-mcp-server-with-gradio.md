@@ -241,23 +241,23 @@ $code_mcp_tool_only
 
 Note that if you use this approach, your function signature must be fully typed, including the return value, as these signature are used to determine the typing information for the MCP tool.
 
-## Gradio with FastMCP
+## Gradio with the MCP Python SDK
 
-In some cases, you may decide not to use Gradio's built-in integration and instead manually create an FastMCP Server that calls a Gradio app. This approach is useful when you want to:
+In some cases, you may decide not to use Gradio's built-in integration and instead manually create an MCP server that calls a Gradio app. This approach is useful when you want to:
 
 - Store state / identify users between calls instead of treating every tool call completely independently
 - Start the Gradio app MCP server when a tool is called (if you are running multiple Gradio apps locally and want to save memory / GPU)
 
-This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)'s `FastMCP` class. Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces) using the `stdio` protocol:
+This is very doable thanks to the [Gradio Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client) and the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)'s `MCPServer` class. Here's an example of creating a custom MCP server that connects to various Gradio apps hosted on [HuggingFace Spaces](https://huggingface.co/spaces) using the `stdio` protocol:
 
 ```python
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 from gradio_client import Client
 import sys
 import io
 import json 
 
-mcp = FastMCP("gradio-spaces")
+mcp = MCPServer("gradio-spaces")
 
 clients = {}
 

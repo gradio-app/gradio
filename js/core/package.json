@@ -60,7 +60,6 @@
 		"@gradio/upload": "workspace:^",
 		"@gradio/uploadbutton": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/vibeeditor": "workspace:^",
 		"@gradio/video": "workspace:^",
 		"@gradio/workflowcanvas": "workspace:^"
 	},

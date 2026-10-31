@@ -1,5 +1,5 @@
 import gradio as gr
-import httpx
+import httpx2
 
 
 tags = [
@@ -27,7 +27,7 @@ tags = [
 ]
 speakers = ["Speaker 1", "Speaker 2"]
 
-client = httpx.AsyncClient(timeout=180)
+client = httpx2.AsyncClient(timeout=180)
 API_URL = "https://router.huggingface.co/fal-ai/fal-ai/dia-tts"
 
 

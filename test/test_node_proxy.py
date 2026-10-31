@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-import httpx
+import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
@@ -142,7 +142,7 @@ class TestStaticWorkerPool:
         try:
             pool.start()
             for port in [17860, 17861]:
-                resp = httpx.get(f"http://127.0.0.1:{port}/health", timeout=5)
+                resp = httpx2.get(f"http://127.0.0.1:{port}/health", timeout=5)
                 assert resp.status_code == 200
                 assert resp.json() == {"status": "ok"}
         finally:
@@ -182,7 +182,7 @@ class TestStaticWorkerPool:
         try:
             pool.start()
             for port in [17880, 17881]:
-                resp = httpx.post(
+                resp = httpx2.post(
                     f"http://127.0.0.1:{port}/gradio_api/upload",
                     files={"files": ("test.txt", b"hello", "text/plain")},
                     timeout=5,
@@ -314,7 +314,7 @@ class TestNodeProxyStartupOrdering:
                         ("127.0.0.1", node_port), timeout=0.1
                     ):
                         try:
-                            resp = httpx.get(
+                            resp = httpx2.get(
                                 f"http://127.0.0.1:{node_port}/config",
                                 timeout=0.5,
                             )
@@ -327,7 +327,7 @@ class TestNodeProxyStartupOrdering:
                                     py_started.is_set()
                                 )
                                 return
-                        except httpx.HTTPError:
+                        except httpx2.HTTPError:
                             pass
                 except OSError:
                     pass

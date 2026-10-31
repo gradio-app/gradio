@@ -70,7 +70,7 @@ from gradio.components import (
     WorkflowCanvas,
     component,
 )
-from gradio.components.audio import WaveformOptions
+from gradio.components.audio import MicrophoneOptions, WaveformOptions
 from gradio.components.image_editor import (
     Brush,
     Eraser,
@@ -146,6 +146,7 @@ __version__ = get_package_version()
 
 __all__ = [
     "Accordion",
+    "App",
     "AnnotatedImage",
     "Server",
     "Annotatedimage",
@@ -219,6 +220,7 @@ __all__ = [
     "MessageDict",
     "Mic",
     "Microphone",
+    "MicrophoneOptions",
     "Model3D",
     "MultimodalTextbox",
     "NO_RELOAD",
@@ -288,3 +290,5 @@ __all__ = [
     "Workflow",
     "WorkflowCanvas",
 ]
+
+App = Server

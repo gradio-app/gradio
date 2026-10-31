@@ -16,7 +16,7 @@ Environment variables in Gradio provide a way to customize your applications and
 ### 2. `GRADIO_SERVER_NAME`
 
 - **Description**: Defines the host name for the Gradio server. To make Gradio accessible from any IP address, set this to `"0.0.0.0"`
-- **Default**: `"127.0.0.1"` 
+- **Default**: `"127.0.0.1"`
 - **Example**:
   ```bash
   export GRADIO_SERVER_NAME="0.0.0.0"
@@ -33,7 +33,7 @@ Environment variables in Gradio provide a way to customize your applications and
 
 ### 4. `GRADIO_ANALYTICS_ENABLED`
 
-- **Description**: Whether Gradio should provide 
+- **Description**: Whether Gradio should provide
 - **Default**: `"True"`
 - **Options**: `"True"`, `"False"`
 - **Example**:
@@ -124,7 +124,6 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_CACHE_EXAMPLES="true"
   ```
 
-
 ### 14. `GRADIO_CACHE_MODE`
 
 - **Description**: How to cache examples. Only applies if `cache_examples` is set to `True` either via enviornment variable or by an explicit parameter, AND no no explicit argument is passed for the `cache_mode` parameter in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`. Can be set to either the strings "lazy" or "eager." If "lazy", examples are cached after their first use for all users of the app. If "eager", all examples are cached at app launch.
@@ -135,16 +134,14 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_CACHE_MODE="lazy"
   ```
 
-
 ### 15. `GRADIO_EXAMPLES_CACHE`
 
-- **Description**:  If you set `cache_examples=True` in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`, Gradio will run your prediction function and save the results to disk. By default, this is in the `.gradio/cached_examples//` subdirectory within your app's working directory. You can customize the location of cached example files created by Gradio by setting the environment variable `GRADIO_EXAMPLES_CACHE` to an absolute path or a path relative to your working directory.
+- **Description**: If you set `cache_examples=True` in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`, Gradio will run your prediction function and save the results to disk. By default, this is in the `.gradio/cached_examples//` subdirectory within your app's working directory. You can customize the location of cached example files created by Gradio by setting the environment variable `GRADIO_EXAMPLES_CACHE` to an absolute path or a path relative to your working directory.
 - **Default**: `".gradio/cached_examples/"`
 - **Example**:
   ```sh
   export GRADIO_EXAMPLES_CACHE="custom_cached_examples/"
   ```
-
 
 ### 16. `GRADIO_SSR_MODE`
 
@@ -177,7 +174,7 @@ Environment variables in Gradio provide a way to customize your applications and
 
 ### 19. `GRADIO_RESET_EXAMPLES_CACHE`
 
-- **Description**: If set to "True", Gradio will delete and recreate the examples cache directory when the app starts instead of reusing the cached example if they already exist. 
+- **Description**: If set to "True", Gradio will delete and recreate the examples cache directory when the app starts instead of reusing the cached example if they already exist.
 - **Default**: `"False"`
 - **Options**: `"True"`, `"False"`
 - **Example**:
@@ -204,17 +201,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_WATCH_DIRS="/path/to/src,/path/to/templates"
   ```
 
-### 22. `GRADIO_VIBE_MODE`
-
-- **Description**: Enables the Vibe editor mode, which provides an in-browser chat that can be used to write or edit your Gradio app using natural language. When enabled, anyone who can access the Gradio endpoint can modify files and run arbitrary code on the host machine. Use with extreme caution in production environments.
-- **Default**: `""`
-- **Options**: Any non-empty string enables the mode
-- **Example**:
-  ```sh
-  export GRADIO_VIBE_MODE="1"
-  ```
-
-### 23. `GRADIO_MCP_SERVER`
+### 22. `GRADIO_MCP_SERVER`
 
 - **Description**: Enables the MCP (Model Context Protocol) server functionality in Gradio. When enabled, the Gradio app will be set up as an MCP server and documented functions will be added as MCP tools that can be used by LLMs. This allows LLMs to interact with your Gradio app's functionality through the MCP protocol.
 - **Default**: `"False"`
@@ -224,8 +211,7 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_MCP_SERVER="True"
   ```
 
-
-### 24. `GRADIO_NUM_WORKERS`
+### 23. `GRADIO_NUM_WORKERS`
 
 - **Description**: Number of multiple workers to launch in the background to offload traffic for file I/O and static assets from the main Gradio server. Only works when SSR mode is set.
 - **Default**: not set.
@@ -235,13 +221,59 @@ Environment variables in Gradio provide a way to customize your applications and
   export GRADIO_NUM_WORKERS=4
   ```
 
-### 25. `GRADIO_HEARTBEAT_INTERVAL`
+### 24. `GRADIO_HEARTBEAT_INTERVAL`
 
 - **Description**: Sets the interval, in seconds, between heartbeats that keep a client session alive. When a client disconnects, this heartbeat is used to trigger `unload` events and clean up session state. Lowering this value can help detect disconnections faster in environments such as Kubernetes, where the default interval can delay session cleanup.
 - **Default**: `15`
 - **Example**:
   ```sh
   export GRADIO_HEARTBEAT_INTERVAL=5
+  ```
+
+### 25. `GRADIO_QUEUE_SESSION_RESUME_TTL`
+
+- **Description**: Sets how many seconds an active queued job remains available for reconnection after an unexpected connection loss. Set this to `0` to cancel disconnected jobs instead of allowing them to resume. Deliberately closing or navigating away from a page uses a shorter grace period (at most 5 seconds) so a refresh can reconnect without leaving abandoned jobs running. The same grace period applies to every session: a page that reconnects within it, as a refreshed page does, keeps its outputs and state, and `unload` events only run once it has passed.
+- **Default**: `3600`
+- **Example**:
+  ```sh
+  export GRADIO_QUEUE_SESSION_RESUME_TTL=60
+  ```
+
+### 26. `GRADIO_SECRET_KEY`
+
+- **Description**: The secret used to encrypt and authenticate the `gr.State` values that Gradio stores in users' browsers. Set it to the same long random string for every replica of an app, so that any replica can read the state a browser sends, and so that state survives a restart. If it is not set, each process generates its own random key, and a page refreshed after a restart (or that reaches another replica) starts a new session, since its state can't be read. Keep it secret: anyone who has it can read and forge state values.
+- **Default**: A random key per process
+- **Example**:
+  ```sh
+  export GRADIO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+  ```
+
+### 27. `GRADIO_STATE_CACHE_SIZE_MB`
+
+- **Description**: The amount of memory, in megabytes, each server process uses to cache recent `gr.State` values, so that browsers can send a short reference instead of the full value. When a value is not in the cache, the browser sends it in full, so a smaller cache only costs extra requests.
+- **Default**: `256`
+- **Example**:
+  ```sh
+  export GRADIO_STATE_CACHE_SIZE_MB=1024
+  ```
+
+### 28. `GRADIO_RESUME_SESSIONS`
+
+- **Description**: Whether a page that is refreshed, or reloaded by the browser, picks up where it left off: its outputs and `gr.State` values (saved in the browser) come back and jobs that were still running are reattached. Set it to `False` for the behavior from before Gradio 7, where a refresh starts a new session from the app's initial values. The `resume_sessions` parameter of `launch()` takes precedence over it.
+- **Default**: `True`
+- **Example**:
+  ```sh
+  export GRADIO_RESUME_SESSIONS=False
+  ```
+
+### 29. `GRADIO_BROWSER_STREAMS`
+
+- **Description**: How the browser receives the messages of queued events. With `per_event`, each event streams on the request that submits it, so it works behind a load balancer without session affinity. With `per_session`, all of a tab's events share one stream, which uses fewer connections. `auto` uses `per_event` when the browser speaks HTTP/2 or later to the app (which needs HTTPS), and `per_session` on HTTP/1.1, where browsers allow only six connections per origin. The Python client and the JavaScript client outside a browser always stream per event.
+- **Default**: `auto`
+- **Options**: `auto`, `per_event`, `per_session`
+- **Example**:
+  ```sh
+  export GRADIO_BROWSER_STREAMS=per_event
   ```
 
 ## How to Set Environment Variables
@@ -260,6 +292,3 @@ GRADIO_SERVER_NAME="localhost"
 ```
 
 Then, use a tool like `dotenv` to load these variables when running your application.
-
-
-

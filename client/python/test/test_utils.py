@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Literal, Optional, Union
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 import pytest
 from huggingface_hub import get_token
 
@@ -52,10 +52,10 @@ def test_encode_url_to_base64(media_data):
 
 
 def test_encode_url_to_base64_doesnt_encode_errors(monkeypatch):
-    request = httpx.Request("GET", "https://example.com/foo")
-    error_response = httpx.Response(status_code=404, request=request)
-    monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
-    with pytest.raises(httpx.HTTPStatusError):
+    request = httpx2.Request("GET", "https://example.com/foo")
+    error_response = httpx2.Response(status_code=404, request=request)
+    monkeypatch.setattr(httpx2, "get", lambda *args, **kwargs: error_response)
+    with pytest.raises(httpx2.HTTPStatusError):
         utils.encode_url_to_base64("https://example.com/foo")
 
 
@@ -201,14 +201,14 @@ class AsyncMock(MagicMock):
         return super().__call__(*args, **kwargs)
 
 
-@patch("httpx.post")
+@patch("httpx2.post")
 def test_sleep_successful(mock_post):
     utils.set_space_timeout("gradio/calculator")
 
 
 @patch(
-    "httpx.post",
-    side_effect=httpx.HTTPStatusError("error", request=None, response=None),
+    "httpx2.post",
+    side_effect=httpx2.HTTPStatusError("error", request=None, response=None),
 )
 def test_sleep_unsuccessful(mock_post):
     with pytest.raises(utils.SpaceDuplicationError):

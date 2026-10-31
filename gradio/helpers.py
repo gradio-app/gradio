@@ -489,7 +489,8 @@ class Examples:
                         load_example_input,
                         inputs=[
                             components.State(
-                                (self.preload, self.non_none_examples[self.preload])
+                                (self.preload, self.non_none_examples[self.preload]),
+                                storage="server",
                             )
                         ],
                         outputs=self.inputs,
@@ -502,7 +503,8 @@ class Examples:
                         load_example_output,
                         inputs=[
                             components.State(
-                                (self.preload, self.non_none_examples[self.preload])
+                                (self.preload, self.non_none_examples[self.preload]),
+                                storage="server",
                             )
                         ],
                         outputs=self.outputs,

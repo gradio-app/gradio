@@ -157,6 +157,7 @@
 		autoscroll={gradio.shared.autoscroll}
 		file_count={gradio.props.file_count}
 		{sources_string}
+		microphone_options={gradio.props.microphone_options}
 		max_file_size={gradio.shared.max_file_size}
 		onchange={(e) => {
 			gradio.props.value = e;
