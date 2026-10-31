@@ -98,8 +98,9 @@ class Link:
 
     @property
     def active(self) -> bool:
-        """Whether an event is running here, or a generator is between steps."""
-        return self.running > 0 or bool(self.started)
+        """Whether an event is running here, or a generator or stream is
+        between steps, holding its slot here."""
+        return self.running > 0 or bool(self.started) or bool(self.held)
 
     @property
     def responsive(self) -> bool:
@@ -406,6 +407,7 @@ class Pool:
         link = self.streams.pop(event._id, None)
         if link is not None:
             link.release(event._id)
+            self.check_drained(link)
 
     def process_limit(self, fn: BlockFunction) -> int | None:
         """How many events of `fn`'s concurrency group one process runs at
