@@ -644,6 +644,34 @@ def get_request_origin(request: fastapi.Request, route_path: str) -> httpx2.URL:
     return root_url
 
 
+def accepts_event_stream(request: fastapi.Request) -> bool:
+    """Whether the request's `Accept` header prefers `text/event-stream` to JSON,
+    taking quality values into account."""
+    qualities: dict[str, float] = {}
+    for media_range in request.headers.get("accept", "").split(","):
+        media_type, *params = (part.strip() for part in media_range.split(";"))
+        quality = 1.0
+        for param in params:
+            key, _, value = param.partition("=")
+            if key.strip().lower() == "q":
+                try:
+                    quality = float(value)
+                except ValueError:
+                    quality = 0.0
+        media_type = media_type.lower()
+        qualities[media_type] = max(quality, qualities.get(media_type, 0.0))
+    event_stream = qualities.get("text/event-stream", 0.0)
+    json_quality = next(
+        (
+            qualities[media_type]
+            for media_type in ("application/json", "application/*", "*/*")
+            if media_type in qualities
+        ),
+        0.0,
+    )
+    return event_stream > 0 and event_stream > json_quality
+
+
 def get_api_call_path(request: fastapi.Request) -> str:
     """
     Extracts the API call path from the request URL.

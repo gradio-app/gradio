@@ -642,6 +642,120 @@ class TestQueueDoesNotAccumulate:
         )
 
 
+class TestOwnEventStream:
+    @staticmethod
+    def join(demo, data, session_hash, params=None):
+        return httpx2.stream(
+            "POST",
+            f"{demo.local_url}{API_PREFIX.lstrip('/')}/queue/join",
+            params=params,
+            json={
+                "data": data,
+                "fn_index": demo.config["dependencies"][0]["id"],
+                "session_hash": session_hash,
+                "event_data": None,
+                "trigger_id": None,
+            },
+            headers={"Accept": "text/event-stream"},
+            timeout=10,
+        )
+
+    @staticmethod
+    def read(lines, until=None):
+        messages = []
+        for line in lines:
+            if line.startswith("data:"):
+                messages.append(json.loads(line[5:]))
+                if messages[-1]["msg"] == until:
+                    break
+        return messages
+
+    def test_streams_the_event_on_the_join_response(self):
+        def count(n):
+            for i in range(int(n)):
+                yield str(i)
+
+        with gr.Blocks() as demo:
+            n, out = gr.Number(), gr.Textbox()
+            gr.Button().click(count, n, out)
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with self.join(demo, [3], "own-stream") as response:
+                assert response.status_code == 200
+                messages = self.read(response.iter_lines())
+            assert [m["msg"] for m in messages] == [
+                "estimation",
+                "process_starts",
+                "process_generating",
+                "process_generating",
+                "process_generating",
+                "process_completed",
+            ]
+            assert messages[-1]["output"]["data"] == ["2"]
+            assert "own-stream" not in demo._queue.pending_messages_per_session
+        finally:
+            demo.close()
+
+    def test_leaving_cancels_only_that_event(self):
+        finished = []
+
+        async def slow(x):
+            await asyncio.sleep(1.5)
+            finished.append(x)
+            return x
+
+        with gr.Blocks() as demo:
+            t, out = gr.Textbox(), gr.Textbox()
+            gr.Button().click(slow, t, out, concurrency_limit=None)
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with self.join(demo, ["kept"], "one-session") as kept:
+                with self.join(demo, ["dropped"], "one-session") as dropped:
+                    self.read(dropped.iter_lines(), until="process_starts")
+                messages = self.read(kept.iter_lines())
+            assert messages[-1]["output"]["data"] == ["kept"]
+            time.sleep(0.5)
+            assert finished == ["kept"]
+            assert not any(demo._queue.active_jobs)
+        finally:
+            demo.close()
+
+    def test_a_page_that_resumes_keeps_the_event_when_its_request_drops(self):
+        finished = []
+
+        async def slow(x):
+            await asyncio.sleep(1)
+            finished.append(x)
+            return x
+
+        with gr.Blocks() as demo:
+            t, out = gr.Textbox(), gr.Textbox()
+            gr.Button().click(slow, t, out)
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with self.join(
+                demo, ["kept"], "resumes", params={"acknowledgements": "true"}
+            ) as dropped:
+                started = self.read(dropped.iter_lines(), until="process_starts")
+            event_id = started[-1]["event_id"]
+            with httpx2.stream(
+                "GET",
+                f"{demo.local_url}{API_PREFIX.lstrip('/')}/queue/data",
+                params={
+                    "session_hash": "resumes",
+                    "resume_event_id": event_id,
+                    "acknowledgements": "true",
+                },
+                timeout=10,
+            ) as resumed:
+                messages = self.read(resumed.iter_lines(), until="process_completed")
+            assert messages[-1]["event_id"] == event_id
+            assert messages[-1]["output"]["data"] == ["kept"]
+            assert finished == ["kept"]
+        finally:
+            demo.close()
+
+
 def test_resuming_one_event_keeps_messages_waiting_for_another():
     from gradio.server_messages import ProcessStartsMessage
 

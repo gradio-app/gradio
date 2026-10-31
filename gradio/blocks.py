@@ -2849,6 +2849,8 @@ Received inputs:
             "stylesheets": getattr(self, "stylesheets", []),
             "theme": self.theme.name if self.theme is not None else None,
             "protocol": "sse_v3",
+            "supported_protocols": ["sse_v3", "sse_v4"],
+            "browser_streams": utils.get_browser_streams(),
             "body_css": {  # type: ignore
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
@@ -3106,7 +3108,7 @@ Received inputs:
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         executor: Literal["thread", "process"] | None = None,
-        replicas: int | None = None,
+        replicas: int | Literal["auto"] | None = None,
     ) -> tuple[App, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -3158,7 +3160,7 @@ Received inputs:
             head: Custom html code to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             head_paths: Custom html code as a pathlib.Path to a html file or a list of such paths. This html files will be read, concatenated, and included in the head of the demo webpage. If the `head` parameter is also set, the html from `head` will be included first.
             executor: Where the server runs relative to the app's functions. "process" (the default, except in Jupyter notebooks and IPython) runs the server in a separate gateway process, so that this process only runs the app's functions: they keep their models, globals and closures, and the server stays responsive while they hold the GIL. GRADIO_PROCESS_REPLICAS=N then runs the app's script in N processes, each serving its own sessions. "thread" (the default in notebooks, where launching quickly matters most) runs the server in this process, with functions in its threads. Can be set with the GRADIO_EXECUTOR environment variable.
-            replicas: With executor="process", how many processes run the app's functions: the script runs again in each, which loads its own copy of any model, and each user's session stays on one process. Can be set with the GRADIO_PROCESS_REPLICAS environment variable. Defaults to 1.
+            replicas: With executor="process", how many processes run the app's functions: the script runs again in each, which loads its own copy of any model, and each user's session stays on one process. "auto" (experimental) starts with one and adds more, up to 4, while events keep waiting and memory allows it, keeping each only if throughput improves, and retires them when idle. Can be set with the GRADIO_PROCESS_REPLICAS environment variable. Defaults to 1.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
