@@ -18,13 +18,6 @@ axis.plot([0, 1, 2], [0, 1, 0])
 
 with gr.Blocks() as demo:
     with gr.Row():
-        with gr.Column(variant="panel", elem_id="panel-column"):
-            gr.Markdown("Panel column")
-        with gr.Column(variant="compact", elem_id="compact-column"):
-            gr.Button("Compact one")
-            gr.Button("Compact two")
-
-    with gr.Row():
         gr.HTML(
             "Padded HTML",
             container=True,

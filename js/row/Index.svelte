@@ -7,7 +7,6 @@
 	// export let elem_id: string;
 	// export let elem_classes: string[] = [];
 	// export let visible: boolean | "hidden" = true;
-	// export let variant: "default" | "panel" | "compact" = "default";
 	// export let loading_status: LoadingStatus | undefined = undefined;
 	// export let gradio: Gradio | undefined = undefined;
 	// export let show_progress = false;
@@ -34,7 +33,6 @@
 		{},
 		{
 			equal_height: boolean | null;
-			variant: "default" | "panel" | "compact";
 			height: number | string | undefined;
 			min_height: number | string | undefined;
 			max_height: number | string | undefined;
@@ -43,8 +41,6 @@
 </script>
 
 <div
-	class:compact={gradio.props.variant === "compact"}
-	class:panel={gradio.props.variant === "panel"}
 	class:unequal-height={gradio.props.equal_height === false}
 	class:stretch={gradio.props.equal_height}
 	class:hide={!gradio.shared.visible}
@@ -82,16 +78,6 @@
 
 	.hide {
 		display: none;
-	}
-	.compact > :global(*),
-	.compact :global(.box) {
-		border-radius: 0;
-	}
-	.compact,
-	.panel {
-		border-radius: var(--container-radius);
-		background: var(--background-fill-secondary);
-		padding: var(--size-2);
 	}
 	.unequal-height {
 		align-items: flex-start;

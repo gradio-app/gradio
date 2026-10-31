@@ -33,7 +33,6 @@ class Column(BlockContext, metaclass=ComponentMeta):
         *,
         scale: int = 1,
         min_width: int = 320,
-        variant: Literal["default", "panel", "compact"] = "default",
         visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -46,7 +45,6 @@ class Column(BlockContext, metaclass=ComponentMeta):
         Parameters:
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
             min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
-            variant: column type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -62,9 +60,6 @@ class Column(BlockContext, metaclass=ComponentMeta):
 
         self.scale = scale
         self.min_width = min_width
-        self.variant = variant
-        if variant == "compact":
-            self.allow_expected_parents = False
         self.show_progress = show_progress
         BlockContext.__init__(
             self,
