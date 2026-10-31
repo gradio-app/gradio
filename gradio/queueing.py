@@ -161,6 +161,7 @@ class Queue:
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.can_start: Callable[[Event], bool] | None = None
+        self.end_event: Callable[[Event], None] | None = None
         self.stopped = False
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
@@ -484,6 +485,14 @@ class Queue:
             )
         elif resumable is not None:
             unload_request = resumable.unload_request
+        # End the session's events first: a stream keeps its process slot
+        # until it ends, and an unload in its concurrency group needs it
+        for event_id in self.pending_event_ids_session.get(session_hash, set()):
+            pending_event = self.event_ids_to_events.get(event_id)
+            if pending_event is not None:
+                pending_event.run_time = float("inf")
+                pending_event.closed = True
+                pending_event.signal.set()
         if unload_request is not None and run_unload_fns:
             request, username, route_path = unload_request
             body = PredictBodyInternal(
@@ -521,12 +530,6 @@ class Queue:
                     traceback.print_exception(result)
         app.mark_session_closed(session_hash)
         caching.clear_session_caches(session_hash)
-        for event_id in self.pending_event_ids_session.get(session_hash, set()):
-            pending_event = self.event_ids_to_events.get(event_id)
-            if pending_event is not None:
-                pending_event.run_time = float("inf")
-                pending_event.closed = True
-                pending_event.signal.set()
 
     def expire_detached_sessions(self) -> list[asyncio.Task]:
         """Starts ending the detached sessions whose time is up. They end in the
@@ -1121,7 +1124,8 @@ class Queue:
             if body is None:
                 raise ValueError("No event data")
             username = events[0].username
-            body.event_id = events[0]._id if not batch else None
+            queue_event_id = events[0]._id if not batch else None
+            body.event_id = queue_event_id
             try:
                 body.request = events[0].request
             except ValueError:
@@ -1196,6 +1200,7 @@ class Queue:
                     fn=fn,
                     root_path=root_path,
                     record_history=fn.connection != "stream",
+                    queue_event_id=queue_event_id,
                 )
                 end = time.monotonic()
                 first_iteration = end - start
@@ -1299,6 +1304,7 @@ class Queue:
                             fn=fn,
                             root_path=root_path,
                             record_history=fn.connection != "stream",
+                            queue_event_id=queue_event_id,
                         )
                         end = time.monotonic()
                         for event in awake_events:
@@ -1411,6 +1417,9 @@ class Queue:
             if not isinstance(e, Error) or e.print_exception:
                 traceback.print_exc()
         finally:
+            if self.end_event is not None:
+                for event in events:
+                    self.end_event(event)
             if PROFILING_ENABLED:
                 trace = get_current_trace()
                 if trace is not None:

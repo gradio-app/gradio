@@ -521,6 +521,102 @@ def test_replicas_keep_concurrency_limit_per_process(tmp_path):
         proc.wait(timeout=30)
 
 
+REPLICA_STREAM_APP = """
+import os
+import gradio as gr
+
+with gr.Blocks() as demo:
+    mic = gr.Audio(sources=["microphone"], streaming=True)
+    out = gr.Textbox()
+    mic.stream(lambda chunk: str(os.getpid()), mic, out, concurrency_limit=1)
+    gr.Button().click(lambda: str(os.getpid()), None, out)
+
+demo.launch(server_port=int(os.environ["PORT"]))
+"""
+
+
+def test_replicas_keep_a_running_stream_to_its_process(tmp_path):
+    import subprocess
+    import sys
+
+    script = tmp_path / "app.py"
+    script.write_text(REPLICA_STREAM_APP)
+    port = 7992
+    proc = subprocess.Popen(
+        [sys.executable, str(script)],
+        env={**os.environ, "GRADIO_PROCESS_REPLICAS": "2", "PORT": str(port)},
+        start_new_session=True,
+    )
+    url = f"http://127.0.0.1:{port}/"
+    try:
+        deadline = time.time() + 120
+        processes = []
+        while time.time() < deadline:
+            try:
+                status = httpx2.get(f"{url}gradio_api/processes").json()
+                processes = status.get("processes", [])
+                if len(processes) == 2 and not status["starting"]:
+                    break
+            except (httpx2.HTTPError, ValueError):
+                pass
+            time.sleep(0.5)
+        assert len(processes) == 2
+        with open("test/test_files/audio_sample.wav", "rb") as f:
+            (path,) = httpx2.post(f"{url}gradio_api/upload", files={"files": f}).json()
+        pids = {"first": [], "second": []}
+        # Each session first runs a quick event while nothing else runs, so the
+        # processes look equally busy when they are placed
+        for name in pids:
+            body = {"data": [], "fn_index": 1, "session_hash": name}
+            assert _queue_messages(url, body)[-1]["success"]
+        stop = threading.Event()
+
+        def stream(name):
+            body = {
+                "data": [{"path": path, "meta": {"_type": "gradio.FileData"}}],
+                "fn_index": 0,
+                "session_hash": name,
+            }
+
+            def on_message(http, event_id, message):
+                if message["msg"] != "process_streaming":
+                    return
+                pids[name].append(message["output"]["data"][0])
+                # The first stream keeps sending chunks, a little apart, until
+                # the second one has started. They name no session, and still
+                # run in the stream's session, on its process.
+                if name == "first" and not stop.is_set():
+                    time.sleep(0.2)
+                    chunk = {"data": body["data"], "fn_index": 0}
+                    http.post(f"gradio_api/stream/{event_id}", json=chunk)
+                else:
+                    http.post(f"gradio_api/stream/{event_id}/close")
+
+            _queue_messages(url, body, on_message)
+
+        first = threading.Thread(target=stream, args=("first",), daemon=True)
+        first.start()
+        deadline = time.time() + 30
+        while len(pids["first"]) < 2 and time.time() < deadline:
+            time.sleep(0.05)
+        # Its later chunks run too, without waiting for the slot it holds
+        assert len(pids["first"]) >= 2
+        second = threading.Thread(target=stream, args=("second",), daemon=True)
+        second.start()
+        second.join(timeout=30)
+        stop.set()
+        first.join(timeout=30)
+        assert not first.is_alive() and not second.is_alive()
+        assert pids["second"]
+        assert len(set(pids["first"])) == 1
+        assert pids["first"][0] != pids["second"][0]
+    finally:
+        import signal
+
+        os.killpg(proc.pid, signal.SIGTERM)
+        proc.wait(timeout=30)
+
+
 def test_custom_component_assets_are_served_by_the_gateway(tmp_path, monkeypatch):
     import sys
 
@@ -850,6 +946,92 @@ def test_streamed_input_to_a_generator_answers_every_chunk():
         messages = _queue_messages(client.src, body, send_chunks)
     assert chunks[0] == 3
     assert messages[-1]["success"]
+
+
+@pytest.mark.parametrize("end", ["close", "error", "cancel"])
+def test_an_ended_stream_lets_the_next_one_run(end):
+    def on_chunk(chunk):
+        if chunk == "fail":
+            raise gr.Error("bad chunk")
+        return chunk
+
+    with gr.Blocks() as demo:
+        mic = gr.Audio(sources=["microphone"], streaming=True)
+        chunk = gr.Textbox()
+        out = gr.Textbox()
+        mic.stream(on_chunk, chunk, out, concurrency_limit=1)
+
+    with launched(demo) as client:
+        results = {}
+
+        def stream(session_hash, chunks, end="close"):
+            def send_next(http, event_id, message):
+                if message["msg"] != "process_streaming":
+                    return
+                if chunks:
+                    body = {
+                        "data": [chunks.pop(0)],
+                        "fn_index": 0,
+                        "session_hash": session_hash,
+                    }
+                    http.post(f"gradio_api/stream/{event_id}", json=body)
+                elif end == "cancel":
+                    body = {
+                        "session_hash": session_hash,
+                        "fn_index": 0,
+                        "event_id": event_id,
+                    }
+                    http.post("gradio_api/cancel", json=body)
+                else:
+                    http.post(f"gradio_api/stream/{event_id}/close")
+
+            body = {"data": ["first"], "fn_index": 0, "session_hash": session_hash}
+            results[session_hash] = _queue_messages(client.src, body, send_next)
+
+        stream("a", ["more", "fail" if end == "error" else "more"], end)
+        assert results["a"][-1]["success"] == (end != "error")
+        # The slot that the first stream held in the app's process is free again
+        second = threading.Thread(target=stream, args=("b", []), daemon=True)
+        second.start()
+        second.join(timeout=30)
+        assert not second.is_alive()
+        assert results["b"][-1]["success"]
+
+
+def test_a_chunk_does_not_continue_the_last_chunks_generator():
+    def on_chunk(chunk):
+        yield f"{chunk}-1"
+        yield f"{chunk}-2"
+
+    with gr.Blocks() as demo:
+        mic = gr.Audio(sources=["microphone"], streaming=True)
+        chunk = gr.Textbox()
+        out = gr.Textbox()
+        mic.stream(on_chunk, chunk, out)
+
+    with launched(demo) as client:
+        outputs = []
+        chunks = ["b"]
+
+        def send_next(http, event_id, message):
+            if message["msg"] != "process_streaming":
+                return
+            outputs.append(message["output"]["data"][0])
+            if chunks:
+                # A client that sends the event's id with its chunk
+                body = {
+                    "data": [chunks.pop(0)],
+                    "fn_index": 0,
+                    "session_hash": "s",
+                    "event_id": event_id,
+                }
+                http.post(f"gradio_api/stream/{event_id}", json=body)
+            else:
+                http.post(f"gradio_api/stream/{event_id}/close")
+
+        body = {"data": ["a"], "fn_index": 0, "session_hash": "s"}
+        _queue_messages(client.src, body, send_next)
+    assert outputs[:2] == ["a-1", "b-1"]
 
 
 def test_app_process_exits_when_the_gateway_dies(tmp_path):

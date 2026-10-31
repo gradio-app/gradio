@@ -98,8 +98,9 @@ class Link:
 
     @property
     def active(self) -> bool:
-        """Whether an event is running here, or a generator is between steps."""
-        return self.running > 0 or bool(self.started)
+        """Whether an event is running here, or a generator or stream is
+        between steps, holding its slot here."""
+        return self.running > 0 or bool(self.started) or bool(self.held)
 
     @property
     def responsive(self) -> bool:
@@ -200,7 +201,8 @@ class Pool:
     """The app's processes: the one that launched the app, and its replicas,
     which re-ran its script. A session stays on the process that first served
     it, since its state and generators live there; a new one goes to the
-    least busy. Each process runs as many of an event at once as its
+    least busy, and among equally busy ones to the one that was given the
+    fewest sessions. Each process runs as many of an event at once as its
     `concurrency_limit` allows."""
 
     def __init__(self, blocks: Blocks, fingerprint: str, session_capacity: int):
@@ -211,6 +213,8 @@ class Pool:
         self.lock = threading.Lock()
         self.limits: dict[int, int | None] = {}
         self.reserved: dict[str, tuple[Link, str]] = {}
+        # The process where each running stream holds a slot between chunks
+        self.streams: dict[str, Link] = {}
         self.group_limits: dict[str, int] = {}
         self.expected = 1
         self.autoscaler: Any = None
@@ -311,7 +315,10 @@ class Pool:
                 candidates = [link for link in serving if link.responsive]
                 link = min(
                     candidates or serving,
-                    key=lambda link: link.running + len(link.held),
+                    key=lambda link: (
+                        link.running + len(link.held),
+                        len(link.sessions),
+                    ),
                 )
                 if session_hash:
                     link.sessions[session_hash] = True
@@ -367,13 +374,40 @@ class Pool:
             if link is None:
                 serving = self.serving() or self.links
                 candidates = [link for link in serving if link.responsive]
-                link = max(candidates or serving, key=free)
+                link = max(
+                    candidates or serving,
+                    key=lambda link: (
+                        free(link),
+                        -(link.running + len(link.held)),
+                        -len(link.sessions),
+                    ),
+                )
                 if free(link) > 0 and event.session_hash:
                     link.sessions[event.session_hash] = True
             if free(link) <= 0:
                 return False
             self.reserved[event._id] = (link, fn.concurrency_id)
             return True
+
+    def with_slot(self, event_id: str | None, session_hash: str | None) -> Link | None:
+        """The process where the stream `event_id` holds a slot between
+        chunks, which is where its later chunks go. Each chunk keeps the
+        stream's session fresh there, as `for_session` would."""
+        link = self.streams.get(event_id) if event_id is not None else None
+        if link is None or link.closed:
+            return None
+        if session_hash:
+            with self.lock:
+                link.sessions[session_hash] = True
+        return link
+
+    def end_event(self, event: Any) -> None:
+        """The queue is done with `event`: a stream gives back the slot that it
+        held between chunks. A generator's goes back when it is closed."""
+        link = self.streams.pop(event._id, None)
+        if link is not None:
+            link.release(event._id)
+            self.check_drained(link)
 
     def process_limit(self, fn: BlockFunction) -> int | None:
         """How many events of `fn`'s concurrency group one process runs at
@@ -498,6 +532,8 @@ async def forward_event(
     fn: BlockFunction,
     root_path: str,
     record_history: bool = True,
+    *,
+    queue_event_id: str | None = None,
 ) -> dict[str, Any]:
     """`route_utils.call_process_api`, run in the app's process that holds the
     event's session."""
@@ -507,10 +543,12 @@ async def forward_event(
     session_state, iterator = route_utils.restore_session_state(app=app, body=body)
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
+    streaming = fn.connection == "stream"
     link = (
         iterator.link
         if isinstance(iterator, RemoteIterator)
-        else pool.for_session(body.session_hash)
+        else pool.with_slot(queue_event_id if streaming else None, body.session_hash)
+        or pool.for_session(body.session_hash)
     )
     probing = caching._probe_mode_active.get()
     limit = (
@@ -518,14 +556,17 @@ async def forward_event(
         if fn.queue and not fn.is_validator_function and not probing
         else None
     )
-    streaming = fn.connection == "stream"
     slot = None
     returned = False
     link.running += 1
     try:
-        if limit is not None and (iterator is None or streaming):
+        if (
+            limit is not None
+            and (iterator is None or streaming)
+            and queue_event_id not in link.held
+        ):
             candidate = link.slot(fn.concurrency_id, limit)
-            pool.reserved.pop(body.event_id or "", None)
+            pool.reserved.pop(queue_event_id or "", None)
             await candidate.acquire()
             slot = candidate
         if iterator is None and body.event_id is not None:
@@ -561,7 +602,7 @@ async def forward_event(
         if slot is not None:
             slot.release()
         elif iterator is not None:
-            link.release(body.event_id)
+            link.release(queue_event_id)
         if returned and body.event_id is not None:
             link.send(("close_iterator", body.event_id))
         if body.event_id is not None:
@@ -572,12 +613,18 @@ async def forward_event(
         if not link.active:
             pool.check_drained(link)
     if slot is not None:
-        if has_iterator and not streaming and body.event_id is not None:
-            link.held[body.event_id] = slot
+        # A stream keeps its slot between chunks, as a generator does between
+        # yields, until the queue ends it (`Pool.end_event`)
+        if (has_iterator or streaming) and queue_event_id is not None:
+            link.held[queue_event_id] = slot
+            # A stream generator's slot goes back when it is closed, with its
+            # close_iterator, as for any generator
+            if streaming and not has_iterator:
+                pool.streams[queue_event_id] = link
         else:
             slot.release()
-    elif not has_iterator:
-        link.release(body.event_id)
+    elif not has_iterator and not streaming:
+        link.release(queue_event_id)
     if not has_iterator and body.event_id is not None:
         pool.finished(link, body.event_id, success=True)
         pool.check_drained(link)
@@ -1043,6 +1090,7 @@ def main(path: str) -> None:
     ).start()
     blocks.queue(**bootstrap["queue_kwargs"])
     blocks._queue.can_start = blocks._process_pool.can_start  # type: ignore[attr-defined]
+    blocks._queue.end_event = blocks._process_pool.end_event  # type: ignore[attr-defined]
     pool: Pool = blocks._process_pool  # type: ignore[attr-defined]
     pool.add(
         Link(
