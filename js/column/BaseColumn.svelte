@@ -10,7 +10,6 @@
 		elem_id?: string;
 		elem_classes?: string[];
 		visible?: boolean | "hidden";
-		variant?: "default" | "panel" | "compact";
 		loading_status?: LoadingStatus;
 		show_progress?: boolean;
 		autoscroll?: boolean;
@@ -25,9 +24,6 @@
 	let elem_id: string = $derived(props.elem_id ?? "");
 	let elem_classes: string[] = $derived(props.elem_classes ?? []);
 	let visible: boolean | "hidden" = $derived(props.visible ?? true);
-	let variant: "default" | "panel" | "compact" = $derived(
-		props.variant ?? "default"
-	);
 	let loading_status: LoadingStatus | undefined = $derived(
 		props.loading_status
 	);
@@ -38,8 +34,6 @@
 	bind:this={el}
 	id={elem_id}
 	class="column {elem_classes.join(' ')}"
-	class:compact={variant === "compact"}
-	class:panel={variant === "panel"}
 	class:hide={!visible}
 	style:flex-grow={scale}
 	style:min-width="calc(min({min_width}px, 100%))"
@@ -75,18 +69,5 @@
 
 	.hide {
 		display: none;
-	}
-
-	.compact > :global(*),
-	.compact :global(.box) {
-		border-radius: 0;
-	}
-
-	.compact,
-	.panel {
-		border: solid var(--panel-border-width) var(--panel-border-color);
-		border-radius: var(--container-radius);
-		background: var(--panel-background-fill);
-		padding: var(--spacing-lg);
 	}
 </style>
