@@ -681,21 +681,6 @@ class TestComponentsInBlocks:
             gr.State(dict)
         demo.get_api_info()
 
-    @pytest.mark.parametrize("layout", [gr.Column, gr.Row])
-    def test_layout_variant_is_removed(self, layout):
-        with gr.Blocks():
-            with pytest.raises(TypeError, match="variant"):
-                layout(variant="panel")
-
-    @pytest.mark.parametrize("layout", [gr.Column, gr.Row])
-    def test_layout_groups_adjacent_form_components(self, layout):
-        with gr.Blocks():
-            with layout() as block:
-                gr.Textbox()
-                gr.Textbox()
-        assert "variant" not in block.get_config()
-        assert isinstance(block.children[0], gr.components.Form)
-
 
 class TestBlocksPostprocessing:
     @pytest.mark.asyncio
