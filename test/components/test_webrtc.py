@@ -2424,8 +2424,9 @@ async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
             while time.monotonic() < deadline:
                 try:
                     status = (await http.get(f"{api}/processes")).json()
-                    processes = status["processes"]
-                    if len(processes) == 2 and not status["starting"]:
+                    # Not yet the gateway's answer while the app starts
+                    processes = status.get("processes", [])
+                    if len(processes) == 2 and not status.get("starting", True):
                         break
                 except (httpx2.HTTPError, ValueError):
                     pass
@@ -3891,3 +3892,117 @@ class TestCleanUp:
         del demo.fns[stream_fn_id]
         gc.collect()
         assert get_manager(webrtc._id) is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("executor", ["thread", "process"])
+async def test_a_server_webrtc_endpoint_streams_like_the_component(executor):
+    server = gr.Server()
+
+    @server.webrtc(name="echo", time_limit=30)
+    def echo(frame, *args):
+        return (frame, AdditionalOutputs(*args)) if args else frame
+
+    session = "visitor"
+    _, local_url, _ = server.launch(prevent_thread_lock=True, executor=executor)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    messages: list[dict] = []
+    pc = RTCPeerConnection()
+    try:
+        async with httpx2.AsyncClient(timeout=10) as http:
+            config = (await http.get(f"{local_url.rstrip('/')}/config")).json()
+            fn_index = next(
+                d["id"] for d in config["dependencies"] if d["api_name"] == "echo"
+            )
+
+            async def read():
+                async with http.stream(
+                    "GET", f"{api}/queue/data", params={"session_hash": session}
+                ) as response:
+                    async for line in response.aiter_lines():
+                        if line.startswith("data:"):
+                            messages.append(json.loads(line[5:]))
+
+            reader = asyncio.create_task(read())
+            join = await http.post(
+                f"{api}/queue/join",
+                json={"data": ["one"], "fn_index": fn_index, "session_hash": session},
+            )
+            event_id = join.json()["event_id"]
+            # Once the turn has come: the configuration, then the connection
+            rtc = await http.post(
+                f"{api}/webrtc/rtc_configuration",
+                json={"webrtc_id": "one", "session_hash": session},
+            )
+            assert rtc.json() == {}
+            channel = pc.createDataChannel("text")
+
+            def send_inputs(*_):
+                channel.send(json.dumps({"type": "input", "data": [0.5]}))
+
+            # The client sends the raw input values once the channel is open,
+            # and again whenever a handler asks for them
+            channel.on("open", send_inputs)
+            channel.on(
+                "message",
+                lambda m: json.loads(m)["type"] == "send_input" and send_inputs(),
+            )
+            pc.addTrack(VideoStreamTrack())
+            await pc.setLocalDescription(await pc.createOffer())
+            answer = (
+                await http.post(
+                    f"{api}/webrtc/offer",
+                    json={
+                        "sdp": pc.localDescription.sdp,
+                        "type": pc.localDescription.type,
+                        "webrtc_id": "one",
+                        "session_hash": session,
+                    },
+                )
+            ).json()
+            assert answer["type"] == "answer", answer
+            await pc.setRemoteDescription(
+                RTCSessionDescription(answer["sdp"], answer["type"])
+            )
+
+            def streamed():
+                return [
+                    m["output"]["data"][0]
+                    for m in messages
+                    if m.get("event_id") == event_id
+                    and m.get("msg") == "process_streaming"
+                ]
+
+            deadline = time.monotonic() + 15
+            while [0.5] not in streamed():
+                assert time.monotonic() < deadline, messages
+                await asyncio.sleep(0.05)
+            # Each AdditionalOutputs arrives as the list of its values; the
+            # other messages (the turn, keepalives) carry a no-op update
+            assert all(o in ([0.5], {"__type__": "update"}) for o in streamed())
+
+            await http.post(f"{api}/stream/{event_id}/close")
+            deadline = time.monotonic() + 10
+            while not any(
+                m.get("event_id") == event_id and m.get("msg") == "process_completed"
+                for m in messages
+            ):
+                assert time.monotonic() < deadline, messages
+                await asyncio.sleep(0.05)
+            reader.cancel()
+    finally:
+        await pc.close()
+        gr.close_all()
+
+
+def test_server_webrtc_checks_the_handler_when_it_is_declared():
+    server = gr.Server()
+    with pytest.raises(ValueError, match="StreamHandler"):
+
+        @server.webrtc(modality="audio")
+        def not_a_handler(audio):
+            return audio
+
+    with pytest.raises(ValueError, match="mode must be"):
+        server.webrtc(flip, mode="both")  # type: ignore[arg-type]
+    assert server._deferred_webrtc == []

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import json
 import logging
 import time
 import weakref
@@ -240,6 +241,7 @@ class ConnectionManager:
         server_rtc_configuration: dict[str, Any] | None,
         video_bitrate: dict[str, int] | None = None,
         rtc_configuration: dict[str, Any] | Callable | None = None,
+        inputs_over_channel: bool = False,
     ) -> None:
         self.handler = handler
         self.mode = mode
@@ -248,6 +250,10 @@ class ConnectionManager:
         self.allow_extra_tracks = allow_extra_tracks
         # The browser's configuration, or a function that issues it
         self.rtc_configuration = rtc_configuration
+        # Whether the client sends the extra inputs over the data channel (a
+        # gr.Server endpoint), as raw values. gr.WebRTC sends them through
+        # events instead, which run the input components' preprocess.
+        self.inputs_over_channel = inputs_over_channel
         self.server_rtc_configuration = to_rtc_configuration(server_rtc_configuration)
         self.video_bitrate = video_bitrate
         self.sessions: dict[str, Session] = {}
@@ -728,6 +734,21 @@ class ConnectionManager:
             logger.debug("Data channel established: %s", channel.label)
             self.data_channels[webrtc_id] = channel
             notifier.set_channel(channel)
+            if self.inputs_over_channel:
+
+                @channel.on("message")
+                def on_message(message: Any) -> None:
+                    try:
+                        data = json.loads(message) if isinstance(message, str) else None
+                    except ValueError:
+                        data = None
+                    if (
+                        isinstance(data, dict)
+                        and data.get("type") == "input"
+                        and isinstance(data.get("data"), list)
+                    ):
+                        for conn in self.connections.get(webrtc_id, []):
+                            conn.set_args(list(data["data"]))
 
             async def set_channel():
                 while not self.connections.get(webrtc_id):
@@ -852,6 +873,51 @@ async def _add_ice_candidate(
 def stream_manager(webrtc_id: str) -> ConnectionManager | None:
     """The manager that admitted the stream, if it is still running."""
     return _streams.get(webrtc_id)
+
+
+def stream_call(
+    manager: ConnectionManager, webrtc_id: str | None
+) -> AdditionalOutputs | None:
+    """
+    One call of a stream's queue event. The first call admits the stream; each
+    later call returns the next AdditionalOutputs, if any, and once the stream
+    has ended and its outputs are delivered, ends the event, raising the
+    handler's error if it failed. `manager` is the one that the event's
+    function was created with.
+    """
+    blocks = LocalContext.blocks.get(None)
+    queue = blocks._queue if blocks is not None else None
+    event = (
+        queue.event_handle(LocalContext.event_id.get(None))
+        if queue is not None
+        else None
+    )
+    if event is None:
+        return None
+    # A later call carries whatever id a chunk sent, so it only serves the
+    # stream that the first call admitted
+    stream_id = admitted_id(event.id)
+    if stream_id is None:
+        if not webrtc_id or not manager.admit(webrtc_id, event):
+            # No id, or one that belongs to another event's stream: end this
+            # event instead of letting it hold a place it cannot use. Nothing
+            # would wake it before its time limit.
+            event.finish()
+        return None
+    # The manager that admitted it: after a hot reload, the event's function
+    # is a new one whose manager never saw the stream
+    manager = stream_manager(stream_id) or manager
+    outputs = manager.take_outputs(stream_id)
+    failure = manager.finish_if_drained(stream_id, outputs is not None)
+    if failure is not None:
+        # Hidden when the page has shown it already; the server has logged it
+        raise Error(
+            cast(str, failure["error"] or ""),
+            title=cast(str, failure.get("title") or "Error"),
+            visible=bool(failure.get("visible", True)),
+            print_exception=False,
+        )
+    return outputs
 
 
 def end_admitted_stream(event: Any) -> bool:
