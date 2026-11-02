@@ -415,8 +415,6 @@ async def call_process_api(
     *,
     queue_event_id: str | None = None,
 ):
-    """`queue_event_id` is the queue event that the call belongs to. A stream's
-    later chunks come from /stream/{event_id} with no id in `body`."""
     pool = getattr(app.get_blocks(), "_process_pool", None)
     if pool is not None:
         from gradio.processing.gateway import forward_event

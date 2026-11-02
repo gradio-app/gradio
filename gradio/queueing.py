@@ -485,8 +485,7 @@ class Queue:
             )
         elif resumable is not None:
             unload_request = resumable.unload_request
-        # End the session's events first: a stream keeps its process slot
-        # until it ends, and an unload in its concurrency group needs it
+        # Before unload, which may need the process slot a running stream holds
         for event_id in self.pending_event_ids_session.get(session_hash, set()):
             pending_event = self.event_ids_to_events.get(event_id)
             if pending_event is not None:

@@ -170,8 +170,6 @@ def test_auto_keeps_a_replica_that_is_running_a_stream(launch):
     ]
     for thread in streams:
         thread.start()
-    # Each stream holds its process's slot between chunks, so neither process
-    # is idle, though no event finishes for longer than IDLE_SECONDS
     while any(thread.is_alive() for thread in streams):
         status = httpx2.get(f"{url}gradio_api/processes").json()
         assert len(status["processes"]) == 2, "a replica was retired mid-stream"

@@ -564,8 +564,6 @@ def test_replicas_keep_a_running_stream_to_its_process(tmp_path):
         with open("test/test_files/audio_sample.wav", "rb") as f:
             (path,) = httpx2.post(f"{url}gradio_api/upload", files={"files": f}).json()
         pids = {"first": [], "second": []}
-        # Each session first runs a quick event while nothing else runs, so the
-        # processes look equally busy when they are placed
         for name in pids:
             body = {"data": [], "fn_index": 1, "session_hash": name}
             assert _queue_messages(url, body)[-1]["success"]
@@ -582,9 +580,6 @@ def test_replicas_keep_a_running_stream_to_its_process(tmp_path):
                 if message["msg"] != "process_streaming":
                     return
                 pids[name].append(message["output"]["data"][0])
-                # The first stream keeps sending chunks, a little apart, until
-                # the second one has started. They name no session, and still
-                # run in the stream's session, on its process.
                 if name == "first" and not stop.is_set():
                     time.sleep(0.2)
                     chunk = {"data": body["data"], "fn_index": 0}
@@ -599,7 +594,6 @@ def test_replicas_keep_a_running_stream_to_its_process(tmp_path):
         deadline = time.time() + 30
         while len(pids["first"]) < 2 and time.time() < deadline:
             time.sleep(0.05)
-        # Its later chunks run too, without waiting for the slot it holds
         assert len(pids["first"]) >= 2
         second = threading.Thread(target=stream, args=("second",), daemon=True)
         second.start()
@@ -990,7 +984,6 @@ def test_an_ended_stream_lets_the_next_one_run(end):
 
         stream("a", ["more", "fail" if end == "error" else "more"], end)
         assert results["a"][-1]["success"] == (end != "error")
-        # The slot that the first stream held in the app's process is free again
         second = threading.Thread(target=stream, args=("b", []), daemon=True)
         second.start()
         second.join(timeout=30)
@@ -1018,7 +1011,6 @@ def test_a_chunk_does_not_continue_the_last_chunks_generator():
                 return
             outputs.append(message["output"]["data"][0])
             if chunks:
-                # A client that sends the event's id with its chunk
                 body = {
                     "data": [chunks.pop(0)],
                     "fn_index": 0,

@@ -213,7 +213,6 @@ class Pool:
         self.lock = threading.Lock()
         self.limits: dict[int, int | None] = {}
         self.reserved: dict[str, tuple[Link, str]] = {}
-        # The process where each running stream holds a slot between chunks
         self.streams: dict[str, Link] = {}
         self.group_limits: dict[str, int] = {}
         self.expected = 1
@@ -613,12 +612,8 @@ async def forward_event(
         if not link.active:
             pool.check_drained(link)
     if slot is not None:
-        # A stream keeps its slot between chunks, as a generator does between
-        # yields, until the queue ends it (`Pool.end_event`)
         if (has_iterator or streaming) and queue_event_id is not None:
             link.held[queue_event_id] = slot
-            # A stream generator's slot goes back when it is closed, with its
-            # close_iterator, as for any generator
             if streaming and not has_iterator:
                 pool.streams[queue_event_id] = link
         else:
