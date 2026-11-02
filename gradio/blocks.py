@@ -636,7 +636,10 @@ def _find_free_port(host: str, start: int, try_count: int = 100) -> int:
     for port in range(start, start + try_count):
         try:
             s = socket.socket()
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # On Windows SO_REUSEADDR lets bind succeed on a port that another
+            # socket is listening on, so busy ports would look free.
+            if sys.platform != "win32":
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((host if host != "0.0.0.0" else "127.0.0.1", port))
             s.close()
             return port

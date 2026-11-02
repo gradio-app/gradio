@@ -1,5 +1,6 @@
 """Tests for how SSR mode is resolved and the Node version it requires."""
 
+import socket
 import subprocess
 import warnings
 
@@ -121,3 +122,19 @@ class TestResolveSsrMode:
         monkeypatch.setenv("GRADIO_LOCAL_DEV_MODE", "1")
         assert demo._resolve_ssr_mode(None) is False
         assert demo._resolve_ssr_mode(True) is True
+
+
+class TestFindFreePort:
+    def test_skips_a_port_with_a_listener(self):
+        # SSR puts Python on a port picked this way. On Windows, a check using
+        # SO_REUSEADDR reported ports with a listener as free.
+        listener = socket.socket()
+        listener.bind(("127.0.0.1", 0))
+        listener.listen(1)
+        port = listener.getsockname()[1]
+        try:
+            assert not blocks_mod._port_is_free("127.0.0.1", port)
+            with pytest.raises(OSError):
+                blocks_mod._find_free_port("127.0.0.1", start=port, try_count=1)
+        finally:
+            listener.close()
