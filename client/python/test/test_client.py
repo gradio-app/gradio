@@ -1429,10 +1429,44 @@ def test_httpx_kwargs(increment_demo):
     with connect(
         increment_demo, client_kwargs={"httpx_kwargs": {"timeout": 5}}
     ) as client:
-        with patch("httpx2.post", MagicMock()) as mock_post:
+        with patch("httpx2.Client", MagicMock()) as mock_client:
             with pytest.raises(Exception):
                 client.predict(1, api_name="/increment_with_queue")
-            assert mock_post.call_args.kwargs["timeout"] == 5
+            assert mock_client.call_args.kwargs["timeout"] == 5
+
+
+class TestOwnEventStream:
+    def test_each_event_streams_on_its_own_request(self, increment_demo):
+        with connect(increment_demo) as client:
+            assert client.protocol == "sse_v4"
+            jobs = [client.submit(api_name="/increment_with_queue") for _ in range(4)]
+            assert sorted(job.result() for job in jobs) == [1, 2, 3, 4]
+            assert client.streaming_future is None
+            assert client.event_streams == {}
+            assert client.pending_messages_per_event == {}
+
+    def test_cancel_closes_the_event_stream(self):
+        started = threading.Event()
+
+        def slow():
+            started.set()
+            time.sleep(5)
+            return "done"
+
+        with gr.Blocks() as demo:
+            out = gr.Textbox()
+            gr.Button().click(slow, None, out, api_name="slow")
+
+        with connect(demo) as client:
+            job = client.submit(api_name="/slow")
+            assert started.wait(5)
+            assert job.cancel()
+            deadline = time.time() + 5
+            while any(demo._queue.active_jobs) and time.time() < deadline:
+                time.sleep(0.05)
+            assert not any(demo._queue.active_jobs)
+            assert client.event_streams == {}
+            assert job.status().code == Status.CANCELLED
 
 
 def test_client_dropped_without_close_stops_heartbeat(increment_demo, monkeypatch):

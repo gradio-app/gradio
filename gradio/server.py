@@ -304,7 +304,7 @@ class Server(App):
         num_workers: int | None = None,
         resume_sessions: bool | None = None,
         executor: Literal["thread", "process"] | None = None,
-        replicas: int | None = None,
+        replicas: int | Literal["auto"] | None = None,
     ) -> tuple[App, str, str]:
         """Launch the Gradio API server (Server mode).
 

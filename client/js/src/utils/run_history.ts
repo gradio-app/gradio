@@ -6,6 +6,7 @@ import {
 	prune_records,
 	read_record,
 	storage_available,
+	without_frame,
 	write_record,
 	type StoredRecord
 } from "./browser_storage";
@@ -564,7 +565,10 @@ export interface ReplayTarget {
 	}[];
 }
 
-/** Told which values a replayed run wrote, index-aligned with the component ids. */
+/**
+ * Told which values a replayed run wrote, index-aligned with the component
+ * ids. A slot it left alone, such as a streaming webcam's frame, is `undefined`.
+ */
 export type ReplayListener = (ids: number[], values: unknown[]) => void;
 
 function restore_run_impl(
@@ -580,19 +584,32 @@ function restore_run_impl(
 	);
 	if (!dependency) return false;
 
-	const inputs = Array.isArray(run.inputs)
-		? run.inputs
-		: Object.values((run.inputs ?? {}) as Record<string, unknown>);
-	const outputs = Array.isArray(run.outputs)
-		? run.outputs
-		: run.outputs === null || run.outputs === undefined
-			? []
-			: [run.outputs];
+	const frameless = (ids: number[], values: unknown[]): unknown[] =>
+		values.map((value, index) =>
+			without_frame(
+				config.components.find((item) => item.id === ids[index]),
+				value
+			)
+		);
+	const inputs = frameless(
+		dependency.inputs,
+		Array.isArray(run.inputs)
+			? run.inputs
+			: Object.values((run.inputs ?? {}) as Record<string, unknown>)
+	);
+	const outputs = frameless(
+		dependency.outputs,
+		Array.isArray(run.outputs)
+			? run.outputs
+			: run.outputs === null || run.outputs === undefined
+				? []
+				: [run.outputs]
+	);
 
 	const restore = (ids: number[], saved: unknown[]): void => {
 		for (const [index, id] of ids.entries()) {
 			const component = config.components.find((item) => item.id === id);
-			if (!component || index >= saved.length) continue;
+			if (!component || saved[index] === undefined) continue;
 			// `gr.State` travels as sealed tokens and is always saved as null, so
 			// writing it back would wipe out the component's real default.
 			if (component.type === "state") continue;

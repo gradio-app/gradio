@@ -196,16 +196,24 @@ class Worker:
         self.server_attributes: dict[str, Any] = {}
         self.failure: str | None = None
         self.replica_fd = replica_fd
-        self.replicas = max(
-            int(
-                launch_kwargs.get("replicas")
-                or os.environ.get("GRADIO_PROCESS_REPLICAS", "1")
-            ),
-            1,
+        setting = str(
+            launch_kwargs.get("replicas")
+            or os.environ.get("GRADIO_PROCESS_REPLICAS", "1")
         )
-        if self.replicas > 1 and os.environ.get("GRADIO_WATCH_DIRS"):
+        self.autoscale = setting.lower() == "auto"
+        self.replicas = 1 if self.autoscale else max(int(setting), 1)
+        if (self.replicas > 1 or self.autoscale) and os.environ.get(
+            "GRADIO_WATCH_DIRS"
+        ):
             print("Replicas are not started in reload mode.")
-            self.replicas = 1
+            self.replicas, self.autoscale = 1, False
+        if self.autoscale and not os.path.isfile(sys.argv[0] if sys.argv else ""):
+            print(
+                'replicas="auto" needs the app to be run as a script or a module '
+                "(python app.py or python -m app), so it is off."
+            )
+            self.autoscale = False
+        self.retired: set[int] = set()
         self.reloader: Any = None
         self.replica_processes: list[subprocess.Popen] = []
         self.replica_addresses: list[dict] = []
@@ -290,6 +298,10 @@ class Worker:
                     task.add_done_callback(self.closing.discard)
                 elif kind == "ping":
                     self.send(("pong",))
+                elif kind == "spawn_replica":
+                    self.start_replica(restart=False)
+                elif kind == "retire_replica":
+                    self.retire_replica(message[1])
                 elif kind == "ready":
                     self.urls = (message[1], message[2])
                     self.server_attributes = message[3]
@@ -559,6 +571,7 @@ class Worker:
             "queue_kwargs": self.queue_kwargs,
             "session_capacity": self.blocks.state_session_capacity,
             "replicas": self.replicas,
+            "autoscale": self.autoscale,
             "port": server.sockets[0].getsockname()[1],
             "token": self.token,
             "http_port": http_port,
@@ -617,16 +630,17 @@ class Worker:
             with contextlib.suppress(Exception):
                 await asyncio.wait_for(self.http_task, 10)
 
-    def start_replica(self) -> None:
+    def start_replica(self, restart: bool = True) -> None:
         """Runs the app's script again, as a replica that serves sessions the
         gateway sends it. It reports its address on a pipe, which is passed on
-        to the gateway."""
+        to the gateway. One the autoscaler started is not restarted."""
         script = sys.argv[0] if sys.argv else ""
         if not os.path.isfile(script):
             print(
                 "Replicas need the app to be run as a script or a module "
                 "(python app.py or python -m app)."
             )
+            self.send(("replica_failed",))
             return
         from gradio import client_state
 
@@ -654,10 +668,13 @@ class Worker:
             process.wait()
             if address is not None:
                 self.replica_addresses.remove(address)
-            if self.shutting_down:
+            if self.shutting_down or process.pid in self.retired:
+                self.retired.discard(process.pid)
                 return
             if address is None:
                 self.send(("replica_failed",))
+                return
+            if not restart:
                 return
             quick = time.monotonic() - started < REPLICA_STABLE_SECONDS
             self.replica_failures = self.replica_failures + 1 if quick else 0
@@ -679,6 +696,12 @@ class Worker:
                 self.start_replica()
 
         threading.Thread(target=report, daemon=True).start()
+
+    def retire_replica(self, pid: int) -> None:
+        for process in self.replica_processes:
+            if process.pid == pid and process.poll() is None:
+                self.retired.add(pid)
+                process.terminate()
 
     def lifespan_state(self) -> dict:
         """What the app's lifespan yielded, which requests see as `request.state`."""

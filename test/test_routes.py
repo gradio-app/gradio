@@ -451,7 +451,7 @@ class TestRoutes:
         assert 'Client("http://testserver")' in snippets["python"]
         assert 'Client.connect("http://testserver")' in snippets["javascript"]
         assert (
-            f"curl -X POST http://testserver{API_PREFIX}/call/v2/echo"
+            f"curl -s -N -X POST http://testserver{API_PREFIX}/call/v2/echo"
             in snippets["bash"]
         )
 

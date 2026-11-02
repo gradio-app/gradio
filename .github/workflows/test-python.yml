@@ -159,7 +159,7 @@ jobs:
         shell: bash
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
-          python -m pytest -n auto -m "${{ matrix.test-type }} and not serial"
+          python -m pytest -n logical --durations=25 -m "${{ matrix.test-type }} and not serial"
       - name: Run non-flaky serial tests
         if: matrix.test-type == 'not flaky'
         shell: bash

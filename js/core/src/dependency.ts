@@ -1024,7 +1024,9 @@ export class DependencyManager {
 	 * @param outputs the ids of the output components
 	 * @param data the data to update the components with
 	 * */
-	async handle_data(outputs: number[], data: unknown[]) {
+	async handle_data(outputs: number[], data: unknown[] | undefined) {
+		// An event that ends without outputs (e.g. a stream taken out of the line)
+		if (!data) return;
 		await Promise.all(
 			outputs.map(async (output_id, i) => {
 				const _data = data[i] === undefined ? NOVALUE : data[i];
