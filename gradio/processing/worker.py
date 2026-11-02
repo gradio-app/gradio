@@ -112,15 +112,67 @@ class ForwardingQueue:
     def close(self):
         pass
 
+    def event_handle(self, event_id: str | None) -> RemoteEventHandle | None:
+        """`Queue.event_handle` for an event running here."""
+        running = self.worker.running.get(event_id or "")
+        if running is None:
+            return None
+        handle = self.worker.event_handles.get(running._id)
+        if handle is None:
+            handle = RemoteEventHandle(self.worker, running)
+            self.worker.event_handles[running._id] = handle
+        return handle
+
 
 class RunningEvent:
     """An event the gateway's queue is running here. `alive` turns False when
     its client leaves or it is cancelled, as with the queue's own events."""
 
-    def __init__(self, event_id: str, session_hash: str | None):
+    def __init__(
+        self,
+        event_id: str,
+        session_hash: str | None,
+        concurrency_limit: int | None = None,
+    ):
         self._id = event_id
         self.session_hash = session_hash
+        # How many events of its concurrency group this process runs at once
+        self.concurrency_limit = concurrency_limit
         self.alive = True
+
+
+class RemoteEventHandle:
+    """`queueing.EventHandle` for an event of the gateway's queue that runs
+    here. What the function asks during a call goes back with the call's
+    result, so that the queue sees it before it reads the event's state; a
+    wake between calls goes as a message. Kept until the gateway says that
+    the event has ended."""
+
+    def __init__(self, worker: Worker, running: RunningEvent):
+        self.worker = worker
+        self.id = running._id
+        self.session_hash = running.session_hash
+        self.concurrency_limit = running.concurrency_limit
+        self.actions: list[str] = []
+        self.live = True
+
+    def _act(self, action: str) -> None:
+        if not self.live:
+            return
+        if self.id in self.worker.running:
+            if action not in self.actions:
+                self.actions.append(action)
+        else:
+            self.worker.notify(("event_action", self.id, action))
+
+    def wake(self) -> None:
+        self._act("wake")
+
+    def disable_time_limit(self) -> None:
+        self._act("disable_time_limit")
+
+    def finish(self) -> None:
+        self._act("finish")
 
 
 class AppProcessServer:
@@ -186,6 +238,7 @@ class Worker:
         self.closing: set[asyncio.Task] = set()
         self.event_sessions: dict[str, str | None] = {}
         self.running: dict[str, RunningEvent] = {}
+        self.event_handles: dict[str, RemoteEventHandle] = {}
         self.gateway: subprocess.Popen | None = None
         self.ready = threading.Event()
         self.gateway_started = threading.Event()
@@ -241,6 +294,12 @@ class Worker:
         else:
             self.loop.call_soon_threadsafe(self.writer.writelines, frames)
 
+    def notify(self, message: Any) -> None:
+        """Writes a message from any thread without waiting for the gateway."""
+        if self.loop is None or self.writer is None:
+            return
+        self.loop.call_soon_threadsafe(self.writer.writelines, protocol.encode(message))
+
     async def _write(self, frames: list[bytes]) -> None:
         if self.writer is not None:
             self.writer.writelines(frames)
@@ -276,12 +335,13 @@ class Worker:
             while True:
                 message = await protocol.read(reader)
                 kind = message[0]
-                if kind in ("event", "auth", "auth_dependency"):
+                if kind in ("event", "auth", "auth_dependency", "close_stream"):
                     _, rid, payload = message
                     run = {
                         "event": self.run_event,
                         "auth": self.run_auth,
                         "auth_dependency": self.run_auth_dependency,
+                        "close_stream": self.run_close_stream,
                     }[kind]
                     self.tasks[rid] = asyncio.create_task(
                         self.respond(rid, run, payload)
@@ -292,6 +352,10 @@ class Worker:
                         task.cancel()
                 elif kind == "session":
                     self.session_changed(message[1], message[2])
+                elif kind == "event_ended":
+                    handle = self.event_handles.pop(message[1], None)
+                    if handle is not None:
+                        handle.live = False
                 elif kind == "close_iterator":
                     task = asyncio.create_task(self.close_iterator(message[1]))
                     self.closing.add(task)
@@ -341,6 +405,10 @@ class Worker:
         for event in self.running.values():
             if event.session_hash == session_hash:
                 event.alive = False
+        for event_id, handle in list(self.event_handles.items()):
+            if handle.session_hash == session_hash:
+                handle.live = False
+                del self.event_handles[event_id]
         caching.clear_session_caches(session_hash)
         for run in self.blocks.pending_streams.pop(session_hash, {}).values():
             for stream in run.values():
@@ -385,7 +453,9 @@ class Worker:
             await self.close_iterator(event_id)
         running = None
         if event_id is not None:
-            running = RunningEvent(event_id, body.session_hash)
+            running = RunningEvent(
+                event_id, body.session_hash, p.get("concurrency_limit")
+            )
             self.running[event_id] = running
         try:
             with caching.ProbeCache() if p["probe_cache"] else contextlib.nullcontext():
@@ -410,6 +480,10 @@ class Worker:
                 self.app.iterators.pop(event_id, None)
                 self.event_sessions.pop(event_id, None)
         output["has_iterator"] = self.app.iterators.get(event_id) is not None
+        handle = self.event_handles.get(event_id) if event_id is not None else None
+        if handle is not None:
+            # What the function asked of the queue during this call
+            output["event_actions"], handle.actions = handle.actions, []
         render = output.get("render_config")
         if render is not None and body.session_hash is not None:
             fns = self.app.state_holder[body.session_hash].blocks_config.fns
@@ -421,6 +495,20 @@ class Worker:
         if protocol.files_by_value():
             output = await asyncio.to_thread(self.files.pack, output)
         return output
+
+    async def run_close_stream(self, p: dict) -> bool:
+        """The page closed a stream event whose function runs here (see
+        `BlockFunction.close_stream`): whether the function ends it itself."""
+        session_hash = p["session_hash"]
+        fns = (
+            self.app.state_holder[session_hash].blocks_config.fns
+            if session_hash is not None
+            else self.blocks.fns
+        )
+        fn = fns.get(p["fn_index"])
+        if fn is None or fn.close_stream is None:
+            return False
+        return bool(fn.close_stream(RunningEvent(p["event_id"], session_hash)))
 
     async def run_auth(self, p: dict) -> bool:
         """`launch(auth=fn)`: the gateway's login route asks here."""

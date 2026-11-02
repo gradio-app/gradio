@@ -1548,8 +1548,18 @@ class App(FastAPI):
             event = queue.event_ids_to_events.get(event_id)
             if event is None or not event.streaming:
                 return Response(status_code=404)
-            if event.fn.close_stream is not None and event.fn.close_stream(event):
-                return {"msg": "success"}
+            close_stream = event.fn.close_stream
+            pool = getattr(app.get_blocks(), "_process_pool", None)
+            if close_stream is None and pool is not None:
+                # The function, and what it may run between calls, is in an
+                # app's process
+                close_stream = pool.close_stream
+            if close_stream is not None:
+                closed = close_stream(event)
+                if inspect.isawaitable(closed):
+                    closed = await closed
+                if closed:
+                    return {"msg": "success"}
             event.run_time = math.inf
             event.closed = True
             event.signal.set()

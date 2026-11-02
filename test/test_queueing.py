@@ -874,7 +874,7 @@ def test_the_line_moves_up_when_someone_leaves_it(leave):
 
     with gr.Blocks() as demo:
         gr.Button().click(lambda: time.sleep(3), None, None, concurrency_limit=1)
-    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     api = f"{local_url.rstrip('/')}{API_PREFIX}"
     queue = demo._queue
 
@@ -1141,7 +1141,7 @@ def test_eta_of_a_stream_waiting_for_a_slot(time_limit):
             concurrency_limit=1,
             time_limit=time_limit,
         )
-    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     api = f"{local_url.rstrip('/')}{API_PREFIX}"
     try:
         with httpx2.Client(timeout=10) as http:
@@ -1205,7 +1205,9 @@ def test_streams_waiting_for_chunks_do_not_block_other_events():
         button = gr.Button()
         clicked = gr.Textbox()
         button.click(lambda: "clicked", None, clicked)
-    _, local_url, _ = demo.launch(prevent_thread_lock=True, max_threads=2)
+    _, local_url, _ = demo.launch(
+        prevent_thread_lock=True, max_threads=2, executor="thread"
+    )
     api = f"{local_url.rstrip('/')}{API_PREFIX}"
     client = grc.Client(local_url)
     stream_queue = demo._queue.event_queue_per_concurrency_id
@@ -1258,7 +1260,7 @@ def _launch_audio_stream(fn, concurrency_limit=1):
         audio = gr.Audio(sources=["microphone"], streaming=True)
         heard = gr.Textbox()
         audio.stream(fn, audio, heard, concurrency_limit=concurrency_limit)
-    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
 
     def group():
         return demo._queue.event_queue_per_concurrency_id[demo.fns[0].concurrency_id]
@@ -1450,7 +1452,9 @@ def test_a_stream_dropped_while_waiting_for_a_worker_does_not_run_again():
         heard = gr.Textbox()
         audio.stream(record, audio, heard)
         gr.Button().click(lambda: time.sleep(2), None, None)
-    _, local_url, _ = demo.launch(prevent_thread_lock=True, max_threads=1)
+    _, local_url, _ = demo.launch(
+        prevent_thread_lock=True, max_threads=1, executor="thread"
+    )
     api = f"{local_url.rstrip('/')}{API_PREFIX}"
     try:
         with httpx2.Client(timeout=10) as http:

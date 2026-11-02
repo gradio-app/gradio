@@ -999,6 +999,10 @@ class Harness:
         return received
 
     def event_running(self, event_id):
+        worker = getattr(self.demo, "_process_worker", None)
+        if worker is not None:
+            # The gateway's queue tells this process when the event ends
+            return event_id in worker.event_handles
         return event_id in self.demo._queue.event_ids_to_events
 
     def handler(self, webrtc_id):
@@ -1023,6 +1027,7 @@ class TestStreams:
         handler = params.pop("handler", flip)
         stream_kwargs = params.pop("stream_kwargs", {})
         second_kwargs = params.pop("second", None)
+        executor = getattr(request.cls, "executor", "thread")
         with gr.Blocks() as demo:
             webrtc = gr.WebRTC(**params)
             slider = gr.Slider()
@@ -1047,7 +1052,9 @@ class TestStreams:
                 second = gr.WebRTC(**second_kwargs)
                 second.stream(flip, inputs=[second], outputs=[second])
         with closing(demo):
-            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            # Most tests read the queue's events, which are in this process
+            # only with threads (see TestStreamsWithProcesses)
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
             harness = Harness(demo, local_url, webrtc)
             if second_kwargs is not None:
                 harness.second = second
@@ -2240,7 +2247,7 @@ class TestStreams:
         with gr.Blocks() as demo:
             webrtc = gr.WebRTC(rtc_configuration=issue_credentials)
         with closing(demo):
-            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
             async with httpx2.AsyncClient(timeout=10) as http:
                 response = await http.post(
                     f"{local_url.rstrip('/')}{API_PREFIX}/component_server/",
@@ -2304,6 +2311,205 @@ class TestStreams:
         }
 
 
+class TestStreamsWithProcesses:
+    """Streams with executor="process": the queue runs in the gateway process,
+    and the stream's function and media in this one, which reaches the
+    queue's event through `ForwardingQueue.event_handle`."""
+
+    executor = "process"
+    launched = TestStreams.launched
+
+    # The answer comes once the gateway's queue let the stream in
+    test_video_offer_gets_answer_once_admitted = (
+        TestStreams.test_video_offer_gets_answer_once_admitted
+    )
+    # Outputs emitted between calls, and keepalives, wake the event there
+    test_additional_outputs_reach_the_other_outputs = (
+        TestStreams.test_additional_outputs_reach_the_other_outputs
+    )
+    test_keepalive_wakes_a_quiet_stream = (
+        TestStreams.test_keepalive_wakes_a_quiet_stream
+    )
+    # The page's close reaches the stream here, which delivers what is
+    # pending; the media closes once the gateway says that the event ended
+    test_closing_the_stream_closes_the_connection = (
+        TestStreams.test_closing_the_stream_closes_the_connection
+    )
+    test_closing_the_stream_delivers_every_pending_output = (
+        TestStreams.test_closing_the_stream_delivers_every_pending_output
+    )
+    test_closing_a_stream_whose_handler_just_failed_fails_it = (
+        TestStreams.test_closing_a_stream_whose_handler_just_failed_fails_it
+    )
+    # The stream, not the queue, keeps the time limit
+    test_a_stream_ended_by_its_time_limit_fails_if_its_handler_did = (
+        TestStreams.test_a_stream_ended_by_its_time_limit_fails_if_its_handler_did
+    )
+    test_admitted_stream_that_never_connects_gives_up = (
+        TestStreams.test_admitted_stream_that_never_connects_gives_up
+    )
+
+
+REPLICA_APP = """
+import os
+
+import gradio as gr
+from gradio.webrtc import AdditionalOutputs
+
+
+def handler(frame):
+    return frame, AdditionalOutputs(os.getpid())
+
+
+with gr.Blocks() as demo:
+    webrtc = gr.WebRTC()
+    pid = gr.Number()
+    webrtc.stream(handler, inputs=[webrtc], outputs=[webrtc, pid], concurrency_limit=1)
+
+demo.launch(server_port=int(os.environ["PORT"]))
+"""
+
+
+@pytest.mark.asyncio
+async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
+    import os
+    import signal
+    import socket
+    import subprocess
+    import sys
+
+    script = tmp_path / "app.py"
+    script.write_text(REPLICA_APP)
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    proc = subprocess.Popen(
+        [sys.executable, str(script)],
+        env={**os.environ, "GRADIO_PROCESS_REPLICAS": "2", "PORT": str(port)},
+        start_new_session=True,
+    )
+    api = f"http://127.0.0.1:{port}{API_PREFIX}"
+    pcs, readers = [], []
+    try:
+        async with httpx2.AsyncClient(timeout=15) as http:
+            deadline = time.monotonic() + 120
+            while time.monotonic() < deadline:
+                try:
+                    status = (await http.get(f"{api}/processes")).json()
+                    if len(status["processes"]) == 2 and not status["starting"]:
+                        break
+                except (httpx2.HTTPError, ValueError):
+                    pass
+                await asyncio.sleep(0.5)
+            config = (await http.get(f"http://127.0.0.1:{port}/config")).json()
+            webrtc_id = next(
+                c["id"] for c in config["components"] if c["type"] == "webrtc"
+            )
+            stream_fn, tick_fn = (
+                next(
+                    d["id"]
+                    for d in config["dependencies"]
+                    if [webrtc_id, event] in d["targets"]
+                )
+                for event in ("stream", "tick")
+            )
+
+            received = {}
+
+            async def read(session_hash):
+                # One stream per session for the whole test: a page that closes
+                # it leaves, which ends its events
+                async with http.stream(
+                    "GET", f"{api}/queue/data", params={"session_hash": session_hash}
+                ) as response:
+                    async for line in response.aiter_lines():
+                        if line.startswith("data:"):
+                            received[session_hash].append(json.loads(line[5:]))
+
+            async def wait_for(session_hash, condition):
+                deadline = time.monotonic() + 30
+                while not (found := condition(received[session_hash])):
+                    assert time.monotonic() < deadline, received[session_hash]
+                    await asyncio.sleep(0.05)
+                return found
+
+            async def join(fn_index, data, session_hash):
+                response = await http.post(
+                    f"{api}/queue/join",
+                    json={
+                        "data": data,
+                        "fn_index": fn_index,
+                        "session_hash": session_hash,
+                    },
+                )
+                return response.json()["event_id"]
+
+            def streamed_pid(ms):
+                return next(
+                    (
+                        m["output"]["data"][1]
+                        for m in ms
+                        if m.get("msg") == "process_streaming"
+                        and isinstance(m["output"]["data"][1], int | float)
+                    ),
+                    None,
+                )
+
+            events, pids = {}, {}
+            for session in ("first", "second"):
+                events[session] = await join(stream_fn, [session], session)
+                received[session] = []
+                readers.append(asyncio.create_task(read(session)))
+                pc = await make_offer(video=True)
+                pcs.append(pc)
+                answer = (
+                    await http.post(
+                        f"{api}/component_server/",
+                        json={
+                            "session_hash": session,
+                            "component_id": webrtc_id,
+                            "fn_name": "offer",
+                            "data": {
+                                "sdp": pc.localDescription.sdp,
+                                "type": pc.localDescription.type,
+                                "webrtc_id": session,
+                            },
+                        },
+                    )
+                ).json()
+                assert answer["type"] == "answer", answer
+                await pc.setRemoteDescription(
+                    RTCSessionDescription(answer["sdp"], answer["type"])
+                )
+                # The handler runs once the page has sent the inputs
+                await join(tick_fn, [session], session)
+                pids[session] = await wait_for(session, streamed_pid)
+            # concurrency_limit=1 applies per process, so the second stream
+            # runs on the other one
+            assert pids["first"] != pids["second"]
+
+            for session, pc in zip(("first", "second"), pcs, strict=True):
+                await http.post(f"{api}/stream/{events[session]}/close")
+                await wait_for(session, completed)
+                completion = next(
+                    m for m in received[session] if m["msg"] == "process_completed"
+                )
+                assert completion["success"] is True
+                # The process of the stream closes its connection once the
+                # gateway says that the event ended
+                deadline = time.monotonic() + 15
+                while pc.connectionState not in ("closed", "failed"):
+                    assert time.monotonic() < deadline, pc.connectionState
+                    await asyncio.sleep(0.1)
+    finally:
+        for task in readers:
+            task.cancel()
+        for pc in pcs:
+            await pc.close()
+        os.killpg(proc.pid, signal.SIGTERM)
+        proc.wait(timeout=30)
+
+
 @pytest.mark.asyncio
 async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
     monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
@@ -2326,7 +2532,9 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         if (busy._id, "click") in [tuple(t) for t in fn.targets]
     )
     with closing(demo):
-        _, local_url, _ = demo.launch(prevent_thread_lock=True, max_threads=1)
+        _, local_url, _ = demo.launch(
+            prevent_thread_lock=True, max_threads=1, executor="thread"
+        )
         h = Harness(demo, local_url, webrtc)
         # Made first: gathering its candidates can take longer than the time
         # limit, which counts from the admission

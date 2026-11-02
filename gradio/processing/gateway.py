@@ -14,6 +14,7 @@ import asyncio
 import contextlib
 import inspect
 import itertools
+import math
 import os
 import pickle
 import signal
@@ -31,6 +32,10 @@ if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
     from gradio.data_classes import PredictBodyInternal
     from gradio.routes import App
+
+# Seconds the page's close of a stream waits for the app's process to end it,
+# before the queue ends the event itself
+CLOSE_STREAM_TIMEOUT = 5
 
 
 class Link:
@@ -57,6 +62,9 @@ class Link:
         self.running = 0
         self.slots: dict[str, asyncio.Semaphore] = {}
         self.held: dict[str, asyncio.Semaphore] = {}
+        # Events whose function keeps working here between its calls (a
+        # gr.WebRTC stream's media), until the queue ends them
+        self.serving_events: set[str] = set()
         self.started: dict[str, float] = {}
         self.completed = 0
         self.draining = False
@@ -99,8 +107,13 @@ class Link:
     @property
     def active(self) -> bool:
         """Whether an event is running here, or a generator or stream is
-        between steps, holding its slot here."""
-        return self.running > 0 or bool(self.started) or bool(self.held)
+        between steps, holding its slot here or working here meanwhile."""
+        return (
+            self.running > 0
+            or bool(self.started)
+            or bool(self.held)
+            or bool(self.serving_events)
+        )
 
     @property
     def responsive(self) -> bool:
@@ -141,6 +154,10 @@ class Link:
                 future.set_exception(protocol.restore_error(message[2]))
         elif kind in ("log", "progress") and self.server_loop is not None:
             self.server_loop.call_soon_threadsafe(self.pool.deliver, message)
+        elif kind == "event_action" and self.server_loop is not None:
+            self.server_loop.call_soon_threadsafe(
+                self.pool.apply_event_actions, self, message[1], [message[2]]
+            )
         elif kind == "replica":
             self.pool.add_replica(message[1])
         elif kind == "replica_failed":
@@ -214,6 +231,8 @@ class Pool:
         self.limits: dict[int, int | None] = {}
         self.reserved: dict[str, tuple[Link, str]] = {}
         self.streams: dict[str, Link] = {}
+        # The process where each event in `Link.serving_events` works
+        self.event_links: dict[str, Link] = {}
         self.group_limits: dict[str, int] = {}
         self.expected = 1
         self.autoscaler: Any = None
@@ -402,11 +421,59 @@ class Pool:
 
     def end_event(self, event: Any) -> None:
         """The queue is done with `event`: a stream gives back the slot that it
-        held between chunks. A generator's goes back when it is closed."""
+        held between chunks. A generator's goes back when it is closed. A
+        process that works for the event between its calls is told."""
         link = self.streams.pop(event._id, None)
         if link is not None:
             link.release(event._id)
             self.check_drained(link)
+        link = self.event_links.pop(event._id, None)
+        if link is not None:
+            link.serving_events.discard(event._id)
+            link.send(("event_ended", event._id))
+            self.check_drained(link)
+
+    def apply_event_actions(self, link: Link, event_id: str, actions: list) -> None:
+        """What an event's function in `link`'s process asked of the queue (see
+        `queueing.EventHandle`). From then on that process works for the event
+        between its calls, until `end_event`."""
+        event = self.blocks._queue.event_ids_to_events.get(event_id)
+        if event is None or not actions:
+            return
+        if event_id not in self.event_links:
+            self.event_links[event_id] = link
+            link.serving_events.add(event_id)
+        for action in actions:
+            if action == "wake":
+                event.signal.set()
+            elif action == "disable_time_limit":
+                event.run_time = -math.inf
+            elif action == "finish":
+                event.closed = True
+
+    async def close_stream(self, event: Any) -> bool:
+        """`BlockFunction.close_stream` of an event whose function works in an
+        app's process: asks it there. False, so that the queue ends the event
+        itself, when no process works for it or the process does not answer."""
+        link = self.event_links.get(event._id)
+        if link is None:
+            return False
+        try:
+            return bool(
+                await asyncio.wait_for(
+                    link.call(
+                        "close_stream",
+                        {
+                            "event_id": event._id,
+                            "session_hash": event.session_hash,
+                            "fn_index": event.fn._id,
+                        },
+                    ),
+                    CLOSE_STREAM_TIMEOUT,
+                )
+            )
+        except Exception:  # noqa: BLE001 -- the queue ends the event instead
+            return False
 
     def process_limit(self, fn: BlockFunction) -> int | None:
         """How many events of `fn`'s concurrency group one process runs at
@@ -584,9 +651,14 @@ async def forward_event(
                 "request": protocol.portable_request(gr_request),
                 "root_path": root_path,
                 "probe_cache": probing,
+                "concurrency_limit": pool.process_limit(fn),
             },
         )
         returned = True
+        actions = output.pop("event_actions", None)
+        event_id = queue_event_id or body.event_id
+        if actions and event_id:
+            pool.apply_event_actions(link, event_id, actions)
         if protocol.files_by_value():
             from gradio.utils import get_upload_folder
 
