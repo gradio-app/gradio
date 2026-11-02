@@ -22,31 +22,6 @@ export function get_zerogpu_origin(hostname: string): string | null {
 	return null;
 }
 
-/**
- * Wraps `request` so that calls made while a request is pending share its
- * result instead of making their own. A request that has not settled after
- * `max_age_ms` is no longer shared, so that one that never settles does not
- * hold up later calls.
- */
-export function shared_request<T>(
-	request: () => Promise<T>,
-	max_age_ms: number
-): () => Promise<T> {
-	let pending: Promise<T> | null = null;
-	return () => {
-		if (!pending) {
-			const current = request();
-			const forget = (): void => {
-				if (pending === current) pending = null;
-			};
-			pending = current;
-			current.then(forget, forget);
-			setTimeout(forget, max_age_ms);
-		}
-		return pending;
-	};
-}
-
 /** Resolves with `fallback` if `promise` has not settled within `ms`. */
 export function with_timeout<T, F>(
 	promise: Promise<T>,
@@ -60,7 +35,7 @@ export function with_timeout<T, F>(
 	return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
-/** How long a server function call waits for the ZeroGPU headers. */
+/** How long a WebRTC offer waits for the ZeroGPU headers. */
 export const ZEROGPU_HEADERS_TIMEOUT_MS = 5000;
 
 /**

@@ -2349,11 +2349,8 @@ class App(FastAPI):
         )
         async def component_server(
             request: fastapi.Request,
-            username: str = Depends(get_current_user),
         ):
             body = await get_item_or_file(request)
-            # The visitor's session and login, as event listeners get them
-            gr_request = Request(request, username, session_hash=body.session_hash)
             state = app.state_holder[body.session_hash]
             component_id = body.component_id
             block: Block
@@ -2370,7 +2367,7 @@ class App(FastAPI):
             processed_input, *_ = special_args(
                 fn,
                 [body.data],
-                gr_request,
+                request,  # type: ignore
                 None,
             )
             fn = utils.get_function_with_locals(
@@ -2378,7 +2375,7 @@ class App(FastAPI):
                 app.get_blocks(),
                 event_id=None,
                 in_event_listener=False,
-                request=gr_request,
+                request=request,  # type: ignore
                 state=state,
             )
             if inspect.iscoroutinefunction(fn):
@@ -2386,6 +2383,61 @@ class App(FastAPI):
             return await anyio.to_thread.run_sync(
                 fn, *processed_input, limiter=app.get_blocks().limiter
             )
+
+        async def webrtc_signal(
+            request: fastapi.Request, username: str | None, name: str
+        ) -> Any:
+            # Signalling of a WebRTC stream, which finds the stream by its id.
+            # It runs as a server function does, with the visitor's request in
+            # the context: the handler's tasks start from the offer and inherit
+            # it (gr.Request, ZeroGPU headers).
+            try:
+                body = await request.json()
+            except ValueError:
+                body = None
+            if not isinstance(body, dict):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid JSON body.",
+                )
+            try:
+                from gradio.webrtc import connection
+            except ImportError:
+                if name == "offer":
+                    return {"status": "failed", "meta": {"error": "no_stream_handler"}}
+                return {"error": "No stream handler is attached to this app."}
+            session_hash = body.get("session_hash")
+            gr_request = Request(request, username, session_hash=session_hash)
+            fn = (
+                connection.handle_signal
+                if name == "offer"
+                else connection.get_rtc_configuration
+            )
+            fn = utils.get_function_with_locals(
+                fn,
+                app.get_blocks(),
+                event_id=None,
+                in_event_listener=False,
+                request=gr_request,
+                state=app.state_holder[session_hash]
+                if isinstance(session_hash, str)
+                else None,
+            )
+            return await fn(body, gr_request)
+
+        @router.post("/webrtc/offer", dependencies=[Depends(login_check)])
+        async def webrtc_offer(
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            return await webrtc_signal(request, username, "offer")
+
+        @router.post("/webrtc/rtc_configuration", dependencies=[Depends(login_check)])
+        async def webrtc_rtc_configuration(
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            return await webrtc_signal(request, username, "rtc_configuration")
 
         @router.get(
             "/queue/status",

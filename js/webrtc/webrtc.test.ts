@@ -91,15 +91,24 @@ function fake_stream(kind: "video" | "audio"): MediaStream {
 	return new AudioContext().createMediaStreamDestination().stream;
 }
 
+// A client whose signalling calls the tests watch through `offer` and
+// `get_rtc_configuration`
 function make_server(
 	offer_response: Record<string, unknown> = {
 		sdp: "v=0 answer",
 		type: "answer"
 	}
 ) {
+	const offer = vi.fn(async (_body?: any) => offer_response);
+	const get_rtc_configuration = vi.fn(
+		async (_body?: any): Promise<any> => ({ iceServers: [] })
+	);
 	return {
-		offer: vi.fn(async () => offer_response),
-		get_rtc_configuration: vi.fn(async () => ({ iceServers: [] }))
+		offer,
+		get_rtc_configuration,
+		webrtc_offer: (body: Record<string, unknown>) => offer(body),
+		webrtc_rtc_configuration: (webrtc_id: string) =>
+			get_rtc_configuration({ webrtc_id })
 	};
 }
 
@@ -158,7 +167,7 @@ const base_props = {
 	width: null,
 	has_stream: true,
 	interactive: true,
-	server: make_server()
+	client: make_server()
 };
 
 beforeEach(() => {
@@ -199,7 +208,7 @@ describe("WebRTC interactive", () => {
 			const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
 				...base_props,
 				modality,
-				server: make_server()
+				client: make_server()
 			});
 			await fireEvent.click(
 				getByText(
@@ -225,7 +234,7 @@ describe("WebRTC interactive", () => {
 	test("a running stream can still be stopped", async () => {
 		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
 			...base_props,
-			server: make_server()
+			client: make_server()
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() =>
@@ -248,7 +257,7 @@ describe("WebRTC interactive", () => {
 		const { getByText } = await render(WebRTC, {
 			...base_props,
 			interactive: false,
-			server: make_server()
+			client: make_server()
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await new Promise((resolve) => setTimeout(resolve, 50));
@@ -261,7 +270,7 @@ describe("WebRTC send-receive video", () => {
 		const server = make_server();
 		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
 			...base_props,
-			server
+			client: server
 		});
 
 		await fireEvent.click(getByText("Click to Access Webcam"));
@@ -316,7 +325,7 @@ describe("WebRTC send-receive video", () => {
 			const { getByRole, getByText, set_data } = await render(WebRTC, {
 				...base_props,
 				mirror_webcam,
-				server
+				client: server
 			});
 			await fireEvent.click(getByText("Click to Access Webcam"));
 			await waitFor(() => {
@@ -350,7 +359,7 @@ describe("WebRTC send-receive video", () => {
 		const get_user_media = vi.mocked(navigator.mediaDevices.getUserMedia);
 		const { getByRole, getByText, queryByRole, set_data } = await render(
 			WebRTC,
-			{ ...base_props, server }
+			{ ...base_props, client: server }
 		);
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -386,7 +395,7 @@ describe("WebRTC send-receive video", () => {
 		);
 		const { getByText, listen } = await render(WebRTC, {
 			...base_props,
-			server: make_server()
+			client: make_server()
 		});
 		const error = listen("error");
 		await fireEvent.click(getByText("Click to Access Webcam"));
@@ -406,7 +415,7 @@ describe("WebRTC send-receive video", () => {
 		);
 		const { getByText, unmount } = await render(WebRTC, {
 			...base_props,
-			server: make_server()
+			client: make_server()
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => expect(get_user_media).toHaveBeenCalled());
@@ -425,7 +434,7 @@ describe("WebRTC send-receive video", () => {
 		const server = make_server();
 		const { getByRole, getByText, set_data } = await render(WebRTC, {
 			...base_props,
-			server
+			client: server
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -446,7 +455,7 @@ describe("WebRTC send-receive video", () => {
 		const server = make_server();
 		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
 			...base_props,
-			server
+			client: server
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -482,7 +491,7 @@ describe("WebRTC send-receive video", () => {
 		});
 		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
 			...base_props,
-			server
+			client: server
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -509,7 +518,7 @@ describe("WebRTC send-receive video", () => {
 		const server = make_server();
 		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
 			...base_props,
-			server
+			client: server
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -541,7 +550,7 @@ describe("WebRTC send-receive video", () => {
 		const server = make_server();
 		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
 			...base_props,
-			server
+			client: server
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -567,7 +576,7 @@ describe("WebRTC send-receive video", () => {
 		});
 		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
 			...base_props,
-			server
+			client: server
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -594,7 +603,7 @@ describe("WebRTC send-receive video", () => {
 		const server = make_server();
 		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
 			...base_props,
-			server
+			client: server
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -638,7 +647,7 @@ describe("WebRTC send-receive video", () => {
 		const server = make_server();
 		const { getByRole, getByText, set_data } = await render(WebRTC, {
 			...base_props,
-			server
+			client: server
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -671,7 +680,7 @@ describe("WebRTC send-receive video", () => {
 		const server = make_server();
 		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
 			...base_props,
-			server
+			client: server
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -767,7 +776,7 @@ describe("WebRTC camera choice", () => {
 		const server = make_server();
 		const { getByRole, getByText, getByLabelText, set_data } = await render(
 			WebRTC,
-			{ ...base_props, modality: "audio-video", server }
+			{ ...base_props, modality: "audio-video", client: server }
 		);
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -815,7 +824,11 @@ describe("WebRTC camera choice", () => {
 describe("WebRTC queue turn", () => {
 	async function ready_webcam(props: Record<string, any> = {}) {
 		const server = make_server();
-		const result = await render(WebRTC, { ...base_props, server, ...props });
+		const result = await render(WebRTC, {
+			...base_props,
+			client: server,
+			...props
+		});
 		await fireEvent.click(result.getByText("Click to Access Webcam"));
 		await waitFor(() => {
 			expect(
@@ -847,7 +860,7 @@ describe("WebRTC queue turn", () => {
 		const { set_data, getByTestId } = await render(WebRTC, {
 			...base_props,
 			mode: "receive",
-			server
+			client: server
 		});
 		await set_data({ value: START_STREAM });
 		await admit(set_data);
@@ -946,7 +959,7 @@ describe("WebRTC queue turn", () => {
 		const { getByText, set_data } = await render(WebRTC, {
 			...base_props,
 			mode: "receive",
-			server: make_server()
+			client: make_server()
 		});
 		await set_data({ value: START_STREAM });
 		await set_data({
@@ -971,7 +984,7 @@ describe("WebRTC queue turn", () => {
 				...base_props.stream_options,
 				button_labels: { waiting: "In line" }
 			},
-			server: make_server()
+			client: make_server()
 		});
 		await set_data({ value: START_STREAM });
 		await queue_reports(set_data, "waiting");
@@ -982,7 +995,7 @@ describe("WebRTC queue turn", () => {
 		const { getByRole, listen, set_data } = await render(WebRTC, {
 			...base_props,
 			mode: "receive",
-			server: make_server()
+			client: make_server()
 		});
 		const close_stream = listen("close_stream");
 		await set_data({ value: START_STREAM });
@@ -1059,7 +1072,7 @@ describe("WebRTC queue turn", () => {
 
 	test("a configuration request that fails is reported instead of connecting without it", async () => {
 		const { getByRole, listen, set_data, server } = await ready_webcam();
-		// What a server function call resolves to when the request failed
+		// What the client resolves to when the request failed
 		server.get_rtc_configuration.mockResolvedValueOnce(undefined as any);
 		const error = listen("error");
 		await fireEvent.click(getByRole("button", { name: "start stream" }));
@@ -1078,7 +1091,7 @@ describe("WebRTC queue turn", () => {
 		const { set_data, unmount } = await render(WebRTC, {
 			...base_props,
 			mode: "receive",
-			server
+			client: server
 		});
 		await set_data({ value: START_STREAM });
 		await admit(set_data);
@@ -1097,7 +1110,7 @@ describe("WebRTC queue turn", () => {
 		const { listen, set_data } = await render(WebRTC, {
 			...base_props,
 			mode: "receive",
-			server
+			client: server
 		});
 		const stream = listen("stream");
 		await set_data({ value: START_STREAM });
@@ -1117,7 +1130,7 @@ describe("WebRTC receive video", () => {
 		const { listen, set_data } = await render(WebRTC, {
 			...base_props,
 			mode: "receive",
-			server
+			client: server
 		});
 		const change = listen("change");
 		const stream = listen("stream");
@@ -1144,7 +1157,7 @@ describe("WebRTC audio", () => {
 			...base_props,
 			mode: "send",
 			modality: "audio",
-			server
+			client: server
 		});
 		await fireEvent.click(getByText("Click to Access Microphone"));
 		await waitFor(() => {
@@ -1188,7 +1201,7 @@ describe("WebRTC audio", () => {
 			...base_props,
 			mode: "send-receive",
 			modality: "audio",
-			server: make_server()
+			client: make_server()
 		});
 		await fireEvent.click(getByText("Click to Access Microphone"));
 		await waitFor(() => {
@@ -1237,7 +1250,7 @@ describe("WebRTC audio", () => {
 		const { getByRole, getByText, set_data } = await render(WebRTC, {
 			...base_props,
 			modality: "audio-video",
-			server: make_server()
+			client: make_server()
 		});
 		await fireEvent.click(getByText("Click to Access Webcam"));
 		await waitFor(() => {
@@ -1278,7 +1291,7 @@ describe("WebRTC audio", () => {
 			...base_props,
 			mode: "send-receive",
 			modality: "audio",
-			server: make_server()
+			client: make_server()
 		});
 		await fireEvent.click(getByText("Click to Access Microphone"));
 		await waitFor(() => {
@@ -1328,7 +1341,7 @@ describe("WebRTC audio", () => {
 					...base_props.stream_options,
 					icon: { url: "https://example.com/icon.png" }
 				},
-				server: make_server()
+				client: make_server()
 			});
 			await fireEvent.click(getByText("Click to Access Microphone"));
 

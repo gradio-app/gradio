@@ -40,7 +40,11 @@
 	});
 	gradio.watch_for_change();
 
-	let server = $derived(gradio.shared.server as unknown as WebRTCServer);
+	let server: WebRTCServer = $derived({
+		offer: (body) => gradio.shared.client.webrtc_offer(body),
+		get_rtc_configuration: ({ webrtc_id }) =>
+			gradio.shared.client.webrtc_rtc_configuration(webrtc_id)
+	});
 	let options = $derived(gradio.props.stream_options);
 	// Labels given with gr.I18n arrive as markers; an empty label falls back
 	// to the translated default in the players

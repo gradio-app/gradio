@@ -58,8 +58,26 @@ def flip(frame, *args):
     return frame
 
 
-async def admitted_anyway(webrtc_id, session_hash, component_id):
-    return SimpleNamespace(rtc_configuration=None)
+def admitted_anyway(managers):
+    """`stream_admitted` that admits any session, to the given manager by id."""
+
+    async def admitted(webrtc_id, session_hash):
+        return managers[webrtc_id], SimpleNamespace(rtc_configuration=None)
+
+    return admitted
+
+
+def rtc_manager(rtc_configuration=None):
+    """A manager with this browser configuration, as `stream()` creates it."""
+    return webrtc_connection.ConnectionManager(
+        handler=flip,
+        mode="send-receive",
+        modality="video",
+        time_limit=None,
+        allow_extra_tracks=False,
+        server_rtc_configuration=None,
+        rtc_configuration=rtc_configuration,
+    )
 
 
 issued_credentials: list = []
@@ -330,11 +348,7 @@ class TestWebRTC:
         assert config["track_constraints"]["facingMode"] == "user"
         assert config["mirror_webcam"] == "auto"
         assert config["time_limit"] is None
-        assert set(config["server_fns"]) == {"get_rtc_configuration", "offer"}
-        # Only the offer starts GPU work, so only its calls wait for the
-        # visitor's ZeroGPU headers
-        assert config["zerogpu_server_fns"] == ["offer"]
-        assert "zerogpu_server_fns" not in gr.FileExplorer().get_config()
+        assert "server_fns" not in config
         assert webrtc.preprocess(gr.WebRTC.data_model(root="abc")) == "abc"
         assert webrtc.preprocess(None) is None
         assert webrtc.postprocess("abc") == "abc"
@@ -949,7 +963,7 @@ class Harness:
         await self.wait_until(lambda: webrtc_id in self.manager.sessions)
         return event_id
 
-    async def offer(self, pc, webrtc_id, component=None, session_hash=None, **extra):
+    async def offer(self, pc, webrtc_id, session_hash=None, **extra):
         body = {
             "sdp": pc.localDescription.sdp,
             "type": pc.localDescription.type,
@@ -958,17 +972,12 @@ class Harness:
         if webrtc_id is not None:
             body["webrtc_id"] = webrtc_id
         session_hash = session_hash or self.sessions.get(webrtc_id, "session")
-        return await self.server_fn("offer", body, component, session_hash)
+        return await self.signal("offer", body, session_hash)
 
-    async def server_fn(self, fn_name, data, component=None, session_hash="session"):
+    async def signal(self, route, body, session_hash="session"):
         response = await self.http.post(
-            f"{self.api}/component_server/",
-            json={
-                "session_hash": session_hash,
-                "component_id": (component or self.webrtc)._id,
-                "fn_name": fn_name,
-                "data": data,
-            },
+            f"{self.api}/webrtc/{route}",
+            json={**body, "session_hash": session_hash},
         )
         assert response.status_code == 200
         return response.json()
@@ -1125,7 +1134,6 @@ class TestStreams:
         event, handle = queue_event()
         session = webrtc_connection.Session(
             event=handle,
-            component_id=0,
             ended=True,
             notifier=cast(
                 Any,
@@ -1584,7 +1592,7 @@ class TestStreams:
         duplicate = await h.offer(second, "one")
         assert duplicate["meta"]["error"] == "connection_already_exists"
         assert (await h.offer(first, None))["meta"]["error"] == "invalid_offer"
-        candidate = await h.server_fn(
+        candidate = await h.signal(
             "offer",
             {
                 "type": "ice-candidate",
@@ -1608,7 +1616,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         # ...nor add candidates to its connection...
-        candidate = await h.server_fn(
+        candidate = await h.signal(
             "offer",
             {
                 "type": "ice-candidate",
@@ -1663,8 +1671,8 @@ class TestStreams:
         h = launched
 
         async def ask(webrtc_id, session_hash):
-            return await h.server_fn(
-                "get_rtc_configuration", {"webrtc_id": webrtc_id}, None, session_hash
+            return await h.signal(
+                "rtc_configuration", {"webrtc_id": webrtc_id}, session_hash
             )
 
         # TURN credentials may be billed to the app's owner, so the queue's
@@ -1686,9 +1694,7 @@ class TestStreams:
         issued_credentials.clear()
         await h.start("one")
         answers = [
-            await h.server_fn(
-                "get_rtc_configuration", {"webrtc_id": "one"}, None, "one"
-            )
+            await h.signal("rtc_configuration", {"webrtc_id": "one"}, "one")
             for _ in range(3)
         ]
         # Asking again within the turn does not issue more credentials on the
@@ -1702,15 +1708,13 @@ class TestStreams:
         [{"second": {"rtc_configuration": {"iceServers": [{"urls": "turn:x"}]}}}],
         indirect=True,
     )
-    async def test_a_turn_gets_only_its_own_components_rtc_configuration(
+    async def test_a_stream_gets_the_rtc_configuration_of_its_own_component(
         self, launched
     ):
         h = launched
         await h.start("one")
-        # A turn in one component's line is no turn in another's
-        assert "error" in await h.server_fn(
-            "get_rtc_configuration", {"webrtc_id": "one"}, h.second, "one"
-        )
+        # Not the other component's TURN servers
+        assert await h.signal("rtc_configuration", {"webrtc_id": "one"}, "one") == {}
 
     @pytest.mark.asyncio
     async def test_wait_for_args_asks_the_page_only_until_values_arrive(self):
@@ -1744,7 +1748,7 @@ class TestStreams:
         await asyncio.sleep(0.2)
         second = asyncio.create_task(wait("late"))
         assert await first is None
-        manager.admit("late", queue_event("late")[1], webrtc._id)
+        manager.admit("late", queue_event("late")[1])
         try:
             assert await second is manager
         finally:
@@ -1875,8 +1879,8 @@ class TestStreams:
     async def test_inputs_reach_connection_made_through_session_copy(self, launched):
         h = launched
         # A gr.update() on the component gives the session a new instance with
-        # its own id, stored under the original id, and the component_server
-        # route then resolves that instance (see Blocks.postprocess_data).
+        # its own id, stored under the original id (see
+        # Blocks.postprocess_data). The stream still finds its manager.
         webrtc = h.webrtc
         session = h.demo.server_app.state_holder["one"]
         session[webrtc._id] = webrtc.__class__(
@@ -1886,12 +1890,7 @@ class TestStreams:
         assert replacement is not webrtc
         assert replacement._id != webrtc._id
         await h.start("one")
-        assert (
-            await h.server_fn(
-                "get_rtc_configuration", {"webrtc_id": "one"}, None, "one"
-            )
-            == {}
-        )
+        assert await h.signal("rtc_configuration", {"webrtc_id": "one"}, "one") == {}
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         await h.push_inputs("one", 0.5)
@@ -2090,7 +2089,7 @@ class TestStreams:
         await h.join("one")
 
         async def send_candidate():
-            return await h.server_fn(
+            return await h.signal(
                 "offer",
                 {
                     "type": "ice-candidate",
@@ -2171,28 +2170,27 @@ class TestStreams:
             calls.append(1)
             return {"iceServers": [{"urls": "turn:example.com"}]}
 
-        webrtc = gr.WebRTC(rtc_configuration=issue_credentials)
-        assert await webrtc._rtc_configuration_for() == {
+        assert await rtc_manager(issue_credentials).rtc_configuration_for() == {
             "iceServers": [{"urls": "turn:example.com"}]
         }
         assert calls == [1]
-        assert await gr.WebRTC()._rtc_configuration_for() == {}
-        assert await gr.WebRTC(
-            rtc_configuration=lambda: {"iceServers": []}
-        )._rtc_configuration_for() == {"iceServers": []}
+        assert await rtc_manager().rtc_configuration_for() == {}
+        assert await rtc_manager(
+            lambda: {"iceServers": []}
+        ).rtc_configuration_for() == {"iceServers": []}
 
         class Credentials:
             async def __call__(self):
                 return {"iceServers": []}
 
-        assert await gr.WebRTC(
-            rtc_configuration=Credentials()
-        )._rtc_configuration_for() == {"iceServers": []}
+        assert await rtc_manager(Credentials()).rtc_configuration_for() == {
+            "iceServers": []
+        }
         # Not a configuration: the page reports it instead of connecting
         # without the ICE servers
-        assert await gr.WebRTC(
-            rtc_configuration=lambda: None
-        )._rtc_configuration_for() == {"error": "An error occurred."}
+        assert await rtc_manager(lambda: None).rtc_configuration_for() == {
+            "error": "An error occurred."
+        }
 
         await asyncio.sleep(0)
 
@@ -2201,8 +2199,6 @@ class TestStreams:
     async def test_rtc_configuration_errors_follow_show_error(
         self, show_error, monkeypatch
     ):
-        monkeypatch.setattr(webrtc_connection, "stream_admitted", admitted_anyway)
-
         def broken():
             raise RuntimeError("internal detail")
 
@@ -2211,55 +2207,77 @@ class TestStreams:
 
         with gr.Blocks() as demo:
             broken_webrtc = gr.WebRTC(rtc_configuration=broken)
+            broken_webrtc.stream(flip, inputs=[broken_webrtc], outputs=[broken_webrtc])
             signed_in_webrtc = gr.WebRTC(rtc_configuration=not_signed_in)
+            signed_in_webrtc.stream(
+                flip, inputs=[signed_in_webrtc], outputs=[signed_in_webrtc]
+            )
+        managers = {
+            "broken": get_manager(broken_webrtc._id),
+            "signed_in": get_manager(signed_in_webrtc._id),
+        }
+        monkeypatch.setattr(
+            webrtc_connection, "stream_admitted", admitted_anyway(managers)
+        )
         with closing(demo):
             _, local_url, _ = demo.launch(
-                prevent_thread_lock=True, show_error=show_error
+                prevent_thread_lock=True, show_error=show_error, executor="thread"
             )
             async with httpx2.AsyncClient(timeout=10) as http:
 
-                async def resolve(webrtc):
+                async def resolve(webrtc_id):
                     response = await http.post(
-                        f"{local_url.rstrip('/')}{API_PREFIX}/component_server/",
-                        json={
-                            "session_hash": "session",
-                            "component_id": webrtc._id,
-                            "fn_name": "get_rtc_configuration",
-                            "data": None,
-                        },
+                        f"{local_url.rstrip('/')}{API_PREFIX}/webrtc/rtc_configuration",
+                        json={"session_hash": "session", "webrtc_id": webrtc_id},
                     )
                     return response.json()
 
                 # Like the error of an event: the message of a gr.Error, other
                 # messages only with show_error
-                assert await resolve(broken_webrtc) == {
+                assert await resolve("broken") == {
                     "error": "internal detail" if show_error else "An error occurred."
                 }
-                assert await resolve(signed_in_webrtc) == {"error": "Sign in first."}
+                assert await resolve("signed_in") == {"error": "Sign in first."}
 
     @pytest.mark.asyncio
     async def test_rtc_configuration_gets_the_request_of_the_page(self, monkeypatch):
-        monkeypatch.setattr(webrtc_connection, "stream_admitted", admitted_anyway)
-
         def issue_credentials(request: gr.Request):
-            return {"iceServers": [], "agent": request.headers["user-agent"]}
+            return {
+                "iceServers": [],
+                "agent": request.headers["user-agent"],
+                "user": request.username,
+                "session": request.session_hash,
+            }
 
         with gr.Blocks() as demo:
             webrtc = gr.WebRTC(rtc_configuration=issue_credentials)
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        monkeypatch.setattr(
+            webrtc_connection,
+            "stream_admitted",
+            admitted_anyway({"one": get_manager(webrtc._id)}),
+        )
         with closing(demo):
-            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
-            async with httpx2.AsyncClient(timeout=10) as http:
-                response = await http.post(
-                    f"{local_url.rstrip('/')}{API_PREFIX}/component_server/",
-                    headers={"User-Agent": "visitor-browser"},
-                    json={
-                        "session_hash": "session",
-                        "component_id": webrtc._id,
-                        "fn_name": "get_rtc_configuration",
-                        "data": None,
-                    },
+            _, local_url, _ = demo.launch(
+                prevent_thread_lock=True,
+                executor="thread",
+                auth=("visitor", "password"),
+            )
+            async with httpx2.AsyncClient(timeout=10, base_url=local_url) as http:
+                await http.post(
+                    "login", data={"username": "visitor", "password": "password"}
                 )
-        assert response.json() == {"iceServers": [], "agent": "visitor-browser"}
+                response = await http.post(
+                    f"{API_PREFIX.lstrip('/')}/webrtc/rtc_configuration",
+                    headers={"User-Agent": "visitor-browser"},
+                    json={"session_hash": "session", "webrtc_id": "one"},
+                )
+        assert response.json() == {
+            "iceServers": [],
+            "agent": "visitor-browser",
+            "user": "visitor",
+            "session": "session",
+        }
 
     @pytest.mark.asyncio
     async def test_rtc_configuration_gets_the_visitor_oauth_token(self):
@@ -2285,28 +2303,28 @@ class TestStreams:
                 "userinfo": {"preferred_username": "visitor"},
             }
         }
-        optional = gr.WebRTC(rtc_configuration=issue_credentials)
-        assert await optional._rtc_configuration_for(page(session)) == {
+        optional = rtc_manager(issue_credentials)
+        assert await optional.rtc_configuration_for(page(session)) == {
             "iceServers": [],
             "token": "visitor-token",
         }
-        assert await optional._rtc_configuration_for(page()) == {
+        assert await optional.rtc_configuration_for(page()) == {
             "iceServers": [],
             "token": None,
         }
-        required = gr.WebRTC(rtc_configuration=logged_in_only)
-        assert await required._rtc_configuration_for(page(session)) == {
+        required = rtc_manager(logged_in_only)
+        assert await required.rtc_configuration_for(page(session)) == {
             "iceServers": [],
             "token": "visitor-token",
         }
-        assert await required._rtc_configuration_for(page()) == {
+        assert await required.rtc_configuration_for(page()) == {
             "error": "This action requires a logged in user. Please sign in and retry."
         }
 
         def refuse():
             raise gr.Error("Sign in first.")
 
-        assert await gr.WebRTC(rtc_configuration=refuse)._rtc_configuration_for() == {
+        assert await rtc_manager(refuse).rtc_configuration_for() == {
             "error": "Sign in first."
         }
 
@@ -2476,16 +2494,12 @@ async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
                 pcs.append(pc)
                 answer = (
                     await http.post(
-                        f"{api}/component_server/",
+                        f"{api}/webrtc/offer",
                         json={
                             "session_hash": session,
-                            "component_id": webrtc_id,
-                            "fn_name": "offer",
-                            "data": {
-                                "sdp": pc.localDescription.sdp,
-                                "type": pc.localDescription.type,
-                                "webrtc_id": session,
-                            },
+                            "sdp": pc.localDescription.sdp,
+                            "type": pc.localDescription.type,
+                            "webrtc_id": session,
                         },
                     )
                 ).json()
@@ -3710,7 +3724,6 @@ class TestCleanUp:
         manager = self.manager()
         manager.sessions["one"] = webrtc_connection.Session(
             event=queue_event()[1],
-            component_id=0,
             notifier=notifier,
         )
         notifier.send("info", "before the end")

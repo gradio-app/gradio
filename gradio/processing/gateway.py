@@ -971,6 +971,9 @@ FORWARDED_ROUTES = [
     ("/component_server", ["POST"]),
     ("/component_server/", ["POST"]),
     ("/deep_link", ["GET"]),
+    # WebRTC signalling, to the process that admitted the stream
+    ("/webrtc/offer", ["POST"]),
+    ("/webrtc/rtc_configuration", ["POST"]),
     ("/stream/{session_hash}/{run}/{component_id}/{rest:path}", ["GET", "HEAD"]),
     ("/mcp", None),
     ("/mcp/{rest:path}", None),

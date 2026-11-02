@@ -382,6 +382,15 @@ async def wait_for_item(queue: asyncio.Queue, timeout: float = 0.1) -> Any:
         return None
 
 
+def is_async(fn: Any) -> bool:
+    """Whether `fn` is async, also when it is an object with an async `__call__`."""
+    call = type(fn).__call__ if callable(fn) else None
+    return any(
+        inspect.iscoroutinefunction(f) or inspect.isasyncgenfunction(f)
+        for f in (fn, call)
+    )
+
+
 def bind_special_args(fn: Callable, request: Any) -> Callable:
     """
     Returns `fn` with its special parameters (`gr.Request`, `gr.OAuthProfile`,

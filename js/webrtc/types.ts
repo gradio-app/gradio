@@ -4,13 +4,14 @@ export type Mode = "send-receive" | "send" | "receive";
 export type Modality = "video" | "audio" | "audio-video";
 export type StreamState = "open" | "waiting" | "closed";
 
-/** Server functions exposed by the Python component. */
+/** The stream's signalling, through the client's /webrtc routes. */
 export interface WebRTCServer {
 	offer: (body: Record<string, unknown>) => Promise<any>;
-	// Only for a stream whose turn has come, from the page that started it
+	// Only for a stream whose turn has come, from the page that started it.
+	// Undefined when the request failed.
 	get_rtc_configuration: (body: {
 		webrtc_id: string;
-	}) => Promise<Record<string, any>>;
+	}) => Promise<Record<string, any> | undefined>;
 }
 
 /**

@@ -2,27 +2,24 @@
 
 from __future__ import annotations
 
-import asyncio
 import dataclasses
 import inspect
 import logging
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal, cast
 
-import anyio
 from gradio_client.documentation import document
 
 from gradio import utils
 from gradio.components.audio import MicrophoneOptions
-from gradio.components.base import Component, server
+from gradio.components.base import Component
 from gradio.components.image_editor import WebcamOptions
 from gradio.context import LocalContext, get_blocks_context
 from gradio.data_classes import GradioRootModel
 from gradio.events import Dependency, EventListenerMethod, Events
 from gradio.exceptions import Error
-from gradio.helpers import skip, special_args
+from gradio.helpers import skip
 from gradio.i18n import I18nData
-from gradio.route_utils import Request
 from gradio.webrtc.handlers import (
     AsyncAudioVideoStreamHandler,
     AsyncStreamHandler,
@@ -34,7 +31,7 @@ from gradio.webrtc.handlers import (
     VideoOptions,
     VideoStreamHandler,
 )
-from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
+from gradio.webrtc.utils import WEBRTC_EXTRA_HINT, is_async
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -115,15 +112,6 @@ class StreamOptions:
                 'button_labels takes the keys "start", "stop" and "waiting", '
                 f"got {sorted(unknown)}"
             )
-
-
-def _is_async(fn: Any) -> bool:
-    """Whether `fn` is async, also when it is an object with an async `__call__`."""
-    call = type(fn).__call__ if callable(fn) else None
-    return any(
-        inspect.iscoroutinefunction(f) or inspect.isasyncgenfunction(f)
-        for f in (fn, call)
-    )
 
 
 def _to_list(blocks: Block | Sequence[Block] | set[Block] | None) -> list[Block]:
@@ -223,7 +211,7 @@ class WebRTC(Component):
         self.mode = mode
         self.modality = modality
         # Kept off the config: a callable cannot be serialized, and the browser
-        # fetches the configuration through `get_rtc_configuration` anyway.
+        # fetches the configuration from /webrtc/rtc_configuration anyway.
         self._rtc_configuration = rtc_configuration
         # Private for the same reason, and so that gr.update() cannot send it
         self._server_rtc_configuration = server_rtc_configuration
@@ -448,6 +436,7 @@ class WebRTC(Component):
             allow_extra_tracks=self.allow_extra_tracks,
             server_rtc_configuration=self._server_rtc_configuration,
             video_bitrate=self.video_bitrate,
+            rtc_configuration=self._rtc_configuration,
         )
 
         # The event holds this stream()'s own manager, and keeps it alive for as
@@ -570,7 +559,7 @@ class WebRTC(Component):
             raise ValueError("`fn` must be a callable or a VideoOptions.")
         elif not is_handler:
             function = fn.callable if isinstance(fn, VideoOptions) else fn
-            if _is_async(function):
+            if is_async(function):
                 raise ValueError(
                     "`fn` must be a regular function or generator, which runs in "
                     "a worker thread; for async code, use an "
@@ -649,7 +638,7 @@ class WebRTC(Component):
             # serves the stream that the first call admitted
             stream_id = admitted_id(event.id)
             if stream_id is None:
-                if not webrtc_id or not manager.admit(webrtc_id, event, self._id):
+                if not webrtc_id or not manager.admit(webrtc_id, event):
                     # No id, or one that belongs to another event's stream: end
                     # this event instead of letting it hold a place it cannot
                     # use. Nothing would wake it before its time limit.
@@ -678,84 +667,3 @@ class WebRTC(Component):
                         )
                     nothing = [skip(), *outputs.args]
         return nothing[0] if len(nothing) == 1 else tuple(nothing)
-
-    async def _resolve_rtc_configuration(
-        self, request: Request | None = None
-    ) -> dict[str, Any]:
-        config = self._rtc_configuration
-        if config is None:
-            return {}
-        if not callable(config):
-            return cast(dict[str, Any], config)
-        # Same injection as event listeners, so that the function can e.g.
-        # issue TURN credentials with the visitor's gr.OAuthToken
-        args, *_ = special_args(config, [], request)
-        if _is_async(config):
-            result = await config(*args)
-        else:
-            result = await anyio.to_thread.run_sync(config, *args)
-        if not isinstance(result, dict):
-            raise TypeError(
-                "The rtc_configuration function must return a dict, but it "
-                f"returned a {type(result).__name__}."
-            )
-        return result
-
-    async def _rtc_configuration_for(
-        self, request: Request | None = None
-    ) -> dict[str, Any]:
-        try:
-            return await self._resolve_rtc_configuration(request)
-        except Exception as e:
-            # A gr.Error is a message for the visitor (e.g. "sign in first"),
-            # not a failure
-            if not isinstance(e, Error):
-                logger.exception("Could not resolve rtc_configuration")
-            # Shown like the error of an event
-            blocks = LocalContext.blocks.get(None)
-            payload = utils.error_payload(e, bool(blocks and blocks.show_error))
-            return {"error": payload["error"] or "An error occurred."}
-
-    @server
-    async def get_rtc_configuration(
-        self, body: dict[str, Any] | None = None, request: Request | None = None
-    ) -> dict[str, Any]:
-        # Only for a stream whose turn has come, and only to the page that
-        # started it: the configuration may hold TURN credentials billed to the
-        # app's owner, so the queue's limits have to cap who gets them
-        try:
-            from gradio.webrtc.connection import stream_admitted
-        except ImportError:
-            return {"error": "No stream handler is attached to this component."}
-        webrtc_id = body.get("webrtc_id") if isinstance(body, dict) else None
-        stream = await stream_admitted(
-            webrtc_id, getattr(request, "session_hash", None), self._stream_id()
-        )
-        if stream is None:
-            return {
-                "error": "The stream's turn in the queue ended before it "
-                "connected. Please try again."
-            }
-        # Once per stream, however often the page asks: each call of the
-        # author's function may issue credentials on their account
-        if stream.rtc_configuration is None:
-            stream.rtc_configuration = asyncio.ensure_future(
-                self._rtc_configuration_for(request)
-            )
-        return await asyncio.shield(stream.rtc_configuration)
-
-    # The offer starts the stream's handler, whose GPU work is the visitor's
-    @server(zerogpu_headers=True)
-    async def offer(
-        self, body: dict[str, Any], request: Request | None = None
-    ) -> dict[str, Any]:
-        # A stream finds its manager by its id; one that was never admitted
-        # (also when this component has no stream) is rejected as such
-        try:
-            from gradio.webrtc.connection import handle_signal
-        except ImportError:
-            return {
-                "status": "failed",
-                "meta": {"error": "no_stream_handler"},
-            }
-        return await handle_signal(body, request)

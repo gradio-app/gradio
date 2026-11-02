@@ -29,6 +29,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, cast
 
+import anyio
 from aiortc import (
     RTCConfiguration,
     RTCIceCandidate,
@@ -42,6 +43,7 @@ from aiortc.sdp import candidate_from_sdp
 
 from gradio.context import LocalContext
 from gradio.exceptions import Error
+from gradio.helpers import special_args
 from gradio.utils import error_payload
 from gradio.webrtc.bitrate import add_bitrate_hints, limit_video_encoders
 from gradio.webrtc.handlers import (
@@ -68,6 +70,7 @@ from gradio.webrtc.utils import (
     HandlerFailedError,
     StreamNotifier,
     bind_special_args,
+    is_async,
     webrtc_error_handler,
 )
 
@@ -125,8 +128,6 @@ class Session:
     """A stream that the queue has let in."""
 
     event: EventHandle
-    # The gr.WebRTC component that streams it
-    component_id: int
     admitted_at: float = field(default_factory=time.monotonic)
     last_signal: float = field(default_factory=time.monotonic)
     # AdditionalOutputs not delivered yet, oldest first. A handler that emits
@@ -238,12 +239,15 @@ class ConnectionManager:
         allow_extra_tracks: bool,
         server_rtc_configuration: dict[str, Any] | None,
         video_bitrate: dict[str, int] | None = None,
+        rtc_configuration: dict[str, Any] | Callable | None = None,
     ) -> None:
         self.handler = handler
         self.mode = mode
         self.modality = modality
         self.time_limit = time_limit
         self.allow_extra_tracks = allow_extra_tracks
+        # The browser's configuration, or a function that issues it
+        self.rtc_configuration = rtc_configuration
         self.server_rtc_configuration = to_rtc_configuration(server_rtc_configuration)
         self.video_bitrate = video_bitrate
         self.sessions: dict[str, Session] = {}
@@ -253,7 +257,7 @@ class ConnectionManager:
         self.tasks: set[asyncio.Task] = set()
         self.shutdowns: set[asyncio.Task] = set()
 
-    def admit(self, webrtc_id: str, event: EventHandle, component_id: int) -> bool:
+    def admit(self, webrtc_id: str, event: EventHandle) -> bool:
         """
         Lets a stream in. Called by the first call of the stream's queue event,
         that is, once the stream's turn has come. An event admits one stream,
@@ -272,7 +276,7 @@ class ConnectionManager:
         # last calls deliver what is pending.
         event.disable_time_limit()
         _streams[webrtc_id] = self
-        session = Session(event=event, component_id=component_id)
+        session = Session(event=event)
         self.sessions[webrtc_id] = session
         session.watcher = self._spawn(self._watch(webrtc_id, session))
         _admissions[webrtc_id].set()
@@ -480,6 +484,40 @@ class ConnectionManager:
                 session.wake()
 
         return set_outputs
+
+    async def _resolve_rtc_configuration(self, request: Any = None) -> dict[str, Any]:
+        config = self.rtc_configuration
+        if config is None:
+            return {}
+        if not callable(config):
+            return cast(dict[str, Any], config)
+        # Same injection as event listeners, so that the function can e.g.
+        # issue TURN credentials with the visitor's gr.OAuthToken
+        args, *_ = special_args(config, [], request)
+        if is_async(config):
+            result = await config(*args)
+        else:
+            result = await anyio.to_thread.run_sync(config, *args)
+        if not isinstance(result, dict):
+            raise TypeError(
+                "The rtc_configuration function must return a dict, but it "
+                f"returned a {type(result).__name__}."
+            )
+        return result
+
+    async def rtc_configuration_for(self, request: Any = None) -> dict[str, Any]:
+        """The browser's configuration, or the error to show instead."""
+        try:
+            return await self._resolve_rtc_configuration(request)
+        except Exception as e:
+            # A gr.Error is a message for the visitor (e.g. "sign in first"),
+            # not a failure
+            if not isinstance(e, Error):
+                logger.exception("Could not resolve rtc_configuration")
+            # Shown like the error of an event
+            blocks = LocalContext.blocks.get(None)
+            payload = error_payload(e, bool(blocks and blocks.show_error))
+            return {"error": payload["error"] or "An error occurred."}
 
     async def handle_offer(
         self, webrtc_id: str, body: dict[str, Any], request: Any = None
@@ -836,11 +874,11 @@ def end_admitted_stream(event: Any) -> bool:
 
 
 async def stream_admitted(
-    webrtc_id: str | None, session_hash: str | None, component_id: int
-) -> Session | None:
+    webrtc_id: str | None, session_hash: str | None
+) -> tuple[ConnectionManager, Session] | None:
     """
-    The stream, if its turn has come in the line of this component, has not
-    ended, and belongs to this browser session. Waits a little for an admission that is
+    The stream and its manager, if its turn has come, it has not ended, and it
+    belongs to this browser session. Waits a little for an admission that is
     just under way.
     """
     if not webrtc_id:
@@ -851,7 +889,33 @@ async def stream_admitted(
     session = manager.sessions[webrtc_id]
     if session.ended:
         return None
-    return session if session.component_id == component_id else None
+    return manager, session
+
+
+async def get_rtc_configuration(
+    body: dict[str, Any] | None, request: Any = None
+) -> dict[str, Any]:
+    """
+    The browser's configuration for a stream. Only for a stream whose turn has
+    come, and only to the page that started it: the configuration may hold
+    TURN credentials billed to the app's owner, so the queue's limits have to
+    cap who gets them.
+    """
+    webrtc_id = body.get("webrtc_id") if isinstance(body, dict) else None
+    admitted = await stream_admitted(webrtc_id, getattr(request, "session_hash", None))
+    if admitted is None:
+        return {
+            "error": "The stream's turn in the queue ended before it "
+            "connected. Please try again."
+        }
+    manager, session = admitted
+    # Once per stream, however often the page asks: each call of the author's
+    # function may issue credentials on their account
+    if session.rtc_configuration is None:
+        session.rtc_configuration = asyncio.ensure_future(
+            manager.rtc_configuration_for(request)
+        )
+    return await asyncio.shield(session.rtc_configuration)
 
 
 def set_input(webrtc_id: str, session_hash: str | None, *args: Any) -> None:

@@ -47,7 +47,6 @@ import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import {
 	get_zerogpu_headers,
 	initialize_zerogpu_handshake,
-	shared_request,
 	with_timeout,
 	ZEROGPU_HEADERS_TIMEOUT_MS
 } from "./helpers/zerogpu";
@@ -64,14 +63,6 @@ import {
 	COMPONENT_SERVER_URL
 } from "./constants";
 declare const BROWSER_BUILD: boolean;
-
-// Server function calls made at once (e.g. the ICE candidates of a gr.WebRTC
-// connection) share one round trip to the embedding page. Queue submissions
-// keep asking for their own headers.
-const get_server_call_zerogpu_headers = shared_request(
-	() => get_zerogpu_headers(),
-	ZEROGPU_HEADERS_TIMEOUT_MS
-);
 
 export class Client {
 	app_reference: string;
@@ -701,27 +692,16 @@ export class Client {
 	public async component_server(
 		component_id: number,
 		fn_name: string,
-		data: unknown | { binary: boolean; data: Record<string, any> },
-		options: { zerogpu_headers?: boolean } = {}
+		data: unknown | { binary: boolean; data: Record<string, any> }
 	): Promise<unknown> {
 		if (!this.config) {
 			throw new Error(CONFIG_ERROR_MSG);
 		}
 
-		// A server function that starts ZeroGPU work (gr.WebRTC's offer starts
-		// the stream's handler) asks for the visitor's headers, so that the
-		// work is attributed to the visitor like that of a queued event. It
-		// does not wait on the embedding page for long: without an answer the
-		// call goes out without the headers.
-		const headers: Record<string, string> = options.zerogpu_headers
-			? {
-					...((await with_timeout(
-						get_server_call_zerogpu_headers(),
-						ZEROGPU_HEADERS_TIMEOUT_MS,
-						null
-					)) ?? {})
-				}
-			: {};
+		const headers: {
+			Authorization?: string;
+			"Content-Type"?: "application/json";
+		} = {};
 
 		const { token } = this.options;
 		const { session_hash } = this;
@@ -792,6 +772,75 @@ export class Client {
 				this.jwt
 			);
 			return output;
+		} catch (e) {
+			console.warn(e);
+		}
+	}
+
+	/**
+	 * Sends a WebRTC stream's SDP offer, or one of its trickled ICE candidates
+	 * (`type: "ice-candidate"`), to the process that admitted the stream.
+	 * Resolves with the server's answer, or undefined if the request failed.
+	 */
+	public async webrtc_offer(
+		body: Record<string, unknown>
+	): Promise<Record<string, any> | undefined> {
+		// The offer starts the stream's handler, whose GPU work is the
+		// visitor's, as for a queued event. It does not wait on the embedding
+		// page for long: without an answer it goes out without the headers.
+		const headers =
+			body.type === "offer"
+				? ((await with_timeout(
+						get_zerogpu_headers(),
+						ZEROGPU_HEADERS_TIMEOUT_MS,
+						null
+					)) ?? {})
+				: {};
+		return this.post_webrtc("offer", body, headers);
+	}
+
+	/**
+	 * The RTCPeerConnection configuration (ICE servers) for a WebRTC stream
+	 * whose turn in the queue has come. Resolves with `{ error }` instead if
+	 * the stream was not admitted, or undefined if the request failed.
+	 */
+	public async webrtc_rtc_configuration(
+		webrtc_id: string
+	): Promise<Record<string, any> | undefined> {
+		return this.post_webrtc("rtc_configuration", { webrtc_id }, {});
+	}
+
+	private async post_webrtc(
+		route: "offer" | "rtc_configuration",
+		body: Record<string, unknown>,
+		extra_headers: Record<string, string>
+	): Promise<Record<string, any> | undefined> {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		const headers: Record<string, string> = {
+			...extra_headers,
+			"Content-Type": "application/json"
+		};
+		if (this.options.token) {
+			headers.Authorization = `Bearer ${this.options.token}`;
+		}
+		try {
+			const response = await this.fetch(
+				`${this.config.root}${this.api_prefix}/webrtc/${route}`,
+				{
+					method: "POST",
+					body: JSON.stringify({ ...body, session_hash: this.session_hash }),
+					headers,
+					credentials: this.options.credentials ?? "same-origin"
+				}
+			);
+			if (!response.ok) {
+				throw new Error(
+					`Could not reach the WebRTC ${route} route: ${response.statusText}`
+				);
+			}
+			return await response.json();
 		} catch (e) {
 			console.warn(e);
 		}
