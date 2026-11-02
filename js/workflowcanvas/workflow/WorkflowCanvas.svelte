@@ -2209,6 +2209,9 @@
 						server.call_space([spaceId, endpoint, argsJson, auth.token])
 				: undefined;
 
+		const can_stream =
+			flatView.nodes.some((n) => n.source === "model" && n.model_id) &&
+			!!(await auth.inferenceToken());
 		const callModelWithToken = server?.call_model
 			? async (
 					modelId: string,
@@ -2220,7 +2223,7 @@
 						modelId,
 						pipelineTag,
 						argsJson,
-						auth.token,
+						await auth.inferenceToken(),
 						provider ?? ""
 					])
 			: undefined;
@@ -2336,14 +2339,14 @@
 			callModelWithToken,
 			fetchDatasetWithToken,
 			callFnWithToken,
-			auth.token
-				? (modelId, content, provider, signal, onChunk, params) =>
+			can_stream
+				? async (modelId, content, provider, signal, onChunk, params) =>
 						stream_text_generation({
 							modelId,
 							content,
 							provider,
 							params,
-							hfToken: auth.token,
+							hfToken: await auth.inferenceToken(),
 							signal: signal ?? undefined,
 							onChunk
 						})
