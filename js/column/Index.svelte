@@ -8,42 +8,9 @@
 
 	let props = $props();
 
-	const gradio = new Gradio<{}, { variant: "default" | "panel" | "compact" }>(
-		props
-	);
+	const gradio = new Gradio<{}, {}>(props);
 </script>
 
 <BaseColumn {...gradio.shared} {...gradio.props}>
 	{@render props.children?.()}
 </BaseColumn>
-
-<style>
-	div {
-		display: flex;
-		position: relative;
-		flex-direction: column;
-		gap: var(--layout-gap);
-	}
-
-	div > :global(*),
-	div > :global(.form > *) {
-		width: var(--size-full);
-	}
-
-	.hide {
-		display: none;
-	}
-
-	.compact > :global(*),
-	.compact :global(.box) {
-		border-radius: 0;
-	}
-
-	.compact,
-	.panel {
-		border: solid var(--panel-border-width) var(--panel-border-color);
-		border-radius: var(--container-radius);
-		background: var(--panel-background-fill);
-		padding: var(--spacing-lg);
-	}
-</style>

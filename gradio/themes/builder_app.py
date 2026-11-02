@@ -77,6 +77,12 @@ css = """
   background-color: rgba(0, 0, 0, .5);
   box-shadow: 0 0 1px rgba(255, 255, 255, .5);
 }
+.panel {
+    border: solid var(--panel-border-width) var(--panel-border-color);
+    border-radius: var(--container-radius);
+    background: var(--panel-background-fill);
+    padding: var(--spacing-lg);
+}
 """
 
 with gr.Blocks(  # noqa: SIM117
@@ -289,7 +295,7 @@ with gr.Blocks(  # noqa: SIM117
         # App
 
         with gr.Column(scale=6, elem_id="app"):
-            with gr.Column(variant="panel"):
+            with gr.Column(elem_classes="panel"):
                 gr.Markdown(
                     """
                     # Theme Builder
@@ -334,7 +340,7 @@ with gr.Blocks(  # noqa: SIM117
             gr.CheckboxGroup(["A", "B", "C"], label="Checkbox Group")
 
             with gr.Row():
-                with gr.Column(variant="panel", scale=1):
+                with gr.Column(elem_classes="panel", scale=1):
                     gr.Markdown("## Panel 1")
                     radio = gr.Radio(
                         ["A", "B", "C"],
@@ -352,7 +358,7 @@ with gr.Blocks(  # noqa: SIM117
                         interactive=True,
                     )
                     check = gr.Checkbox(label="Go")
-                with gr.Column(variant="panel", scale=2):
+                with gr.Column(elem_classes="panel", scale=2):
                     img = gr.Image(
                         "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg",
                         label="Image",

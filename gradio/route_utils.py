@@ -412,13 +412,22 @@ async def call_process_api(
     fn: BlockFunction,
     root_path: str,
     record_history: bool = True,
+    *,
+    queue_event_id: str | None = None,
 ):
     pool = getattr(app.get_blocks(), "_process_pool", None)
     if pool is not None:
         from gradio.processing.gateway import forward_event
 
         return await forward_event(
-            pool, app, body, gr_request, fn, root_path, record_history
+            pool,
+            app,
+            body,
+            gr_request,
+            fn,
+            root_path,
+            record_history,
+            queue_event_id=queue_event_id,
         )
 
     session_state, iterator = restore_session_state(app=app, body=body)
