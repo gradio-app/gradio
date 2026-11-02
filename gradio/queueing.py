@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import math
 import os
 import platform
 import random
@@ -98,6 +99,38 @@ class Event:
         if self.fn.time_limit is None:
             return False
         return self.run_time >= self.fn.time_limit
+
+
+class EventHandle:
+    """A queued event as the function running in it sees it, for work that
+    outlives a single call of the event (a gr.WebRTC stream). With
+    executor="process", the app's process gets a stand-in with the same
+    methods, which relays them to the gateway's queue."""
+
+    def __init__(self, event: Event, queue: Queue):
+        self._event = event
+        self._queue = queue
+        self.id = event._id
+        self.session_hash: str | None = event.session_hash
+        group = queue.event_queue_per_concurrency_id.get(event.concurrency_id)
+        # How many events of its concurrency group run at once
+        self.concurrency_limit = group.concurrency_limit if group else None
+
+    def wake(self) -> None:
+        """Has the queue call the event's function again (a stream event)."""
+        self._event.signal.set()
+
+    def disable_time_limit(self) -> None:
+        """Leaves the event's time limit to the caller, which ends it."""
+        self._event.run_time = -math.inf
+
+    def finish(self) -> None:
+        """Ends the event once its current call returns."""
+        self._event.closed = True
+
+    @property
+    def live(self) -> bool:
+        return self._event.alive and self.id in self._queue.event_ids_to_events
 
 
 class EventQueue:
@@ -254,6 +287,11 @@ class Queue:
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
+
+    def event_handle(self, event_id: str | None) -> EventHandle | None:
+        """The running event `event_id`, for its function (see `EventHandle`)."""
+        event = self.event_ids_to_events.get(event_id or "")
+        return EventHandle(event, self) if event is not None else None
 
     def create_event_queue_for_fn(self, block_fn: BlockFunction):
         concurrency_id = block_fn.concurrency_id

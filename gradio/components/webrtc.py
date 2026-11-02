@@ -640,20 +640,20 @@ class WebRTC(Component):
         blocks = LocalContext.blocks.get(None)
         queue = blocks._queue if blocks is not None else None
         event = (
-            queue.event_ids_to_events.get(LocalContext.event_id.get(None) or "")
+            queue.event_handle(LocalContext.event_id.get(None))
             if queue is not None
             else None
         )
-        if queue is not None and event is not None:
+        if event is not None:
             # A later call carries whatever id a chunk sent, so it only
             # serves the stream that the first call admitted
-            stream_id = admitted_id(event)
+            stream_id = admitted_id(event.id)
             if stream_id is None:
-                if not webrtc_id or not manager.admit(webrtc_id, event, queue):
+                if not webrtc_id or not manager.admit(webrtc_id, event, self._id):
                     # No id, or one that belongs to another event's stream: end
                     # this event instead of letting it hold a place it cannot
                     # use. Nothing would wake it before its time limit.
-                    event.closed = True
+                    event.finish()
             else:
                 # The manager that admitted it: after a hot reload, the event's
                 # function is a new one whose manager never saw the stream

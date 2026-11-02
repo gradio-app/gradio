@@ -35,6 +35,25 @@ from gradio.webrtc import connection as webrtc_connection
 from gradio.webrtc.connection import get_manager
 
 
+def queue_event(event_id="event", session_hash=None):
+    """A queue event and the handle its function gets, without a running queue."""
+    from gradio.queueing import EventHandle
+
+    event = SimpleNamespace(
+        _id=event_id,
+        session_hash=session_hash,
+        concurrency_id="stream",
+        alive=True,
+        closed=False,
+        run_time=0.0,
+        signal=asyncio.Event(),
+    )
+    queue = SimpleNamespace(
+        event_ids_to_events={event_id: event}, event_queue_per_concurrency_id={}
+    )
+    return event, EventHandle(cast(Any, event), cast(Any, queue))
+
+
 def flip(frame, *args):
     return frame
 
@@ -759,11 +778,14 @@ class TestWebRTC:
     @pytest.mark.asyncio
     async def test_run_stream_admits_then_delivers_outputs_in_order(self):
         from gradio.context import LocalContext
+        from gradio.queueing import Queue
 
         class FakeEvent:
             _id = "event"
             alive = True
             closed = False
+            session_hash = None
+            concurrency_id = "stream"
 
             def __init__(self):
                 self.signal = asyncio.Event()
@@ -776,14 +798,19 @@ class TestWebRTC:
         manager = get_manager(webrtc._id)
         assert manager is not None
         event = FakeEvent()
-        queue = SimpleNamespace(event_ids_to_events={"event": event})
+        queue = SimpleNamespace(
+            event_ids_to_events={"event": event}, event_queue_per_concurrency_id={}
+        )
+        queue.event_handle = lambda event_id: Queue.event_handle(  # type: ignore
+            cast(Any, queue), event_id
+        )
         demo._queue = queue  # type: ignore
         blocks_token = LocalContext.blocks.set(demo)
         event_token = LocalContext.event_id.set("event")
         try:
             skip = gr.skip()
             assert await webrtc._run_stream(manager, "abc") == (skip, skip, skip)
-            assert manager.sessions["abc"].event is event
+            assert manager.sessions["abc"].event.id == "event"
             # A hot reload gives the event a new function, whose manager never
             # saw the stream; the stream stays with the one that admitted it
             reloaded = TestCleanUp.manager()
@@ -833,7 +860,7 @@ class TestWebRTC:
             finally:
                 LocalContext.event_id.reset(other_token)
             assert other.closed
-            assert manager.sessions["abc"].event is event
+            assert manager.sessions["abc"].event.id == "event"
         finally:
             LocalContext.blocks.reset(blocks_token)
             LocalContext.event_id.reset(event_token)
@@ -1088,10 +1115,10 @@ class TestStreams:
         from types import SimpleNamespace
 
         manager = launched.manager
-        event = SimpleNamespace(closed=False, signal=asyncio.Event())
+        event, handle = queue_event()
         session = webrtc_connection.Session(
-            event=cast(Any, event),
-            queue=cast(Any, None),
+            event=handle,
+            component_id=0,
             ended=True,
             notifier=cast(
                 Any,
@@ -1698,22 +1725,19 @@ class TestStreams:
     async def test_a_wait_for_admission_outlives_another_that_gave_up(
         self, monkeypatch
     ):
-        from gradio.queueing import Event
-
         monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.3)
-        with gr.Blocks() as demo:
+        with gr.Blocks():
             webrtc = gr.WebRTC()
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
         manager = get_manager(webrtc._id)
         assert manager is not None
-        fn = next(fn for fn in demo.fns.values() if fn.name == "run_stream")
         wait = webrtc_connection._wait_for_admission
         # Both the offer and get_rtc_configuration may wait for the turn
         first = asyncio.create_task(wait("late"))
         await asyncio.sleep(0.2)
         second = asyncio.create_task(wait("late"))
         assert await first is None
-        manager.admit("late", Event("late", fn, cast(Any, None), None), demo._queue)
+        manager.admit("late", queue_event("late")[1], webrtc._id)
         try:
             assert await second is manager
         finally:
@@ -3460,8 +3484,8 @@ class TestCleanUp:
             notifier.channel = SimpleNamespace(readyState=channel, send=lambda m: None)
         manager = self.manager()
         manager.sessions["one"] = webrtc_connection.Session(
-            event=cast(Any, SimpleNamespace(signal=asyncio.Event())),
-            queue=cast(Any, None),
+            event=queue_event()[1],
+            component_id=0,
             notifier=notifier,
         )
         notifier.send("info", "before the end")

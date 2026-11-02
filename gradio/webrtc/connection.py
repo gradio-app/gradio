@@ -22,7 +22,6 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
-import math
 import time
 import weakref
 from collections import Counter, OrderedDict, defaultdict, deque
@@ -73,7 +72,7 @@ from gradio.webrtc.utils import (
 )
 
 if TYPE_CHECKING:
-    from gradio.queueing import Event, Queue
+    from gradio.queueing import EventHandle
 
 logger = logging.getLogger(__name__)
 
@@ -95,14 +94,14 @@ MAX_PENDING_CANDIDATE_IDS = 256
 # Seconds a new stream waits for the handlers of ended streams to shut down
 SHUTDOWN_WAIT = 5
 
-# The stream each queue event admitted. Weak, so that an event is forgotten
-# once the queue drops it; module-level, so that it outlives a manager that
-# a reload replaces.
-_admitted: weakref.WeakKeyDictionary[Event, str] = weakref.WeakKeyDictionary()
+# The stream each queue event admitted, by event id, until the stream's
+# watcher ends. Module-level, so that it outlives a manager that a reload
+# replaces.
+_admitted: dict[str, str] = {}
 
 
-def admitted_id(event: Event) -> str | None:
-    return _admitted.get(event)
+def admitted_id(event_id: str) -> str | None:
+    return _admitted.get(event_id)
 
 
 # The manager of each admitted stream, by stream id. Weak, like `_managers`.
@@ -125,8 +124,9 @@ _pending_candidates: OrderedDict[str, list[tuple[str | None, RTCIceCandidate]]] 
 class Session:
     """A stream that the queue has let in."""
 
-    event: Event
-    queue: Queue
+    event: EventHandle
+    # The gr.WebRTC component that streams it
+    component_id: int
     admitted_at: float = field(default_factory=time.monotonic)
     last_signal: float = field(default_factory=time.monotonic)
     # AdditionalOutputs not delivered yet, oldest first. A handler that emits
@@ -143,7 +143,7 @@ class Session:
 
     def wake(self) -> None:
         self.last_signal = time.monotonic()
-        self.event.signal.set()
+        self.event.wake()
 
     def remaining_time(self, time_limit: float | None) -> float | None:
         if time_limit is None:
@@ -209,14 +209,6 @@ def _failed(error: str, **meta: Any) -> dict[str, Any]:
     return {"status": "failed", "meta": {"error": error, **meta}}
 
 
-def _concurrency_limit(session: Session) -> int | None:
-    """How many streams of this kind the queue runs at once."""
-    group = session.queue.event_queue_per_concurrency_id.get(
-        session.event.concurrency_id
-    )
-    return group.concurrency_limit if group is not None else None
-
-
 def _parse_ice_candidate(candidate: dict[str, Any]) -> RTCIceCandidate | None:
     # Example: "candidate:2393089663 1 udp 2122260223 192.168.86.60 63692 typ host ..."
     line = candidate.get("candidate", "")
@@ -261,7 +253,7 @@ class ConnectionManager:
         self.tasks: set[asyncio.Task] = set()
         self.shutdowns: set[asyncio.Task] = set()
 
-    def admit(self, webrtc_id: str, event: Event, queue: Queue) -> bool:
+    def admit(self, webrtc_id: str, event: EventHandle, component_id: int) -> bool:
         """
         Lets a stream in. Called by the first call of the stream's queue event,
         that is, once the stream's turn has come. An event admits one stream,
@@ -270,17 +262,17 @@ class ConnectionManager:
         """
         session = self.sessions.get(webrtc_id)
         if session is not None:
-            return session.event is event
+            return session.event.id == event.id
         other = _streams.get(webrtc_id)
         if other is not None and webrtc_id in other.sessions:
             return False
-        _admitted[event] = webrtc_id
+        _admitted[event.id] = webrtc_id
         # The watcher keeps the time limit, from admission, and ends the stream
         # through `end`. The queue's own cut would end the event before its
         # last calls deliver what is pending.
-        event.run_time = -math.inf
+        event.disable_time_limit()
         _streams[webrtc_id] = self
-        session = Session(event=event, queue=queue)
+        session = Session(event=event, component_id=component_id)
         self.sessions[webrtc_id] = session
         session.watcher = self._spawn(self._watch(webrtc_id, session))
         _admissions[webrtc_id].set()
@@ -320,11 +312,7 @@ class ConnectionManager:
         try:
             while True:
                 await asyncio.sleep(WATCH_INTERVAL)
-                event = session.event
-                if (
-                    event._id not in session.queue.event_ids_to_events
-                    or not event.alive
-                ):
+                if not session.event.live:
                     return
                 if session.ended:
                     # The event still has to make its last call
@@ -348,6 +336,8 @@ class ConnectionManager:
                 del self.sessions[webrtc_id]
                 if _streams.get(webrtc_id) is self:
                     del _streams[webrtc_id]
+            if _admitted.get(session.event.id) == webrtc_id:
+                del _admitted[session.event.id]
             _admissions.pop(webrtc_id, None)
 
     def end(self, webrtc_id: str) -> None:
@@ -401,7 +391,7 @@ class ConnectionManager:
             # The next call reports the error
             session.wake()
             return None
-        session.event.closed = True
+        session.event.finish()
         if failure is not None and notifier is not None and notifier.failure_shown:
             failure = {**failure, "visible": False}
         return failure
@@ -506,7 +496,7 @@ class ConnectionManager:
         # down. With concurrency_limit=1, a model that each handler loads must
         # not be in memory twice, so the next handler waits.
         session = self.sessions.get(webrtc_id)
-        if session is not None and _concurrency_limit(session) == 1:
+        if session is not None and session.event.concurrency_limit == 1:
             await self._wait_for_shutdowns()
         session = self.sessions.get(webrtc_id)
         if session is None or session.ended or not self.owns(webrtc_id, session_hash):
@@ -826,18 +816,20 @@ def stream_manager(webrtc_id: str) -> ConnectionManager | None:
     return _streams.get(webrtc_id)
 
 
-def end_admitted_stream(event: Event) -> bool:
+def end_admitted_stream(event: Any) -> bool:
     """
     Ends the stream that the queue event admitted, for a page that closes it:
     the event then delivers the outputs still pending and fails if the handler
     did (see `finish_if_drained`). False if the event has no running stream.
+    `event` is the queue's event, or what stands for it in the app's process:
+    only its `_id` is read.
     """
-    webrtc_id = admitted_id(event)
+    webrtc_id = admitted_id(event._id)
     if webrtc_id is None:
         return False
     manager = stream_manager(webrtc_id)
     session = manager.sessions.get(webrtc_id) if manager is not None else None
-    if manager is None or session is None or session.event is not event:
+    if manager is None or session is None or session.event.id != event._id:
         return False
     manager.end(webrtc_id)
     return True
@@ -859,8 +851,7 @@ async def stream_admitted(
     session = manager.sessions[webrtc_id]
     if session.ended:
         return None
-    targets = [tuple(target) for target in session.event.fn.targets]
-    return session if (component_id, "stream") in targets else None
+    return session if session.component_id == component_id else None
 
 
 def set_input(webrtc_id: str, session_hash: str | None, *args: Any) -> None:
