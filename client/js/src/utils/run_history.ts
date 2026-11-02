@@ -49,7 +49,10 @@ export interface RunHistoryScope {
 	app_id?: AppId;
 	/** The authenticated user, when the app uses `auth`. */
 	username?: string | null;
+	history_storage?: "spaces";
 }
+
+export const SPACES_STORAGE_BUCKET = "me/spaces-storage";
 
 export type RunHistoryStorage =
 	| { type: "browser"; bucket_id?: string }
@@ -402,6 +405,9 @@ export async function load_run_history(
 function read_run_history_storage_impl(
 	scope: RunHistoryScope | null | undefined
 ): RunHistoryStorage {
+	if (scope?.history_storage === "spaces") {
+		return { type: "bucket", bucket_id: SPACES_STORAGE_BUCKET };
+	}
 	const key = storage_key(scope);
 	if (!key) return { type: "browser" };
 	return get_history(key).destination ?? { type: "browser" };
