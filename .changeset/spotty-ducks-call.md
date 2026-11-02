@@ -1,5 +1,6 @@
 ---
 "@gradio/core": minor
+"@gradio/paramviewer": minor
 "gradio": minor
 ---
 
