@@ -120,6 +120,34 @@ class TestServer:
         finally:
             gr.close_all()
 
+    def test_server_has_login_routes_only_when_a_function_asks_for_oauth(
+        self, monkeypatch
+    ):
+        pytest.importorskip("authlib")
+        from gradio import oauth
+
+        monkeypatch.setattr(oauth, "_get_mocked_oauth_info", lambda: {})
+        plain = gr.Server()
+
+        @plain.api(name="echo")
+        def echo(x: str) -> str:
+            return x
+
+        signed_in = gr.Server()
+
+        @signed_in.api(name="whoami")
+        def whoami(profile: gr.OAuthProfile | None) -> str:
+            return profile.username if profile else "nobody"
+
+        try:
+            for server, expected in ((plain, 404), (signed_in, 307)):
+                app, _, _ = server.launch(prevent_thread_lock=True, executor="thread")
+                with TestClient(app) as client:
+                    response = client.get("/login/huggingface", follow_redirects=False)
+                assert response.status_code == expected
+        finally:
+            gr.close_all()
+
     def test_server_launch_enables_mcp(self):
         server = gr.Server()
 

@@ -3995,6 +3995,43 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor):
         gr.close_all()
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("executor", ["thread", "process"])
+async def test_a_server_webrtc_stream_gets_the_visitor_oauth_token(executor):
+    pytest.importorskip("authlib")
+
+    def issue_credentials(token: gr.OAuthToken | None):
+        return {"iceServers": [], "signed_in": token is not None}
+
+    server = gr.Server()
+
+    @server.webrtc(name="echo", rtc_configuration=issue_credentials)
+    def echo(frame):
+        return frame
+
+    _, local_url, _ = server.launch(prevent_thread_lock=True, executor=executor)
+    try:
+        async with httpx2.AsyncClient(timeout=10, base_url=local_url) as http:
+            # gr.Server has the login routes, since a function takes the token
+            login = await http.get("login/callback", params={"_target_url": "/"})
+            http.cookies.set("session", login.cookies["session"])
+            config = (await http.get("config")).json()
+            fn_index = next(
+                d["id"] for d in config["dependencies"] if d["api_name"] == "echo"
+            )
+            await http.post(
+                f"{API_PREFIX.lstrip('/')}/queue/join",
+                json={"data": ["one"], "fn_index": fn_index, "session_hash": "s"},
+            )
+            rtc = await http.post(
+                f"{API_PREFIX.lstrip('/')}/webrtc/rtc_configuration",
+                json={"webrtc_id": "one", "session_hash": "s"},
+            )
+        assert rtc.json() == {"iceServers": [], "signed_in": True}
+    finally:
+        gr.close_all()
+
+
 def test_server_webrtc_checks_the_handler_when_it_is_declared():
     server = gr.Server()
     with pytest.raises(ValueError, match="StreamHandler"):

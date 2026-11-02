@@ -224,7 +224,25 @@ A few things to know:
 - Each stream waits its turn in the queue like any other call, so `concurrency_limit` (1 by default) is the number of streams that run at once, and `time_limit` ends a stream after that many seconds, counted from its turn. `stream.connected` resolves once the media flows, and `stream.done` once the stream is over.
 - The values after the frame are the stream's inputs: the page sets them with `inputs` and changes them with `set_inputs()`. They are plain JSON values, since there are no components to process them.
 - Each `AdditionalOutputs(...)` the handler returns arrives in `on_output` as the list of its values.
-- On Hugging Face Spaces, the browser usually reaches the app only through a TURN server, so pass `rtc_configuration=` to `app.webrtc()` as described in the [WebRTC guide](/guides/object-detection-from-webcam-with-webrtc). With ZeroGPU, `client.webrtc()` sends the visitor's ZeroGPU headers with the connection, so the GPU time counts against the visitor's quota.
+- On Hugging Face Spaces, many visitors' browsers reach the app only through a TURN server, so pass `rtc_configuration=` to `app.webrtc()`, as described in the [WebRTC guide](/guides/object-detection-from-webcam-with-webrtc#deploying-to-hugging-face-spaces). The recommended way there is a function that issues the credentials with each visitor's `gr.OAuthToken`, which works the same with `app.webrtc()`; for signing in, see [Sign in with Hugging Face](#sign-in-with-hugging-face) below. With ZeroGPU, `client.webrtc()` sends the visitor's ZeroGPU headers with the connection, so the GPU time counts against the visitor's quota.
 - WebRTC endpoints are left out of the API page and the Python client, which cannot send media.
+
+## Sign in with Hugging Face
+
+A function of the app (an `app.api()` function, an `app.webrtc()` handler or its `rtc_configuration` function) can take the visitor's `gr.OAuthProfile` or `gr.OAuthToken`, as an event listener in a `gr.Blocks` app can. The app then gets the sign-in routes that a `gr.LoginButton` brings to a `gr.Blocks` app, so the page signs in with a link instead of the button:
+
+```python
+import gradio as gr
+
+@app.api(name="whoami")
+def whoami(profile: gr.OAuthProfile | None) -> str:
+    return profile.username if profile else "Not signed in"
+```
+
+```html
+<a href="/login/huggingface">Sign in with Hugging Face</a> <a href="/logout">Sign out</a>
+```
+
+As for a `gr.Blocks` app, add `hf_oauth: true` to the metadata of your Space's `README.md` and install `gradio[oauth]`. Outside of Spaces, signing in uses a mocked profile of the account your machine is logged in to.
 
 For the full API reference, see the [`Server` documentation](/docs/gradio/server).

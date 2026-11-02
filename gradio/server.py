@@ -24,6 +24,26 @@ class _MCPNamespace:
     prompt = staticmethod(mcp.prompt)
 
 
+def _takes_oauth(fn: Any) -> bool:
+    """Whether `fn` (a function, a WebRTC handler class or instance, or a
+    VideoOptions) takes a gr.OAuthProfile or gr.OAuthToken, as `special_args`
+    fills them in."""
+    from gradio import oauth, utils
+
+    fn = getattr(fn, "callable", fn)
+    # A handler class gets them in its start_up method
+    fn = getattr(fn, "start_up", fn)
+    if not callable(fn):
+        return False
+    oauth_types = (
+        oauth.OAuthProfile,
+        oauth.OAuthToken,
+        oauth.OAuthProfile | None,
+        oauth.OAuthToken | None,
+    )
+    return any(hint in oauth_types for hint in utils.get_type_hints(fn).values())
+
+
 def import_gateway(path: str) -> tuple[fastapi.APIRouter, list]:
     """The router at `path` ("module:router"), and the `middleware` list of its
     module, if it has one."""
@@ -420,6 +440,10 @@ class Server(App):
 
                 for webrtc_kwargs in self._deferred_webrtc:
                     server_stream(**webrtc_kwargs)
+        # The login routes that gr.LoginButton brings to a Blocks app, for a
+        # function that takes the visitor's gr.OAuthProfile or gr.OAuthToken
+        if any(map(_takes_oauth, self._oauth_candidates())):
+            blocks._expects_oauth = True  # type: ignore[attr-defined]
 
         os.environ["GRADIO_SERVER_MODE_ENABLED"] = "1"
 
@@ -476,6 +500,13 @@ class Server(App):
             executor=executor,
             replicas=replicas,
         )
+
+    def _oauth_candidates(self) -> list[Any]:
+        """The functions that may take the visitor's OAuth values."""
+        candidates: list[Any] = [fn for fn, _ in self._deferred_apis]
+        for webrtc_kwargs in self._deferred_webrtc:
+            candidates += [webrtc_kwargs["fn"], webrtc_kwargs["rtc_configuration"]]
+        return candidates
 
     def _check_process_executor(self) -> None:
         """With executor="process" the gateway serves Gradio's routes, so
