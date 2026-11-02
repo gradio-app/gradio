@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflows: handle depth esimation
+feat:workflows: handle depth estimation
