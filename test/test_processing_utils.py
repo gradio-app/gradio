@@ -331,6 +331,17 @@ class TestImagePreprocessing:
         output_img = Image.open(file_obj)
         assert output_img.n_frames == input_img.n_frames == 3  # type: ignore
 
+    def test_save_pil_to_file_32_bit_integer_png(self, gradio_temp_dir):
+        arr = np.array([[-5, 0, 1000, 65535, 70000]], dtype=np.int32)
+        input_img = Image.fromarray(arr)
+        assert input_img.mode == "I"
+        file_obj = processing_utils.save_pil_to_cache(
+            input_img, cache_dir=gradio_temp_dir, format="png"
+        )
+        output_img = Image.open(file_obj)
+        assert output_img.mode == "I;16"
+        assert np.array(output_img).tolist() == [[0, 0, 1000, 65535, 65535]]
+
     def test_np_pil_encode_to_the_same(self, gradio_temp_dir):
         arr = np.random.randint(0, 255, size=(100, 100, 3), dtype=np.uint8)
         pil = Image.fromarray(arr)
