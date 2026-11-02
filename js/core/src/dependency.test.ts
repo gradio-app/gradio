@@ -693,7 +693,9 @@ describe("DependencyManager.close_stream", () => {
 				(async function* () {
 					yield { type: "status", stage: "pending", queue: true };
 					await ended;
-					// The server takes it out of the line and reports it over
+					// The server takes it out of the line and reports it over,
+					// without outputs
+					yield { type: "data", data: undefined };
 					yield { type: "status", stage: "complete", queue: true };
 				})()
 			),
