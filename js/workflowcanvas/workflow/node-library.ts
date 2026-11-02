@@ -1,4 +1,4 @@
-import type { PortType } from "./workflow-types";
+import type { PortType, TextInputType } from "./workflow-types";
 import { PORT_REGISTRY } from "./workflow-modalities";
 import type { PortMeta } from "./workflow-modalities";
 
@@ -14,6 +14,7 @@ export interface NodeTemplate {
 	pipeline_tag?: string;
 	endpoint?: string;
 	category?: string;
+	type?: TextInputType;
 	inputs: { id: string; label: string; type: PortType }[];
 	outputs: { id: string; label: string; type: PortType }[];
 	width: number;
@@ -207,10 +208,15 @@ function componentTemplate(meta: PortMeta): NodeTemplate {
 		height
 	};
 }
+export const API_KEY_TYPE = "api_key";
+export const API_KEY_TEMPLATE: NodeTemplate = {
+	...componentTemplate({ port_type: "text", label: "API Key" }),
+	type: "password",
+	height: 130
+};
 
 export const LIBRARY: Record<string, NodeTemplate[]> = {
-	components: PORT_REGISTRY.map(componentTemplate),
-	spaces: [] as NodeTemplate[]
+	components: PORT_REGISTRY.map(componentTemplate)
 };
 
 export function getComponentForPortType(type: string): NodeTemplate | null {
@@ -221,107 +227,4 @@ export function getComponentForPortType(type: string): NodeTemplate | null {
 		type === "any" ? "json" : type === "file" ? "image" : type
 	) as PortType;
 	return LIBRARY.components.find((c) => c.outputs[0]?.type === lookup) ?? null;
-}
-
-export const SPACE_CATEGORIES = [
-	{ key: "image", label: "Image" },
-	{ key: "audio", label: "Audio" },
-	{ key: "text", label: "Text" },
-	{ key: "video", label: "Video" },
-	{ key: "multimodal", label: "Multimodal" },
-	{ key: "3d", label: "3D" },
-	{ key: "chat", label: "Chat" },
-	{ key: "code", label: "Code" }
-];
-
-export const PIPELINE_TO_CATEGORY: Record<string, string> = {
-	// Image
-	"text-to-image": "image",
-	"image-to-image": "image",
-	"image-classification": "image",
-	"image-segmentation": "image",
-	"object-detection": "image",
-	"unconditional-image-generation": "image",
-	"image-feature-extraction": "image",
-	"depth-estimation": "image",
-	// Audio
-	"text-to-speech": "audio",
-	"automatic-speech-recognition": "audio",
-	"audio-to-audio": "audio",
-	"audio-classification": "audio",
-	"voice-activity-detection": "audio",
-	// Text
-	"text-generation": "text",
-	"text2text-generation": "text",
-	translation: "text",
-	summarization: "text",
-	"text-classification": "text",
-	"question-answering": "text",
-	"fill-mask": "text",
-	"token-classification": "text",
-	"sentence-similarity": "text",
-	"feature-extraction": "text",
-	"zero-shot-classification": "text",
-	"table-question-answering": "text",
-	// Video
-	"text-to-video": "video",
-	"image-to-video": "video",
-	"image-text-to-video": "video",
-	"video-classification": "video",
-	// 3D
-	"text-to-3d": "3d",
-	"image-to-3d": "3d",
-	// Multimodal
-	"image-text-to-text": "multimodal",
-	"zero-shot-image-classification": "multimodal",
-	"video-text-to-text": "multimodal",
-	// Chat
-	conversational: "chat"
-};
-
-const KEYWORD_PATTERNS: [RegExp, string][] = [
-	// Video — check before image since "image to video" should be video
-	[/\b(video|animate|animation|motion|film|movie)\b/i, "video"],
-	// 3D
-	[/\b(3d|mesh|point.?cloud|nerf|gaussian.?splat|triposr)\b/i, "3d"],
-	// Audio
-	[/\b(audio|voice|speech|tts|whisper|music|sound|sing|talk)\b/i, "audio"],
-	// Chat
-	[
-		/\b(chat|conversation|assistant|llm|gpt|gemma|llama|mistral|qwen(?!.*(?:image|edit|video)))\b/i,
-		"chat"
-	],
-	// Multimodal
-	[/\b(multimodal|vision.?language|vqa|document.?q|ocr)\b/i, "multimodal"],
-	// Code
-	[/\b(code|program|compiler|debug|ide)\b/i, "code"],
-	// Image — broad, check last
-	[
-		/\b(image|photo|picture|paint|draw|sketch|pixel|diffus|flux|stable|edit.*image|image.*edit|face|swap|background|segm|detect|caption|upscal|super.?res|inpaint|outpaint|style.?transfer|lora|controlnet)\b/i,
-		"image"
-	]
-];
-
-export function categorizeSpace(
-	pipelineTag?: string | null,
-	tags?: string[] | null,
-	description?: string | null,
-	spaceId?: string | null
-): string | null {
-	if (pipelineTag && PIPELINE_TO_CATEGORY[pipelineTag]) {
-		return PIPELINE_TO_CATEGORY[pipelineTag];
-	}
-	if (tags) {
-		for (const tag of tags) {
-			if (PIPELINE_TO_CATEGORY[tag]) return PIPELINE_TO_CATEGORY[tag];
-		}
-	}
-	// Fall back to keyword matching on description + space ID
-	const text = [description ?? "", spaceId ?? ""].join(" ");
-	if (text.trim()) {
-		for (const [pattern, category] of KEYWORD_PATTERNS) {
-			if (pattern.test(text)) return category;
-		}
-	}
-	return null;
 }
