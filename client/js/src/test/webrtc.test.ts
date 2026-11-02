@@ -328,13 +328,17 @@ describe("client.webrtc", () => {
 		expect(FakePeerConnection.instances).toHaveLength(0);
 	});
 
-	it("closes the connection and the stream when the page goes away", async () => {
-		webrtc.call(client, "/echo");
-		job.send(turn);
-		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
-		window.dispatchEvent(new Event("pagehide"));
-		expect(FakePeerConnection.instances[0].close).toHaveBeenCalled();
-		expect(job.close_stream).toHaveBeenCalled();
-		job.end();
-	});
+	// The client tests also run in Node, which has no page to leave
+	it.skipIf(typeof window === "undefined")(
+		"closes the connection and the stream when the page goes away",
+		async () => {
+			webrtc.call(client, "/echo");
+			job.send(turn);
+			await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+			window.dispatchEvent(new Event("pagehide"));
+			expect(FakePeerConnection.instances[0].close).toHaveBeenCalled();
+			expect(job.close_stream).toHaveBeenCalled();
+			job.end();
+		}
+	);
 });
