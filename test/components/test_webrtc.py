@@ -2348,6 +2348,10 @@ class TestStreamsWithProcesses:
     test_admitted_stream_that_never_connects_gives_up = (
         TestStreams.test_admitted_stream_that_never_connects_gives_up
     )
+    # The concurrency limit per process comes from the gateway
+    test_the_next_handler_waits_for_the_last_one_to_shut_down = (
+        TestStreams.test_the_next_handler_waits_for_the_last_one_to_shut_down
+    )
 
 
 REPLICA_APP = """
@@ -2383,24 +2387,32 @@ async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         port = s.getsockname()[1]
+    log_path = tmp_path / "server.log"
+    log = log_path.open("w")
     proc = subprocess.Popen(
         [sys.executable, str(script)],
         env={**os.environ, "GRADIO_PROCESS_REPLICAS": "2", "PORT": str(port)},
+        stdout=log,
+        stderr=subprocess.STDOUT,
         start_new_session=True,
     )
     api = f"http://127.0.0.1:{port}{API_PREFIX}"
     pcs, readers = [], []
+    passed = False
     try:
         async with httpx2.AsyncClient(timeout=15) as http:
             deadline = time.monotonic() + 120
+            processes = []
             while time.monotonic() < deadline:
                 try:
                     status = (await http.get(f"{api}/processes")).json()
-                    if len(status["processes"]) == 2 and not status["starting"]:
+                    processes = status["processes"]
+                    if len(processes) == 2 and not status["starting"]:
                         break
                 except (httpx2.HTTPError, ValueError):
                     pass
                 await asyncio.sleep(0.5)
+            assert len(processes) == 2, processes
             config = (await http.get(f"http://127.0.0.1:{port}/config")).json()
             webrtc_id = next(
                 c["id"] for c in config["components"] if c["type"] == "webrtc"
@@ -2501,6 +2513,7 @@ async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
                 while pc.connectionState not in ("closed", "failed"):
                     assert time.monotonic() < deadline, pc.connectionState
                     await asyncio.sleep(0.1)
+        passed = True
     finally:
         for task in readers:
             task.cancel()
@@ -2508,6 +2521,10 @@ async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
             await pc.close()
         os.killpg(proc.pid, signal.SIGTERM)
         proc.wait(timeout=30)
+        log.close()
+        if not passed:
+            # Shown with the failure, as the app's processes saw it
+            print(log_path.read_text()[-5000:])
 
 
 @pytest.mark.asyncio
