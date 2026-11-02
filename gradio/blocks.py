@@ -4078,7 +4078,12 @@ Received inputs:
         )
         lines = ["\n🔨 Launching MCP server:", f"* Streamable HTTP URL: {mcp_url}"]
         if self.share_url:
-            query = urlencode({"mcp": mcp_url, "mcp_name": self.title}, quote_via=quote)
+            title = self.title
+            if isinstance(title, I18nData):
+                i18n = getattr(self, "i18n_instance", None)
+                translations = i18n.translations.get("en", {}) if i18n else {}
+                title = translations.get(title.key, title.key)
+            query = urlencode({"mcp": mcp_url, "mcp_name": title}, quote_via=quote)
             lines.append(
                 f"* Try it in HuggingChat: https://huggingface.co/chat/?{query}"
             )

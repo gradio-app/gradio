@@ -624,3 +624,19 @@ def test_print_mcp_server_links_huggingchat_for_share_url(capsys):
         "?mcp=https%3A%2F%2Fabc123.gradio.live%2Fgradio_api%2Fmcp%2F"
         "&mcp_name=Letter%20Counter"
     ) in output
+
+
+def test_print_mcp_server_uses_translated_title_for_huggingchat(capsys):
+    i18n = gr.I18n(en={"app_title": "Letter Counter"})
+    with gr.Blocks(title=i18n("app_title")) as demo:
+        gr.Textbox()
+    demo.local_url = "http://127.0.0.1:7860/"
+    demo.share_url = "https://abc123.gradio.live"
+
+    demo.i18n_instance = i18n
+    demo._print_mcp_server()
+    assert "&mcp_name=Letter%20Counter" in capsys.readouterr().out
+
+    demo.i18n_instance = None
+    demo._print_mcp_server()
+    assert "&mcp_name=app_title" in capsys.readouterr().out
