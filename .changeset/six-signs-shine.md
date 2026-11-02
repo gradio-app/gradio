@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflow: ensure inline checkbox works
+feat:workflow: add masked setting on textboxes
