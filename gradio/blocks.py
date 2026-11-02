@@ -2260,6 +2260,7 @@ Received inputs:
         predictions: list | dict,
         state: SessionState | None,
     ) -> list[Any]:
+        from gradio.components.api_component import Api
         from gradio.profiling import trace_phase
 
         state = state or SessionState(self)
@@ -2328,7 +2329,15 @@ Received inputs:
                         k: v for k, v in prediction_value.items() if k in keys
                     }
                     prediction_value["__type__"] = "update"
-                if utils.is_prop_update(prediction_value):
+                if (
+                    isinstance(block, Api)
+                    and isinstance(prediction_value, dict)
+                    and prediction_value == skip()
+                ):
+                    # The output of gr.api() or gr.Server has no properties to
+                    # update, so gr.skip() leaves it as it is
+                    pass
+                elif utils.is_prop_update(prediction_value):
                     # The output block may be absent from the session config if
                     # the app was hot-reloaded mid-run and this component was
                     # added by the reload; fall back to the block's own args.

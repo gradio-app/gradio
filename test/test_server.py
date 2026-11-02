@@ -101,6 +101,25 @@ class TestServer:
         finally:
             gr.close_all()
 
+    def test_server_api_generator_can_skip_an_output(self):
+        server = gr.Server()
+
+        @server.api(name="count")
+        def count(limit: int) -> Iterator[str]:
+            yield "0"
+            yield gr.skip()
+            yield "1"
+
+        _, local_url, _ = server.launch(prevent_thread_lock=True)
+        try:
+            client = Client(local_url)
+            try:
+                assert client.predict(2, api_name="/count") == "1"
+            finally:
+                client.close()
+        finally:
+            gr.close_all()
+
     def test_server_launch_enables_mcp(self):
         server = gr.Server()
 

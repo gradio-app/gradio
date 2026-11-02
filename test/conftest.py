@@ -56,6 +56,10 @@ def io_components():
             gr.Navbar,
         ]:
             continue
+        # The input and output of gr.api(), not a UI component. Matched by
+        # module so that the fixture does not import it for every test.
+        if subclass.__module__ == "gradio.components.api_component":
+            continue
         if subclass in gr.components.FormComponent.__subclasses__():
             continue
 
