@@ -18,6 +18,7 @@ vi.mock("../helpers/zerogpu", async (importOriginal) => ({
 }));
 
 import { Client } from "../client";
+import { webrtc } from "../utils/webrtc";
 
 function fake_client(token?: `hf_${string}`): {
 	client: Client;
@@ -125,5 +126,215 @@ describe("WebRTC signalling", () => {
 			"Content-Type": "application/json",
 			Authorization: "Bearer hf_token"
 		});
+	});
+});
+
+class FakeChannel {
+	readyState = "connecting";
+	onopen: (() => void) | null = null;
+	onmessage: ((event: { data: string }) => void) | null = null;
+	send = vi.fn();
+	open(): void {
+		this.readyState = "open";
+		this.onopen?.();
+	}
+}
+
+class FakePeerConnection {
+	static instances: FakePeerConnection[] = [];
+	connectionState = "new";
+	channel = new FakeChannel();
+	localDescription: { sdp: string; type: string } | null = null;
+	listeners: Record<string, ((event?: any) => void)[]> = {};
+	onicecandidate: ((event: any) => void) | null = null;
+	close = vi.fn();
+	constructor(public configuration: Record<string, any>) {
+		FakePeerConnection.instances.push(this);
+	}
+	createDataChannel(): FakeChannel {
+		return this.channel;
+	}
+	addTrack(): void {}
+	addTransceiver(): void {}
+	getTransceivers(): [] {
+		return [];
+	}
+	getSenders(): [] {
+		return [];
+	}
+	async createOffer(): Promise<{ sdp: string; type: string }> {
+		return { sdp: "v=0 offer", type: "offer" };
+	}
+	async setLocalDescription(description: { sdp: string; type: string }) {
+		this.localDescription = description;
+	}
+	async setRemoteDescription(): Promise<void> {}
+	addEventListener(type: string, listener: (event?: any) => void): void {
+		(this.listeners[type] ??= []).push(listener);
+	}
+	set_state(state: string): void {
+		this.connectionState = state;
+		this.listeners.connectionstatechange?.forEach((listener) => listener());
+	}
+}
+
+// A submission whose messages the test sends
+function fake_job() {
+	const messages: any[] = [];
+	const waiting: ((result: IteratorResult<any>) => void)[] = [];
+	let ended = false;
+	const job = {
+		close_stream: vi.fn(),
+		[Symbol.asyncIterator]() {
+			return this;
+		},
+		next(): Promise<IteratorResult<any>> {
+			if (messages.length)
+				return Promise.resolve({ value: messages.shift(), done: false });
+			if (ended) return Promise.resolve({ value: undefined, done: true });
+			return new Promise((resolve) => waiting.push(resolve));
+		},
+		send(msg: any): void {
+			const next = waiting.shift();
+			if (next) next({ value: msg, done: false });
+			else messages.push(msg);
+		},
+		end(): void {
+			ended = true;
+			waiting
+				.splice(0)
+				.forEach((next) => next({ value: undefined, done: true }));
+		}
+	};
+	return job;
+}
+
+const turn = { type: "data", data: [{ __type__: "update" }] };
+const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
+describe("client.webrtc", () => {
+	let job: ReturnType<typeof fake_job>;
+	let client: any;
+
+	beforeEach(() => {
+		FakePeerConnection.instances = [];
+		vi.stubGlobal("RTCPeerConnection", FakePeerConnection);
+		job = fake_job();
+		client = {
+			submit: vi.fn(() => job),
+			webrtc_offer: vi.fn(async (body: any) =>
+				body.type === "offer" ? { sdp: "v=0 answer", type: "answer" } : {}
+			),
+			webrtc_rtc_configuration: vi.fn(async () => ({
+				iceServers: [{ urls: "turn:x" }]
+			}))
+		};
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		vi.useRealTimers();
+	});
+
+	it("connects once its turn comes and sends its inputs when the channel opens and when the handler asks", async () => {
+		const stream = webrtc.call(client, "/echo", { inputs: [1] });
+		// With all events, whatever the client publishes, to see failures
+		expect(client.submit).toHaveBeenCalledWith(
+			"/echo",
+			[stream.webrtc_id],
+			undefined,
+			undefined,
+			true
+		);
+		job.send({ type: "status", stage: "pending", position: 0 });
+		await flush();
+		expect(client.webrtc_rtc_configuration).not.toHaveBeenCalled();
+
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		const pc = FakePeerConnection.instances[0];
+		expect(pc.configuration).toEqual({ iceServers: [{ urls: "turn:x" }] });
+		expect(client.webrtc_offer.mock.calls[0][0]).toMatchObject({
+			type: "offer",
+			webrtc_id: stream.webrtc_id
+		});
+
+		// Plain functions and receive mode never ask: the values go out at once
+		pc.channel.open();
+		const input = (data: unknown[]) => JSON.stringify({ type: "input", data });
+		expect(pc.channel.send).toHaveBeenCalledWith(input([1]));
+		stream.set_inputs([2]);
+		expect(pc.channel.send).toHaveBeenLastCalledWith(input([2]));
+		pc.channel.onmessage?.({ data: JSON.stringify({ type: "send_input" }) });
+		expect(pc.channel.send).toHaveBeenLastCalledWith(input([2]));
+
+		pc.set_state("connected");
+		await stream.connected;
+	});
+
+	it("delivers each AdditionalOutputs and skips the no-op updates", async () => {
+		const outputs: unknown[][] = [];
+		webrtc.call(client, "/echo", { on_output: (v) => outputs.push(v) });
+		job.send(turn);
+		job.send({ type: "data", data: [[0.5, "a"]] });
+		job.send({ type: "data", data: [{ __type__: "update" }] });
+		job.send({ type: "data", data: [[0.7, "b"]] });
+		await vi.waitFor(() => expect(outputs).toHaveLength(2));
+		expect(outputs).toEqual([
+			[0.5, "a"],
+			[0.7, "b"]
+		]);
+	});
+
+	it("stop() ends the stream with its last outputs and closes the connection", async () => {
+		vi.useFakeTimers();
+		const stream = webrtc.call(client, "/echo");
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		const pc = FakePeerConnection.instances[0];
+
+		const stopping = stream.stop();
+		expect(job.close_stream).toHaveBeenCalledWith({ read_to_end: true });
+		job.end();
+		await stopping;
+		await vi.advanceTimersByTimeAsync(1000);
+		expect(pc.close).toHaveBeenCalled();
+		await expect(stream.done).resolves.toBeUndefined();
+	});
+
+	it("fails with the server's reason when the offer is rejected", async () => {
+		client.webrtc_offer = vi.fn(async () => ({
+			status: "failed",
+			meta: { error: "not_admitted" }
+		}));
+		const stream = webrtc.call(client, "/echo");
+		job.send(turn);
+		await expect(stream.connected).rejects.toThrow(
+			"The stream's turn in the queue ended"
+		);
+		expect(job.close_stream).toHaveBeenCalledWith({ read_to_end: true });
+		job.end();
+		await expect(stream.done).rejects.toThrow(
+			"The stream's turn in the queue ended"
+		);
+	});
+
+	it("fails when the queue reports an error before the turn", async () => {
+		const stream = webrtc.call(client, "/echo");
+		job.send({ type: "status", stage: "error", message: "Queue is full." });
+		job.end();
+		await expect(stream.connected).rejects.toThrow("Queue is full.");
+		await expect(stream.done).rejects.toThrow("Queue is full.");
+		expect(FakePeerConnection.instances).toHaveLength(0);
+	});
+
+	it("closes the connection and the stream when the page goes away", async () => {
+		webrtc.call(client, "/echo");
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		window.dispatchEvent(new Event("pagehide"));
+		expect(FakePeerConnection.instances[0].close).toHaveBeenCalled();
+		expect(job.close_stream).toHaveBeenCalled();
+		job.end();
 	});
 });

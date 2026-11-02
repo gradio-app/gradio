@@ -23,6 +23,11 @@ import { predict } from "./utils/predict";
 import { duplicate } from "./utils/duplicate";
 import { submit } from "./utils/submit";
 import {
+	webrtc,
+	type WebRTCStream,
+	type WebRTCStreamOptions
+} from "./utils/webrtc";
+import {
 	forget_session,
 	session_user,
 	get_resumable_events,
@@ -226,6 +231,7 @@ export class Client {
 		all_events?: boolean
 	) => SubmitIterable<GradioEvent>;
 	resume_jobs: (jobs?: ResumableJob[]) => SubmitIterable<GradioEvent>[];
+	webrtc: (endpoint: string, options?: WebRTCStreamOptions) => WebRTCStream;
 	predict: <T = unknown>(
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
@@ -261,6 +267,7 @@ export class Client {
 		this.handle_blob = handle_blob.bind(this);
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
+		this.webrtc = webrtc.bind(this);
 		this.resume_jobs = (jobs = this.get_resumable_events()) => {
 			this.options.resume_sessions = true;
 			return jobs.map(({ fn_index, event_id }) =>

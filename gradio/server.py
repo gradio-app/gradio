@@ -268,12 +268,13 @@ class Server(App):
         `fn` is what `gr.WebRTC.stream()` takes for the same modality and mode:
         a function, a `VideoOptions`, or a handler class or instance from
         `gradio.webrtc`. Each stream waits its turn in the queue, like a
-        queued endpoint. The client joins the queue with `[webrtc_id]`, a
+        queued endpoint. In the browser, `client.webrtc(name, {media, inputs,
+        on_track, on_output})` of the `@gradio/client` JavaScript client does
+        everything below. The client joins the queue with `[webrtc_id]`, a
         random id of its own; once the turn comes, it gets the RTCPeerConnection
         configuration from `/gradio_api/webrtc/rtc_configuration` and sends its
         offer and ICE candidates to `/gradio_api/webrtc/offer`, both with the
-        `webrtc_id` and the client's session hash. The `@gradio/client`
-        JavaScript client does all of this. Each `AdditionalOutputs` the
+        `webrtc_id` and the client's session hash. Each `AdditionalOutputs` the
         handler emits arrives as a data message whose value is the list of its
         values; messages with `{"__type__": "update"}` carry nothing. The client
         sends the values of the extra inputs over the stream's data channel as
