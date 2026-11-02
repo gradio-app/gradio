@@ -6,4 +6,4 @@
 "website": minor
 ---
 
-feat:Add `gr.WebRTC`, with each stream waiting its turn in the queue
+feat:Add `gr.WebRTC` and WebRTC streams for `gr.Server`, each waiting its turn in the queue
