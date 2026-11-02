@@ -1,7 +1,9 @@
-table,
-tr,
-td,
-th {
+/* Scoped to ParamViewer: SSR links every component's CSS, so unscoped
+   rules here would restyle Markdown and tables in other components. */
+.paramviewer table,
+.paramviewer tr,
+.paramviewer td,
+.paramviewer th {
 	margin-top: var(--spacing-sm);
 	margin-bottom: var(--spacing-sm);
 	padding: var(--spacing-xl);
@@ -23,8 +25,8 @@ th {
 
 	} */
 
-.md code,
-.md pre {
+.paramviewer .md code,
+.paramviewer .md pre {
 	background: none;
 	font-family: var(--font-mono);
 	font-size: var(--text-md);
@@ -40,22 +42,22 @@ th {
 	hyphens: none;
 }
 
-.md pre[class*="language-"]::-moz-selection,
-.md pre[class*="language-"] ::-moz-selection,
-.md code[class*="language-"]::-moz-selection,
-.md code[class*="language-"] ::-moz-selection {
+.paramviewer .md pre[class*="language-"]::-moz-selection,
+.paramviewer .md pre[class*="language-"] ::-moz-selection,
+.paramviewer .md code[class*="language-"]::-moz-selection,
+.paramviewer .md code[class*="language-"] ::-moz-selection {
 }
 
-.md pre[class*="language-"]::selection,
-.md pre[class*="language-"] ::selection,
-.md code[class*="language-"]::selection,
-.md code[class*="language-"] ::selection {
+.paramviewer .md pre[class*="language-"]::selection,
+.paramviewer .md pre[class*="language-"] ::selection,
+.paramviewer .md code[class*="language-"]::selection,
+.paramviewer .md code[class*="language-"] ::selection {
 	text-shadow: none;
 	background: #b3d4fc;
 }
 
 /* Code blocks */
-.md pre {
+.paramviewer .md pre {
 	padding: 1em;
 	margin: 0.5em 0;
 	overflow: auto;
@@ -78,13 +80,13 @@ th {
 	white-space: pre;
 }
 
-.prose code {
+.paramviewer .prose code {
 }
-.prose pre > code {
+.paramviewer .prose pre > code {
 }
 
 /* Inline code */
-.md :not(pre) > code {
+.paramviewer .md :not(pre) > code {
 	padding: 0.1em;
 	border-radius: var(--radius-xs);
 	white-space: normal;
@@ -93,119 +95,119 @@ th {
 	padding: var(--spacing-xxs) var(--spacing-xs);
 }
 
-.md .token.comment,
-.md .token.prolog,
-.md .token.doctype,
-.md .token.cdata {
+.paramviewer .md .token.comment,
+.paramviewer .md .token.prolog,
+.paramviewer .md .token.doctype,
+.paramviewer .md .token.cdata {
 	color: slategray;
 }
 
-.md .token.punctuation {
+.paramviewer .md .token.punctuation {
 	color: #999;
 }
 
-.md .token.namespace {
+.paramviewer .md .token.namespace {
 	opacity: 0.7;
 }
 
-.md .token.property,
-.md .token.tag,
-.md .token.boolean,
-.md .token.number,
-.md .token.constant,
-.md .token.symbol,
-.md .token.deleted {
+.paramviewer .md .token.property,
+.paramviewer .md .token.tag,
+.paramviewer .md .token.boolean,
+.paramviewer .md .token.number,
+.paramviewer .md .token.constant,
+.paramviewer .md .token.symbol,
+.paramviewer .md .token.deleted {
 	color: #905;
 }
 
-.md .token.selector,
-.md .token.attr-name,
-.md .token.string,
-.md .token.char,
-.md .token.builtin,
-.md .token.inserted {
+.paramviewer .md .token.selector,
+.paramviewer .md .token.attr-name,
+.paramviewer .md .token.string,
+.paramviewer .md .token.char,
+.paramviewer .md .token.builtin,
+.paramviewer .md .token.inserted {
 	color: #690;
 }
 
-.md .token.atrule,
-.md .token.attr-value,
-.md .token.keyword {
+.paramviewer .md .token.atrule,
+.paramviewer .md .token.attr-value,
+.paramviewer .md .token.keyword {
 	color: #07a;
 }
 
-.md .token.function,
-.md .token.class-name {
+.paramviewer .md .token.function,
+.paramviewer .md .token.class-name {
 	color: #dd4a68;
 }
 
-.md .token.regex,
-.md .token.important,
-.md .token.variable {
+.paramviewer .md .token.regex,
+.paramviewer .md .token.important,
+.paramviewer .md .token.variable {
 	color: #e90;
 }
 
-.md .token.important,
-.md .token.bold {
+.paramviewer .md .token.important,
+.paramviewer .md .token.bold {
 	font-weight: bold;
 }
-.md .token.italic {
+.paramviewer .md .token.italic {
 	font-style: italic;
 }
 
-.md .token.entity {
+.paramviewer .md .token.entity {
 	cursor: help;
 }
 
-.dark .md .token.comment,
-.dark .md .token.prolog,
-.dark .md .token.cdata {
+.paramviewer .dark .md .token.comment,
+.paramviewer .dark .md .token.prolog,
+.paramviewer .dark .md .token.cdata {
 	color: hsl(220, 10%, 40%);
 }
 
-.dark .md .token.doctype,
-.dark .md .token.punctuation,
-.dark .md .token.entity {
+.paramviewer .dark .md .token.doctype,
+.paramviewer .dark .md .token.punctuation,
+.paramviewer .dark .md .token.entity {
 	color: hsl(220, 14%, 71%);
 }
 
-.dark .md .token.attr-name,
-.dark .md .token.class-name,
-.dark .md .token.boolean,
-.dark .md .token.constant,
-.dark .md .token.number,
-.dark .md .token.atrule {
+.paramviewer .dark .md .token.attr-name,
+.paramviewer .dark .md .token.class-name,
+.paramviewer .dark .md .token.boolean,
+.paramviewer .dark .md .token.constant,
+.paramviewer .dark .md .token.number,
+.paramviewer .dark .md .token.atrule {
 	color: hsl(29, 54%, 61%);
 }
 
-.dark .md .token.keyword {
+.paramviewer .dark .md .token.keyword {
 	color: hsl(286, 60%, 67%);
 }
 
-.dark .md .token.property,
-.dark .md .token.tag,
-.dark .md .token.symbol,
-.dark .md .token.deleted,
-.dark .md .token.important {
+.paramviewer .dark .md .token.property,
+.paramviewer .dark .md .token.tag,
+.paramviewer .dark .md .token.symbol,
+.paramviewer .dark .md .token.deleted,
+.paramviewer .dark .md .token.important {
 	color: hsl(355, 65%, 65%);
 }
 
-.dark .md .token.selector,
-.dark .md .token.string,
-.dark .md .token.char,
-.dark .md .token.builtin,
-.dark .md .token.inserted,
-.dark .md .token.regex,
-.dark .md .token.attr-value,
-.dark .md .token.attr-value > .token.punctuation {
+.paramviewer .dark .md .token.selector,
+.paramviewer .dark .md .token.string,
+.paramviewer .dark .md .token.char,
+.paramviewer .dark .md .token.builtin,
+.paramviewer .dark .md .token.inserted,
+.paramviewer .dark .md .token.regex,
+.paramviewer .dark .md .token.attr-value,
+.paramviewer .dark .md .token.attr-value > .token.punctuation {
 	color: hsl(95, 38%, 62%);
 }
 
-.dark .md .token.variable,
-.dark .md .token.operator,
-.dark .md .token.function {
+.paramviewer .dark .md .token.variable,
+.paramviewer .dark .md .token.operator,
+.paramviewer .dark .md .token.function {
 	color: hsl(207, 82%, 66%);
 }
 
-.dark .md .token.url {
+.paramviewer .dark .md .token.url {
 	color: hsl(187, 47%, 55%);
 }
