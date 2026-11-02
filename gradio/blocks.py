@@ -23,7 +23,7 @@ from functools import partial
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import quote, urlencode, urlparse, urlunparse
 
 import anyio
 import fastapi
@@ -3349,10 +3349,7 @@ Received inputs:
                 if self.mcp_server_obj:
                     self.mcp_server_obj._local_url = self.local_url
                 if self.mcp_server:
-                    print(
-                        "\n🔨 Launching MCP server:"
-                        f"\n* Streamable HTTP URL: {str(self.share_url or self.local_url).rstrip('/')}{API_PREFIX}/mcp/"
-                    )
+                    self._print_mcp_server()
             if inbrowser:
                 webbrowser.open(
                     str(
@@ -3736,12 +3733,8 @@ Received inputs:
         elif self.share_url and self.is_colab:
             print(f"* Running on public URL: {self.share_url}")
 
-        mcp_subpath = API_PREFIX + "/mcp"
         if self.mcp_server:
-            print(
-                "\n🔨 Launching MCP server:"
-                f"\n* Streamable HTTP URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/"
-            )
+            self._print_mcp_server()
 
         if inbrowser:
             link = self.share_url if self.share and self.share_url else self.local_url
@@ -4078,6 +4071,18 @@ Received inputs:
             print(
                 "\nThis share link is temporary and will last for up to 1 week (best effort). For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
             )
+
+    def _print_mcp_server(self) -> None:
+        mcp_url = (
+            f"{str(self.share_url or self.local_url).rstrip('/')}{API_PREFIX}/mcp/"
+        )
+        lines = ["\n🔨 Launching MCP server:", f"* Streamable HTTP URL: {mcp_url}"]
+        if self.share_url:
+            query = urlencode({"mcp": mcp_url, "mcp_name": self.title}, quote_via=quote)
+            lines.append(
+                f"* Try it in HuggingChat: https://huggingface.co/chat/?{query}"
+            )
+        print("\n".join(lines))
 
     def _launch_tip(
         self, share_url: str | None, app_processes: int, process: bool
