@@ -1,5 +1,16 @@
 # @self/spa
 
+## 1.7.2
+
+### Fixes
+
+- [#13941](https://github.com/gradio-app/gradio/pull/13941) [`12cc9d4`](https://github.com/gradio-app/gradio/commit/12cc9d4cca0ecfa3f7a70ce445e8481382833b5f) - Render streamed markdown block by block instead of rebuilding the whole message.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.7.2
+- @gradio/core@1.13.0
+
 ## 1.7.1
 
 ### Dependency updates

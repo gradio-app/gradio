@@ -1,5 +1,40 @@
 # @gradio/core
 
+## 1.13.0
+
+### Features
+
+- [#13971](https://github.com/gradio-app/gradio/pull/13971) [`b3c050c`](https://github.com/gradio-app/gradio/commit/b3c050c7d445a9d3d9ae5fd76adef8d5e6052874) - fit gr.workflow in full screen layouts.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13981](https://github.com/gradio-app/gradio/pull/13981) [`68a1122`](https://github.com/gradio-app/gradio/commit/68a112234da6f48df003d0de9449b455ac5d9e5b) - Don't save runs started by a Timer tick or a page load to run history.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/statustracker@0.16.0
+- @gradio/utils@0.15.0
+- @gradio/client@2.7.2
+- @gradio/markdown@0.14.3
+- @gradio/atoms@0.26.3
+- @gradio/code@0.20.1
+- @gradio/html@0.14.1
+- @gradio/paramviewer@0.12.1
+- @gradio/button@0.8.4
+- @gradio/tabitem@0.10.1
+- @gradio/tabs@0.11.2
+- @gradio/column@0.4.1
+- @gradio/upload@0.19.1
+- @gradio/gallery@0.19.4
+- @gradio/plot@0.12.3
+- @gradio/checkbox@0.8.4
+- @gradio/dropdown@0.15.1
+- @gradio/textbox@0.14.3
+- @gradio/file@0.16.3
+- @gradio/image@0.28.5
+- @gradio/video@0.23.3
+- @gradio/audio@0.24.5
+
 ## 1.12.2
 
 ### Fixes
