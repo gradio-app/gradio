@@ -55,7 +55,9 @@ export function extract_secrets(wf: Workflow): WorkflowSecrets {
 	const secrets: WorkflowSecrets = {};
 	for (const node of allNodes(wf)) {
 		for (const port of secret_ports(node)) {
-			const value = node.data?.[port];
+			const value =
+				node.data?.[port] ||
+				node.inputs.find((p) => p.id === port)?.default_value;
 			if (typeof value === "string" && value) {
 				secrets[`${node.id}:${port}`] = value;
 			}

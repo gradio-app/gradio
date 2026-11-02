@@ -18,7 +18,8 @@ const graph = (key: string, inline: string, keyDefault?: string) =>
 				type: "password",
 				inputs: [],
 				outputs: [{ id: "out" }],
-				data: { out: key }
+				data: { out: key },
+				value: key
 			}
 		],
 		operators: [
@@ -38,6 +39,7 @@ test("secrets never reach workflow.json", () => {
 		JSON.stringify(sanitize_for_save(graph("sk-1", "sk-2", "sk-3")))
 	);
 	expect(saved.references[0].data).toEqual({});
+	expect(saved.references[0].value).toBeUndefined();
 	expect(saved.operators[0].data).toEqual({});
 	expect(saved.operators[0].inputs[0].default_value).toBeUndefined();
 });
@@ -53,6 +55,9 @@ test("secrets round-trip through the viewer's storage", () => {
 	const restored = apply_secrets(graph("", ""), load_secrets("Test", storage));
 	expect(restored.references[0].data.out).toBe("sk-1");
 	expect(restored.operators[0].data.in_api_key).toBe("sk-2");
+
+	save_secrets("Test", extract_secrets(graph("", "", "sk-3")), storage);
+	expect(load_secrets("Test", storage)).toEqual({ "op:in_api_key": "sk-3" });
 });
 
 test("credential ports are matched by name, settings are not", () => {

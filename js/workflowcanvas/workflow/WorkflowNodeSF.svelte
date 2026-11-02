@@ -828,7 +828,8 @@
 								<input
 									class="inline-input"
 									type={is_secret_port(port) ? "password" : "text"}
-									placeholder={port.default_value != null
+									placeholder={port.default_value != null &&
+									!is_secret_port(port)
 										? String(port.default_value)
 										: port.label}
 									value={typeof node.data?.[port.id] === "string"

@@ -15,7 +15,12 @@ import type {
 	WFEdge,
 	Workflow
 } from "./workflow-types";
-import { is_secret, is_secret_port, ports_compatible } from "./workflow-types";
+import {
+	is_secret,
+	is_secret_port,
+	is_textual,
+	ports_compatible
+} from "./workflow-types";
 import { allNodes, findNode, isV2, migrateToV2 } from "./workflow-migration";
 
 function uuid(): string {
@@ -136,6 +141,7 @@ function sanitize_node<T extends AnyNode>(node: T): SavedNode<T> {
 	// Only operators carry a catalog, so it can't be destructured off the
 	// generic alongside the geometry.
 	delete (persisted as { endpoints?: unknown }).endpoints;
+	if (is_secret(node)) delete (persisted as { value?: unknown }).value;
 	return {
 		...persisted,
 		inputs: scrub(node.inputs),
@@ -499,7 +505,9 @@ export function addEdge(e: Omit<WFEdge, "id">): void {
 		);
 		const references = is_secret_port(port ?? {})
 			? wf.references.map((n) =>
-					n.id === e.from_node_id ? { ...n, type: "password" as const } : n
+					n.id === e.from_node_id && is_textual(n.asset_type)
+						? { ...n, type: "password" as const }
+						: n
 				)
 			: wf.references;
 		return reconcileComponentRoles({
