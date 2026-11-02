@@ -875,8 +875,6 @@ class App(FastAPI):
                 config["username"] = user
                 config["session_user"] = route_utils.session_identity(request, user)
                 config["deep_link_state"] = deep_link_state
-                if blocks.run_history and history.spaces_storage_target(request):
-                    config["history_storage"] = "spaces"
                 # Update root after loading the deep link state (if applicable)
                 # so that static files are served from the correct root
                 config = route_utils.update_root_in_config(config, root)
@@ -1389,8 +1387,6 @@ class App(FastAPI):
                 # aliases the live app config, which the root-url rewrite
                 # below then mutates in place for every later request.
                 config["components"] = components  # type: ignore
-            if app.get_blocks().run_history and history.spaces_storage_target(request):
-                config["history_storage"] = "spaces"
             if deep_link:
                 config["deep_link_state"] = deep_link_state
             if hasattr(blocks, "i18n_instance") and blocks.i18n_instance:

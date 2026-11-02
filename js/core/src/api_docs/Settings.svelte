@@ -243,13 +243,11 @@
 				View run history <span aria-hidden="true">→</span>
 			</a>
 		</div>
-		{#if run_history_scope?.history_storage !== "spaces"}
-			<HistoryStorageControl
-				{root}
-				scope={run_history_scope}
-				bind:storage={history_storage}
-			/>
-		{/if}
+		<HistoryStorageControl
+			{root}
+			scope={run_history_scope}
+			bind:storage={history_storage}
+		/>
 	</div>
 {/if}
 

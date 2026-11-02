@@ -178,8 +178,7 @@ export function submit(
 			root: config.root,
 			app_key: config.app_key,
 			app_id: config.app_id,
-			username: config.username,
-			history_storage: config.history_storage
+			username: config.username
 		};
 		const history_storage = read_run_history_storage(history_scope);
 		const addt_headers = {
