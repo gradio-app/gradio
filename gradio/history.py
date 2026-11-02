@@ -501,8 +501,7 @@ BUCKET_HEADER = "x-gradio-history-bucket"
 # SPACES_STORAGE_BUCKET to <viewer>/spaces-storage and prefixes every path with
 # this Space. The Space never learns who the viewer is.
 SPACES_STORAGE_TOKEN_HEADER = "x-hf-storage-token"
-# SPACES_STORAGE_BUCKET = "me/spaces-storage"
-SPACES_STORAGE_SPACE_ID = "hmb/spaces-storage-hmb"
+SPACES_STORAGE_BUCKET = "me/spaces-storage"
 SPACES_STORAGE_APP_ID = "gradio"
 MAX_CONCURRENT_WRITES = 8
 
