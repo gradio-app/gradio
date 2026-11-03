@@ -6,7 +6,7 @@ In this guide, we will demonstrate how to use the `gradio_client` [Python librar
 
 **Prerequisites**
 
-Before we begin, make sure you are running Python 3.9 or later, and have the following libraries installed:
+Before we begin, make sure you are running Python 3.11 or later, and have the following libraries installed:
 
 - `gradio_client`
 - `fastapi`

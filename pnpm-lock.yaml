@@ -365,9 +365,6 @@ importers:
       '@gradio/uploadbutton':
         specifier: workspace:^
         version: link:js/uploadbutton
-      '@gradio/vibeeditor':
-        specifier: workspace:^
-        version: link:js/vibeeditor
       '@gradio/video':
         specifier: workspace:^
         version: link:js/video
@@ -1186,9 +1183,6 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
-      '@gradio/vibeeditor':
-        specifier: workspace:^
-        version: link:../vibeeditor
       '@gradio/video':
         specifier: workspace:^
         version: link:../video
@@ -1912,6 +1906,9 @@ importers:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
+      wavesurfer.js:
+        specifier: 7.11.0
+        version: 7.11.0
 
   js/nativeplot:
     dependencies:
@@ -2446,28 +2443,6 @@ importers:
       hls.js:
         specifier: 1.6.15
         version: 1.6.15
-
-  js/vibeeditor:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../atoms
-      '@gradio/client':
-        specifier: workspace:^
-        version: link:../../client/js
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../utils
-      svelte:
-        specifier: ^5.48.0
-        version: 5.56.9(@typescript-eslint/types@8.67.0)
-    devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../preview
 
   js/video:
     dependencies:

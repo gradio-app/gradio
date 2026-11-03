@@ -14,7 +14,7 @@ FastRTC is a library that lets you build low-latency real-time apps over WebRTC.
 </video>
 
 ### Prerequisites
-- Python 3.10+
+- Python 3.11+
 - A Gemini API key: `GEMINI_API_KEY`
 
 Install the dependencies:

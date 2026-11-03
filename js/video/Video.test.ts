@@ -645,3 +645,73 @@ describe("Streaming output", () => {
 		expect(destroy).toHaveBeenCalledTimes(1);
 	});
 });
+
+describe("Webcam recording", () => {
+	setupi18n();
+	afterEach(() => cleanup());
+
+	test.each([
+		["user", true],
+		["environment", false]
+	])(
+		"mirror: auto marks a %s camera recording as mirrored=%s",
+		async (facing_mode, mirrored) => {
+			const media_devices_descriptor = Object.getOwnPropertyDescriptor(
+				navigator,
+				"mediaDevices"
+			);
+			const canvas = document.createElement("canvas");
+			canvas.getContext("2d")!.fillRect(0, 0, 10, 10);
+
+			try {
+				Object.defineProperty(navigator, "mediaDevices", {
+					configurable: true,
+					value: {
+						getUserMedia: async () => {
+							const stream = canvas.captureStream(30);
+							const track = stream.getVideoTracks()[0];
+							const settings = track.getSettings.bind(track);
+							track.getSettings = () => ({
+								...settings(),
+								facingMode: facing_mode
+							});
+							return stream;
+						},
+						enumerateDevices: async () => []
+					}
+				});
+
+				const { getByRole, listen, get_data } = await render(Video, {
+					...default_props,
+					sources: ["webcam"],
+					webcam_options: { mirror: "auto", constraints: {} },
+					client: mock_client()
+				});
+				const change = listen("change");
+
+				await fireEvent.click(
+					getByRole("button", { name: "Click to Access Webcam" })
+				);
+				const record = await waitFor(() =>
+					getByRole("button", { name: "start recording" })
+				);
+				await fireEvent.click(record);
+				await fireEvent.click(record);
+
+				await waitFor(() => expect(change).toHaveBeenCalled());
+				const { value } = await get_data();
+				expect(value.meta.mirrored).toBe(mirrored);
+			} finally {
+				if (media_devices_descriptor) {
+					Object.defineProperty(
+						navigator,
+						"mediaDevices",
+						media_devices_descriptor
+					);
+				} else {
+					Reflect.deleteProperty(navigator, "mediaDevices");
+				}
+			}
+		}
+	);
+});

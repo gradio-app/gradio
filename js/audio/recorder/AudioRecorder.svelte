@@ -7,7 +7,7 @@
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
-	import type { WaveformOptions } from "../shared/types";
+	import type { WaveformOptions, MicrophoneOptions } from "../shared/types";
 	import { format_time } from "@gradio/utils";
 
 	let {
@@ -16,6 +16,7 @@
 		dispatch_blob,
 		waveform_settings,
 		waveform_options = { show_recording_waveform: true },
+		microphone_options = {},
 		handle_reset_value,
 		editable = true,
 		recording = false,
@@ -25,7 +26,8 @@
 		onstop,
 		onplay,
 		onpause,
-		onedit
+		onedit,
+		onerror
 	}: {
 		mode?: string;
 		i18n: I18nFormatter;
@@ -35,6 +37,7 @@
 		) => Promise<void> | undefined;
 		waveform_settings: Record<string, any>;
 		waveform_options?: WaveformOptions;
+		microphone_options?: MicrophoneOptions;
 		handle_reset_value: () => void;
 		editable?: boolean;
 		recording?: boolean;
@@ -45,6 +48,7 @@
 		onplay?: () => void;
 		onpause?: () => void;
 		onedit?: () => void;
+		onerror?: (error: string) => void;
 	} = $props();
 
 	let micWaveform: WaveSurfer;
@@ -279,6 +283,8 @@
 			{recording}
 			show_recording_waveform={waveform_options.show_recording_waveform}
 			record_time={format_time(seconds)}
+			constraints={microphone_options.constraints ?? undefined}
+			{onerror}
 		/>
 	{/if}
 

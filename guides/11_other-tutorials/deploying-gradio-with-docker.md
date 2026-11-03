@@ -35,7 +35,7 @@ This app creates a simple interface that greets the user by name.
 Next, we'll create a Dockerfile to specify how our app should be built and run in a Docker container. Create a file named `Dockerfile` in the same directory as your app with the following content:
 
 ```dockerfile
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /usr/src/app
 COPY . .
@@ -47,7 +47,7 @@ CMD ["python", "app.py"]
 ```
 
 This Dockerfile performs the following steps:
-- Starts from a Python 3.10 slim image.
+- Starts from a Python 3.11 slim image.
 - Sets the working directory and copies the app into the container.
 - Installs Gradio (you should install all other requirements as well).
 - Exposes port 7860 (Gradio's default port).
@@ -73,9 +73,13 @@ When running Gradio applications in Docker, there are a few important things to 
 
 In the Docker environment, setting `GRADIO_SERVER_NAME="0.0.0.0"` as an environment variable (or directly in your Gradio app's `launch()` function) is crucial for allowing connections from outside the container. And the `EXPOSE 7860` directive in the Dockerfile tells Docker to expose Gradio's default port on the container to enable external access to the Gradio app. 
 
-#### Enable Stickiness for Multiple Replicas
+#### Running Multiple Replicas
 
-When deploying Gradio apps with multiple replicas, such as on AWS ECS, it's important to enable stickiness with `sessionAffinity: ClientIP`. This ensures that all requests from the same user are routed to the same instance. This is important because Gradio's communication protocol requires multiple separate connections from the frontend to the backend in order for events to be processed correctly. (If you use Terraform, you'll want to add a [stickiness block](https://registry.terraform.io/providers/hashicorp/aws/3.14.1/docs/resources/lb_target_group#stickiness) into your target group definition.)
+When deploying Gradio apps with multiple replicas, such as on AWS ECS, each event runs on a single request when browsers reach your app over HTTP/2, so it works whichever replica the load balancer picks. A few things to keep in mind:
+
+- Over HTTP/1.1, browsers send all of a tab's events through one shared stream, which needs every request from a user to reach the same replica. Browsers only use HTTP/2 over HTTPS, and only if your load balancer or proxy supports it. Enable HTTP/2 there, or set `GRADIO_BROWSER_STREAMS=per_event` (see [environment variables](/guides/environment-variables)).
+- Set `GRADIO_SECRET_KEY` to the same value on every replica, so that `gr.State` values work on all of them.
+- Some features still keep data in a single server process: uploaded and generated files (unless the replicas share storage), logins with `auth=`, `@gr.render`, streaming inputs (such as a webcam or microphone stream), and resuming a running job after the page is refreshed. If your app uses them, enable stickiness with `sessionAffinity: ClientIP` so that all requests from the same user are routed to the same instance. (If you use Terraform, you'll want to add a [stickiness block](https://registry.terraform.io/providers/hashicorp/aws/3.14.1/docs/resources/lb_target_group#stickiness) into your target group definition.)
 
 #### Deploying Behind a Proxy
 
