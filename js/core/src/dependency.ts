@@ -416,9 +416,9 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-		for (let i = 0; i < (deps?.length || 0); i++) {
-			const dep = deps ? deps[i] : undefined;
-			if (dep) {
+		// The listeners of an event are independent, so start them all at once
+		await Promise.all(
+			(deps ?? []).map(async (dep) => {
 				this.cancel(dep.cancels);
 
 				const dispatch_status = should_dispatch(
@@ -427,17 +427,37 @@ export class DependencyManager {
 				);
 
 				if (dispatch_status === "skip") {
-					continue;
+					return;
 				} else if (dispatch_status === "defer") {
 					this.deferred_events.set(dep.id, event_meta);
-					continue;
+					return;
 				}
 				// Anything deferred before this run is older than it, so drop it
 				// rather than replay it after this run finishes.
 				this.deferred_events.delete(dep.id);
 
-				// No loading status for js-only deps
+				// No loading status or validation errors for js-only deps
 				if (dep.functions.backend) {
+					// Clear previously set validation errors before any listener of
+					// this event awaits, so a sibling cannot clear a rejection that
+					// arrived ahead of its own first message. Skip chunks sent to an
+					// open stream: they start no new run, and replacing loading_status
+					// would drop the input's stream_state.
+					if (
+						!(dep.connection_type === "stream" && this.submissions.has(dep.id))
+					) {
+						dep.inputs.forEach((input_id) => {
+							this.update_state_cb(
+								input_id,
+								{
+									loading_status: {
+										validation_error: null
+									}
+								},
+								false
+							);
+						});
+					}
 					this.update_loading_status({
 						status: "pending",
 						fn_index: dep.id,
@@ -473,7 +493,7 @@ export class DependencyManager {
 						};
 						submission!.send_chunk(payload as any);
 						unset_args.forEach((fn) => fn());
-						continue;
+						return;
 					}
 
 					this.add_to_api_calls({
@@ -516,24 +536,8 @@ export class DependencyManager {
 						this.submission_trigger_ids.set(dep.id, target_id);
 						this.active_dependencies.set(dep_submission.data, dep);
 						active_submission = dep_submission.data;
-						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
-							if (index === 0) {
-								// Clear out previously set validation errors
-								dep.inputs.forEach((input_id) => {
-									this.update_state_cb(
-										input_id,
-										{
-											loading_status: {
-												validation_error: null
-											}
-										},
-										false
-									);
-								});
-							}
-							index += 1;
 							if (result === null) continue;
 							if (result.type === "data") {
 								await this.handle_data(dep.outputs, result.data);
@@ -760,9 +764,8 @@ export class DependencyManager {
 					});
 					this.dispatch_deferred(dep.id);
 				}
-			}
-		}
-		return;
+			})
+		);
 	}
 
 	/**
