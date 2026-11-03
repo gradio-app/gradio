@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Run a deferred always_last event with its own event data
+fix:Start all listeners of an event at once
