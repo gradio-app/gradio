@@ -152,6 +152,11 @@ logger = logging.getLogger(__name__)
 # to the default "text" port type, which round-trips as JSON.
 _PY_TO_PORT = {int: "number", float: "number", bool: "boolean"}
 _SANITIZE_RE = re.compile(r"[^a-zA-Z0-9_-]")
+# A Hub repo id is `owner/name`. Anything else — a bare name, a URL — is
+# rejected before it reaches a client, so a graph cannot point a node at an
+# arbitrary host.
+_REPO_ID_RE = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$")
+_ID_SLUG_RE = re.compile(r"[^a-z0-9]+")
 
 
 def _build_edges(
@@ -206,14 +211,242 @@ def _build_edges(
     return result
 
 
+def _tile(node_id: str, label: str, role: str, port_type: str) -> dict:
+    """A reference or subject node: the input and output tiles of a workflow.
+
+    Both roles carry one port of each direction, as the canvas creates them —
+    a reference reads from its `out`, a subject is read from its first input.
+    """
+    return {
+        "id": node_id,
+        "label": label,
+        "role": role,
+        "asset_type": port_type,
+        "inputs": [{"id": "in", "label": label, "type": port_type}],
+        "outputs": [{"id": "out", "label": label, "type": port_type}],
+        "data": {},
+    }
+
+
+def _edge(
+    edge_id: str,
+    from_node: str,
+    from_port: str,
+    to_node: str,
+    to_port: str,
+    port_type: str,
+) -> dict:
+    return {
+        "id": edge_id,
+        "from_node_id": from_node,
+        "from_port_id": from_port,
+        "to_node_id": to_node,
+        "to_port_id": to_port,
+        "type": port_type,
+    }
+
+
+def _v2_graph(
+    operators: list[dict],
+    edges: list[dict],
+    name: str,
+    references: list[dict] | None = None,
+) -> str:
+    """Assemble a complete schema-v2 workflow from operator nodes.
+
+    Operators alone are not a runnable workflow: the API exposes one endpoint
+    per subject, so a graph of nothing but operators has no endpoints to derive
+    and no inputs to supply. This wraps them — a reference node for every input
+    port no edge feeds, a subject node for every output port no edge consumes —
+    which is what makes the result launchable rather than a canvas starter.
+
+    Pass `references` (with the edges that feed from them) to share one input
+    across several operators, as a comparison does; ports they already feed are
+    left alone.
+
+    No coordinates: the canvas arranges a graph that arrives without them, and
+    that arrangement is per-viewer state kept in each visitor's localStorage
+    rather than in the file.
+    """
+    fed = {(e["to_node_id"], e["to_port_id"]) for e in edges}
+    consumed = {(e["from_node_id"], e["from_port_id"]) for e in edges}
+
+    references = list(references or [])
+    subjects: list[dict] = []
+    all_edges = list(edges)
+
+    def add_edge(*args) -> None:
+        all_edges.append(_edge(f"e{len(all_edges)}", *args))
+
+    for op in operators:
+        for port in op.get("inputs", []):
+            if (op["id"], port["id"]) in fed:
+                continue
+            port_type = port.get("type", "text")
+            label = port.get("label") or port["id"]
+            ref_id = f"ref_{op['id']}_{port['id']}"
+            references.append(_tile(ref_id, label, "reference", port_type))
+            add_edge(ref_id, "out", op["id"], port["id"], port_type)
+
+    for op in operators:
+        outputs = op.get("outputs", [])
+        for port in outputs:
+            if (op["id"], port["id"]) in consumed:
+                continue
+            port_type = port.get("type", "text")
+            # The endpoint is named after its group's first subject, so the
+            # operator's label is the useful one: comparing two models gives
+            # /krea_2_turbo and /flux_1_dev rather than /image and /image_.
+            label = op.get("label") or op["id"]
+            if len(outputs) > 1:
+                label = f"{label} {port.get('label') or port['id']}"
+            sub_id = f"sub_{op['id']}_{port['id']}"
+            subjects.append(_tile(sub_id, label, "subject", port_type))
+            add_edge(op["id"], port["id"], sub_id, "in", port_type)
+
+    return json.dumps(
+        {
+            "schema_version": "2",
+            "name": name,
+            "runtime": {"default": "client"},
+            "references": references,
+            "operators": operators,
+            "subjects": subjects,
+            "edges": all_edges,
+        }
+    )
+
+
+def _resolve_task(task: str) -> tuple[str, str]:
+    """Map a pipeline tag or endpoint name to `(pipeline_tag, endpoint)`.
+
+    Both spellings are accepted because both are in circulation: the Hub labels
+    a model `text-to-image`, the graph calls the endpoint `text_to_image`.
+    """
+    if task in _PIPELINE_TAG_TO_ENDPOINT:
+        return task, _PIPELINE_TAG_TO_ENDPOINT[task]
+    if task in _INFERENCE_ENDPOINT_SCHEMAS:
+        return task.replace("_", "-"), task
+    raise ValueError(
+        f"Unknown task {task!r}. Supported tasks: "
+        f"{', '.join(sorted(_PIPELINE_TAG_TO_ENDPOINT))}"
+    )
+
+
+def _model_labels(model_ids: list[str]) -> list[str]:
+    """Short names where they tell the models apart, full ids where they do not.
+
+    Subject labels become the API's return names, so two models called
+    `FLUX.1-dev` from different owners have to be distinguishable.
+    """
+    names = [model_id.split("/")[-1] for model_id in model_ids]
+    return list(model_ids) if len(set(names)) != len(names) else names
+
+
+def _check_model_ids(models: object, caller: str) -> list[str]:
+    """Reject the argument shapes that otherwise fail somewhere confusing.
+
+    A bare string is iterable, so without this `compare("owner/name")` walks its
+    characters and complains about a model id called "o".
+    """
+    if isinstance(models, str):
+        raise ValueError(
+            f"{caller}() takes a list of model ids, not a single string — "
+            f"pass [{models!r}]."
+        )
+    try:
+        models = list(models)  # type: ignore[call-overload]
+    except TypeError:
+        raise ValueError(f"{caller}() takes a list of model ids.") from None
+    for model_id in models:
+        if not isinstance(model_id, str):
+            raise ValueError(
+                f"{caller}(): {model_id!r} is not a model id. Model ids are "
+                "strings of the form `owner/name`."
+            )
+    return models
+
+
+def _model_operator(
+    model_id: str, task: str, node_id: str, label: str | None = None
+) -> dict:
+    """A `kind: "model"` operator whose ports come from the endpoint schema.
+
+    The ports are read rather than written, which is the point: with an
+    `endpoint` set, arguments are sent as keyword arguments keyed by port id, so
+    a hand-written id that does not match the schema silently sends the wrong
+    argument.
+    """
+    if not _REPO_ID_RE.fullmatch(model_id or ""):
+        raise ValueError(
+            f"Invalid model id {model_id!r}. Model ids are `owner/name`, "
+            "e.g. 'black-forest-labs/FLUX.1-schnell'."
+        )
+    pipeline_tag, endpoint = _resolve_task(task)
+    schema = _INFERENCE_ENDPOINT_SCHEMAS[endpoint]
+    return {
+        "id": node_id,
+        "label": label or model_id.split("/")[-1],
+        "role": "operator",
+        "kind": "model",
+        "model_id": model_id,
+        "pipeline_tag": pipeline_tag,
+        "endpoint": endpoint,
+        "inputs": [dict(port) for port in schema["inputs"]],
+        "outputs": [dict(port) for port in schema["outputs"]],
+        "data": {},
+    }
+
+
+def _port_types_compatible(from_type: str, to_type: str) -> bool:
+    """Mirrors `ports_compatible` in js/workflowcanvas/workflow/workflow-types.ts.
+
+    `any` connects to everything, and markdown is text as far as a port is
+    concerned — several inference endpoints return one where the next takes the
+    other.
+    """
+    if "any" in (from_type, to_type) or from_type == to_type:
+        return True
+    return {from_type, to_type} <= {"text", "markdown"}
+
+
+def _caller_graph_path(graph: str | None, depth: int) -> str:
+    """Absolute path of the graph file, resolved from the calling script.
+
+    `Workflow.__init__` resolves a relative path against its own caller's
+    frame. A classmethod sits between the user and that constructor, so the
+    path is resolved here — against the real caller — and handed over absolute.
+    """
+    if graph is not None and os.path.isabs(graph):
+        return graph
+    caller = sys._getframe(depth).f_code.co_filename
+    return os.path.join(
+        os.path.dirname(os.path.abspath(caller)),
+        "workflow.json" if graph is None else graph,
+    )
+
+
+def _operator_id(model_id: str, taken: set[str]) -> str:
+    """`op_flux_1_dev` — readable, stable, and unique within the graph."""
+    slug = _ID_SLUG_RE.sub("_", model_id.split("/")[-1].lower()).strip("_")
+    return _unique_node_id(f"op_{slug or 'model'}", taken)
+
+
+def _unique_node_id(base: str, taken: set[str]) -> str:
+    node_id = base
+    suffix = 2
+    while node_id in taken:
+        node_id = f"{base}_{suffix}"
+        suffix += 1
+    taken.add(node_id)
+    return node_id
+
+
 def _workflow_from_bind(
     bound: dict[str, Callable],
     edges: list[tuple[str, str]] | None = None,
     name: str = "My Workflow",
 ) -> str:
-    # No coordinates: where a node sits is per-viewer state the canvas keeps in
-    # each visitor's localStorage, so a generated workflow just declares the
-    # graph and lets the canvas auto-arrange it on first open.
     nodes = []
     for fn_name, fn in bound.items():
         try:
@@ -250,7 +483,8 @@ def _workflow_from_bind(
                 "id": f"fn_{fn_name}",
                 "source": "fn",
                 "fn": fn_name,
-                "kind": "transform",
+                "role": "operator",
+                "kind": "fn",
                 "label": fn_name,
                 "width": 220,
                 "inputs": inputs,
@@ -259,10 +493,7 @@ def _workflow_from_bind(
             }
         )
 
-    edge_dicts = _build_edges(edges or [], nodes)
-    return json.dumps(
-        {"version": "1", "name": name, "nodes": nodes, "edges": edge_dicts}
-    )
+    return _v2_graph(nodes, _build_edges(edges or [], nodes), name)
 
 
 def _get_locally_saved_hf_token() -> str | None:
@@ -709,7 +940,7 @@ def call_space(
         endpoint = data[1] if len(data) > 1 else None
         args_json = data[2] if len(data) > 2 else "[]"
         hf_token = _resolve_token(data, 3, token, request)
-        if not re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+", space_id or ""):
+        if not _REPO_ID_RE.fullmatch(space_id or ""):
             return json.dumps(
                 {
                     "error": "Invalid Space ID",
@@ -1226,7 +1457,7 @@ def call_model(
     try:
         from huggingface_hub import InferenceClient
 
-        if not re.fullmatch(r"[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+", model_id or ""):
+        if not _REPO_ID_RE.fullmatch(model_id or ""):
             return json.dumps(
                 {
                     "error": "Invalid model ID",
@@ -1604,9 +1835,6 @@ def search_quick(
         return json.dumps({"error": str(e)})
 
 
-_REPO_ID_RE = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$")
-
-
 def _parse_repo_input(raw: str) -> tuple[str, Optional[str]]:
     s = (raw or "").strip().rstrip("/")
     if not s:
@@ -1827,6 +2055,7 @@ class Workflow(Blocks):
         *,
         bind: dict[str, Callable] | list[Callable] | None = None,
         edges: list[tuple[str, str]] | None = None,
+        _initial_graph: str | None = None,
     ):
         """
         Parameters:
@@ -1870,6 +2099,11 @@ class Workflow(Blocks):
         )
         self._bound: dict[str, Callable] = bind or {}
         self._edges: list[tuple[str, str]] = edges or []
+        # A graph built by `compare`/`chain` rather than read from disk. The
+        # file still wins when it exists: once someone edits on the canvas,
+        # their save is the workflow and must survive a restart. Set before
+        # `_build`, which registers the endpoints from whatever the graph is.
+        self._initial_graph: str | None = _initial_graph
 
         if Context.root_block is not None:
             raise ValueError(
@@ -1884,6 +2118,172 @@ class Workflow(Blocks):
 
         super().__init__(mode="workflow")
         self._build()
+
+    @classmethod
+    def _from_graph(cls, graph_json: str, graph_path: str, name: str) -> Workflow:
+        workflow = cls(graph_path, _initial_graph=graph_json)
+        workflow._workflow_name = name
+        return workflow
+
+    @classmethod
+    def compare(
+        cls,
+        models: list[str],
+        task: str,
+        *,
+        graph: str | None = None,
+        name: str | None = None,
+    ) -> Workflow:
+        """
+        Build a workflow that runs several models on the same input, side by side.
+
+        Every model is given the same input and gets its own output, so one call
+        returns all of them — the shape you want for "which of these is better
+        for my case". The ports come from the task's endpoint schema, so they
+        match what the inference call expects.
+
+        Parameters:
+            models: Hub model ids, as `owner/name`. All of them must do the same
+                task — models doing different tasks cannot run on one input.
+            task: The pipeline tag the models share, e.g. `"text-to-image"`. The
+                endpoint name (`"text_to_image"`) is accepted too.
+            graph: Path to the workflow JSON file, as in `Workflow()`. The file
+                takes precedence when it exists, so edits saved from the canvas
+                survive a restart.
+            name: Display name for the workflow.
+        Example:
+            ```python
+            import gradio as gr
+
+            gr.Workflow.compare(
+                ["krea/Krea-2-Turbo", "black-forest-labs/FLUX.1-dev"],
+                task="text-to-image",
+            ).launch()
+            ```
+        """
+        models = _check_model_ids(models, "compare")
+        if not models:
+            raise ValueError("compare() needs at least one model id.")
+
+        taken: set[str] = set()
+        labels = _model_labels(models)
+        operators = [
+            _model_operator(model_id, task, _operator_id(model_id, taken), label)
+            for model_id, label in zip(models, labels)
+        ]
+
+        # Every input is shared, not just the first: a comparison means the same
+        # inputs reach every model, so comparing two translation models must not
+        # ask for the source and target language once per model. They share a
+        # task, so they share a schema, so the port ids line up.
+        references = []
+        edges = []
+        for port in operators[0]["inputs"]:
+            port_type = port.get("type", "text")
+            reference = _tile(
+                f"ref_{port['id']}",
+                port.get("label") or port["id"],
+                "reference",
+                port_type,
+            )
+            references.append(reference)
+            edges.extend(
+                _edge(
+                    f"e_{port['id']}_{op['id']}",
+                    reference["id"],
+                    "out",
+                    op["id"],
+                    port["id"],
+                    port_type,
+                )
+                for op in operators
+            )
+
+        workflow_name = name or f"Compare: {task}"
+        return cls._from_graph(
+            _v2_graph(operators, edges, workflow_name, references=references),
+            _caller_graph_path(graph, 2),
+            workflow_name,
+        )
+
+    @classmethod
+    def chain(
+        cls,
+        steps: list[tuple[str, str]],
+        *,
+        graph: str | None = None,
+        name: str | None = None,
+    ) -> Workflow:
+        """
+        Build a workflow that feeds each model's output into the next one.
+
+        Parameters:
+            steps: `(model_id, task)` pairs, in the order they run. Each step's
+                output type must match the next step's input type.
+            graph: Path to the workflow JSON file, as in `Workflow()`. The file
+                takes precedence when it exists, so edits saved from the canvas
+                survive a restart.
+            name: Display name for the workflow.
+        Example:
+            ```python
+            import gradio as gr
+
+            gr.Workflow.chain([
+                ("openai/whisper-large-v3-turbo", "automatic-speech-recognition"),
+                ("facebook/bart-large-cnn", "summarization"),
+            ]).launch()
+            ```
+        """
+        if isinstance(steps, str):
+            raise ValueError(
+                "chain() takes a list of (model_id, task) pairs, not a string."
+            )
+        steps = list(steps)
+        if not steps:
+            raise ValueError("chain() needs at least one step.")
+        for step in steps:
+            if isinstance(step, str) or len(tuple(step)) != 2:
+                raise ValueError(
+                    f"chain(): {step!r} is not a (model_id, task) pair, e.g. "
+                    "('facebook/bart-large-cnn', 'summarization')."
+                )
+        _check_model_ids([model_id for model_id, _ in steps], "chain")
+
+        taken: set[str] = set()
+        labels = _model_labels([model_id for model_id, _ in steps])
+        operators = [
+            _model_operator(model_id, task, _operator_id(model_id, taken), label)
+            for (model_id, task), label in zip(steps, labels)
+        ]
+
+        edges = []
+        for i, (upstream, downstream) in enumerate(zip(operators, operators[1:])):
+            source = upstream["outputs"][0]
+            target = downstream["inputs"][0]
+            if not _port_types_compatible(source["type"], target["type"]):
+                raise ValueError(
+                    f"chain(): {upstream['label']} outputs {source['type']}, but "
+                    f"{downstream['label']} takes {target['type']} — the steps do "
+                    "not connect. Put a step between them that converts, or "
+                    "reorder them."
+                )
+            edges.append(
+                _edge(
+                    f"e_step_{i}",
+                    upstream["id"],
+                    source["id"],
+                    downstream["id"],
+                    target["id"],
+                    source["type"],
+                )
+            )
+
+        workflow_name = name or "Chain"
+        return cls._from_graph(
+            _v2_graph(operators, edges, workflow_name),
+            _caller_graph_path(graph, 2),
+            workflow_name,
+        )
 
     def _build(self):
         # Set once the API endpoints are registered (post UI build); save_workflow
@@ -1905,6 +2305,8 @@ class Workflow(Blocks):
                 with open(self._workflow_file, encoding="utf-8") as f:
                     return f.read()
             except FileNotFoundError:
+                if self._initial_graph is not None:
+                    return self._initial_graph
                 if self._bound:
                     return _workflow_from_bind(
                         self._bound, self._edges, name=self._workflow_name
