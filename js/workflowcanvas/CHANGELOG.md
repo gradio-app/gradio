@@ -1,5 +1,12 @@
 # @gradio/workflowcanvas
 
+## 0.15.0
+
+### Features
+
+- [#14017](https://github.com/gradio-app/gradio/pull/14017) [`ebccfcf`](https://github.com/gradio-app/gradio/commit/ebccfcf3194dd3cd132491a6bc35968f1321611a) - workflows: handle depth estimation.  Thanks @hannahblair!
+- [#13972](https://github.com/gradio-app/gradio/pull/13972) [`d702b19`](https://github.com/gradio-app/gradio/commit/d702b19b8a6d7f2e8af6d7cd260c6e44af3e9433) - workflow: add masked setting on textboxes.  Thanks @hannahblair!
+
 ## 0.14.0
 
 ### Features

@@ -1,5 +1,18 @@
 # gradio
 
+## 6.32.0
+
+### Features
+
+- [#14034](https://github.com/gradio-app/gradio/pull/14034) [`1028366`](https://github.com/gradio-app/gradio/commit/1028366300f10b26f0b54a1d6cda6d520895acbb) - Allow Pillow 13 on 6.x and keep 32-bit integer PNG output working.  Thanks @abidlabs!
+- [#14017](https://github.com/gradio-app/gradio/pull/14017) [`ebccfcf`](https://github.com/gradio-app/gradio/commit/ebccfcf3194dd3cd132491a6bc35968f1321611a) - workflows: handle depth estimation.  Thanks @hannahblair!
+- [#13972](https://github.com/gradio-app/gradio/pull/13972) [`d702b19`](https://github.com/gradio-app/gradio/commit/d702b19b8a6d7f2e8af6d7cd260c6e44af3e9433) - workflow: add masked setting on textboxes.  Thanks @hannahblair!
+
+### Fixes
+
+- [#13991](https://github.com/gradio-app/gradio/pull/13991) [`fa3f296`](https://github.com/gradio-app/gradio/commit/fa3f29607c4b2ded9973970053af6c6b7971d9ba) - Run a deferred always_last event with its own event data.  Thanks @hysts!
+- [#14027](https://github.com/gradio-app/gradio/pull/14027) [`f3bab14`](https://github.com/gradio-app/gradio/commit/f3bab14e9d5a46bb22866a3a9db498c02f4e7ad0) - Show an error when camera permission is denied for the webcam.  Thanks @hysts!
+
 ## 6.31.0
 
 ### Features

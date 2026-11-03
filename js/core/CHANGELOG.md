@@ -1,5 +1,15 @@
 # @gradio/core
 
+## 1.13.1
+
+### Fixes
+
+- [#13991](https://github.com/gradio-app/gradio/pull/13991) [`fa3f296`](https://github.com/gradio-app/gradio/commit/fa3f29607c4b2ded9973970053af6c6b7971d9ba) - Run a deferred always_last event with its own event data.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/image@0.28.6
+
 ## 1.13.0
 
 ### Features
