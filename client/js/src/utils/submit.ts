@@ -120,15 +120,19 @@ export function submit(
 		// — records nothing for its in-app use.
 		const is_documented_endpoint = dependency.api_visibility === "public";
 		// A chunk is not the input of an input stream, so the streamed component
-		// is saved empty; the event's other inputs are kept.
-		const streamed_inputs = new Set(
-			dependency.targets
+		// is saved empty; the event's other inputs are kept. A password textbox
+		// is saved empty too, so its value never reaches the run history.
+		const blank_inputs = new Set([
+			...dependency.targets
 				.filter(([, event]) => event === "stream")
-				.map(([id]) => id)
-		);
+				.map(([id]) => id),
+			...config.components
+				.filter((c) => c.type === "textbox" && c.props.type === "password")
+				.map((c) => c.id)
+		]);
 		const history_inputs = (values: unknown[]): unknown[] =>
 			values.map((value, index) =>
-				streamed_inputs.has(dependency.inputs[index]) ? null : value
+				blank_inputs.has(dependency.inputs[index]) ? null : value
 			);
 		// Either side may opt out: the app for everyone who uses it, and this
 		// caller for itself.
