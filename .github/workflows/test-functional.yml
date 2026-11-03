@@ -97,7 +97,7 @@ jobs:
           test: true
           skip_build: true
           skip_docs_gen: true
-      # SSR needs Node 24.22.1+, and the runner's cached Node 24 can be older, in
+      # SSR needs a patched Node (24.22.1+ on the 24 line), and the runner's cached Node 24 can be older, in
       # which case Gradio falls back to client-side rendering and the SSR tests
       # time out. install-all-deps is pinned to @7.0-dev, so set it here too.
       - uses: actions/setup-node@v4

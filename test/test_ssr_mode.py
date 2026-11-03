@@ -59,19 +59,33 @@ class TestGetSsrUnavailableReason:
     def set_version(self, monkeypatch, version):
         monkeypatch.setattr(node_server, "get_node_version", lambda _: version)
 
-    @pytest.mark.parametrize("version", [(24, 22, 1), (24, 23, 0), (25, 0, 0)])
+    @pytest.mark.parametrize(
+        "version",
+        [(22, 23, 4), (22, 24, 0), (24, 22, 1), (24, 23, 0), (26, 12, 1), (27, 0, 0)],
+    )
     def test_supported_versions(self, monkeypatch, version):
         self.set_version(monkeypatch, version)
         assert node_server.get_ssr_unavailable_reason("node") is None
 
     @pytest.mark.parametrize(
-        "version", [(24, 22, 0), (24, 21, 9), (22, 12, 0), (20, 0, 0)]
+        "version",
+        [
+            (22, 23, 3),
+            (24, 22, 0),
+            (24, 21, 9),
+            (26, 12, 0),
+            (26, 0, 0),
+            (20, 20, 2),
+            (21, 7, 3),
+            (23, 11, 1),
+            (25, 9, 0),
+        ],
     )
-    def test_old_versions(self, monkeypatch, version):
+    def test_unpatched_or_end_of_life_versions(self, monkeypatch, version):
         self.set_version(monkeypatch, version)
         reason = node_server.get_ssr_unavailable_reason("node")
         assert reason is not None
-        assert "24.22.1" in reason
+        assert "22.23.4+, 24.22.1+, 26.12.1+" in reason
 
     def test_no_node(self, monkeypatch):
         self.set_version(monkeypatch, None)

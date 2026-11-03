@@ -23,7 +23,7 @@ runs:
         version: 10.17.0
     - uses: actions/setup-node@v4
       with:
-        # SSR needs Node 24.22.1+, and a bare `24` can resolve to an older cached release.
+        # SSR needs a patched Node (24.22.1+ on the 24 line), and a bare `24` can resolve to an older cached release.
         node-version: 24.22.1
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml

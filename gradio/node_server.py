@@ -90,10 +90,23 @@ def start_node_server(
 
 GRADIO_LOCAL_DEV_MODE = os.getenv("GRADIO_LOCAL_DEV_MODE") is not None
 SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
-# SSR needs this Node release or newer; anything older falls back to client-side rendering.
-# 24.22.1 is the October 2026 security release for the 24.x line.
-MIN_NODE_VERSION = (24, 22, 1)
-MIN_NODE_VERSION_STR = ".".join(str(part) for part in MIN_NODE_VERSION)
+# The oldest release of each supported Node line with the latest security fixes
+# (the October 2026 security release). SSR runs only on these lines, at or above
+# these releases; older releases and end-of-life lines (20, 21, 23, 25) fall back
+# to client-side rendering. Lines newer than the newest one here are allowed.
+MIN_NODE_VERSIONS = {22: (22, 23, 4), 24: (24, 22, 1), 26: (26, 12, 1)}
+MIN_NODE_VERSIONS_STR = ", ".join(
+    ".".join(str(part) for part in version) + "+"
+    for version in MIN_NODE_VERSIONS.values()
+)
+
+
+def is_supported_node_version(version: tuple[int, ...]) -> bool:
+    """Returns whether SSR may run on this Node version (see MIN_NODE_VERSIONS)."""
+    if version[0] > max(MIN_NODE_VERSIONS):
+        return True
+    minimum = MIN_NODE_VERSIONS.get(version[0])
+    return minimum is not None and version >= minimum
 
 
 def get_node_version(node_path: str) -> tuple[int, ...] | None:
@@ -117,14 +130,14 @@ def get_ssr_unavailable_reason(node_path: str | None) -> str | None:
     version = get_node_version(node_path) if node_path else None
     if version is None:
         return (
-            f"SSR mode requires Node {MIN_NODE_VERSION_STR} or higher, but no Node "
-            "executable was found. Install Node or set the GRADIO_NODE_PATH environment variable."
+            f"SSR mode requires Node {MIN_NODE_VERSIONS_STR}, but no Node executable "
+            "was found. Install Node or set the GRADIO_NODE_PATH environment variable."
         )
-    if version < MIN_NODE_VERSION:
+    if not is_supported_node_version(version):
         found = ".".join(str(part) for part in version)
         return (
-            f"SSR mode requires Node {MIN_NODE_VERSION_STR} or higher, but found "
-            f"Node {found} at {node_path}."
+            f"SSR mode requires a Node release with the latest security fixes "
+            f"({MIN_NODE_VERSIONS_STR}), but found Node {found} at {node_path}."
         )
     return None
 
@@ -269,7 +282,7 @@ def start_node_process(
             print(f"No free port found in range {server_ports[0]}-{server_ports[-1]}.")
     else:
         print(
-            f"Please install Node {MIN_NODE_VERSION_STR} or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
+            f"Please install Node {MIN_NODE_VERSIONS_STR} and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
         )
     print(
         "You can explicitly specify a port by setting the environment variable GRADIO_NODE_SERVER_PORT."
