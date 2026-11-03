@@ -59,17 +59,19 @@ class TestGetSsrUnavailableReason:
     def set_version(self, monkeypatch, version):
         monkeypatch.setattr(node_server, "get_node_version", lambda _: version)
 
-    @pytest.mark.parametrize("version", [(24, 22, 0), (24, 22, 1), (25, 0, 0)])
+    @pytest.mark.parametrize("version", [(24, 22, 1), (24, 23, 0), (25, 0, 0)])
     def test_supported_versions(self, monkeypatch, version):
         self.set_version(monkeypatch, version)
         assert node_server.get_ssr_unavailable_reason("node") is None
 
-    @pytest.mark.parametrize("version", [(24, 21, 9), (22, 12, 0), (20, 0, 0)])
+    @pytest.mark.parametrize(
+        "version", [(24, 22, 0), (24, 21, 9), (22, 12, 0), (20, 0, 0)]
+    )
     def test_old_versions(self, monkeypatch, version):
         self.set_version(monkeypatch, version)
         reason = node_server.get_ssr_unavailable_reason("node")
         assert reason is not None
-        assert "24.22.0" in reason
+        assert "24.22.1" in reason
 
     def test_no_node(self, monkeypatch):
         self.set_version(monkeypatch, None)
@@ -77,7 +79,7 @@ class TestGetSsrUnavailableReason:
 
     def test_missing_ssr_build(self, monkeypatch, tmp_path):
         monkeypatch.setattr(node_server, "SSR_APP_PATH", tmp_path / "missing")
-        self.set_version(monkeypatch, (24, 22, 0))
+        self.set_version(monkeypatch, (24, 22, 1))
         assert node_server.get_ssr_unavailable_reason("node") is not None
 
 

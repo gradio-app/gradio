@@ -91,7 +91,8 @@ def start_node_server(
 GRADIO_LOCAL_DEV_MODE = os.getenv("GRADIO_LOCAL_DEV_MODE") is not None
 SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
 # SSR needs this Node release or newer; anything older falls back to client-side rendering.
-MIN_NODE_VERSION = (24, 22, 0)
+# 24.22.1 is the October 2026 security release for the 24.x line.
+MIN_NODE_VERSION = (24, 22, 1)
 MIN_NODE_VERSION_STR = ".".join(str(part) for part in MIN_NODE_VERSION)
 
 
