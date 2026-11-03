@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Make SSR mode the default when Node 24.22.1+ is installed
+feat:Make SSR mode the default when a patched Node is installed
