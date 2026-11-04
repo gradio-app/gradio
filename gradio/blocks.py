@@ -79,6 +79,7 @@ from gradio.exceptions import (
 )
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
+from gradio.launch import _capture_launch
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream, slugify
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
@@ -3038,6 +3039,7 @@ Received inputs:
             else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
         )
 
+    @_capture_launch
     def launch(
         self,
         inline: bool | None = None,
@@ -3164,12 +3166,6 @@ Received inputs:
             demo.launch(share=True, auth=("username", "password"))
         """
         from gradio.routes import App
-
-        if os.environ.get("GRADIO_HARDWARE", "host") != "host" and _app is None:
-            raise ValueError(
-                "Experimental --hardware execution currently requires gr.App/gr.Server. "
-                "Blocks and Interface apps can still run without --hardware."
-            )
 
         theme = theme if theme is not None else self._deprecated_theme
         css = css if css is not None else self._deprecated_css

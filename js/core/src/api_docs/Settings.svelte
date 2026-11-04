@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import HardwareSettings from "./HardwareSettings.svelte";
 	import HistoryStorageControl from "./HistoryStorageControl.svelte";
 	import SettingsBanner from "./SettingsBanner.svelte";
 	import { BaseDropdown as Dropdown } from "@gradio/dropdown";
@@ -103,8 +102,6 @@
 		allow_video_trim = value;
 	}
 </script>
-
-<HardwareSettings {root} />
 
 <div class="banner-wrap">
 	<SettingsBanner onclose={() => onclose()} {root} />
