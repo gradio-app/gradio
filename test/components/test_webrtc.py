@@ -2654,10 +2654,18 @@ REPLICA_APP = """
 import os
 
 import gradio as gr
-from gradio.webrtc import AdditionalOutputs
+from gradio.webrtc import AdditionalOutputs, get_current_context
+
+reported = set()
 
 
 def handler(frame):
+    # The pid once per stream: no call of the stream's event is under way
+    # afterwards, until the next keepalive
+    webrtc_id = get_current_context().webrtc_id
+    if webrtc_id in reported:
+        return frame
+    reported.add(webrtc_id)
     return frame, AdditionalOutputs(os.getpid())
 
 
