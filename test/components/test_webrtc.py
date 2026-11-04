@@ -2471,7 +2471,7 @@ class TestGatewayPlacements:
         pool = self.pool(event)
         link = FakeLink()
         # Placed when its first call went out; cancelled before it came back
-        pool.place("e", cast(Any, link), works_here=True)
+        pool.place("e", cast(Any, link), True, "s")
         assert link.serving_events == {"e"}
         pool.end_event(event)
         assert link.sent == [("event_ended", "e")]
@@ -2481,7 +2481,7 @@ class TestGatewayPlacements:
         event = self.event()
         pool = self.pool(event)
         link = FakeLink()
-        pool.place("e", cast(Any, link), works_here=True)
+        pool.place("e", cast(Any, link), True, "s")
         pool.end_event(event)
         # A late wake, while the ended event is still in the queue's table
         pool.apply_event_actions(cast(Any, link), "e", ["wake"])
@@ -2495,7 +2495,7 @@ class TestGatewayPlacements:
         event = self.event()
         pool = self.pool(event)
         link = FakeLink()
-        pool.place("e", cast(Any, link), works_here=False)
+        pool.place("e", cast(Any, link), False, "s")
         # Without a slot held between chunks, its calls follow the session
         assert pool.placed("e", "s") is None
         link.held["e"] = object()
@@ -2503,25 +2503,55 @@ class TestGatewayPlacements:
         pool.end_event(event)
         assert link.sent == [] and not link.held
 
-    def test_a_stream_stays_with_its_process_after_a_drain(self):
+    def test_a_session_stays_with_its_stream_through_a_drain(self):
         event = self.event(session_hash="visitor")
         pool = self.pool(event)
         primary, replica = FakeLink(), FakeLink()
         pool.links = cast(Any, [primary, replica])
         replica.sessions["visitor"] = True
-        pool.place("e", cast(Any, replica), works_here=True)
+        pool.place("e", cast(Any, replica), True, "visitor")
         pool.stream_admitted("e", "stream-1")
-        # The replica is retired, and another event of the session (an input
-        # change, say) registers the session on the primary
+        # The replica is retired: sessions move, but not one whose stream runs
+        # there, so its input changes and signalling still reach the stream
         replica.draining = True
         replica.sessions.clear()
-        assert pool.for_session("visitor") is primary
-        assert pool.holding("visitor") is primary
-        # The stream's own calls and signalling still go to the replica
+        assert pool.for_session("visitor") is replica
+        assert pool.holding("visitor") is replica
         assert pool.placed("e", "visitor") is replica
         assert pool.for_stream("stream-1") is replica
+        # Once the stream ends, the session moves on
         pool.end_event(event)
         assert pool.for_stream("stream-1") is None
+        replica.sessions.clear()
+        assert pool.for_session("visitor") is primary
+
+    def test_a_stream_whose_process_exited_is_over(self):
+        from gradio.exceptions import Error
+
+        event = self.event()
+        pool = self.pool(event)
+        lost, other = FakeLink(), FakeLink()
+        pool.place("e", cast(Any, lost), True, "s")
+        lost.closed = True
+        # Its media ran there; another process would admit it again
+        with pytest.raises(Error, match="stopped"):
+            pool.placed("e", "s")
+        pool.end_event(event)
+        assert lost.sent == [] and not other.sent
+
+    def test_a_plain_stream_moves_with_its_slot_when_its_process_exits(self):
+        event = self.event()
+        pool = self.pool(event)
+        lost, other = FakeLink(), FakeLink()
+        pool.place("e", cast(Any, lost), False, "s")
+        lost.held["e"] = object()
+        lost.closed = True
+        assert pool.placed("e", "s") is None
+        # The next call takes a slot on the other process
+        pool.follow("e", cast(Any, other))
+        other.held["e"] = object()
+        pool.end_event(event)
+        assert not other.held
 
 
 REPLICA_APP = """
@@ -4028,6 +4058,59 @@ class TestCleanUp:
         assert "event" not in webrtc_connection._admitted
 
     @pytest.mark.asyncio
+    async def test_an_event_that_is_over_admits_no_stream(self):
+        forget_earlier_streams()
+        manager = self.manager()
+        handle = self.Handle()
+        # E.g. a call still under way when the page session closed, after the
+        # stream's watcher let go of the event's admission
+        handle.live = False
+        finished = []
+        handle.finish = lambda: finished.append(True)  # type: ignore[method-assign]
+        blocks = SimpleNamespace(_queue=SimpleNamespace(event_handle=lambda _: handle))
+        LocalContext.blocks.set(cast(Any, blocks))
+        LocalContext.event_id.set("event")
+        assert webrtc_connection.stream_call(manager, "one") is None
+        assert "one" not in manager.sessions
+        assert finished == [True]
+
+    @pytest.mark.asyncio
+    async def test_closing_a_stream_of_a_forgotten_session_keeps_no_state(self):
+        from gradio.processing.worker import Worker
+        from gradio.state_holder import StateHolder
+
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC()
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        state_holder = StateHolder()
+        state_holder.set_blocks(demo)
+        worker = SimpleNamespace(
+            app=SimpleNamespace(state_holder=state_holder), blocks=demo
+        )
+        stream_fn = next(f for f in demo.fns.values() if f.connection == "stream")
+        closed = await Worker.run_close_stream(
+            cast(Any, worker),
+            {"session_hash": "gone", "fn_index": stream_fn._id, "event_id": "e"},
+        )
+        assert closed is False
+        assert "gone" not in state_holder
+
+    def test_a_handle_for_a_closed_session_is_not_live(self):
+        from gradio.processing.worker import RemoteEventHandle, RunningEvent
+
+        closed = SimpleNamespace(is_closed=True)
+        worker = SimpleNamespace(
+            app=SimpleNamespace(
+                state_holder=SimpleNamespace(session_data={"s": closed})
+            )
+        )
+        # The call started after the session closed, so nothing marked it
+        running = RunningEvent("event", "s")
+        assert not RemoteEventHandle(cast(Any, worker), running).live
+        closed.is_closed = False
+        assert RemoteEventHandle(cast(Any, worker), running).live
+
+    @pytest.mark.asyncio
     async def test_clean_up_stops_every_track(self):
         # Whichever path notices the end first (ICE failure, a closed
         # connection, an ended track) stops all tracks of the connection
@@ -4378,20 +4461,24 @@ def test_a_server_webrtc_endpoint_needs_a_name_of_its_own(other):
     from gradio.components.webrtc import server_stream
     from gradio.events import api as gr_api
 
+    def flip_text(text: str) -> str:  # an endpoint that is not a stream
+        return text[::-1]
+
     server = gr.Server()
     if other == "api":
-
-        def flip(text: str) -> str:  # an endpoint that is not a stream
-            return text[::-1]
-
-        server.api(flip)
+        server.api(flip_text, name="flip")
     else:
-        server.webrtc(globals()["flip"])
-    server.webrtc(globals()["flip"])
-    # What Server.launch() builds
+        server.webrtc(flip)
+    # Found where the clash is written
+    with pytest.raises(ValueError, match="'flip' already exists"):
+        server.webrtc(flip)
+    # An endpoint declared after the stream is found when the app is built
+    late = gr.Server()
+    late.webrtc(flip)
+    late.api(flip_text, name="flip")
     with gr.Blocks(mode="server"):
-        for fn, api_kwargs in server._deferred_apis:
+        for fn, api_kwargs in late._deferred_apis:
             gr_api(fn=fn, **api_kwargs)
         with pytest.raises(ValueError, match="'flip' already exists"):
-            for webrtc_kwargs in server._deferred_webrtc:
+            for webrtc_kwargs in late._deferred_webrtc:
                 server_stream(**webrtc_kwargs)

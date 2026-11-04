@@ -906,10 +906,11 @@ def stream_call(
     # stream that the first call admitted
     stream_id = admitted_id(event.id)
     if stream_id is None:
-        if not webrtc_id or not manager.admit(webrtc_id, event):
-            # No id, or one that belongs to another event's stream: end this
-            # event instead of letting it hold a place it cannot use. Nothing
-            # would wake it before its time limit.
+        if not webrtc_id or not event.live or not manager.admit(webrtc_id, event):
+            # No id, an event that is over (its admission may have been let
+            # go already), or an id that belongs to another event's stream:
+            # end this event instead of letting it hold a place it cannot use.
+            # Nothing would wake it before its time limit.
             event.finish()
         return None
     # The manager that admitted it: after a hot reload, the event's function

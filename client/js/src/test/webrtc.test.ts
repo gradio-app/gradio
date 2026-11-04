@@ -156,13 +156,16 @@ class FakePeerConnection {
 	createDataChannel(): FakeChannel {
 		return this.channel;
 	}
-	addTrack(): void {}
+	senders: { track: { stop: () => void } }[] = [];
+	addTrack(track: { stop: () => void }): void {
+		this.senders.push({ track });
+	}
 	addTransceiver(): void {}
 	getTransceivers(): [] {
 		return [];
 	}
-	getSenders(): [] {
-		return [];
+	getSenders(): { track: { stop: () => void } }[] {
+		return this.senders;
 	}
 	async createOffer(): Promise<{ sdp: string; type: string }> {
 		return { sdp: "v=0 offer", type: "offer" };
@@ -319,6 +322,51 @@ describe("client.webrtc", () => {
 		await expect(stream.done).rejects.toThrow(
 			"The stream's turn in the queue ended"
 		);
+	});
+
+	it("a stop() while connecting is not reported as a failure", async () => {
+		let answer!: (value: Record<string, any>) => void;
+		client.webrtc_rtc_configuration = vi.fn(
+			() => new Promise((resolve) => (answer = resolve))
+		);
+		const stream = webrtc.call(client, "/echo");
+		job.send(turn);
+		await vi.waitFor(() =>
+			expect(client.webrtc_rtc_configuration).toHaveBeenCalled()
+		);
+		const stopping = stream.stop();
+		// The server already ended the stream, so it refuses the request, and
+		// the stream's end reaches the page after that answer
+		answer({ error: "The stream's turn in the queue ended." });
+		await flush();
+		job.end();
+		await stopping;
+		await expect(stream.done).resolves.toBeUndefined();
+	});
+
+	it("a stream taken out of the line does not take it as its turn", async () => {
+		const stream = webrtc.call(client, "/echo");
+		// What the server sends for a stream that leaves the line before its turn
+		job.send({ type: "data", data: undefined });
+		job.end();
+		await expect(stream.done).rejects.toThrow("ended before it connected");
+		expect(client.webrtc_rtc_configuration).not.toHaveBeenCalled();
+	});
+
+	it("leaves the caller's media running when the stream ends", async () => {
+		vi.useFakeTimers();
+		const track = { kind: "video", stop: vi.fn() };
+		const media = { getTracks: () => [track] } as unknown as MediaStream;
+		const stream = webrtc.call(client, "/echo", { media });
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		const stopping = stream.stop();
+		job.end();
+		await stopping;
+		await vi.advanceTimersByTimeAsync(1000);
+		expect(FakePeerConnection.instances[0].close).toHaveBeenCalled();
+		// The page opened the camera; it decides when to turn it off
+		expect(track.stop).not.toHaveBeenCalled();
 	});
 
 	it("fails when the queue reports an error before the turn", async () => {

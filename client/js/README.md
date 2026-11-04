@@ -258,7 +258,7 @@ await stream.stop(); // outputs emitted until then still arrive
 
 The options are:
 
-- `media`: the local `MediaStream` to send, if the endpoint takes media.
+- `media`: the local `MediaStream` to send, if the endpoint takes media. It stays yours: the stream does not stop its tracks when it ends.
 - `modality`: `"video"` or `"audio"`, what to receive when no media is sent.
 - `inputs`: the values of the endpoint's extra inputs. Change them later with `set_inputs()`.
 - `on_track`: called with the `RTCTrackEvent` of the media the server sends back.

@@ -192,8 +192,14 @@ export async function negotiate_webrtc({
 	return response;
 }
 
-/** Stops the local tracks and closes the peer connection. */
-export function close_webrtc(pc: RTCPeerConnection | null | undefined): void {
+/**
+ * Closes the peer connection. With `stop_tracks` (the default), also stops
+ * the local tracks it sends; leave them running when the caller owns them.
+ */
+export function close_webrtc(
+	pc: RTCPeerConnection | null | undefined,
+	{ stop_tracks = true }: { stop_tracks?: boolean } = {}
+): void {
 	if (!pc) return;
 	pc.getTransceivers?.().forEach((transceiver) => {
 		try {
@@ -202,9 +208,11 @@ export function close_webrtc(pc: RTCPeerConnection | null | undefined): void {
 			// already stopped
 		}
 	});
-	pc.getSenders?.().forEach((sender) => {
-		sender.track?.stop();
-	});
+	if (stop_tracks) {
+		pc.getSenders?.().forEach((sender) => {
+			sender.track?.stop();
+		});
+	}
 	setTimeout(() => pc.close(), 500);
 }
 
@@ -317,6 +325,8 @@ export function webrtc(
 	};
 
 	const fail = (error: Error): void => {
+		// After the caller's stop(), a refusal from the server is that stop
+		if (stopped_by_caller) return;
 		failure ??= error;
 		reject_connected(error);
 		job.close_stream({ read_to_end: true });
@@ -386,6 +396,8 @@ export function webrtc(
 						fail(new Error(String(msg.message ?? "The stream failed.")));
 					}
 				} else if (msg.type === "data") {
+					// No data: the stream left the line before its turn
+					if (msg.data === undefined) continue;
 					// The event's first message is the turn: the stream is
 					// admitted and may connect
 					if (!turn) {
@@ -403,7 +415,8 @@ export function webrtc(
 			if (typeof window !== "undefined") {
 				window.removeEventListener("pagehide", on_pagehide);
 			}
-			close_webrtc(pc);
+			// The caller opened `media` and decides when to stop it
+			close_webrtc(pc, { stop_tracks: false });
 			if (!was_connected && !stopped_by_caller) {
 				failure ??= new Error("The stream ended before it connected.");
 			}

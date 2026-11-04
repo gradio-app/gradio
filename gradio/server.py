@@ -28,20 +28,12 @@ def _takes_oauth(fn: Any) -> bool:
     """Whether `fn` (a function, a WebRTC handler class or instance, or a
     VideoOptions) takes a gr.OAuthProfile or gr.OAuthToken, as `special_args`
     fills them in."""
-    from gradio import oauth, utils
+    from gradio.helpers import takes_oauth
 
     fn = getattr(fn, "callable", fn)
     # A handler class gets them in its start_up method
     fn = getattr(fn, "start_up", fn)
-    if not callable(fn):
-        return False
-    oauth_types = (
-        oauth.OAuthProfile,
-        oauth.OAuthToken,
-        oauth.OAuthProfile | None,
-        oauth.OAuthToken | None,
-    )
-    return any(hint in oauth_types for hint in utils.get_type_hints(fn).values())
+    return callable(fn) and takes_oauth(fn)
 
 
 def import_gateway(path: str) -> tuple[fastapi.APIRouter, list]:
@@ -334,12 +326,22 @@ class Server(App):
         def register(func: Any) -> Any:
             _check_handler(func, mode, modality)
             named = getattr(func, "callable", func)
+            endpoint = name or getattr(named, "__name__", None) or type(named).__name__
+            taken = {
+                kwargs.get("api_name") or getattr(api_fn, "__name__", None)
+                for api_fn, kwargs in self._deferred_apis
+            } | {entry["name"] for entry in self._deferred_webrtc}
+            if endpoint in taken:
+                # Blocks would quietly rename it, and clients would reach the
+                # other endpoint by this name
+                raise ValueError(
+                    f"An endpoint named {endpoint!r} already exists. Pass a "
+                    "different name to server.webrtc(name=...)."
+                )
             self._deferred_webrtc.append(
                 {
                     "fn": func,
-                    "name": name
-                    or getattr(named, "__name__", None)
-                    or type(named).__name__,
+                    "name": endpoint,
                     "modality": modality,
                     "mode": mode,
                     "rtc_configuration": rtc_configuration,

@@ -156,7 +156,9 @@ class RemoteEventHandle:
         self.actions: list[str] = []
         # Goes back with the call that admitted the stream
         self.admitted_stream: str | None = None
-        self.live = True
+        state = worker.app.state_holder.session_data.get(running.session_hash or "")
+        # A call can start after its page session closed
+        self.live = running.alive and not (state is not None and state.is_closed)
 
     def _act(self, action: str) -> None:
         if not self.live:
@@ -303,7 +305,14 @@ class Worker:
         """Writes a message from any thread without waiting for the gateway."""
         if self.loop is None or self.writer is None:
             return
-        self.loop.call_soon_threadsafe(self.writer.writelines, protocol.encode(message))
+        frames = protocol.encode(message)
+
+        def write() -> None:
+            # The connection may have closed meanwhile (shutdown)
+            if self.writer is not None and not self.writer.is_closing():
+                self.writer.writelines(frames)
+
+        self.loop.call_soon_threadsafe(write)
 
     async def _write(self, frames: list[bytes]) -> None:
         if self.writer is not None:
@@ -517,9 +526,10 @@ class Worker:
         """The page closed a stream event whose function runs here (see
         `BlockFunction.close_stream`): whether the function ends it itself."""
         session_hash = p["session_hash"]
+        # Never creates a session's state: a running stream's session has it
         fns = (
             self.app.state_holder[session_hash].blocks_config.fns
-            if session_hash is not None
+            if session_hash is not None and session_hash in self.app.state_holder
             else self.blocks.fns
         )
         fn = fns.get(p["fn_index"])

@@ -382,13 +382,21 @@ async def wait_for_item(queue: asyncio.Queue, timeout: float = 0.1) -> Any:
         return None
 
 
+def _and_call(fn: Any) -> tuple[Any, ...]:
+    return (fn, type(fn).__call__) if callable(fn) else (fn,)
+
+
 def is_async(fn: Any) -> bool:
     """Whether `fn` is async, also when it is an object with an async `__call__`."""
-    call = type(fn).__call__ if callable(fn) else None
-    return any(
-        inspect.iscoroutinefunction(f) or inspect.isasyncgenfunction(f)
-        for f in (fn, call)
+    return is_async_generator(fn) or any(
+        inspect.iscoroutinefunction(f) for f in _and_call(fn)
     )
+
+
+def is_async_generator(fn: Any) -> bool:
+    """Whether `fn` is an async generator function, or an object whose
+    `__call__` is one."""
+    return any(inspect.isasyncgenfunction(f) for f in _and_call(fn))
 
 
 def bind_special_args(fn: Callable, request: Any) -> Callable:

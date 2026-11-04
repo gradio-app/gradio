@@ -30,7 +30,7 @@ from gradio.webrtc.handlers import (
     VideoOptions,
     VideoStreamHandler,
 )
-from gradio.webrtc.utils import WEBRTC_EXTRA_HINT, is_async
+from gradio.webrtc.utils import WEBRTC_EXTRA_HINT, is_async, is_async_generator
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -101,10 +101,7 @@ def _check_mode(mode: str, modality: str) -> None:
 
 
 def _check_turn(rtc_configuration: Any, what: str) -> None:
-    if callable(rtc_configuration) and any(
-        inspect.isasyncgenfunction(f)
-        for f in (rtc_configuration, type(rtc_configuration).__call__)
-    ):
+    if is_async_generator(rtc_configuration):
         raise ValueError(
             f"The rtc_configuration function of {what} must return a dict, "
             "not yield one."

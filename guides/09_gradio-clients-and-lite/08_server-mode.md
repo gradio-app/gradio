@@ -209,7 +209,10 @@ async def homepage():
         info.textContent = `Mean brightness: ${mean.toFixed(1)}`;
       }
     });
-    stream.done.catch((error) => (info.textContent = error.message));
+    stream.done
+      .catch((error) => (info.textContent = error.message))
+      // The page opened the camera, so the page turns it off
+      .finally(() => media.getTracks().forEach((track) => track.stop()));
   };
   slider.oninput = () => stream?.set_inputs([Number(slider.value)]);
   document.getElementById("stop").onclick = () => stream?.stop();

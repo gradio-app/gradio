@@ -225,6 +225,7 @@ class Placement:
 
     link: Link
     works_here: bool
+    session_hash: str | None = None
     # The WebRTC stream that its first call admitted, if any
     stream_id: str | None = None
 
@@ -249,6 +250,9 @@ class Pool:
         # the same placements by the WebRTC stream they admitted
         self.placements: dict[str, Placement] = {}
         self.stream_placements: dict[str, Placement] = {}
+        # The streams that work in a process for each session: the session
+        # stays with that process while they run
+        self.session_streams: dict[str, list[Placement]] = {}
         self.group_limits: dict[str, int] = {}
         self.expected = 1
         self.autoscaler: Any = None
@@ -327,9 +331,14 @@ class Pool:
     def _holder(self, session_hash: str | None) -> Link | None:
         """The process that holds `session_hash`. Each process keeps as many
         sessions as its state holder does, so a session is forgotten here when
-        its process has let go of its state."""
+        its process has let go of its state. A session with a gr.WebRTC stream
+        stays with the stream's process until the stream ends, even through a
+        drain: its inputs and signalling must reach the stream."""
         if not session_hash:
             return None
+        for placement in self.session_streams.get(session_hash, []):
+            if not placement.link.closed:
+                return placement.link
         for link in self.links:
             if session_hash in link.sessions:
                 link.sessions[session_hash] = True
@@ -438,26 +447,47 @@ class Pool:
             self.reserved[event._id] = (link, fn.concurrency_id)
             return True
 
-    def place(self, event_id: str, link: Link, works_here: bool) -> None:
+    def place(
+        self, event_id: str, link: Link, works_here: bool, session_hash: str | None
+    ) -> None:
         """The first call of the stream event `event_id` goes to `link`."""
-        self.placements[event_id] = Placement(link, works_here)
+        placement = Placement(link, works_here, session_hash)
+        self.placements[event_id] = placement
         if works_here:
             link.serving_events.add(event_id)
+            if session_hash:
+                with self.lock:
+                    self.session_streams.setdefault(session_hash, []).append(placement)
 
     def placed(self, event_id: str | None, session_hash: str | None) -> Link | None:
         """Where a later call of the stream event `event_id` goes, if it has
         to go back to its first call's process (see `Placement`). Each call
-        keeps the stream's session fresh there, as `for_session` would."""
+        keeps the stream's session fresh there, as `for_session` would. A
+        stream whose process exited is over: its media was there."""
         placement = self.placements.get(event_id) if event_id is not None else None
-        if placement is None or placement.link.closed:
+        if placement is None:
             return None
         link = placement.link
+        if link.closed:
+            if placement.works_here:
+                from gradio.exceptions import Error
+
+                raise Error("The app's process that ran this stream has stopped.")
+            return None
         if not placement.works_here and event_id not in link.held:
             return None
         if session_hash:
             with self.lock:
                 link.sessions[session_hash] = True
         return link
+
+    def follow(self, event_id: str | None, link: Link) -> None:
+        """A call of a plain stream went to `link`, e.g. because the process of
+        its earlier calls exited: the slot it takes there is released when the
+        stream ends."""
+        placement = self.placements.get(event_id) if event_id is not None else None
+        if placement is not None and not placement.works_here:
+            placement.link = link
 
     def stream_admitted(self, event_id: str, stream_id: str) -> None:
         placement = self.placements.get(event_id)
@@ -478,7 +508,15 @@ class Pool:
         stream_id = placement.stream_id
         if stream_id is not None and self.stream_placements.get(stream_id) is placement:
             del self.stream_placements[stream_id]
-        if placement.works_here:
+        session_hash = placement.session_hash
+        if session_hash in self.session_streams:
+            with self.lock:
+                streams = self.session_streams[session_hash]
+                if placement in streams:
+                    streams.remove(placement)
+                if not streams:
+                    del self.session_streams[session_hash]
+        if placement.works_here and not link.closed:
             link.send(("event_ended", event._id))
         self.check_drained(link)
 
@@ -675,6 +713,8 @@ async def forward_event(
         else pool.placed(queue_event_id if streaming else None, body.session_hash)
         or pool.for_session(body.session_hash)
     )
+    if streaming:
+        pool.follow(queue_event_id, link)
     probing = caching._probe_mode_active.get()
     limit = (
         pool.process_limit(fn)
@@ -702,7 +742,12 @@ async def forward_event(
             and queue_event_id not in pool.placements
         ):
             # A function that can end its stream itself works between calls
-            pool.place(queue_event_id, link, works_here=fn.close_stream is not None)
+            pool.place(
+                queue_event_id,
+                link,
+                works_here=fn.close_stream is not None,
+                session_hash=body.session_hash,
+            )
         sent_body = body.model_dump(exclude={"request", "client_state"})
         if protocol.files_by_value():
             sent_body["data"] = link.files.pack(sent_body["data"])
@@ -1077,20 +1122,21 @@ async def session_of(request: Request) -> str | None:
         "session_hash"
     )
     if session_hash is None:
-        session_hash = await json_field(request, "session_hash")
+        session_hash = (await json_body(request)).get("session_hash")
     return session_hash if isinstance(session_hash, str) else None
 
 
-async def json_field(request: Request, key: str) -> Any:
-    """`key` of a JSON request body. The body is read once and kept, so the
-    request can still be forwarded."""
+async def json_body(request: Request) -> dict:
+    """A JSON request body as a dict ({} otherwise). The body is read once and
+    kept, so the request can still be forwarded."""
     import json
 
     if not request.headers.get("content-type", "").startswith("application/json"):
-        return None
-    with contextlib.suppress(ValueError, AttributeError):
-        return json.loads(await request.body()).get(key)
-    return None
+        return {}
+    with contextlib.suppress(ValueError):
+        body = json.loads(await request.body())
+        return body if isinstance(body, dict) else {}
+    return {}
 
 
 def add_forwarded_routes(
@@ -1130,8 +1176,12 @@ def add_forwarded_routes(
         return await send(request, pool.holding(await session_of(request)))
 
     async def to_stream(request: Request):
-        link = pool.for_stream(await json_field(request, "webrtc_id"))
-        return await send(request, link or pool.holding(await session_of(request)))
+        body = await json_body(request)
+        session_hash = body.get("session_hash")
+        link = pool.for_stream(body.get("webrtc_id")) or pool.holding(
+            session_hash if isinstance(session_hash, str) else None
+        )
+        return await send(request, link)
 
     async def websocket_to_app(websocket):
         await relay(websocket, f"ws://127.0.0.1:{port}", token)
