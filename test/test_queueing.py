@@ -142,7 +142,8 @@ class TestQueueing:
         assert job2.result() == "Hello, b!"
         assert job4.result() == "Hello, d!"
 
-    def test_cached_generator_finishes_on_queue_cache_hit(self, connect):
+    @pytest.mark.parametrize("executor", ["thread", "process"])
+    def test_cached_generator_finishes_on_queue_cache_hit(self, connect, executor):
         call_count = 0
 
         @gr.cache
@@ -159,7 +160,7 @@ class TestQueueing:
 
         demo.queue()
 
-        with connect(demo) as client:
+        with connect(demo, executor=executor) as client:
             first = client.submit("hello", fn_index=0)
             assert first.result(timeout=5) == "hello"
             assert first.outputs() == ["h", "he", "hel", "hell", "hello"]
@@ -169,7 +170,8 @@ class TestQueueing:
             assert second.outputs() == ["h", "he", "hel", "hell", "hello"]
 
         assert call_count == 1
-        assert demo._queue.process_time_per_fn[demo.fns[0]].count == 1
+        if executor == "thread":
+            assert demo._queue.process_time_per_fn[demo.fns[0]].count == 1
 
     @pytest.mark.parametrize("asynchronous", [False, True])
     def test_queue_average_excludes_manual_cache_hits(self, connect, asynchronous):
