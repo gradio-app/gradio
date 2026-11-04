@@ -217,7 +217,7 @@ class Link:
         self.loop.call_soon_threadsafe(fail)
 
 
-@dataclass
+@dataclass(eq=False)
 class Placement:
     """A stream event's process: the one its first call went to. Its later
     calls go there too when its function keeps working there between calls
@@ -288,9 +288,21 @@ class Pool:
             if link in self.links:
                 self.links.remove(link)
         link.fail_pending(RuntimeError("A replica of the app exited"))
+        if link.server_loop is not None:
+            link.server_loop.call_soon_threadsafe(self.wake_streams_of, link)
         self.scale_limits()
         if self.autoscaler is not None:
             self.autoscaler.replica_lost(link)
+
+    def wake_streams_of(self, link: Link) -> None:
+        """`link`'s process exited: the gr.WebRTC streams that ran there get
+        their next call now, which fails them (see `placed`). Nothing else
+        would wake them: their keepalive came from that process."""
+        queue = self.blocks._queue
+        for event_id, placement in list(self.placements.items()):
+            event = queue.event_ids_to_events.get(event_id)
+            if placement.link is link and placement.works_here and event is not None:
+                event.signal.set()
 
     def replica_failed(self) -> None:
         self.expected = max(self.expected - 1, 1)
@@ -462,8 +474,9 @@ class Pool:
     def placed(self, event_id: str | None, session_hash: str | None) -> Link | None:
         """Where a later call of the stream event `event_id` goes, if it has
         to go back to its first call's process (see `Placement`). Each call
-        keeps the stream's session fresh there, as `for_session` would. A
-        stream whose process exited is over: its media was there."""
+        keeps the stream's session fresh there, as `for_session` would, unless
+        the process is being retired (its sessions move on once the stream
+        ends). A stream whose process exited is over: its media was there."""
         placement = self.placements.get(event_id) if event_id is not None else None
         if placement is None:
             return None
@@ -476,7 +489,7 @@ class Pool:
             return None
         if not placement.works_here and event_id not in link.held:
             return None
-        if session_hash:
+        if session_hash and not link.draining:
             with self.lock:
                 link.sessions[session_hash] = True
         return link
@@ -547,6 +560,10 @@ class Pool:
         event = self.blocks._queue.event_ids_to_events.get(event_id)
         if placement is None or not placement.works_here or event is None:
             return False
+        if placement.link.closed:
+            # Already woken by `wake_streams_of`: its next call fails it, which
+            # a close here would turn into a success
+            return True
         try:
             return bool(
                 await asyncio.wait_for(

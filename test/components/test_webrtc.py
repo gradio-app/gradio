@@ -4,7 +4,7 @@ import json
 import pickle
 import time
 from collections.abc import Callable
-from contextlib import closing
+from contextlib import asynccontextmanager, closing
 from types import SimpleNamespace
 from typing import Any, cast
 
@@ -2317,6 +2317,48 @@ class TestStreams:
             assert "made-up-offer" not in state_holder
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("route", ["offer", "rtc_configuration"])
+    async def test_signalling_with_a_stream_id_that_is_not_a_string_is_refused(
+        self, route
+    ):
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC(rtc_configuration={"iceServers": []})
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
+            async with httpx2.AsyncClient(timeout=10, base_url=local_url) as http:
+                response = await http.post(
+                    f"{API_PREFIX.lstrip('/')}/webrtc/{route}",
+                    json={"session_hash": "s", "webrtc_id": [1], "sdp": "x"},
+                )
+            assert response.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_signalling_in_an_app_without_streams_is_answered_at_once(
+        self, monkeypatch
+    ):
+        # Other tests in this process attached handlers; this app has none
+        monkeypatch.setattr(webrtc_connection.ConnectionManager, "created", False)
+        with gr.Blocks() as demo:
+            gr.Textbox()
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
+            async with httpx2.AsyncClient(timeout=10, base_url=local_url) as http:
+                start = time.monotonic()
+                offer = await http.post(
+                    f"{API_PREFIX.lstrip('/')}/webrtc/offer",
+                    json={"session_hash": "s", "webrtc_id": "x", "sdp": "x"},
+                )
+                configuration = await http.post(
+                    f"{API_PREFIX.lstrip('/')}/webrtc/rtc_configuration",
+                    json={"session_hash": "s", "webrtc_id": "x"},
+                )
+                # Not ADMISSION_WAIT (5 s) for an admission that cannot come
+                assert time.monotonic() - start < 2
+            assert offer.json()["meta"]["error"] == "no_stream_handler"
+            assert "error" in configuration.json()
+
+    @pytest.mark.asyncio
     async def test_rtc_configuration_gets_the_visitor_oauth_token(self):
         from starlette.requests import Request
 
@@ -2553,6 +2595,60 @@ class TestGatewayPlacements:
         pool.end_event(event)
         assert not other.held
 
+    def test_the_streams_of_an_exited_process_are_woken(self):
+        webrtc_stream, plain_stream, elsewhere = (
+            SimpleNamespace(_id=i, session_hash="s", signal=asyncio.Event())
+            for i in ("webrtc", "plain", "elsewhere")
+        )
+        pool = self.pool(webrtc_stream, plain_stream, elsewhere)
+        lost, other = FakeLink(), FakeLink()
+        pool.place("webrtc", cast(Any, lost), True, "s")
+        pool.place("plain", cast(Any, lost), False, "s")
+        pool.place("elsewhere", cast(Any, other), True, "s")
+        pool.wake_streams_of(cast(Any, lost))
+        # Its next call fails it; a plain stream's next chunk moves on by itself
+        assert webrtc_stream.signal.is_set()
+        assert not plain_stream.signal.is_set()
+        assert not elsewhere.signal.is_set()
+
+    @pytest.mark.asyncio
+    async def test_closing_a_stream_whose_process_exited_keeps_its_failure(self):
+        event = SimpleNamespace(_id="e", session_hash="s", fn=SimpleNamespace(_id=0))
+        pool = self.pool(event)
+        lost = FakeLink()
+        pool.place("e", cast(Any, lost), True, "s")
+        lost.closed = True
+        # Handled: the gateway already woke the stream, whose next call fails
+        # it; the close route would otherwise end it as a success
+        assert await pool.close_stream("e") is True
+
+    def test_a_retiring_process_does_not_take_a_stream_session_back(self):
+        event = self.event(session_hash="visitor")
+        pool = self.pool(event)
+        primary, replica = FakeLink(), FakeLink()
+        pool.links = cast(Any, [primary, replica])
+        pool.place("e", cast(Any, replica), True, "visitor")
+        replica.draining = True
+        replica.sessions.clear()
+        assert pool.placed("e", "visitor") is replica
+        pool.end_event(event)
+        # The stream is over: the session's next events go elsewhere
+        assert "visitor" not in replica.sessions
+        assert pool.for_session("visitor") is primary
+
+    def test_two_streams_of_one_session_on_one_process_end_apart(self):
+        first, second = self.event("first"), self.event("second")
+        pool = self.pool(first, second)
+        link = FakeLink()
+        # Neither admitted yet: the two placements look alike
+        pool.place("first", cast(Any, link), True, "s")
+        pool.place("second", cast(Any, link), True, "s")
+        pool.end_event(second)
+        (left,) = pool.session_streams["s"]
+        assert left is pool.placements["first"]
+        pool.end_event(first)
+        assert "s" not in pool.session_streams
+
 
 REPLICA_APP = """
 import os
@@ -2574,8 +2670,97 @@ demo.launch(server_port=int(os.environ["PORT"]))
 """
 
 
-@pytest.mark.asyncio
-async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
+class ReplicaApp:
+    """REPLICA_APP launched with two processes, as a page would use it."""
+
+    def __init__(self, http, api: str, stream_fn: int, tick_fn: int, pids):
+        self.http = http
+        self.api = api
+        self.stream_fn = stream_fn
+        self.tick_fn = tick_fn
+        # The app's processes, the primary first
+        self.pids = pids
+        self.received: dict[str, list] = {}
+        self.readers: list[asyncio.Task] = []
+        self.pcs: list = []
+
+    async def read(self, session_hash):
+        # One stream per session for the whole test: a page that closes it
+        # leaves, which ends its events
+        async with self.http.stream(
+            "GET", f"{self.api}/queue/data", params={"session_hash": session_hash}
+        ) as response:
+            async for line in response.aiter_lines():
+                if line.startswith("data:"):
+                    self.received[session_hash].append(json.loads(line[5:]))
+
+    async def wait_for(self, session_hash, condition, timeout=30):
+        deadline = time.monotonic() + timeout
+        while not (found := condition(self.received[session_hash])):
+            assert time.monotonic() < deadline, self.received[session_hash]
+            await asyncio.sleep(0.05)
+        return found
+
+    async def join(self, fn_index, data, session_hash):
+        response = await self.http.post(
+            f"{self.api}/queue/join",
+            json={"data": data, "fn_index": fn_index, "session_hash": session_hash},
+        )
+        return response.json()["event_id"]
+
+    @staticmethod
+    def streamed_pid(ms):
+        return next(
+            (
+                m["output"]["data"][1]
+                for m in ms
+                if m.get("msg") == "process_streaming"
+                and isinstance(m["output"]["data"][1], int | float)
+            ),
+            None,
+        )
+
+    async def stream(self, session):
+        """Starts a stream for `session`: its event id, its connection, and
+        the pid of the process that runs it."""
+        event_id = await self.join(self.stream_fn, [session], session)
+        self.received[session] = []
+        self.readers.append(asyncio.create_task(self.read(session)))
+        pc = await make_offer(video=True)
+        self.pcs.append(pc)
+        answer = (
+            await self.http.post(
+                f"{self.api}/webrtc/offer",
+                json={
+                    "session_hash": session,
+                    "sdp": pc.localDescription.sdp,
+                    "type": pc.localDescription.type,
+                    "webrtc_id": session,
+                },
+            )
+        ).json()
+        assert answer["type"] == "answer", answer
+        await pc.setRemoteDescription(
+            RTCSessionDescription(answer["sdp"], answer["type"])
+        )
+        # The handler runs once the page has sent the inputs
+        await self.join(self.tick_fn, [session], session)
+        return event_id, pc, await self.wait_for(session, self.streamed_pid)
+
+    def completion(self, session, event_id):
+        """The stream event's completion, not that of the session's ticks."""
+        return next(
+            (
+                m
+                for m in self.received[session]
+                if m["msg"] == "process_completed" and m.get("event_id") == event_id
+            ),
+            None,
+        )
+
+
+@asynccontextmanager
+async def replica_app(tmp_path):
     import os
     import signal
     import socket
@@ -2597,7 +2782,7 @@ async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
         start_new_session=True,
     )
     api = f"http://127.0.0.1:{port}{API_PREFIX}"
-    pcs, readers = [], []
+    app = None
     passed = False
     try:
         async with httpx2.AsyncClient(timeout=15) as http:
@@ -2626,102 +2811,62 @@ async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
                 )
                 for event in ("stream", "tick")
             )
-
-            received = {}
-
-            async def read(session_hash):
-                # One stream per session for the whole test: a page that closes
-                # it leaves, which ends its events
-                async with http.stream(
-                    "GET", f"{api}/queue/data", params={"session_hash": session_hash}
-                ) as response:
-                    async for line in response.aiter_lines():
-                        if line.startswith("data:"):
-                            received[session_hash].append(json.loads(line[5:]))
-
-            async def wait_for(session_hash, condition):
-                deadline = time.monotonic() + 30
-                while not (found := condition(received[session_hash])):
-                    assert time.monotonic() < deadline, received[session_hash]
-                    await asyncio.sleep(0.05)
-                return found
-
-            async def join(fn_index, data, session_hash):
-                response = await http.post(
-                    f"{api}/queue/join",
-                    json={
-                        "data": data,
-                        "fn_index": fn_index,
-                        "session_hash": session_hash,
-                    },
-                )
-                return response.json()["event_id"]
-
-            def streamed_pid(ms):
-                return next(
-                    (
-                        m["output"]["data"][1]
-                        for m in ms
-                        if m.get("msg") == "process_streaming"
-                        and isinstance(m["output"]["data"][1], int | float)
-                    ),
-                    None,
-                )
-
-            events, pids = {}, {}
-            for session in ("first", "second"):
-                events[session] = await join(stream_fn, [session], session)
-                received[session] = []
-                readers.append(asyncio.create_task(read(session)))
-                pc = await make_offer(video=True)
-                pcs.append(pc)
-                answer = (
-                    await http.post(
-                        f"{api}/webrtc/offer",
-                        json={
-                            "session_hash": session,
-                            "sdp": pc.localDescription.sdp,
-                            "type": pc.localDescription.type,
-                            "webrtc_id": session,
-                        },
-                    )
-                ).json()
-                assert answer["type"] == "answer", answer
-                await pc.setRemoteDescription(
-                    RTCSessionDescription(answer["sdp"], answer["type"])
-                )
-                # The handler runs once the page has sent the inputs
-                await join(tick_fn, [session], session)
-                pids[session] = await wait_for(session, streamed_pid)
-            # concurrency_limit=1 applies per process, so the second stream
-            # runs on the other one
-            assert pids["first"] != pids["second"]
-
-            for session, pc in zip(("first", "second"), pcs, strict=True):
-                await http.post(f"{api}/stream/{events[session]}/close")
-                await wait_for(session, completed)
-                completion = next(
-                    m for m in received[session] if m["msg"] == "process_completed"
-                )
-                assert completion["success"] is True
-                # The process of the stream closes its connection once the
-                # gateway says that the event ended
-                deadline = time.monotonic() + 15
-                while pc.connectionState not in ("closed", "failed"):
-                    assert time.monotonic() < deadline, pc.connectionState
-                    await asyncio.sleep(0.1)
+            app = ReplicaApp(
+                http, api, stream_fn, tick_fn, [p["pid"] for p in processes]
+            )
+            yield app
         passed = True
     finally:
-        for task in readers:
-            task.cancel()
-        for pc in pcs:
-            await pc.close()
+        if app is not None:
+            for task in app.readers:
+                task.cancel()
+            for pc in app.pcs:
+                await pc.close()
         os.killpg(proc.pid, signal.SIGTERM)
         proc.wait(timeout=30)
         log.close()
         if not passed:
             # Shown with the failure, as the app's processes saw it
             print(log_path.read_text()[-5000:])
+
+
+@pytest.mark.asyncio
+async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
+    async with replica_app(tmp_path) as app:
+        streams = {session: await app.stream(session) for session in ("a", "b")}
+        # concurrency_limit=1 applies per process, so the second stream runs
+        # on the other one
+        assert streams["a"][2] != streams["b"][2]
+        for session, (event_id, pc, _) in streams.items():
+            await app.http.post(f"{app.api}/stream/{event_id}/close")
+            await app.wait_for(session, lambda _: app.completion(session, event_id))
+            assert app.completion(session, event_id)["success"] is True
+            # The process of the stream closes its connection once the
+            # gateway says that the event ended
+            deadline = time.monotonic() + 15
+            while pc.connectionState not in ("closed", "failed"):
+                assert time.monotonic() < deadline, pc.connectionState
+                await asyncio.sleep(0.1)
+
+
+@pytest.mark.asyncio
+async def test_a_stream_whose_replica_exits_fails_at_once(tmp_path):
+    import os
+    import signal
+
+    async with replica_app(tmp_path) as app:
+        streams = {session: await app.stream(session) for session in ("a", "b")}
+        session = next(s for s, (_, _, pid) in streams.items() if pid != app.pids[0])
+        event_id = streams[session][0]
+        os.kill(streams[session][2], signal.SIGKILL)
+        # Nothing comes from that process any more, not even the keepalive;
+        # the queue's own wait would end the event as a success after 30 s
+        await app.wait_for(
+            session, lambda _: app.completion(session, event_id), timeout=15
+        )
+        completion = app.completion(session, event_id)
+        assert completion["success"] is False
+        assert "stopped" in completion["output"]["error"]
 
 
 @pytest.mark.asyncio
@@ -4073,6 +4218,27 @@ class TestCleanUp:
         assert webrtc_connection.stream_call(manager, "one") is None
         assert "one" not in manager.sessions
         assert finished == [True]
+
+    @pytest.mark.asyncio
+    async def test_a_stream_id_that_is_not_a_string_is_not_admitted(self):
+        forget_earlier_streams()
+        manager = self.manager()
+        handle = self.Handle()
+        finished = []
+        handle.finish = lambda: finished.append(True)  # type: ignore[method-assign]
+        blocks = SimpleNamespace(_queue=SimpleNamespace(event_handle=lambda _: handle))
+        LocalContext.blocks.set(cast(Any, blocks))
+        LocalContext.event_id.set("event")
+        # Signalling only takes string ids, so it could never reach this stream
+        assert webrtc_connection.stream_call(manager, cast(Any, 5)) is None
+        assert not manager.sessions
+        assert finished == [True]
+
+    def test_input_for_a_stream_id_that_is_not_a_string_is_ignored(self):
+        manager = self.manager()
+        # E.g. the extra inputs' event, called with a crafted id
+        manager.set_input(cast(Any, [1]), "s", 0.5)
+        assert not manager.owns(cast(Any, {}), "s")
 
     @pytest.mark.asyncio
     async def test_closing_a_stream_of_a_forgotten_session_keeps_no_state(self):

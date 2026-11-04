@@ -108,6 +108,12 @@ def admitted_id(event_id: str) -> str | None:
     return _admitted.get(event_id)
 
 
+def has_stream_handlers() -> bool:
+    """Whether a stream handler was ever attached in this process. Signalling
+    for an app without one is answered at once: no stream can be admitted."""
+    return ConnectionManager.created
+
+
 # The manager of each admitted stream, by stream id. Weak, like `_managers`.
 _streams: weakref.WeakValueDictionary[str, ConnectionManager] = (
     weakref.WeakValueDictionary()
@@ -230,6 +236,9 @@ def _parse_ice_candidate(candidate: dict[str, Any]) -> RTCIceCandidate | None:
 
 
 class ConnectionManager:
+    # Whether one was ever created in this process (see `has_stream_handlers`)
+    created = False
+
     def __init__(
         self,
         *,
@@ -243,6 +252,7 @@ class ConnectionManager:
         rtc_configuration: dict[str, Any] | Callable | None = None,
         inputs_over_channel: bool = False,
     ) -> None:
+        ConnectionManager.created = True
         self.handler = handler
         self.mode = mode
         self.modality = modality
@@ -474,8 +484,11 @@ class ConnectionManager:
         """
         Whether the stream was admitted for this browser session. A stream id
         travels in signalling and input messages, so only the session whose
-        queue event admitted it may connect to it or feed it.
+        queue event admitted it may connect to it or feed it. Any value may
+        come in from a client; only a string can name a stream.
         """
+        if not isinstance(webrtc_id, str):
+            return False
         session = self.sessions.get(webrtc_id)
         return (
             session is not None
@@ -906,9 +919,15 @@ def stream_call(
     # stream that the first call admitted
     stream_id = admitted_id(event.id)
     if stream_id is None:
-        if not webrtc_id or not event.live or not manager.admit(webrtc_id, event):
-            # No id, an event that is over (its admission may have been let
-            # go already), or an id that belongs to another event's stream:
+        if (
+            not isinstance(webrtc_id, str)
+            or not webrtc_id
+            or not event.live
+            or not manager.admit(webrtc_id, event)
+        ):
+            # No id (or not a string, which signalling could never match), an
+            # event that is over (its admission may have been let go already),
+            # or an id that belongs to another event's stream:
             # end this event instead of letting it hold a place it cannot use.
             # Nothing would wake it before its time limit.
             event.finish()

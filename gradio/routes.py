@@ -2393,9 +2393,16 @@ class App(FastAPI):
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid JSON body.",
                 )
-            try:
-                from gradio.webrtc import connection
-            except ImportError:
+            if not isinstance(body.get("webrtc_id") or "", str):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="webrtc_id must be a string.",
+                )
+            # Imported by the first stream handler. Without one, no stream can
+            # be admitted: answer at once instead of waiting for an admission,
+            # and without importing aiortc
+            connection = sys.modules.get("gradio.webrtc.connection")
+            if connection is None or not connection.has_stream_handlers():
                 if name == "offer":
                     return {"status": "failed", "meta": {"error": "no_stream_handler"}}
                 return {"error": "No stream handler is attached to this app."}

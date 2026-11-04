@@ -146,7 +146,8 @@ class RemoteEventHandle:
     here. What the function asks during a call goes back with the call's
     result, so that the queue sees it before it reads the event's state; a
     wake between calls goes as a message. Kept until the gateway says that
-    the event has ended."""
+    the event has ended or its session closed, which also turn `live` False.
+    Called only on this process's event loop, which runs `run_event` too."""
 
     def __init__(self, worker: Worker, running: RunningEvent):
         self.worker = worker
