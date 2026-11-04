@@ -2397,6 +2397,23 @@ class TestStreamsWithProcesses:
         TestStreams.test_the_next_handler_waits_for_the_last_one_to_shut_down
     )
 
+    @pytest.mark.asyncio
+    async def test_a_stream_is_one_finished_event_for_its_process(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        # Each output takes a call of the stream's event
+        h.manager.sessions["one"].outputs.extend(
+            AdditionalOutputs(n) for n in (1, 2, 3)
+        )
+        await h.http.post(f"{h.api}/stream/{event_id}/close")
+        await h.messages("one", completed)
+        status = (await h.http.get(f"{h.api}/processes")).json()
+        # What replicas="auto" sizes the app by: one event, not one per call
+        assert sum(p["completed"] for p in status["processes"]) == 1
+        await pc.close()
+
 
 class FakeLink:
     """What `Pool` reads of an app's process, recording what it sends."""

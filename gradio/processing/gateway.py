@@ -637,9 +637,17 @@ async def forward_event(
     from gradio.client_state import get_sealer
 
     session_state, iterator = route_utils.restore_session_state(app=app, body=body)
+    if not fn.continues_runs:
+        iterator = None
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
     streaming = fn.connection == "stream"
+    # An event is counted once, however many calls a stream makes
+    counted_id = (
+        body.event_id
+        if fn.continues_runs or queue_event_id not in pool.called_links
+        else None
+    )
     link = (
         iterator.link
         if isinstance(iterator, RemoteIterator)
@@ -665,8 +673,8 @@ async def forward_event(
             pool.reserved.pop(queue_event_id or "", None)
             await candidate.acquire()
             slot = candidate
-        if iterator is None and body.event_id is not None:
-            link.started.setdefault(body.event_id, time.monotonic())
+        if iterator is None and counted_id is not None:
+            link.started.setdefault(counted_id, time.monotonic())
         if streaming and queue_event_id is not None:
             pool.called_links[queue_event_id] = link
         sent_body = body.model_dump(exclude={"request", "client_state"})
@@ -706,10 +714,10 @@ async def forward_event(
             slot.release()
         elif iterator is not None:
             link.release(queue_event_id)
-        if returned and body.event_id is not None:
+        if returned and body.event_id is not None and fn.continues_runs:
             link.send(("close_iterator", body.event_id))
-        if body.event_id is not None:
-            pool.finished(link, body.event_id, success=False)
+        if counted_id is not None:
+            pool.finished(link, counted_id, success=False)
         raise
     finally:
         link.running -= 1
@@ -724,10 +732,10 @@ async def forward_event(
             slot.release()
     elif not has_iterator and not streaming:
         link.release(queue_event_id)
-    if not has_iterator and body.event_id is not None:
-        pool.finished(link, body.event_id, success=True)
+    if not has_iterator and counted_id is not None:
+        pool.finished(link, counted_id, success=True)
         pool.check_drained(link)
-    if body.event_id is not None:
+    if body.event_id is not None and fn.continues_runs:
         app.iterators[body.event_id] = (  # type: ignore[assignment]
             RemoteIterator(link, body.event_id) if has_iterator else None
         )

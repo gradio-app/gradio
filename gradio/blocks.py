@@ -2766,7 +2766,7 @@ Received inputs:
                             data,
                             session_hash=session_hash,
                             run=run
-                            if event_id is not None and block_fn.connection != "stream"
+                            if event_id is not None and block_fn.continues_runs
                             else None,
                             final=not is_generating,
                             simple_format=simple_format,

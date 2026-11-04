@@ -129,6 +129,13 @@ class BlockFunction:
 
         self.spaces_auto_wrap()
 
+    @property
+    def continues_runs(self) -> bool:
+        """Whether a later call of an event can continue what an earlier call
+        of it started (a generator the queue steps through). Each call of a
+        stream is a run of its own, though it carries the event's id."""
+        return self.connection != "stream"
+
     def spaces_auto_wrap(self):
         if spaces is None:
             return

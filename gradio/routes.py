@@ -1528,15 +1528,13 @@ class App(FastAPI):
                 return Response(status_code=404)
             new_body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             new_body.session_hash = event.session_hash
-            new_body.event_id = None
             # A streaming event's later chunks carry only their data: the
             # browser-held gr.State values verified when the event joined (and
             # updated by each chunk since) carry on from one chunk to the next.
             if event.data is not None:
                 new_body.client_state = event.data.client_state
-            # The browser does not send the event id with a chunk; the calls
-            # it triggers still belong to this event (gr.Info, progress),
-            # unless they serve a batch of events
+            # Whatever id a client sends, the calls a chunk triggers belong to
+            # this event (gr.Info, progress), unless they serve a batch
             new_body.event_id = None if event.fn.batch else event_id
             event.data = new_body
             event.signal.set()
