@@ -14,6 +14,15 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "serial: mark test as serial")
 
 
+@pytest.fixture(autouse=True)
+def disable_default_ssr(monkeypatch):
+    """SSR is on by default when a supported Node is installed, which would start a
+    Node proxy for every launched test app and move Python to the next port, where
+    it collides with apps launched by other test workers.
+    """
+    monkeypatch.setenv("GRADIO_SSR_MODE", "false")
+
+
 @pytest.fixture
 def calculator_demo():
     def calculator(num1, operation, num2):
