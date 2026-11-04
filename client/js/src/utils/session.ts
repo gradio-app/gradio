@@ -86,6 +86,26 @@ export function forget_session(): void {
 	remove_session();
 }
 
+/**
+ * Resolves once the page is shown. A page the browser prerenders (e.g. while
+ * its URL is typed in Chrome's address bar) has a copy of sessionStorage that
+ * is dropped when the page is shown, so the session must not be picked up or
+ * tracked before then.
+ */
+export function page_shown(): Promise<void> {
+	if (
+		typeof document === "undefined" ||
+		!(document as { prerendering?: boolean }).prerendering
+	) {
+		return Promise.resolve();
+	}
+	return new Promise((resolve) =>
+		document.addEventListener("prerenderingchange", () => resolve(), {
+			once: true
+		})
+	);
+}
+
 export function get_resumable_session_hash(): string | null {
 	const session = read_session();
 	if (session && !session.in_use) {

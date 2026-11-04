@@ -19,6 +19,7 @@ import { SPACE_NOT_FOUND_MSG } from "../constants";
 import {
 	get_resumable_events,
 	get_resumable_session_hash,
+	has_shown_page,
 	set_session_in_use,
 	track_resumable_event,
 	track_session,
@@ -291,6 +292,47 @@ describe("Client class", () => {
 					app.close();
 					expect(get_resumable_session_hash()).toBe(app.session_hash);
 				});
+
+				test.skipIf(typeof document === "undefined")(
+					"waits until a prerendered page is shown to track the session",
+					async () => {
+						let info_requested = false;
+						server.use(
+							http.get(`${root}/info`, () => {
+								info_requested = true;
+								return HttpResponse.json(response_api_info);
+							})
+						);
+						Object.defineProperty(document, "prerendering", {
+							value: true,
+							configurable: true
+						});
+						try {
+							const connecting = Client.connect(direct_app_reference, {
+								resume_sessions: true
+							});
+							// The config and API info still load while prerendering
+							await vi.waitFor(() => expect(info_requested).toBe(true));
+							const result = await Promise.race([
+								connecting.then(() => "connected"),
+								new Promise((resolve) => setTimeout(resolve, 100, "waiting"))
+							]);
+							expect(result).toBe("waiting");
+
+							// What the page wrote to sessionStorage while prerendering is
+							// dropped when it is shown
+							sessionStorage.clear();
+							delete (document as { prerendering?: boolean }).prerendering;
+							document.dispatchEvent(new Event("prerenderingchange"));
+
+							const app = await connecting;
+							expect(has_shown_page(app_config, app.session_hash)).toBe(true);
+						} finally {
+							delete (document as { prerendering?: boolean }).prerendering;
+							document.dispatchEvent(new Event("prerenderingchange"));
+						}
+					}
+				);
 			}
 		);
 

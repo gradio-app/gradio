@@ -67,7 +67,8 @@
 		oninput,
 		onsave,
 		onreceive_null,
-		ondownload_error
+		ondownload_error,
+		onerror
 	}: {
 		brush: IBrush | false;
 		eraser: Eraser | false;
@@ -102,6 +103,7 @@
 		onsave?: () => void;
 		onreceive_null?: () => void;
 		ondownload_error?: (error: string) => void;
+		onerror?: (error: string) => void;
 	} = $props();
 
 	let editor: ImageEditor;
@@ -313,6 +315,7 @@
 	onchange={handle_change}
 	onclear={() => onclear?.()}
 	{ondownload_error}
+	{onerror}
 	{sources}
 	bind:background_image
 	bind:current_tool

@@ -111,6 +111,7 @@ from gradio.route_utils import (  # noqa: F401
     API_PREFIX,
     BUILD_PATH_LIB,
     DEFAULT_TEMP_DIR,
+    GATEWAY_USER_SCOPE_KEY,
     STATIC_PATH_LIB,
     STATIC_TEMPLATE_LIB,
     VERSION,
@@ -146,7 +147,6 @@ from gradio.server_messages import (
 from gradio.state_holder import StateHolder
 from gradio.themes import ThemeClass as Theme
 from gradio.utils import (
-    cancel_tasks,
     get_node_path,
     get_upload_folder,
     safe_aclose_iterator,
@@ -155,6 +155,7 @@ from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
 if TYPE_CHECKING:
     from gradio.blocks import Block, BlockFunction
+    from gradio.queueing import Queue
 
 import re
 import shutil
@@ -207,6 +208,107 @@ class ORJSONResponse(JSONResponse):
     @staticmethod
     def _render_str(content: Any) -> str:
         return ORJSONResponse._render(content).decode("utf-8")
+
+
+def format_simple_api_message(message: EventMessage) -> str | None:
+    """Formats a queue message as the `/call` API streams it."""
+    msg = message.model_dump()
+    if isinstance(message, ProcessCompletedMessage):
+        event = "complete" if message.success else "error"
+        data = msg["output"].get("data") if message.success else msg["output"]
+    elif isinstance(message, ProcessGeneratingMessage):
+        event = "generating" if message.success else "error"
+        data = msg["output"].get("data") if message.success else msg["output"]
+    elif isinstance(message, HeartbeatMessage):
+        event = "heartbeat"
+        data = None
+    elif isinstance(message, UnexpectedErrorMessage):
+        event = "error"
+        data = message.message
+    else:
+        return None
+    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
+
+class OwnEventStreamResponse(StreamingResponse):
+    """sse_v4: streams one event's messages on the request that submitted it,
+    ending with its completion.
+
+    If the client leaves first, a client that can resume (`acknowledges`, as with
+    the session stream) gets the event back on its session's `queue/data` stream:
+    the event keeps running for as long as the session is kept. Any other
+    client's event is cancelled, through `on_abandoned`.
+
+    Cleanup runs in `__call__`, which Starlette always awaits, rather than in the
+    generator: that never starts if the client has left before the response.
+    """
+
+    def __init__(
+        self,
+        request: fastapi.Request,
+        queue: Queue,
+        event_id: str,
+        session_hash: str,
+        on_abandoned: Callable[[str], Awaitable[None]],
+        acknowledges: bool = False,
+        format_message: Callable[[EventMessage], str | None] | None = None,
+    ):
+        self.request = request
+        self.format_message = format_message or (
+            lambda message: f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
+        )
+        self.queue = queue
+        self.event_id = event_id
+        self.session_hash = session_hash
+        self.on_abandoned = on_abandoned
+        self.acknowledges = acknowledges
+        self.finished = False
+        super().__init__(self.stream(), media_type="text/event-stream")
+
+    async def stream(self) -> AsyncIterator[str]:
+        messages = self.queue.pending_messages_per_event[self.event_id]
+        heartbeat_rate = utils.get_heartbeat_rate()
+        while True:
+            try:
+                message = await asyncio.wait_for(messages.get(), timeout=heartbeat_rate)
+            except TimeoutError:
+                message = HeartbeatMessage()
+            if self.queue.stopped:
+                message = UnexpectedErrorMessage(
+                    message="Server stopped unexpectedly.", success=False
+                )
+            text = self.format_message(message)
+            if text is not None:
+                yield text
+            if isinstance(message, (ProcessCompletedMessage, UnexpectedErrorMessage)):
+                self.finished = True
+                return
+            if await self.request.is_disconnected():
+                return
+
+    async def __call__(self, scope, receive, send) -> None:
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            with anyio.CancelScope(shield=True):
+                await self.close()
+
+    async def close(self) -> None:
+        queue = self.queue
+        if not self.finished and self.acknowledges and queue.resume_ttl > 0:
+            queue.move_to_session_stream(self.event_id, self.session_hash)
+        else:
+            queue.pending_messages_per_event.pop(self.event_id, None)
+            event_ids = queue.pending_event_ids_session.get(self.session_hash)
+            if event_ids is not None:
+                event_ids.discard(self.event_id)
+                if not event_ids:
+                    queue.pending_event_ids_session.pop(self.session_hash, None)
+            if not self.finished:
+                await self.on_abandoned(self.event_id)
+            queue.event_ids_to_events.pop(self.event_id, None)
+        if self.acknowledges:
+            await queue.mark_session_detached(self.session_hash)
 
 
 def toorjson(value):
@@ -281,6 +383,7 @@ class App(FastAPI):
         # Sessions whose `unload` events have run, so that the heartbeat and the
         # queue, which can both end a session, run them only once
         self.unloaded_sessions: utils.LRUCache[str, bool] = utils.LRUCache(10000)
+        self.session_listener: Callable[[str, bool], None] | None = None
         self.lock = asyncio.Lock()
         self.stop_event = asyncio.Event()
         self.cookie_id = secrets.token_urlsafe(32)
@@ -339,6 +442,15 @@ class App(FastAPI):
         self.unloaded_sessions.pop(session_hash, None)
         if session_hash in self.state_holder.session_data:
             self.state_holder.session_data[session_hash].is_closed = False
+        if self.session_listener is not None:
+            self.session_listener(session_hash, False)
+
+    def mark_session_closed(self, session_hash: str) -> None:
+        """The session's page went away, so its state is deleted after a while."""
+        if session_hash in self.state_holder.session_data:
+            self.state_holder.session_data[session_hash].is_closed = True
+        if self.session_listener is not None:
+            self.session_listener(session_hash, True)
 
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
@@ -470,6 +582,8 @@ class App(FastAPI):
         @router.get("/user")
         @router.get("/user/")
         async def get_current_user(request: fastapi.Request) -> str | None:
+            if GATEWAY_USER_SCOPE_KEY in request.scope:
+                return request.scope[GATEWAY_USER_SCOPE_KEY]
             if app.auth_dependency is not None:
                 user = app.auth_dependency(request)
                 if inspect.isawaitable(user):
@@ -1023,6 +1137,7 @@ class App(FastAPI):
                     str(root),
                     space_id=space_id,
                     api_prefix=api_prefix,
+                    single_request=True,
                 )
                 ep_info["code_snippets"]["cli"] = cli_snippets[ep_name]
             return prepared_info
@@ -1149,7 +1264,8 @@ class App(FastAPI):
                                                 "event_id": {"type": "string"}
                                             },
                                         }
-                                    }
+                                    },
+                                    "text/event-stream": {"schema": {"type": "string"}},
                                 },
                             }
                         },
@@ -1201,7 +1317,7 @@ class App(FastAPI):
                         f"{ret_name} ({ret_type})" + "" if not desc else f"desc: {desc}"
                     )  # type: ignore
                 path_item["post"]["description"] += (  # type: ignore
-                    f"Output must be fetched from GET /gradio_api/call{endpoint_path}/{{event_id}}. Returns an array of {len(returns_info)} elements of the following format: {returns_info}"
+                    f"With `Accept: text/event-stream`, the output streams on this response as server-sent events, ending with `event: complete`. Otherwise this returns an event_id, and the output must be fetched from GET /gradio_api/call{endpoint_path}/{{event_id}}. Returns an array of {len(returns_info)} elements of the following format: {returns_info}"
                 )
 
                 schema["paths"][f"/gradio_api/call/v2{endpoint_path}"] = path_item  # type: ignore
@@ -1300,23 +1416,35 @@ class App(FastAPI):
                 raise HTTPException(
                     status_code=404, detail="Environment not supported."
                 )
-            components = utils.get_all_components()
-            location = next(
-                (item for item in components if item.get_component_class_id() == id),
-                None,
-            )
-            if location is None:
-                raise HTTPException(status_code=404, detail="Component not found.")
+            served = getattr(app.get_blocks(), "_custom_component_locations", None)
+            if served is not None:
+                if id not in served:
+                    raise HTTPException(status_code=404, detail="Component not found.")
+                template_dir, module_dir = served[id]
+            else:
+                components = utils.get_all_components()
+                location = next(
+                    (
+                        item
+                        for item in components
+                        if item.get_component_class_id() == id
+                    ),
+                    None,
+                )
+                if location is None:
+                    raise HTTPException(status_code=404, detail="Component not found.")
 
-            module_name = location.__module__
-            module_path = sys.modules[module_name].__file__
+                module_name = location.__module__
+                module_path = sys.modules[module_name].__file__
 
-            if module_path is None:
-                raise HTTPException(status_code=404, detail="Component not found.")
+                if module_path is None:
+                    raise HTTPException(status_code=404, detail="Component not found.")
+                template_dir = location.TEMPLATE_DIR
+                module_dir = str(Path(module_path).parent)
 
             try:
                 requested_path = utils.safe_join(
-                    location.TEMPLATE_DIR,
+                    template_dir,
                     UserProvidedPath(f"{type}/{file_name}"),
                 )
             except InvalidPathError:
@@ -1325,7 +1453,7 @@ class App(FastAPI):
                 ) from None
 
             path = routes_safe_join(
-                DeveloperPath(str(Path(module_path).parent)),
+                DeveloperPath(module_dir),
                 UserProvidedPath(requested_path),
             )
 
@@ -1397,9 +1525,11 @@ class App(FastAPI):
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
             event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            if event is None:
+            if event is None or not event.streaming:
                 return Response(status_code=404)
             new_body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
+            new_body.session_hash = event.session_hash
+            new_body.event_id = None
             # A streaming event's later chunks carry only their data: the
             # browser-held gr.State values verified when the event joined (and
             # updated by each chunk since) carry on from one chunk to the next.
@@ -1412,7 +1542,7 @@ class App(FastAPI):
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
             event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            if event is None:
+            if event is None or not event.streaming:
                 return Response(status_code=404)
             event.run_time = math.inf
             event.closed = True
@@ -1582,8 +1712,7 @@ class App(FastAPI):
                     if any(t for t in dep.targets if t[1] == "unload")
                 ]
                 # This will mark the state to be deleted in an hour
-                if session_hash in app.state_holder.session_data:
-                    app.state_holder.session_data[session_hash].is_closed = True
+                app.mark_session_closed(session_hash)
                 caching.clear_session_caches(session_hash)
                 # Streams only; diff state is dropped by the queue when
                 # the run ends
@@ -1761,7 +1890,14 @@ class App(FastAPI):
             )
             prepare_simple_api_data(full_body, fn)
             full_body.fn_index = fn._id
-            return await queue_join_helper(full_body, request, username)
+            own_stream = route_utils.accepts_event_stream(request)
+            return await queue_join_helper(
+                full_body,
+                request,
+                username,
+                own_stream=own_stream,
+                format_message=format_simple_api_message,
+            )
 
         @router.post("/call/{api_name}", dependencies=[Depends(login_check)])
         @router.post("/call/{api_name}/", dependencies=[Depends(login_check)])
@@ -1777,25 +1913,43 @@ class App(FastAPI):
             )
             prepare_simple_api_data(full_body, fn)
             full_body.fn_index = fn._id
-            return await queue_join_helper(full_body, request, username)
+            own_stream = route_utils.accepts_event_stream(request)
+            return await queue_join_helper(
+                full_body,
+                request,
+                username,
+                own_stream=own_stream,
+                format_message=format_simple_api_message,
+            )
 
         @router.post("/queue/join", dependencies=[Depends(login_check)])
         async def queue_join(
             body: PredictBody,
             request: fastapi.Request,
             username: str = Depends(get_current_user),
+            acknowledgements: bool = False,
         ):
             if body.session_hash is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Session hash not found.",
                 )
-            return await queue_join_helper(body, request, username)
+            own_stream = route_utils.accepts_event_stream(request)
+            return await queue_join_helper(
+                body,
+                request,
+                username,
+                own_stream=own_stream,
+                acknowledgements=acknowledgements,
+            )
 
         async def queue_join_helper(
             body: PredictBody,
             request: fastapi.Request,
             username: str,
+            own_stream: bool = False,
+            acknowledgements: bool = False,
+            format_message: Callable[[EventMessage], str | None] | None = None,
         ):
             blocks = app.get_blocks()
 
@@ -1815,9 +1969,21 @@ class App(FastAPI):
                     fn = None
                 if fn is not None:
                     resolve_client_state(body, fn, username, request)
-            success, event_id, state = await blocks._queue.push(
-                body=body, request=request, username=username
-            )
+            attach = own_stream and acknowledgements
+            if attach:
+                blocks._queue.mark_session_attached(cast(str, body.session_hash))
+            try:
+                success, event_id, state = await blocks._queue.push(
+                    body=body, request=request, username=username, own_stream=own_stream
+                )
+            except BaseException:
+                if attach:
+                    await blocks._queue.mark_session_detached(
+                        cast(str, body.session_hash)
+                    )
+                raise
+            if attach and not success:
+                await blocks._queue.mark_session_detached(cast(str, body.session_hash))
             error_map = {
                 "queue_full": status.HTTP_503_SERVICE_UNAVAILABLE,
                 "validator_error": status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -1828,12 +1994,46 @@ class App(FastAPI):
             if not success:
                 status_code = error_map[state]
                 raise HTTPException(status_code=status_code, detail=event_id)
+            if own_stream:
+                return OwnEventStreamResponse(
+                    request,
+                    blocks._queue,
+                    cast(str, event_id),
+                    cast(str, body.session_hash),
+                    on_abandoned=cancel_own_stream_event,
+                    acknowledges=attach,
+                    format_message=format_message,
+                )
             return {"event_id": event_id}
+
+        async def cancel_own_stream_event(event_id: str):
+            """Does for a single event what `/cancel` does for a session's
+            events of one function: drops it from the queue, or stops it if it
+            is running."""
+            queue = app.get_blocks()._queue
+            await queue.clean_events(event_id=event_id)
+            await utils.cancel_event_tasks({event_id})
+            await close_event_iterator(event_id)
+
+        async def close_event_iterator(event_id: str):
+            if event_id not in app.iterators:
+                return
+            async with app.lock:
+                if event_id not in app.iterators:
+                    return
+                try:
+                    await safe_aclose_iterator(app.iterators[event_id])
+                except Exception:
+                    pass
+                del app.iterators[event_id]
+                app.iterators_to_reset.add(event_id)
 
         @router.post("/cancel")
         async def cancel_event(body: CancelBody):
-            await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
             blocks = app.get_blocks()
+            found = body.event_id in blocks._queue.event_ids_to_events
+            cancelled = await utils.cancel_event_tasks({body.event_id})
+            found = found or body.event_id in cancelled
             # Need to complete the job so that the client disconnects
             session_open = (
                 body.session_hash in blocks._queue.pending_messages_per_session
@@ -1843,22 +2043,18 @@ class App(FastAPI):
                 in blocks._queue.pending_event_ids_session.get(body.session_hash, {})
             )
             await blocks._queue.remove_from_queue(body.event_id)
-            if session_open and event_running:
-                message = ProcessCompletedMessage(
-                    output={}, success=True, event_id=body.event_id
-                )
+            message = ProcessCompletedMessage(
+                output={}, success=True, event_id=body.event_id
+            )
+            own_messages = blocks._queue.pending_messages_per_event.get(body.event_id)
+            if own_messages is not None:
+                own_messages.put_nowait(message)
+            elif session_open and event_running:
                 blocks._queue.pending_messages_per_session[
                     body.session_hash
                 ].put_nowait(message)
-            if body.event_id in app.iterators:
-                async with app.lock:
-                    try:
-                        await safe_aclose_iterator(app.iterators[body.event_id])
-                    except Exception:
-                        pass
-                    del app.iterators[body.event_id]
-                    app.iterators_to_reset.add(body.event_id)
-            return {"success": True}
+            await close_event_iterator(body.event_id)
+            return {"success": True, "found": found}
 
         @router.post("/queue/close", dependencies=[Depends(login_check)])
         async def close_queue_session(body: QueueCloseBody):
@@ -1873,28 +2069,6 @@ class App(FastAPI):
             request: fastapi.Request,
             event_id: str,
         ):
-            def process_msg(message: EventMessage) -> str | None:
-                msg = message.model_dump()
-                if isinstance(message, ProcessCompletedMessage):
-                    event = "complete" if message.success else "error"
-                    data = (
-                        msg["output"].get("data") if message.success else msg["output"]
-                    )
-                elif isinstance(message, ProcessGeneratingMessage):
-                    event = "generating" if message.success else "error"
-                    data = (
-                        msg["output"].get("data") if message.success else msg["output"]
-                    )
-                elif isinstance(message, HeartbeatMessage):
-                    event = "heartbeat"
-                    data = None
-                elif isinstance(message, UnexpectedErrorMessage):
-                    event = "error"
-                    data = message.message
-                else:
-                    return None
-                return f"event: {event}\ndata: {json.dumps(data)}\n\n"
-
             queue = app.get_blocks()._queue
             event = queue.event_ids_to_events.get(event_id)
             if event is not None:
@@ -1914,7 +2088,9 @@ class App(FastAPI):
                     ),
                     event_id,
                 )
-            return await queue_data_helper(request, session_hash, process_msg)
+            return await queue_data_helper(
+                request, session_hash, format_simple_api_message
+            )
 
         @router.get("/queue/data", dependencies=[Depends(login_check)])
         async def queue_data(
@@ -2631,7 +2807,7 @@ def mount_gradio_app(
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears if `run_history` is True and the browser has at least one saved run for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
         run_history: If True, users can review and reload calls from the run history page at /gradio_api/runs. Runs are saved privately in the browser by default; from that page, a user can instead connect a Hugging Face bucket and save future runs there. Browser history is scoped to the logged-in user if the app uses `auth`. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
-        ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+        ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 24+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         i18n: If provided, the i18n instance to use for this gradio app.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.

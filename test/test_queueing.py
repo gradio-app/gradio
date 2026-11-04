@@ -192,7 +192,7 @@ class TestQueueing:
 
         demo.queue()
 
-        with connect(demo) as client:
+        with connect(demo, executor="thread") as client:
             first = client.submit("x", fn_index=0)
             assert first.result(timeout=5) == "Hello, x!"
 
@@ -515,7 +515,7 @@ def test_ending_a_stream_does_not_rerun_its_last_chunk(end):
         output = gr.Textbox()
         mic.stream(on_chunk, chunk, output)
 
-    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     # A real client rather than TestClient, which would set the event's
     # asyncio signal from another thread and cannot drop an endless response
     client = httpx2.Client(base_url=local_url.rstrip("/") + API_PREFIX, timeout=10)
@@ -583,7 +583,7 @@ def test_detached_queue_session_can_resume():
         start.click(slow, None, output)
 
     demo.queue(default_concurrency_limit=1)
-    app, _, _ = demo.launch(prevent_thread_lock=True)
+    app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     test_client = TestClient(app)
 
     try:
@@ -677,7 +677,7 @@ def test_expired_detached_session_is_fully_cleaned_up():
         demo.unload(unloaded.set)
 
     demo.queue(default_concurrency_limit=1)
-    app, _, _ = demo.launch(prevent_thread_lock=True)
+    app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     test_client = TestClient(app)
 
     try:
@@ -739,7 +739,7 @@ def test_expired_session_runs_unload_after_its_events_are_gone():
     with gr.Blocks() as demo:
         demo.unload(unloaded.set)
 
-    app, _, _ = demo.launch(prevent_thread_lock=True)
+    app, _, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     try:
         queue = demo._queue
         request = fastapi.Request(
@@ -872,7 +872,7 @@ class TestQueueDoesNotAccumulate:
             out = gr.Textbox()
             box.submit(lambda x: x, box, out)
 
-        with connect(demo) as client:
+        with connect(demo, executor="thread") as client:
             for _ in range(5):
                 client.predict("a", api_name="/lambda")
 
@@ -885,7 +885,7 @@ class TestQueueDoesNotAccumulate:
             box.submit(lambda x: x, box, out)
 
         demo._queue.ANALYTICS_MAX_EVENTS = 3
-        with connect(demo) as client:
+        with connect(demo, executor="thread") as client:
             for _ in range(8):
                 client.predict("a", api_name="/lambda")
 
@@ -897,6 +897,120 @@ class TestQueueDoesNotAccumulate:
             ]
             == 8
         )
+
+
+class TestOwnEventStream:
+    @staticmethod
+    def join(demo, data, session_hash, params=None):
+        return httpx2.stream(
+            "POST",
+            f"{demo.local_url}{API_PREFIX.lstrip('/')}/queue/join",
+            params=params,
+            json={
+                "data": data,
+                "fn_index": demo.config["dependencies"][0]["id"],
+                "session_hash": session_hash,
+                "event_data": None,
+                "trigger_id": None,
+            },
+            headers={"Accept": "text/event-stream"},
+            timeout=10,
+        )
+
+    @staticmethod
+    def read(lines, until=None):
+        messages = []
+        for line in lines:
+            if line.startswith("data:"):
+                messages.append(json.loads(line[5:]))
+                if messages[-1]["msg"] == until:
+                    break
+        return messages
+
+    def test_streams_the_event_on_the_join_response(self):
+        def count(n):
+            for i in range(int(n)):
+                yield str(i)
+
+        with gr.Blocks() as demo:
+            n, out = gr.Number(), gr.Textbox()
+            gr.Button().click(count, n, out)
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with self.join(demo, [3], "own-stream") as response:
+                assert response.status_code == 200
+                messages = self.read(response.iter_lines())
+            assert [m["msg"] for m in messages] == [
+                "estimation",
+                "process_starts",
+                "process_generating",
+                "process_generating",
+                "process_generating",
+                "process_completed",
+            ]
+            assert messages[-1]["output"]["data"] == ["2"]
+            assert "own-stream" not in demo._queue.pending_messages_per_session
+        finally:
+            demo.close()
+
+    def test_leaving_cancels_only_that_event(self):
+        finished = []
+
+        async def slow(x):
+            await asyncio.sleep(1.5)
+            finished.append(x)
+            return x
+
+        with gr.Blocks() as demo:
+            t, out = gr.Textbox(), gr.Textbox()
+            gr.Button().click(slow, t, out, concurrency_limit=None)
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with self.join(demo, ["kept"], "one-session") as kept:
+                with self.join(demo, ["dropped"], "one-session") as dropped:
+                    self.read(dropped.iter_lines(), until="process_starts")
+                messages = self.read(kept.iter_lines())
+            assert messages[-1]["output"]["data"] == ["kept"]
+            time.sleep(0.5)
+            assert finished == ["kept"]
+            assert not any(demo._queue.active_jobs)
+        finally:
+            demo.close()
+
+    def test_a_page_that_resumes_keeps_the_event_when_its_request_drops(self):
+        finished = []
+
+        async def slow(x):
+            await asyncio.sleep(1)
+            finished.append(x)
+            return x
+
+        with gr.Blocks() as demo:
+            t, out = gr.Textbox(), gr.Textbox()
+            gr.Button().click(slow, t, out)
+        demo.launch(prevent_thread_lock=True)
+        try:
+            with self.join(
+                demo, ["kept"], "resumes", params={"acknowledgements": "true"}
+            ) as dropped:
+                started = self.read(dropped.iter_lines(), until="process_starts")
+            event_id = started[-1]["event_id"]
+            with httpx2.stream(
+                "GET",
+                f"{demo.local_url}{API_PREFIX.lstrip('/')}/queue/data",
+                params={
+                    "session_hash": "resumes",
+                    "resume_event_id": event_id,
+                    "acknowledgements": "true",
+                },
+                timeout=10,
+            ) as resumed:
+                messages = self.read(resumed.iter_lines(), until="process_completed")
+            assert messages[-1]["event_id"] == event_id
+            assert messages[-1]["output"]["data"] == ["kept"]
+            assert finished == ["kept"]
+        finally:
+            demo.close()
 
 
 def test_resuming_one_event_keeps_messages_waiting_for_another():

@@ -1,5 +1,11 @@
 # @gradio/sanitize
 
+## 0.4.3
+
+### Fixes
+
+- [#13941](https://github.com/gradio-app/gradio/pull/13941) [`12cc9d4`](https://github.com/gradio-app/gradio/commit/12cc9d4cca0ecfa3f7a70ce445e8481382833b5f) - Render streamed markdown block by block instead of rebuilding the whole message.  Thanks @hysts!
+
 ## 0.4.2
 
 ### Features

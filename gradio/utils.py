@@ -494,8 +494,11 @@ def reassign_pending_event_fns(new_blocks: "Blocks"):
         yield from list(queue.event_ids_to_events.values())
 
     for event in all_events():
-        new_fn = new_fns_by_api_name.get(event.fn.api_name)
-        if new_fn is not None and new_fn.connection == event.fn.connection:
+        fn = getattr(event, "fn", None)
+        if fn is None:
+            continue
+        new_fn = new_fns_by_api_name.get(fn.api_name)
+        if new_fn is not None and new_fn.connection == fn.connection:
             event.fn = new_fn
 
 
@@ -549,6 +552,29 @@ def colab_check() -> bool:
     except (ImportError, NameError):
         pass
     return is_colab
+
+
+def get_browser_streams() -> Literal["auto", "per_event", "per_session"]:
+    """
+    How browsers receive queued events' messages, from GRADIO_BROWSER_STREAMS:
+    "per_event" (sse_v4, one request per event), "per_session" (the session's
+    shared stream), or "auto", which uses per_event when the browser speaks
+    HTTP/2 or later to the app and per_session on HTTP/1.1.
+    """
+    modes: dict[str, Literal["auto", "per_event", "per_session"]] = {
+        "auto": "auto",
+        "per_event": "per_event",
+        "per_session": "per_session",
+    }
+    value = os.environ.get("GRADIO_BROWSER_STREAMS", "auto").strip().lower()
+    mode = modes.get(value)
+    if mode is None:
+        warnings.warn(
+            f"Ignoring GRADIO_BROWSER_STREAMS={value!r}: expected 'auto', "
+            "'per_event' or 'per_session'."
+        )
+        return "auto"
+    return mode
 
 
 def is_hosted_notebook() -> bool:
@@ -1146,6 +1172,26 @@ async def cancel_tasks(task_ids: set[str]) -> list[str]:
             task.cancel()
     await asyncio.gather(*matching_tasks, return_exceptions=True)
     return event_ids
+
+
+async def cancel_event_tasks(event_ids: set[str]) -> list[str]:
+    """Cancels the queue tasks running exactly these events, and returns the ids
+    of the events it cancelled. Batched runs have no task name (see
+    `set_task_name`), so they are never cancelled here: they also carry other
+    sessions' events."""
+    matching_tasks = []
+    cancelled = []
+    for task in asyncio.all_tasks():
+        name = task.get_name()
+        if "<gradio-sep>" not in name:
+            continue
+        event_id = name.split("<gradio-sep>")[1]
+        if event_id in event_ids:
+            matching_tasks.append(task)
+            cancelled.append(event_id)
+            task.cancel()
+    await asyncio.gather(*matching_tasks, return_exceptions=True)
+    return cancelled
 
 
 def set_task_name(task, session_hash: str, fn_index: int, event_id: str, batch: bool):

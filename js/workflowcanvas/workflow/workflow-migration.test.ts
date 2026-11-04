@@ -5,7 +5,8 @@ import {
 	migrateToV2,
 	toLegacyShape,
 	allNodes,
-	findNode
+	findNode,
+	nodesOverlap
 } from "./workflow-migration";
 import type {
 	OperatorNode,
@@ -338,5 +339,21 @@ describe("hasMissingNodeGeometry", () => {
 		).toBe(true);
 		// Nothing to honour in an empty graph, so it isn't read as authored.
 		expect(hasMissingNodeGeometry({ schema_version: "2" })).toBe(true);
+	});
+});
+
+describe("nodesOverlap", () => {
+	const card = (x: number, y: number) => ({ x, y, width: 200, height: 100 });
+
+	test("stacked cards overlap", () => {
+		expect(nodesOverlap([card(0, 0), card(20, 30)])).toBe(true);
+	});
+
+	test("a few pixels of overlap from a taller render is tolerated", () => {
+		expect(nodesOverlap([card(0, 0), card(0, 92)])).toBe(false);
+	});
+
+	test("separate cards don't overlap", () => {
+		expect(nodesOverlap([card(0, 0), card(300, 0)])).toBe(false);
 	});
 });

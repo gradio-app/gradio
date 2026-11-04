@@ -21,6 +21,7 @@ import {
 	app_scope_key,
 	apply_component_value,
 	delete_record,
+	is_streaming_webcam,
 	is_update,
 	prune_records,
 	read_record,
@@ -184,7 +185,9 @@ export class SessionStore {
 			if (!saved || NOT_SAVED.has(component.type)) continue;
 			// The id may belong to a different component now
 			if (saved.type !== component.type) continue;
-			Object.assign(component.props, saved.props);
+			const props = { ...saved.props };
+			if (is_streaming_webcam(component)) delete props.value;
+			Object.assign(component.props, props);
 			restored = true;
 		}
 		return restored;
