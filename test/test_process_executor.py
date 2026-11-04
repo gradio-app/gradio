@@ -5,7 +5,8 @@ import json
 import os
 import threading
 import time
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
+from contextvars import ContextVar
 
 import httpx2
 import pytest
@@ -59,6 +60,60 @@ def test_zerogpu_startup_runs_in_the_app_process(executor, monkeypatch, connect)
     with connect(demo, executor=executor) as client:
         assert client.predict(api_name="/predict") == os.getpid()
     assert startup_pids == [os.getpid()]
+
+
+@pytest.mark.parametrize("generator", [False, True])
+def test_process_event_restores_zerogpu_middleware_scope(generator, monkeypatch):
+    import spaces.zero
+    from spaces.zero import middleware
+
+    current_scope: ContextVar[tuple[bytes | None, int | None] | None] = ContextVar(
+        "zerogpu_test_scope", default=None
+    )
+
+    class InspectScope(middleware.ZeroGPUMiddleware):
+        async def __call__(self, scope, receive, send):
+            if scope["type"] != "http":
+                return await super().__call__(scope, receive, send)
+            token = current_scope.set(
+                (
+                    dict(scope.get("headers", [])).get(b"x-test-context"),
+                    scope["server"][1],
+                )
+            )
+            try:
+                return await super().__call__(scope, receive, send)
+            finally:
+                current_scope.reset(token)
+
+    monkeypatch.setenv("SPACES_ZERO_GPU", "true")
+    monkeypatch.setattr(spaces.zero, "ZeroGPUMiddleware", InspectScope)
+    monkeypatch.setattr(middleware, "zerogpu_mode_enabled", lambda: True)
+    monkeypatch.setattr(middleware, "zerogpu_startup", lambda: None)
+
+    def predict():
+        scope = current_scope.get()
+        assert scope is not None and scope[0] is not None
+        return [scope[0].decode(), scope[1]]
+
+    def generate():
+        yield predict()
+        yield predict()
+
+    demo = gr.Interface(
+        generate if generator else predict, None, gr.JSON(), api_name="predict"
+    )
+    with launched(demo):
+        worker = demo._process_worker
+        assert worker is not None
+        with closing(
+            Client(str(demo.local_url), headers={"x-test-context": "forwarded"})
+        ) as client:
+            assert client.predict(api_name="/predict") == [
+                "forwarded",
+                worker.http_port,
+            ]
+    assert current_scope.get() is None
 
 
 def test_state_globals_and_closures_behave_as_with_threads():
