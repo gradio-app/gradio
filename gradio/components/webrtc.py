@@ -219,13 +219,18 @@ class StreamOptions:
             )
 
 
-def _to_list(blocks: Block | Sequence[Block] | set[Block] | None) -> list[Block]:
+def _to_list(blocks: Block | Sequence[Block] | None) -> list[Block]:
     from gradio.blocks import Block
 
     if blocks is None:
         return []
     if isinstance(blocks, Block):
         return [blocks]
+    if isinstance(blocks, set | frozenset):
+        raise TypeError(
+            "Pass the inputs and outputs of a stream as a list: their order "
+            "matches the handler's arguments and AdditionalOutputs."
+        )
     return list(blocks)
 
 
@@ -435,8 +440,8 @@ class WebRTC(Component):
     def stream(
         self,
         fn: HandlerType,
-        inputs: Block | Sequence[Block] | set[Block] | None = None,
-        outputs: Block | Sequence[Block] | set[Block] | None = None,
+        inputs: Block | Sequence[Block] | None = None,
+        outputs: Block | Sequence[Block] | None = None,
         *,
         time_limit: float | None = None,
         concurrency_limit: int | None | Literal["default"] = "default",

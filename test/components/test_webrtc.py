@@ -532,6 +532,11 @@ class TestWebRTC:
             video = gr.WebRTC()
             with pytest.raises(ValueError, match="first element"):
                 video.stream(flip, inputs=[slider], outputs=[video])
+            # A set has no order to match the handler's arguments by
+            with pytest.raises(TypeError, match="list"):
+                video.stream(flip, inputs={video, slider}, outputs=[video])  # type: ignore[arg-type]
+            with pytest.raises(TypeError, match="list"):
+                video.stream(flip, inputs=[video], outputs={video, slider})  # type: ignore[arg-type]
             with pytest.raises(ValueError, match="VideoStreamHandler"):
                 video.stream(EchoHandler, inputs=[video], outputs=[video])
             with pytest.raises(ValueError, match="StreamHandler or AsyncStreamHandler"):
@@ -3496,6 +3501,84 @@ class TestAudioArrays:
         assert len(received) >= 4
         assert set(received) == {(320,)}
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("kind", ["audio", "video"])
+    async def test_an_error_reading_the_input_ends_the_stream(self, kind, monkeypatch):
+        import av
+        import numpy as np
+        from aiortc.mediastreams import MediaStreamError
+
+        from gradio.webrtc.tracks import AudioCallback, HandlerVideoTrack
+        from gradio.webrtc.utils import Context, StreamNotifier
+
+        released = asyncio.Event()
+
+        base = cast(Any, AudioStreamTrack if kind == "audio" else VideoStreamTrack)
+
+        class Input(base):
+            sent = False
+
+            async def recv(self):
+                if not self.sent:
+                    self.sent = True
+                    if kind == "audio":
+                        frame = av.AudioFrame.from_ndarray(
+                            np.zeros((1, 960), dtype=np.int16),
+                            format="s16",
+                            layout="mono",
+                        )
+                        frame.sample_rate = 48000
+                        return frame
+                    return video_frame(0)
+                await released.wait()
+                raise MediaStreamError
+
+        class Audio(AsyncStreamHandler):
+            def resample(self, frame):  # e.g. a frame the resampler cannot take
+                raise ValueError("cannot read the input")
+
+            async def receive(self, frame):
+                pass
+
+            async def emit(self):
+                return None
+
+        class Video(VideoStreamHandler):
+            def video_receive(self, frame):
+                pass
+
+            def video_emit(self):
+                return None
+
+        notifier = StreamNotifier(
+            asyncio.get_running_loop(), end_stream=lambda: None, show_error=True
+        )
+        LocalContext.stream_notifier.set(notifier)
+        if kind == "audio":
+            track: Any = AudioCallback(
+                Input(), event_handler=Audio(), context=Context("id")
+            )
+            reading = track.process_input_frames()
+        else:
+            track = HandlerVideoTrack(
+                Input(), event_handler=cast(Callable, Video()), context=Context("id")
+            )
+            track.channel_set.set()
+
+            def unreadable(frame):  # e.g. a frame in a format it cannot convert
+                raise ValueError("cannot read the input")
+
+            monkeypatch.setattr(track, "frame_to_array", unreadable)
+            reading = track.process_frames()
+        try:
+            await asyncio.wait_for(reading, 2)
+        finally:
+            released.set()
+        # The page hears it and the stream ends, instead of going quiet
+        assert notifier.failure is not None
+        assert "cannot read the input" in str(notifier.failure["error"])
+        assert track.thread_quit.is_set()
+
     @staticmethod
     async def decode(*returned):
         import av
@@ -3623,6 +3706,30 @@ class TestAudioArrays:
         # The audio after the pause plays in real time (20 ms a frame), not
         # all at once to catch up with the clock
         assert returned[9] - returned[5] > 0.06
+
+    @pytest.mark.asyncio
+    async def test_receive_video_starts_its_pace_once_the_inputs_arrive(self):
+        import numpy as np
+
+        from gradio.webrtc.tracks import ServerToClientVideo
+        from gradio.webrtc.utils import Context
+
+        def generate():
+            while True:
+                yield np.zeros((16, 16, 3), dtype=np.uint8)
+
+        track = ServerToClientVideo(generate, context=Context("id"), fps=30)
+        first = asyncio.ensure_future(track.recv())
+        # The page sends the inputs once the data channel opens
+        await asyncio.sleep(0.5)
+        track.set_args([])
+        await asyncio.wait_for(first, 2)
+        start = time.monotonic()
+        for _ in range(5):
+            await asyncio.wait_for(track.recv(), 2)
+        track.stop()
+        # 30 fps from the first frame on, not a catch-up burst
+        assert time.monotonic() - start > 0.1
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("audio", [None, 0, 4800])
@@ -3813,6 +3920,75 @@ class TestCleanUp:
             allow_extra_tracks=False,
             server_rtc_configuration=None,
         )
+
+    class Handle:
+        """A queue event as the stream sees it (`queueing.EventHandle`)."""
+
+        id = "event"
+        session_hash = "s"
+        live = True
+
+        def wake(self):
+            pass
+
+        def disable_time_limit(self):
+            pass
+
+        def finish(self):
+            pass
+
+    class FailingClose:
+        def __init__(self):
+            self.connectionState = "connected"  # as aiortc names it
+
+        async def close(self):
+            raise RuntimeError("close failed")
+
+    @pytest.mark.asyncio
+    async def test_a_failing_close_still_cleans_up_the_stream(self, monkeypatch):
+        monkeypatch.setattr(webrtc_connection, "WATCH_INTERVAL", 0.01)
+        forget_earlier_streams()
+        manager = self.manager()
+        handle = self.Handle()
+        assert manager.admit("one", cast(Any, handle))
+        manager.pcs["one"] = cast(Any, self.FailingClose())
+        manager.connections["one"].append(TestVideoTracks.callback(flip))
+        handle.live = False
+        watcher = manager.sessions["one"].watcher
+        assert watcher is not None
+        with pytest.raises(RuntimeError, match="close failed"):
+            await asyncio.wait_for(watcher, 2)
+        assert "one" not in manager.connections
+        assert "one" not in manager.sessions
+        assert "one" not in webrtc_connection._streams
+        assert "event" not in webrtc_connection._admitted
+
+    @pytest.mark.asyncio
+    async def test_an_error_while_watching_ends_the_stream_not_its_admission(
+        self, monkeypatch
+    ):
+        monkeypatch.setattr(webrtc_connection, "WATCH_INTERVAL", 0.01)
+        forget_earlier_streams()
+        manager = self.manager()
+        handle = self.Handle()
+        assert manager.admit("one", cast(Any, handle))
+        session = manager.sessions["one"]
+
+        def broken(time_limit):
+            raise RuntimeError("watch failed")
+
+        monkeypatch.setattr(session, "remaining_time", broken)
+        deadline = time.monotonic() + 2
+        while not session.ended and time.monotonic() < deadline:
+            await asyncio.sleep(0.01)
+        # The stream ends; the event, still live, keeps it as its admitted one,
+        # so its next call finishes it instead of admitting the id again
+        assert session.ended
+        assert webrtc_connection._admitted.get("event") == "one"
+        handle.live = False
+        assert session.watcher is not None
+        await asyncio.wait_for(session.watcher, 2)
+        assert "event" not in webrtc_connection._admitted
 
     @pytest.mark.asyncio
     async def test_clean_up_stops_every_track(self):

@@ -327,28 +327,35 @@ class ConnectionManager:
                 if session.ended:
                     # The event still has to make its last call
                     continue
-                now = time.monotonic()
-                timed_out = session.remaining_time(self.time_limit) == 0
-                never_connected = (
-                    not session.connected
-                    and now - session.admitted_at > CONNECT_TIMEOUT
-                )
-                if timed_out or never_connected:
+                try:
+                    now = time.monotonic()
+                    timed_out = session.remaining_time(self.time_limit) == 0
+                    never_connected = (
+                        not session.connected
+                        and now - session.admitted_at > CONNECT_TIMEOUT
+                    )
+                    if timed_out or never_connected:
+                        self.end(webrtc_id)
+                    elif now - session.last_signal >= keepalive:
+                        session.wake()
+                except Exception:
+                    # Watching goes on until the event is over: no re-admission
+                    logger.exception("Error while watching stream %s", webrtc_id)
                     self.end(webrtc_id)
-                elif now - session.last_signal >= keepalive:
-                    session.wake()
         finally:
-            pc = self.pcs.get(webrtc_id)
-            if pc is not None:
-                await pc.close()
-            self.clean_up(webrtc_id)
-            if self.sessions.get(webrtc_id) is session:
-                del self.sessions[webrtc_id]
-                if _streams.get(webrtc_id) is self:
-                    del _streams[webrtc_id]
-            if _admitted.get(session.event.id) == webrtc_id:
-                del _admitted[session.event.id]
-            _admissions.pop(webrtc_id, None)
+            try:
+                pc = self.pcs.get(webrtc_id)
+                if pc is not None:
+                    await pc.close()
+            finally:
+                self.clean_up(webrtc_id)
+                if self.sessions.get(webrtc_id) is session:
+                    del self.sessions[webrtc_id]
+                    if _streams.get(webrtc_id) is self:
+                        del _streams[webrtc_id]
+                if _admitted.get(session.event.id) == webrtc_id:
+                    del _admitted[session.event.id]
+                _admissions.pop(webrtc_id, None)
 
     def end(self, webrtc_id: str) -> None:
         """

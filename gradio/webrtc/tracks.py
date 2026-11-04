@@ -319,13 +319,8 @@ class VideoCallback(VideoStreamTrack):
                 array = frame_array
 
             new_frame = self.array_to_frame(array)
-            if frame:
-                new_frame.pts = frame.pts
-                new_frame.time_base = frame.time_base
-            else:
-                pts, time_base = await self.next_timestamp()
-                new_frame.pts = pts
-                new_frame.time_base = time_base
+            new_frame.pts = frame.pts
+            new_frame.time_base = frame.time_base
             return new_frame
         except MediaStreamError:
             # MediaStreamError is how a track tells aiortc that it has ended
@@ -393,6 +388,10 @@ class HandlerVideoTrack(VideoCallback):
                 else:
                     await run_in_thread(handler.video_receive, frame_array)
             except (MediaStreamError, HandlerFailedError):
+                self.stop()
+            except Exception as e:
+                # E.g. a frame it cannot convert; the stream must not go quiet
+                handler_failed(e)
                 self.stop()
 
     async def start_up(self):
@@ -547,6 +546,10 @@ class AudioCallback(AudioStreamTrack):
                 break
             except MediaStreamError:
                 logger.debug("MediaStreamError in process_input_frames")
+                break
+            except Exception as e:
+                handler_failed(e)
+                self.stop()
                 break
 
     async def start(self):
@@ -737,8 +740,8 @@ class ServerToClientVideo(VideoStreamTrack):
 
     async def recv(self):
         try:
-            pts, time_base = await self.next_timestamp()
             await self.args_set.wait()
+            pts, time_base = await self.next_timestamp()
             current_channel.set(self.channel)
             current_context.set(self.context)
             while True:
