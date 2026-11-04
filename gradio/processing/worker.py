@@ -147,6 +147,7 @@ class Worker:
     ):
         from gradio.processing.proxy import GatewayFront, dependency_checker
         from gradio.routes import App
+        from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
         launch_kwargs = launch_kwargs or {}
         self.blocks = blocks
@@ -167,6 +168,7 @@ class Worker:
             strict_cors=launch_kwargs.get("strict_cors", True),
             mcp_server=launch_kwargs.get("mcp_server"),
         )
+        maybe_setup_zerogpu_middleware(self.app)
         self.checker = (
             dependency_checker(self.app) if self.app.router.dependencies else None
         )

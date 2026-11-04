@@ -40,6 +40,27 @@ def test_events_run_in_the_launching_process():
     gateway.wait(timeout=10)
 
 
+@pytest.mark.parametrize("executor", ["thread", "process"])
+def test_zerogpu_startup_runs_in_the_app_process(executor, monkeypatch, connect):
+    from spaces.zero import middleware
+
+    startup_pids = []
+    monkeypatch.setenv("SPACES_ZERO_GPU", "true")
+    monkeypatch.setattr(middleware, "zerogpu_mode_enabled", lambda: True)
+    monkeypatch.setattr(
+        middleware, "zerogpu_startup", lambda: startup_pids.append(os.getpid())
+    )
+
+    def predict():
+        assert startup_pids == [os.getpid()]
+        return os.getpid()
+
+    demo = gr.Interface(predict, None, "number")
+    with connect(demo, executor=executor) as client:
+        assert client.predict(api_name="/predict") == os.getpid()
+    assert startup_pids == [os.getpid()]
+
+
 def test_state_globals_and_closures_behave_as_with_threads():
     lock = threading.Lock()
 

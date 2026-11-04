@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
 
 import fastapi
@@ -45,7 +46,7 @@ def disconnect_detector():
 
 
 def maybe_setup_zerogpu_middleware(app: fastapi.FastAPI):
-    if not utils.is_zero_gpu_space():
+    if not utils.is_zero_gpu_space() or os.environ.get("GRADIO_PROCESS_GATEWAY"):
         return
 
     try:
