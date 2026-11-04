@@ -602,3 +602,25 @@ async def test_mcp_browser_get_returns_landing_page():
     # connection snippets for common MCP clients.
     assert b"example.com/gradio_api/mcp/" in body
     assert b"Connect your AI assistant" in body
+
+
+def test_print_mcp_server_links_huggingchat_for_share_url(capsys):
+    with gr.Blocks(title="Letter Counter") as demo:
+        gr.Textbox()
+    demo.local_url = "http://127.0.0.1:7860/"
+
+    demo.share_url = None
+    demo._print_mcp_server()
+    output = capsys.readouterr().out
+    assert "* Streamable HTTP URL: http://127.0.0.1:7860/gradio_api/mcp/" in output
+    assert "HuggingChat" not in output
+
+    demo.share_url = "https://abc123.gradio.live"
+    demo._print_mcp_server()
+    output = capsys.readouterr().out
+    assert "* Streamable HTTP URL: https://abc123.gradio.live/gradio_api/mcp/" in output
+    assert (
+        "* Try it in HuggingChat: https://huggingface.co/chat/"
+        "?mcp=https%3A%2F%2Fabc123.gradio.live%2Fgradio_api%2Fmcp%2F"
+        "&mcp_name=Letter%20Counter"
+    ) in output
