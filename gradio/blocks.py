@@ -4171,6 +4171,7 @@ Received inputs:
         if worker is not None:
             worker.close()
             self._queue = getattr(self._queue, "original", self._queue)
+            self._queue.message_handler = None
             self._process_worker = None
             self.server = None
             self.is_running = False

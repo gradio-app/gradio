@@ -72,6 +72,9 @@ class ForwardingQueue:
         self.worker = worker
         self.original = original
         self.server_app = worker.app
+        original.message_handler = self.forward_message
+        if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED") == "true":
+            original.start_rpc()
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.original, name)
@@ -80,35 +83,26 @@ class ForwardingQueue:
     def active_jobs(self) -> list[list[RunningEvent]]:
         return [list(self.worker.running.values())]
 
-    def log_message(self, event_id, log, title, level, duration=10, visible=True):
-        self.worker.send(
-            (
-                "log",
-                event_id,
-                {
-                    "log": log,
-                    "title": title,
-                    "level": level,
-                    "duration": duration,
-                    "visible": visible,
-                },
-            )
-        )
+    def forward_message(self, event_id, message):
+        from gradio.server_messages import LogMessage, ProgressMessage
 
-    def set_progress(self, event_id, iterables):
-        if iterables is None:
-            return
-        units = [
-            {
-                "index": i.index,
-                "length": i.length,
-                "unit": i.unit,
-                "progress": i.progress,
-                "desc": i.desc,
-            }
-            for i in iterables
-        ]
-        self.worker.send(("progress", event_id, units))
+        if isinstance(message, LogMessage):
+            self.worker.send(
+                (
+                    "log",
+                    event_id,
+                    {
+                        "log": message.log,
+                        "title": message.title,
+                        "level": message.level,
+                        "duration": message.duration,
+                        "visible": message.visible,
+                    },
+                )
+            )
+        elif isinstance(message, ProgressMessage):
+            units = [unit.model_dump() for unit in message.progress_data]
+            self.worker.send(("progress", event_id, units))
 
     def close(self):
         pass
@@ -856,6 +850,7 @@ def serve(
         if failure is not None:
             worker.close()
             blocks._queue = original_queue
+            original_queue.message_handler = None
             blocks._process_worker = None  # type: ignore[attr-defined]
             raise RuntimeError(failure)
 

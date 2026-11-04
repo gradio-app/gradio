@@ -176,6 +176,7 @@ class Queue:
         self.server_app = None
         self.server_pid = os.getpid()
         self.rpc_queue: SimpleQueue[tuple[str, EventMessage]] | None = None
+        self.message_handler: Callable[[str, EventMessage], None] | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -261,15 +262,21 @@ class Queue:
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
         if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED") == "true":
-            Thread(target=self.start_rpc, daemon=True).start()
+            self.start_rpc()
 
     def start_rpc(self):
+        if self.rpc_queue is not None:
+            return
         try:
             ctx = multiprocessing.get_context("fork")
         except ValueError:
             warnings.warn("GRADIO_QUEUE_MULTIPROCESSING_ENABLED but fork not available")
             return
         self.rpc_queue = ctx.SimpleQueue()
+        Thread(target=self.process_rpc, daemon=True).start()
+
+    def process_rpc(self):
+        assert self.rpc_queue is not None  # noqa: S101
         while True:
             event_id, message = self.rpc_queue.get()
             try:
@@ -937,7 +944,10 @@ class Queue:
                 )
             else:
                 self.rpc_queue.put((event_id, message))
-                return
+            return
+        if self.message_handler is not None:
+            self.message_handler(event_id, message)
+            return
         events = [evt for job in self.active_jobs if job is not None for evt in job]
         for event in events:
             if event._id == event_id:
