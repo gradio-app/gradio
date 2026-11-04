@@ -2419,8 +2419,9 @@ class App(FastAPI):
                 event_id=None,
                 in_event_listener=False,
                 request=gr_request,
+                # Never creates a session's state: an admitted one has it
                 state=app.state_holder[session_hash]
-                if isinstance(session_hash, str)
+                if isinstance(session_hash, str) and session_hash in app.state_holder
                 else None,
             )
             return await fn(body, gr_request)

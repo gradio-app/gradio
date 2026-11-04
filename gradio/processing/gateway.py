@@ -21,6 +21,7 @@ import signal
 import sys
 import threading
 import time
+import weakref
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
@@ -233,6 +234,10 @@ class Pool:
         self.streams: dict[str, Link] = {}
         # The process where each event in `Link.serving_events` works
         self.event_links: dict[str, Link] = {}
+        # The process each stream event's calls went to
+        self.called_links: dict[str, Link] = {}
+        # Ended, though still in the queue's table for a moment
+        self.ended_events: weakref.WeakSet[Any] = weakref.WeakSet()
         self.group_limits: dict[str, int] = {}
         self.expected = 1
         self.autoscaler: Any = None
@@ -321,9 +326,24 @@ class Pool:
         return None
 
     def holding(self, session_hash: str | None) -> Link:
-        """The process that holds `session_hash`, or else the primary."""
+        """The process that holds `session_hash`, or else one still working
+        for an event of it (a stream outlives a drain), or else the primary."""
         with self.lock:
-            return self._holder(session_hash) or self.primary
+            return (
+                self._holder(session_hash)
+                or self._serving_session(session_hash)
+                or self.primary
+            )
+
+    def _serving_session(self, session_hash: str | None) -> Link | None:
+        if not session_hash:
+            return None
+        events = self.blocks._queue.event_ids_to_events
+        for event_id, link in self.event_links.items():
+            event = events.get(event_id)
+            if event is not None and event.session_hash == session_hash:
+                return link
+        return None
 
     def for_session(self, session_hash: str | None) -> Link:
         with self.lock:
@@ -423,22 +443,32 @@ class Pool:
         """The queue is done with `event`: a stream gives back the slot that it
         held between chunks. A generator's goes back when it is closed. A
         process that works for the event between its calls is told."""
+        self.ended_events.add(event)
         link = self.streams.pop(event._id, None)
         if link is not None:
             link.release(event._id)
             self.check_drained(link)
+        told: list[Link] = []
         link = self.event_links.pop(event._id, None)
         if link is not None:
             link.serving_events.discard(event._id)
             link.send(("event_ended", event._id))
+            told.append(link)
             self.check_drained(link)
+        # E.g. a stream cancelled during its first call has no entry above
+        link = self.called_links.pop(event._id, None)
+        if link is not None and link not in told:
+            link.send(("event_ended", event._id))
 
     def apply_event_actions(self, link: Link, event_id: str, actions: list) -> None:
         """What an event's function in `link`'s process asked of the queue (see
         `queueing.EventHandle`). From then on that process works for the event
         between its calls, until `end_event`."""
+        if not actions:
+            return
         event = self.blocks._queue.event_ids_to_events.get(event_id)
-        if event is None or not actions:
+        if event is None or event in self.ended_events:
+            link.send(("event_ended", event_id))
             return
         if event_id not in self.event_links:
             self.event_links[event_id] = link
@@ -637,6 +667,8 @@ async def forward_event(
             slot = candidate
         if iterator is None and body.event_id is not None:
             link.started.setdefault(body.event_id, time.monotonic())
+        if streaming and queue_event_id is not None:
+            pool.called_links[queue_event_id] = link
         sent_body = body.model_dump(exclude={"request", "client_state"})
         if protocol.files_by_value():
             sent_body["data"] = link.files.pack(sent_body["data"])

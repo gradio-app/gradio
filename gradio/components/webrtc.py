@@ -669,6 +669,12 @@ def server_stream(
     root_block = get_blocks_context()
     if root_block is None:
         raise AttributeError("Cannot add a WebRTC endpoint outside of a Blocks.")
+    # Blocks would quietly rename it to name_1
+    if name in {f.api_name for f in root_block.fns.values()}:
+        raise ValueError(
+            f"An endpoint named {name!r} already exists. Pass a different "
+            "name to server.webrtc(name=...)."
+        )
     manager = connection.ConnectionManager(
         handler=fn,
         mode=mode,

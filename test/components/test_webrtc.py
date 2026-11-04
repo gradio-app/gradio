@@ -1023,15 +1023,19 @@ def completed(messages):
     return any(m.get("msg") == "process_completed" for m in messages)
 
 
+def forget_earlier_streams() -> None:
+    # Tests reuse stream ids, and a stream an earlier test left open stays
+    # registered after its app is closed
+    webrtc_connection._streams.clear()
+    webrtc_connection._admissions.clear()
+    webrtc_connection._pending_candidates.clear()
+
+
 class TestStreams:
     @pytest_asyncio.fixture
     async def launched(self, request, monkeypatch):
         monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
-        # Tests reuse stream ids, and a stream an earlier test left open stays
-        # registered after its app is closed
-        webrtc_connection._streams.clear()
-        webrtc_connection._admissions.clear()
-        webrtc_connection._pending_candidates.clear()
+        forget_earlier_streams()
         params = dict(getattr(request, "param", {}))
         handler = params.pop("handler", flip)
         stream_kwargs = params.pop("stream_kwargs", {})
@@ -2280,6 +2284,23 @@ class TestStreams:
         }
 
     @pytest.mark.asyncio
+    async def test_signalling_for_an_unknown_session_keeps_no_state(self):
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC(rtc_configuration={"iceServers": []})
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
+            async with httpx2.AsyncClient(timeout=10, base_url=local_url) as http:
+                for route in ("rtc_configuration", "offer"):
+                    await http.post(
+                        f"{API_PREFIX.lstrip('/')}/webrtc/{route}",
+                        json={"session_hash": f"made-up-{route}", "webrtc_id": "x"},
+                    )
+            state_holder = demo.server_app.state_holder
+            assert "made-up-rtc_configuration" not in state_holder
+            assert "made-up-offer" not in state_holder
+
+    @pytest.mark.asyncio
     async def test_rtc_configuration_gets_the_visitor_oauth_token(self):
         from starlette.requests import Request
 
@@ -2370,6 +2391,98 @@ class TestStreamsWithProcesses:
     test_the_next_handler_waits_for_the_last_one_to_shut_down = (
         TestStreams.test_the_next_handler_waits_for_the_last_one_to_shut_down
     )
+
+
+class FakeLink:
+    """What `Pool` reads of an app's process, recording what it sends."""
+
+    def __init__(self):
+        self.sent: list = []
+        self.serving_events: set[str] = set()
+        self.sessions: dict[str, bool] = {}
+        self.held: dict = {}
+        self.draining = False
+        self.on_drained = None
+        self.closed = False
+        self.responsive = True
+
+    @property
+    def active(self) -> bool:
+        return bool(self.serving_events)
+
+    def send(self, message) -> None:
+        self.sent.append(message)
+
+    def release(self, event_id) -> None:
+        pass
+
+
+class TestGatewayEventBookkeeping:
+    """However a stream event ends, its app process is told (executor="process")."""
+
+    @staticmethod
+    def pool(*events) -> Any:
+        from gradio.processing.gateway import Pool
+
+        queue = SimpleNamespace(event_ids_to_events={e._id: e for e in events})
+        pool = Pool(cast(Any, SimpleNamespace(_queue=queue)), "fingerprint", 10)
+        return pool
+
+    @staticmethod
+    def event(event_id="e", session_hash="s") -> Any:
+        class Event:  # the queue's events can be weakly referenced
+            _id = event_id
+
+        event = Event()
+        event.session_hash = session_hash  # type: ignore[attr-defined]
+        return event
+
+    def test_a_stream_cancelled_during_its_first_call_is_ended_in_its_process(self):
+        event = self.event()
+        pool = self.pool(event)
+        link = FakeLink()
+        # The call went out, and was cancelled before its actions came back
+        pool.called_links[event._id] = link
+        pool.end_event(event)
+        assert link.sent == [("event_ended", "e")]
+
+    def test_actions_for_an_event_the_queue_is_done_with_are_refused(self):
+        event = self.event()
+        pool = self.pool(event)
+        link = FakeLink()
+        pool.end_event(event)
+        # A late wake, while the ended event is still in the queue's table
+        pool.apply_event_actions(cast(Any, link), "e", ["wake"])
+        assert "e" not in pool.event_links
+        assert not link.serving_events
+        assert link.sent == [("event_ended", "e")]
+        # And one for an event the queue no longer has at all
+        pool.apply_event_actions(cast(Any, link), "gone", ["finish"])
+        assert link.sent[-1] == ("event_ended", "gone")
+
+    def test_a_working_process_is_told_once(self):
+        event = self.event()
+        pool = self.pool(event)
+        link = FakeLink()
+        pool.called_links[event._id] = link
+        pool.apply_event_actions(cast(Any, link), "e", ["disable_time_limit"])
+        assert link.serving_events == {"e"}
+        pool.end_event(event)
+        assert link.sent == [("event_ended", "e")]
+        assert not link.serving_events and not pool.called_links
+
+    def test_signalling_reaches_the_process_of_a_stream_after_a_drain(self):
+        event = self.event(session_hash="visitor")
+        pool = self.pool(event)
+        primary, replica = FakeLink(), FakeLink()
+        pool.links = cast(Any, [primary, replica])
+        replica.sessions["visitor"] = True
+        pool.apply_event_actions(cast(Any, replica), "e", ["disable_time_limit"])
+        assert pool.holding("visitor") is replica
+        # A drain forgets the replica's sessions, not the stream it runs
+        replica.sessions.clear()
+        assert pool.holding("visitor") is replica
+        assert pool.holding("someone-else") is primary
 
 
 REPLICA_APP = """
@@ -3897,6 +4010,7 @@ class TestCleanUp:
 @pytest.mark.asyncio
 @pytest.mark.parametrize("executor", ["thread", "process"])
 async def test_a_server_webrtc_endpoint_streams_like_the_component(executor):
+    forget_earlier_streams()
     server = gr.Server()
 
     @server.webrtc(name="echo", time_limit=30)
@@ -3999,6 +4113,7 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor):
 @pytest.mark.parametrize("executor", ["thread", "process"])
 async def test_a_server_webrtc_stream_gets_the_visitor_oauth_token(executor):
     pytest.importorskip("authlib")
+    forget_earlier_streams()
 
     def issue_credentials(token: gr.OAuthToken | None):
         return {"iceServers": [], "signed_in": token is not None}
@@ -4043,3 +4158,27 @@ def test_server_webrtc_checks_the_handler_when_it_is_declared():
     with pytest.raises(ValueError, match="mode must be"):
         server.webrtc(flip, mode="both")  # type: ignore[arg-type]
     assert server._deferred_webrtc == []
+
+
+@pytest.mark.parametrize("other", ["api", "webrtc"])
+def test_a_server_webrtc_endpoint_needs_a_name_of_its_own(other):
+    from gradio.components.webrtc import server_stream
+    from gradio.events import api as gr_api
+
+    server = gr.Server()
+    if other == "api":
+
+        def flip(text: str) -> str:  # an endpoint that is not a stream
+            return text[::-1]
+
+        server.api(flip)
+    else:
+        server.webrtc(globals()["flip"])
+    server.webrtc(globals()["flip"])
+    # What Server.launch() builds
+    with gr.Blocks(mode="server"):
+        for fn, api_kwargs in server._deferred_apis:
+            gr_api(fn=fn, **api_kwargs)
+        with pytest.raises(ValueError, match="'flip' already exists"):
+            for webrtc_kwargs in server._deferred_webrtc:
+                server_stream(**webrtc_kwargs)
