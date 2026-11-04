@@ -825,32 +825,16 @@ export class Client {
 		if (!this.config) {
 			throw new Error(CONFIG_ERROR_MSG);
 		}
-		const headers: Record<string, string> = {
-			...extra_headers,
-			"Content-Type": "application/json"
-		};
-		if (this.options.token) {
-			headers.Authorization = `Bearer ${this.options.token}`;
+		const [output, status] = await this.post_data(
+			`${this.config.root}${this.api_prefix}/webrtc/${route}`,
+			{ ...body, session_hash: this.session_hash },
+			extra_headers
+		);
+		if (status !== 200) {
+			console.warn(`Could not reach the WebRTC ${route} route`, output);
+			return undefined;
 		}
-		try {
-			const response = await this.fetch(
-				`${this.config.root}${this.api_prefix}/webrtc/${route}`,
-				{
-					method: "POST",
-					body: JSON.stringify({ ...body, session_hash: this.session_hash }),
-					headers,
-					credentials: this.options.credentials ?? "same-origin"
-				}
-			);
-			if (!response.ok) {
-				throw new Error(
-					`Could not reach the WebRTC ${route} route: ${response.statusText}`
-				);
-			}
-			return await response.json();
-		} catch (e) {
-			console.warn(e);
-		}
+		return output as Record<string, any>;
 	}
 
 	public set_cookies(raw_cookies: string): void {

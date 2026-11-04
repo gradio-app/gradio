@@ -154,6 +154,8 @@ class RemoteEventHandle:
         self.session_hash = running.session_hash
         self.concurrency_limit = running.concurrency_limit
         self.actions: list[str] = []
+        # Goes back with the call that admitted the stream
+        self.admitted_stream: str | None = None
         self.live = True
 
     def _act(self, action: str) -> None:
@@ -173,6 +175,9 @@ class RemoteEventHandle:
 
     def finish(self) -> None:
         self._act("finish")
+
+    def stream_admitted(self, stream_id: str) -> None:
+        self.admitted_stream = stream_id
 
 
 class AppProcessServer:
@@ -469,9 +474,12 @@ class Worker:
                     root_path=p["root_path"],
                     record_history=False,
                 )
-        except asyncio.CancelledError:
-            if running is not None:
+        except BaseException as e:
+            if running is not None and isinstance(e, asyncio.CancelledError):
                 running.alive = False
+            # A call that fails or is cancelled ends its event: what it asked
+            # of the queue no longer applies
+            self.take_requests(event_id)
             raise
         finally:
             if running is not None and self.running.get(event_id) is running:
@@ -480,10 +488,9 @@ class Worker:
                 self.app.iterators.pop(event_id, None)
                 self.event_sessions.pop(event_id, None)
         output["has_iterator"] = self.app.iterators.get(event_id) is not None
-        handle = self.event_handles.get(event_id) if event_id is not None else None
-        if handle is not None:
-            # What the function asked of the queue during this call
-            output["event_actions"], handle.actions = handle.actions, []
+        output["event_actions"], output["admitted_stream"] = self.take_requests(
+            event_id
+        )
         render = output.get("render_config")
         if render is not None and body.session_hash is not None:
             fns = self.app.state_holder[body.session_hash].blocks_config.fns
@@ -495,6 +502,16 @@ class Worker:
         if protocol.files_by_value():
             output = await asyncio.to_thread(self.files.pack, output)
         return output
+
+    def take_requests(self, event_id: str | None) -> tuple[list[str], str | None]:
+        """What the function asked of the queue during the call just ended,
+        and the stream it admitted, if any (see `RemoteEventHandle`)."""
+        handle = self.event_handles.get(event_id) if event_id is not None else None
+        if handle is None:
+            return [], None
+        actions, handle.actions = handle.actions, []
+        stream, handle.admitted_stream = handle.admitted_stream, None
+        return actions, stream
 
     async def run_close_stream(self, p: dict) -> bool:
         """The page closed a stream event whose function runs here (see
@@ -508,7 +525,8 @@ class Worker:
         fn = fns.get(p["fn_index"])
         if fn is None or fn.close_stream is None:
             return False
-        return bool(fn.close_stream(RunningEvent(p["event_id"], session_hash)))
+        closed = fn.close_stream(p["event_id"])
+        return bool(await closed if inspect.isawaitable(closed) else closed)
 
     async def run_auth(self, p: dict) -> bool:
         """`launch(auth=fn)`: the gateway's login route asks here."""
@@ -595,6 +613,8 @@ class Worker:
             "has_validator": fn.validator is not None,
             "cached": hasattr(fn.fn, "cache"),
             "parameter_names": list(fn.input_parameter_names) or parameter_names(fn.fn),
+            # A stream whose function works here between its calls (gr.WebRTC)
+            "closes_streams": fn.close_stream is not None,
         }
 
     def reloaded(self, demo: Blocks) -> None:

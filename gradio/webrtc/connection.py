@@ -281,6 +281,7 @@ class ConnectionManager:
         # through `end`. The queue's own cut would end the event before its
         # last calls deliver what is pending.
         event.disable_time_limit()
+        event.stream_admitted(webrtc_id)
         _streams[webrtc_id] = self
         session = Session(event=event)
         self.sessions[webrtc_id] = session
@@ -927,20 +928,19 @@ def stream_call(
     return outputs
 
 
-def end_admitted_stream(event: Any) -> bool:
+def end_admitted_stream(event_id: str) -> bool:
     """
-    Ends the stream that the queue event admitted, for a page that closes it:
-    the event then delivers the outputs still pending and fails if the handler
-    did (see `finish_if_drained`). False if the event has no running stream.
-    `event` is the queue's event, or what stands for it in the app's process:
-    only its `_id` is read.
+    Ends the stream that the queue event `event_id` admitted, for a page that
+    closes it: the event then delivers the outputs still pending and fails if
+    the handler did (see `finish_if_drained`). False if the event has no
+    running stream.
     """
-    webrtc_id = admitted_id(event._id)
+    webrtc_id = admitted_id(event_id)
     if webrtc_id is None:
         return False
     manager = stream_manager(webrtc_id)
     session = manager.sessions.get(webrtc_id) if manager is not None else None
-    if manager is None or session is None or session.event.id != event._id:
+    if manager is None or session is None or session.event.id != event_id:
         return False
     manager.end(webrtc_id)
     return True

@@ -18,6 +18,7 @@ vi.mock("../helpers/zerogpu", async (importOriginal) => ({
 }));
 
 import { Client } from "../client";
+import { post_data } from "../utils/post_data";
 import { webrtc } from "../utils/webrtc";
 
 function fake_client(token?: `hf_${string}`): {
@@ -38,6 +39,7 @@ function fake_client(token?: `hf_${string}`): {
 			);
 		}
 	} as unknown as Client;
+	client.post_data = post_data.bind(client);
 	return { client, requests };
 }
 

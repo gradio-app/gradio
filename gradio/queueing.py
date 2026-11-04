@@ -128,6 +128,10 @@ class EventHandle:
         """Ends the event once its current call returns."""
         self._event.closed = True
 
+    def stream_admitted(self, stream_id: str) -> None:
+        """Names the media stream the event runs, which its signalling asks
+        for. With threads, signalling reaches the one process anyway."""
+
     @property
     def live(self) -> bool:
         return self._event.alive and self.id in self._queue.event_ids_to_events

@@ -101,6 +101,14 @@ def _check_mode(mode: str, modality: str) -> None:
 
 
 def _check_turn(rtc_configuration: Any, what: str) -> None:
+    if callable(rtc_configuration) and any(
+        inspect.isasyncgenfunction(f)
+        for f in (rtc_configuration, type(rtc_configuration).__call__)
+    ):
+        raise ValueError(
+            f"The rtc_configuration function of {what} must return a dict, "
+            "not yield one."
+        )
     if (utils.get_space() or utils.colab_check()) and rtc_configuration is None:
         raise ValueError(
             f"{what} needs a TURN server on Hugging Face Spaces or Google "

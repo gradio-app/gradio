@@ -574,6 +574,17 @@ class TestWebRTC:
         with pytest.raises(AttributeError, match="Blocks context"):
             gr.WebRTC().stream(flip, inputs=[], outputs=[])
 
+    def test_an_rtc_configuration_that_yields_is_refused(self):
+        async def credentials():
+            yield {"iceServers": []}
+
+        with gr.Blocks():
+            webrtc = gr.WebRTC(rtc_configuration=credentials)
+            with pytest.raises(ValueError, match="must return a dict"):
+                webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        with pytest.raises(ValueError, match="must return a dict"):
+            gr.Server().webrtc(flip, rtc_configuration=credentials)
+
     @pytest.mark.parametrize("mode", ["send-receive", "receive"])
     @pytest.mark.parametrize("wrapped", [False, True])
     @pytest.mark.parametrize("as_object", [False, True])
@@ -2423,6 +2434,7 @@ class FakeLink:
         self.serving_events: set[str] = set()
         self.sessions: dict[str, bool] = {}
         self.held: dict = {}
+        self.running = 0
         self.draining = False
         self.on_drained = None
         self.closed = False
@@ -2430,81 +2442,86 @@ class FakeLink:
 
     @property
     def active(self) -> bool:
-        return bool(self.serving_events)
+        return bool(self.serving_events or self.held)
 
     def send(self, message) -> None:
         self.sent.append(message)
 
     def release(self, event_id) -> None:
-        pass
+        self.held.pop(event_id, None)
 
 
-class TestGatewayEventBookkeeping:
-    """However a stream event ends, its app process is told (executor="process")."""
+class TestGatewayPlacements:
+    """Where the gateway sends a stream's calls and signalling, and whom it
+    tells when the stream ends (executor="process")."""
 
     @staticmethod
     def pool(*events) -> Any:
         from gradio.processing.gateway import Pool
 
         queue = SimpleNamespace(event_ids_to_events={e._id: e for e in events})
-        pool = Pool(cast(Any, SimpleNamespace(_queue=queue)), "fingerprint", 10)
-        return pool
+        return Pool(cast(Any, SimpleNamespace(_queue=queue)), "fingerprint", 10)
 
     @staticmethod
     def event(event_id="e", session_hash="s") -> Any:
-        class Event:  # the queue's events can be weakly referenced
-            _id = event_id
-
-        event = Event()
-        event.session_hash = session_hash  # type: ignore[attr-defined]
-        return event
+        return SimpleNamespace(_id=event_id, session_hash=session_hash)
 
     def test_a_stream_cancelled_during_its_first_call_is_ended_in_its_process(self):
         event = self.event()
         pool = self.pool(event)
         link = FakeLink()
-        # The call went out, and was cancelled before its actions came back
-        pool.called_links[event._id] = link
+        # Placed when its first call went out; cancelled before it came back
+        pool.place("e", cast(Any, link), works_here=True)
+        assert link.serving_events == {"e"}
         pool.end_event(event)
         assert link.sent == [("event_ended", "e")]
+        assert not link.serving_events and not pool.placements
 
     def test_actions_for_an_event_the_queue_is_done_with_are_refused(self):
         event = self.event()
         pool = self.pool(event)
         link = FakeLink()
+        pool.place("e", cast(Any, link), works_here=True)
         pool.end_event(event)
         # A late wake, while the ended event is still in the queue's table
         pool.apply_event_actions(cast(Any, link), "e", ["wake"])
-        assert "e" not in pool.event_links
-        assert not link.serving_events
-        assert link.sent == [("event_ended", "e")]
+        assert not pool.placements and not link.serving_events
+        assert link.sent == [("event_ended", "e"), ("event_ended", "e")]
         # And one for an event the queue no longer has at all
         pool.apply_event_actions(cast(Any, link), "gone", ["finish"])
         assert link.sent[-1] == ("event_ended", "gone")
 
-    def test_a_working_process_is_told_once(self):
+    def test_a_plain_stream_is_not_told_and_keeps_its_slot_behavior(self):
         event = self.event()
         pool = self.pool(event)
         link = FakeLink()
-        pool.called_links[event._id] = link
-        pool.apply_event_actions(cast(Any, link), "e", ["disable_time_limit"])
-        assert link.serving_events == {"e"}
+        pool.place("e", cast(Any, link), works_here=False)
+        # Without a slot held between chunks, its calls follow the session
+        assert pool.placed("e", "s") is None
+        link.held["e"] = object()
+        assert pool.placed("e", "s") is link
         pool.end_event(event)
-        assert link.sent == [("event_ended", "e")]
-        assert not link.serving_events and not pool.called_links
+        assert link.sent == [] and not link.held
 
-    def test_signalling_reaches_the_process_of_a_stream_after_a_drain(self):
+    def test_a_stream_stays_with_its_process_after_a_drain(self):
         event = self.event(session_hash="visitor")
         pool = self.pool(event)
         primary, replica = FakeLink(), FakeLink()
         pool.links = cast(Any, [primary, replica])
         replica.sessions["visitor"] = True
-        pool.apply_event_actions(cast(Any, replica), "e", ["disable_time_limit"])
-        assert pool.holding("visitor") is replica
-        # A drain forgets the replica's sessions, not the stream it runs
+        pool.place("e", cast(Any, replica), works_here=True)
+        pool.stream_admitted("e", "stream-1")
+        # The replica is retired, and another event of the session (an input
+        # change, say) registers the session on the primary
+        replica.draining = True
         replica.sessions.clear()
-        assert pool.holding("visitor") is replica
-        assert pool.holding("someone-else") is primary
+        assert pool.for_session("visitor") is primary
+        assert pool.holding("visitor") is primary
+        # The stream's own calls and signalling still go to the replica
+        assert pool.placed("e", "visitor") is replica
+        assert pool.for_stream("stream-1") is replica
+        pool.end_event(event)
+        assert pool.for_stream("stream-1") is None
 
 
 REPLICA_APP = """
@@ -3949,6 +3966,9 @@ class TestCleanUp:
             pass
 
         def disable_time_limit(self):
+            pass
+
+        def stream_admitted(self, stream_id):
             pass
 
         def finish(self):

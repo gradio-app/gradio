@@ -1547,13 +1547,8 @@ class App(FastAPI):
             if event is None or not event.streaming:
                 return Response(status_code=404)
             close_stream = event.fn.close_stream
-            pool = getattr(app.get_blocks(), "_process_pool", None)
-            if close_stream is None and pool is not None:
-                # The function, and what it may run between calls, is in an
-                # app's process
-                close_stream = pool.close_stream
             if close_stream is not None:
-                closed = close_stream(event)
+                closed = close_stream(event_id)
                 if inspect.isawaitable(closed):
                     closed = await closed
                 if closed:
