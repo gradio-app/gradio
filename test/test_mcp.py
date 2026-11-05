@@ -563,13 +563,25 @@ async def test_mcp_tools_resources_and_prompts(protocol):
 
 @pytest.mark.asyncio
 @pytest.mark.serial
-async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown():
+@pytest.mark.parametrize("space_id", [None, "user/my-space"])
+async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown(
+    space_id, monkeypatch
+):
+    if space_id:
+        monkeypatch.setenv("SYSTEM", "spaces")
+        monkeypatch.setenv("SPACE_ID", space_id)
+    prefix = "my_space_" if space_id else ""
     calls = []
 
     @gr.mcp.prompt(name="code_review")
     def review_prompt(language: str = "python") -> str:
         """Ask for a code review."""
         return f"Review this {language} code."
+
+    @gr.mcp.prompt(name="code_review")
+    def strict_review_prompt(language: str = "python") -> str:
+        """Ask for a strict code review."""
+        return f"Strictly review this {language} code."
 
     def send_invoice(customer: str) -> str:
         """Send an invoice to a customer."""
@@ -578,21 +590,26 @@ async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown():
 
     with gr.Blocks() as demo:
         gr.api(review_prompt)
+        gr.api(strict_review_prompt)
         gr.api(send_invoice)
     _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
         async with mcp_client(mcp_url, "legacy") as client:
-            prompts = (await client.list_prompts()).prompts
-            assert [p.name for p in prompts] == ["code_review"]
+            names = [p.name for p in (await client.list_prompts()).prompts]
+            assert names == [f"{prefix}code_review", f"{prefix}code_review_1"]
 
-            prompt = await client.get_prompt(
-                "code_review", arguments={"language": "rust"}
-            )
-            assert prompt.messages[0].content.text == "Review this rust code."  # type: ignore
+            texts = []
+            for name in names:
+                prompt = await client.get_prompt(name, arguments={"language": "rust"})
+                texts.append(prompt.messages[0].content.text)  # type: ignore
+            assert texts == [
+                "Review this rust code.",
+                "Strictly review this rust code.",
+            ]
 
-            for name in ["no_such_prompt", "send_invoice"]:
+            for name in ["no_such_prompt", f"{prefix}send_invoice"]:
                 with pytest.raises(Exception, match="Prompt not found"):
                     await client.get_prompt(name, arguments={"customer": "x"})
             assert calls == []

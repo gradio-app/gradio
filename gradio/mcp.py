@@ -381,6 +381,7 @@ class GradioMCPServer:
         space_id = utils.get_space()
         self.tool_prefix = space_id.split("/")[-1] + "_" if space_id else ""
         self.tool_to_endpoint = self.get_tool_to_endpoint()
+        self.prompt_to_endpoint = self.get_prompt_to_endpoint()
         self.warn_about_state_inputs()
         self._local_url: str | None = None
         self._client_instance: Client | None = None
@@ -579,6 +580,23 @@ class GradioMCPServer:
             )
             tool_to_endpoint[tool_name] = endpoint_name
         return tool_to_endpoint
+
+    def get_prompt_to_endpoint(self) -> dict[str, str]:
+        """
+        Creates a mapping from the MCP prompt names (the name passed to `gr.mcp.prompt`,
+        prefixed like tool names) to the endpoint names in the API docs.
+        """
+        prompt_to_endpoint = {}
+        for endpoint_name in self.tool_to_endpoint.values():
+            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            if block_fn is None or getattr(block_fn.fn, "_mcp_type", None) != "prompt":
+                continue
+            prompt_name = self.valid_and_unique_tool_name(
+                self.tool_prefix + block_fn.fn._mcp_name,  # type: ignore
+                set(prompt_to_endpoint.keys()),
+            )
+            prompt_to_endpoint[prompt_name] = endpoint_name
+        return prompt_to_endpoint
 
     def warn_about_state_inputs(self) -> None:
         """
@@ -964,17 +982,16 @@ class GradioMCPServer:
             """
             prompts = []
             selected_tools = self.get_selected_tools_from_request(ctx.request)
+            endpoint_to_prompt = {
+                endpoint_name: prompt_name
+                for prompt_name, endpoint_name in self.prompt_to_endpoint.items()
+            }
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 if selected_tools is not None and tool_name not in selected_tools:
                     continue
 
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-                if (
-                    block_fn
-                    and block_fn.fn
-                    and hasattr(block_fn.fn, "_mcp_type")
-                    and block_fn.fn._mcp_type == "prompt"
-                ):
+                if endpoint_name in endpoint_to_prompt and block_fn and block_fn.fn:
                     description, parameters, _ = utils.get_function_description(
                         block_fn.fn
                     )
@@ -989,7 +1006,7 @@ class GradioMCPServer:
                     ]
                     prompts.append(
                         types.Prompt(
-                            name=self.tool_prefix + block_fn.fn._mcp_name,  # type: ignore
+                            name=endpoint_to_prompt[endpoint_name],
                             description=description,
                             arguments=arguments,
                         )
@@ -1005,19 +1022,7 @@ class GradioMCPServer:
             name = params.name
             client = await run_sync(self._get_or_create_client, ctx.request)
 
-            endpoint_name = None
-            for candidate in self.tool_to_endpoint.values():
-                block_fn = self.get_block_fn_from_endpoint_name(candidate)
-                if (
-                    block_fn
-                    and block_fn.fn
-                    and hasattr(block_fn.fn, "_mcp_type")
-                    and block_fn.fn._mcp_type == "prompt"
-                    and self.tool_prefix + block_fn.fn._mcp_name == name  # type: ignore
-                ):
-                    endpoint_name = candidate
-                    break
-
+            endpoint_name = self.prompt_to_endpoint.get(name)
             if not endpoint_name:
                 raise ValueError(f"Prompt not found: {name}")
 
