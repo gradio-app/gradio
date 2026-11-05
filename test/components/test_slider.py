@@ -73,6 +73,22 @@ class TestSlider:
         assert slider.get_random_value() == 0.3
         mock_randint.assert_called()
 
+    @pytest.mark.parametrize(
+        "minimum, maximum, step, first, last",
+        [
+            (0.04, 0.35, 0.1, 0.04, 0.34),
+            (0, 0.3, 0.1, 0, 0.3),
+        ],
+    )
+    def test_random_value_covers_first_and_last_step(
+        self, minimum, maximum, step, first, last
+    ):
+        slider = gr.Slider(minimum=minimum, maximum=maximum, step=step)
+        with patch("random.randint", side_effect=lambda a, b: a):
+            assert slider.get_random_value() == first
+        with patch("random.randint", side_effect=lambda a, b: b):
+            assert slider.get_random_value() == last
+
     def test_raise_if_out_of_bounds(self):
         """
         raise_if_out_of_bounds

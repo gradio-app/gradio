@@ -127,11 +127,14 @@ class Slider(FormComponent):
         return self.minimum
 
     def get_random_value(self):
-        n_steps = int((self.maximum - self.minimum) / self.step)
+        # Small tolerance so that e.g. 0.3 / 0.1 = 2.9999999999999996 still allows the last step
+        n_steps = math.floor((self.maximum - self.minimum) / self.step + 1e-9)
         step = random.randint(0, n_steps)
         value = self.minimum + step * self.step
-        # Round to number of decimals in step so that UI doesn't display long decimals
-        n_decimals = max(str(self.step)[::-1].find("."), 0)
+        # Round to number of decimals in step and minimum so that UI doesn't display long decimals
+        n_decimals = max(
+            max(str(x)[::-1].find("."), 0) for x in (self.step, self.minimum)
+        )
         if n_decimals:
             value = round(value, n_decimals)
         return value
