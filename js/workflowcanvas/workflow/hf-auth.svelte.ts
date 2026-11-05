@@ -275,9 +275,6 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 			return;
 		}
 
-		// Ask now rather than on first Run, so the toolbar shows the visitor
-		// signed in instead of offering a sign-in they don't need.
-		void inferenceToken().then((t) => (embedded = !!t));
 		status = "ready";
 	}
 
@@ -323,6 +320,7 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 			embedder_pending = null;
 		});
 		embedder = await embedder_pending;
+		embedded = !!embedder;
 		return embedder?.token ?? "";
 	}
 
