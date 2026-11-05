@@ -989,7 +989,7 @@ class GradioMCPServer:
                     ]
                     prompts.append(
                         types.Prompt(
-                            name=tool_name,
+                            name=self.tool_prefix + block_fn.fn._mcp_name,  # type: ignore
                             description=description,
                             arguments=arguments,
                         )
@@ -1006,15 +1006,16 @@ class GradioMCPServer:
             client = await run_sync(self._get_or_create_client, ctx.request)
 
             endpoint_name = None
-            for endpoint_name in self.tool_to_endpoint.values():
-                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+            for candidate in self.tool_to_endpoint.values():
+                block_fn = self.get_block_fn_from_endpoint_name(candidate)
                 if (
                     block_fn
                     and block_fn.fn
                     and hasattr(block_fn.fn, "_mcp_type")
                     and block_fn.fn._mcp_type == "prompt"
-                    and block_fn.fn._mcp_name == name  # type: ignore
+                    and self.tool_prefix + block_fn.fn._mcp_name == name  # type: ignore
                 ):
+                    endpoint_name = candidate
                     break
 
             if not endpoint_name:

@@ -562,6 +562,45 @@ async def test_mcp_tools_resources_and_prompts(protocol):
 
 
 @pytest.mark.asyncio
+@pytest.mark.serial
+async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown():
+    calls = []
+
+    @gr.mcp.prompt(name="code_review")
+    def review_prompt(language: str = "python") -> str:
+        """Ask for a code review."""
+        return f"Review this {language} code."
+
+    def send_invoice(customer: str) -> str:
+        """Send an invoice to a customer."""
+        calls.append(customer)
+        return f"invoice sent to {customer}"
+
+    with gr.Blocks() as demo:
+        gr.api(review_prompt)
+        gr.api(send_invoice)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with mcp_client(mcp_url, "legacy") as client:
+            prompts = (await client.list_prompts()).prompts
+            assert [p.name for p in prompts] == ["code_review"]
+
+            prompt = await client.get_prompt(
+                "code_review", arguments={"language": "rust"}
+            )
+            assert prompt.messages[0].content.text == "Review this rust code."  # type: ignore
+
+            for name in ["no_such_prompt", "send_invoice"]:
+                with pytest.raises(Exception, match="Prompt not found"):
+                    await client.get_prompt(name, arguments={"customer": "x"})
+            assert calls == []
+    finally:
+        demo.close()
+
+
+@pytest.mark.asyncio
 async def test_mcp_browser_get_returns_landing_page():
     def test_tool(x):
         return x
