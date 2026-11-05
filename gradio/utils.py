@@ -54,7 +54,6 @@ from typing import (
 )
 
 import anyio
-import anyio.to_thread
 import gradio_client.utils as client_utils
 import httpx2
 import orjson
