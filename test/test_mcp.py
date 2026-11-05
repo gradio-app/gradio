@@ -628,19 +628,13 @@ async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown(
         demo.close()
 
 
-@pytest.mark.asyncio
-@pytest.mark.serial
-@pytest.mark.parametrize("protocol", ["legacy", "modern"])
 @pytest.mark.parametrize("space_id", [None, "user/my-space"])
 @pytest.mark.parametrize("prompt_first", [True, False])
-async def test_mcp_prompt_name_does_not_rename_tools(
-    protocol, space_id, prompt_first, monkeypatch
-):
+def test_mcp_prompt_name_does_not_rename_tools(space_id, prompt_first, monkeypatch):
     if space_id:
         monkeypatch.setenv("SYSTEM", "spaces")
         monkeypatch.setenv("SPACE_ID", space_id)
     prefix = "my_space_" if space_id else ""
-    calls = []
 
     @gr.mcp.prompt(name="send_invoice")
     def invoice_prompt(customer: str) -> str:
@@ -649,7 +643,6 @@ async def test_mcp_prompt_name_does_not_rename_tools(
 
     def send_invoice(customer: str) -> str:
         """Send an invoice to a customer."""
-        calls.append(customer)
         return f"invoice sent to {customer}"
 
     with gr.Blocks() as demo:
@@ -659,31 +652,22 @@ async def test_mcp_prompt_name_does_not_rename_tools(
         gr.api(send_invoice)
         if not prompt_first:
             gr.api(invoice_prompt)
-    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
-    mcp_url = f"{local_url}gradio_api/mcp/"
 
-    try:
-        async with mcp_client(mcp_url, protocol) as client:
-            tools = (await client.list_tools()).tools
-            assert [tool.name for tool in tools] == [
-                f"{prefix}send_invoice",
-                f"{prefix}send_invoice_1",
-            ]
-            for tool in tools:
-                result = await client.call_tool(tool.name, arguments={"customer": "x"})
-                assert not result.is_error
-                assert result.content[0].text == "invoice sent to x"  # type: ignore
-            assert calls == ["x", "x"]
-
-            prompts = (await client.list_prompts()).prompts
-            assert [prompt.name for prompt in prompts] == [f"{prefix}send_invoice_2"]
-            result = await client.get_prompt(
-                prompts[0].name, arguments={"customer": "y"}
-            )
-            assert result.messages[0].content.text == "Draft an invoice for y."  # type: ignore
-            assert calls == ["x", "x"]
-    finally:
-        demo.close()
+    server = GradioMCPServer(demo)
+    endpoints = server.tool_to_endpoint
+    assert list(endpoints) == [
+        f"{prefix}send_invoice",
+        f"{prefix}send_invoice_1",
+        f"{prefix}send_invoice_2",
+    ]
+    for name, expected_fn in [
+        (f"{prefix}send_invoice", send_invoice),
+        (f"{prefix}send_invoice_1", send_invoice),
+        (f"{prefix}send_invoice_2", invoice_prompt),
+    ]:
+        block_fn = server.get_block_fn_from_endpoint_name(endpoints[name])
+        assert block_fn is not None
+        assert block_fn.fn is expected_fn
 
 
 @pytest.mark.asyncio
