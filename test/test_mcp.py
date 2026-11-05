@@ -5,6 +5,7 @@ import json
 import os
 import tempfile
 
+import httpx2
 import pytest
 from mcp import Client, ClientSession
 from mcp.client.streamable_http import streamable_http_client
@@ -573,12 +574,12 @@ async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown(
     prefix = "my_space_" if space_id else ""
     calls = []
 
-    @gr.mcp.prompt(name="code_review")
+    @gr.mcp.prompt(name="code-review")
     def review_prompt(language: str = "python") -> str:
         """Ask for a code review."""
         return f"Review this {language} code."
 
-    @gr.mcp.prompt(name="code_review")
+    @gr.mcp.prompt(name="code-review")
     def strict_review_prompt(language: str = "python") -> str:
         """Ask for a strict code review."""
         return f"Strictly review this {language} code."
@@ -594,11 +595,12 @@ async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown(
         gr.api(send_invoice)
     _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
     mcp_url = f"{local_url}gradio_api/mcp/"
+    expected = [f"{prefix}code-review", f"{prefix}code-review_1"]
 
     try:
         async with mcp_client(mcp_url, "legacy") as client:
             names = [p.name for p in (await client.list_prompts()).prompts]
-            assert names == [f"{prefix}code_review", f"{prefix}code_review_1"]
+            assert names == expected
 
             texts = []
             for name in names:
@@ -613,6 +615,15 @@ async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown(
                 with pytest.raises(Exception, match="Prompt not found"):
                     await client.get_prompt(name, arguments={"customer": "x"})
             assert calls == []
+
+        async with mcp_client(f"{mcp_url}?tools=code-review", "legacy") as client:
+            names = [p.name for p in (await client.list_prompts()).prompts]
+            assert names == [f"{prefix}code-review"]
+
+        schema = httpx2.get(f"{mcp_url}schema").json()
+        assert [s["name"] for s in schema if s["meta"]["mcp_type"] == "prompt"] == (
+            expected
+        )
     finally:
         demo.close()
 
