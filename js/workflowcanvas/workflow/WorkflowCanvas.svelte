@@ -2158,7 +2158,9 @@
 
 		if (
 			flatView.nodes.some((n) => n.source === "space" && n.space_id) &&
-			!auth.token
+			!auth.token &&
+			!(window as { supports_zerogpu_headers?: boolean })
+				.supports_zerogpu_headers
 		) {
 			showToast(
 				"Running as guest — GPU Spaces may hit quota limits. Sign in with HuggingFace for your own compute.",
@@ -3094,6 +3096,12 @@
 							</div>
 						{/if}
 					</div>
+				{:else if auth.embedded}
+					<span
+						class="toolbar-user-chip"
+						title="Signed in by the page this workflow is embedded in: runs use your Hugging Face account."
+						>Signed in</span
+					>
 				{:else}
 					<HfAuthControl {auth} {onSpace} onsignin={signInPreservingEdits} />
 				{/if}

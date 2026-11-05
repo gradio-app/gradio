@@ -154,6 +154,7 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 	let avatarUrl = $state("");
 	let token = $state("");
 	let source = $state<AuthSource>("");
+	let embedded = $state(false);
 	let status = $state<AuthStatus>("checking");
 	let isHFSpace = $state(false);
 	// Optimistic until the server answers, so the owner (the common case)
@@ -274,6 +275,9 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 			return;
 		}
 
+		// Ask now rather than on first Run, so the toolbar shows the visitor
+		// signed in instead of offering a sign-in they don't need.
+		void inferenceToken().then((t) => (embedded = !!t));
 		status = "ready";
 	}
 
@@ -378,6 +382,9 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		},
 		get source() {
 			return source;
+		},
+		get embedded() {
+			return embedded;
 		},
 		get status() {
 			return status;

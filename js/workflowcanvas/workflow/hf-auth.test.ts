@@ -1,20 +1,21 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { request_embedder_token } from "./hf-auth.svelte";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => vi.restoreAllMocks());
 
 describe("request_embedder_token", () => {
 	test("asks the embedding page and uses the token it sends back", async () => {
 		const listeners: ((event: MessageEvent) => void)[] = [];
 		const parent = { postMessage: vi.fn() };
-		vi.stubGlobal("window", {
-			self: {},
-			top: parent,
-			parent,
-			addEventListener: (_: string, fn: (event: MessageEvent) => void) =>
-				listeners.push(fn),
-			removeEventListener: vi.fn()
+		Object.defineProperty(window, "self", { value: {}, configurable: true });
+		Object.defineProperty(window, "parent", {
+			value: parent,
+			configurable: true
 		});
+		vi.spyOn(window, "addEventListener").mockImplementation(((
+			_: string,
+			fn: (event: MessageEvent) => void
+		) => listeners.push(fn)) as typeof window.addEventListener);
 
 		const pending = request_embedder_token();
 		listeners[0]({
