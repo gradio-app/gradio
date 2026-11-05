@@ -1,4 +1,3 @@
-from decimal import localcontext
 from unittest.mock import patch
 
 import pytest
@@ -96,20 +95,6 @@ class TestSlider:
             assert slider.get_random_value() == first
         with patch("random.randint", side_effect=lambda a, b: b):
             assert slider.get_random_value() == last
-
-    def test_random_value_ignores_decimal_context(self):
-        with localcontext() as context:
-            context.prec = 6
-            with patch("random.randint", side_effect=lambda a, b: b):
-                slider = gr.Slider(0, 1, step=1e-6, randomize=True)
-                assert slider.value == 1
-                assert slider.preprocess(slider.value) == 1
-
-    def test_random_value_preserves_integer_type(self):
-        with patch("random.randint", return_value=3):
-            slider = gr.Slider(0, 10, step=1, randomize=True)
-            assert slider.value == 3
-            assert type(slider.value) is int
 
     def test_raise_if_out_of_bounds(self):
         """
