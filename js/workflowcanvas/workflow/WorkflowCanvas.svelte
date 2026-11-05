@@ -55,7 +55,7 @@
 		migrateToV2,
 		toLegacyShape
 	} from "./workflow-migration";
-	import { is_secret, PORT_COLOR, ports_compatible } from "./workflow-types";
+	import { PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
 		Port,
@@ -82,12 +82,7 @@
 		buildUpstreamSubgraph as buildUpstreamSubgraphImpl,
 		reusableUpstreamNodes
 	} from "./workflow-graph";
-	import {
-		API_KEY_TEMPLATE,
-		API_KEY_TYPE,
-		LIBRARY,
-		getComponentForPortType
-	} from "./node-library";
+	import { LIBRARY, getComponentForPortType } from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
 	import { load_viewport, save_viewport } from "./viewport-persistence";
 	import type { Viewport } from "./viewport-persistence";
@@ -99,12 +94,6 @@
 		load_layout,
 		save_layout
 	} from "./layout-persistence";
-	import {
-		apply_secrets,
-		extract_secrets,
-		load_secrets,
-		save_secrets
-	} from "./secret-persistence";
 	import { create_history } from "./workflow-history";
 
 	/**
@@ -359,12 +348,7 @@
 				const authored = unseen && !hasMissingNodeGeometry(parsed);
 				autoArrange = unseen && !authored;
 				checkOverlap = authored;
-				workflow.set(
-					apply_secrets(
-						apply_layout(v2, stored, { park_unplaced: !authored }),
-						load_secrets(layoutScope(v2.name))
-					)
-				);
+				workflow.set(apply_layout(v2, stored, { park_unplaced: !authored }));
 			}
 		} catch {}
 		const loaded = get(workflow);
@@ -426,15 +410,6 @@
 		return () => clearTimeout(timer);
 	});
 
-	$effect(() => {
-		const wf = $workflow;
-		if (!layoutReady) return;
-		const secrets = extract_secrets(wf);
-		const scope = layoutScope(wf.name);
-		const timer = setTimeout(() => save_secrets(scope, secrets), 250);
-		return () => clearTimeout(timer);
-	});
-
 	let pendingEditsRestored = false;
 	$effect(() => {
 		if (layoutKey === null || pendingEditsRestored) return;
@@ -449,12 +424,7 @@
 			...load_layout(layoutScope(restored.name)),
 			...extract_layout(get(workflow))
 		};
-		workflow.set(
-			apply_secrets(
-				apply_layout(restored, geometry),
-				load_secrets(layoutScope(restored.name))
-			)
-		);
+		workflow.set(apply_layout(restored, geometry));
 	});
 
 	$effect(() => {
@@ -2394,7 +2364,6 @@
 					const node = flatView.nodes.find((n) => n.id === ref.id);
 					const outPort = node?.outputs?.[0];
 					if (!node || !outPort) continue;
-					if (is_secret(ref)) continue;
 					// User-supplied media lives in a `blob:` object URL that dies
 					// with the tab, and the server can only store a file it can
 					// reach. Upload it first so the record stays loadable.
@@ -2960,10 +2929,7 @@
 		} else {
 			pos = canvasCenter();
 		}
-		const template =
-			portType === API_KEY_TYPE
-				? API_KEY_TEMPLATE
-				: (getComponentForPortType(portType) ?? LIBRARY.components[0]);
+		const template = getComponentForPortType(portType) ?? LIBRARY.components[0];
 		const half = (template.width ?? 200) / 2;
 		const { x, y } = findFreeSpot(pos.x - half, pos.y - 45);
 		addNode("reference", template, x, y);

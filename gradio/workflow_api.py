@@ -688,20 +688,12 @@ def describe_workflow_api(graph: WorkflowGraph) -> list[dict]:
 
 
 def port_to_component(
-    port_type: str,
-    label: str,
-    value: Any = None,
-    *,
-    output: bool = False,
-    text_type: str = "text",
+    port_type: str, label: str, value: Any = None, *, output: bool = False
 ):
     """Map a workflow port type to a Gradio component for the API schema. Real
     components are used (not `gr.api` type hints) so multimodal I/O round-trips
     via their proven `api_info` / `FileData` handling. Created unrendered; the
     caller renders them into the app view so they reach `/info`.
-
-    `text_type` is the node's own `type`, passed through to `gr.Textbox`
-    (text / password / email). A password is never pre-filled.
 
     `value` pre-fills the component (the reference node's current value in the
     graph). `output` picks a display-oriented component where one exists
@@ -742,10 +734,6 @@ def port_to_component(
         cls, kwargs = gr.Textbox, {"lines": 3}
     else:
         cls, kwargs = gr.Textbox, {}
-    if cls is gr.Textbox and text_type != "text":
-        kwargs["type"] = text_type
-        if text_type == "password":
-            value = None
     if value is not None:
         try:
             return cls(label=label, value=value, render=False, **kwargs)
@@ -862,15 +850,7 @@ def _app_signature(graph: WorkflowGraph | None) -> str:
         groups.append(
             [
                 api_name,
-                [
-                    [
-                        f["node"]["id"],
-                        f["type"],
-                        f["label"],
-                        f["node"].get("type") or "text",
-                    ]
-                    for f in frees
-                ],
+                [[f["node"]["id"], f["type"], f["label"]] for f in frees],
                 [[s["id"], subject_output_type(s), s.get("label")] for s in group],
             ]
         )
@@ -1003,10 +983,7 @@ class WorkflowEndpointManager:
             frees = group_free_inputs(graph, group)
             for component, free in zip(components, frees):
                 shaped = port_to_component(
-                    free["type"],
-                    free["label"],
-                    value=_reference_default(free),
-                    text_type=free["node"].get("type") or "text",
+                    free["type"], free["label"], value=_reference_default(free)
                 )
                 component.value = shaped.value
 
@@ -1065,10 +1042,7 @@ class WorkflowEndpointManager:
             comps = []
             for f in frees:
                 c = port_to_component(
-                    f["type"],
-                    f["label"],
-                    value=_reference_default(f),
-                    text_type=f["node"].get("type") or "text",
+                    f["type"], f["label"], value=_reference_default(f)
                 )
                 c.render()
                 comps.append(c)
