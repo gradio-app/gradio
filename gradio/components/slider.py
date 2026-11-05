@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import random
 from collections.abc import Callable, Sequence
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
@@ -127,17 +128,16 @@ class Slider(FormComponent):
         return self.minimum
 
     def get_random_value(self):
-        # Small tolerance so that e.g. 0.3 / 0.1 = 2.9999999999999996 still allows the last step
-        n_steps = math.floor((self.maximum - self.minimum) / self.step + 1e-9)
-        step = random.randint(0, n_steps)
-        value = self.minimum + step * self.step
-        # Round to number of decimals in step and minimum so that UI doesn't display long decimals
-        n_decimals = max(
-            max(str(x)[::-1].find("."), 0) for x in (self.step, self.minimum)
+        # Use Decimal on each number's shortest repr so the grid is exact,
+        # e.g. 0.3 / 0.1 is 3 steps and 0.04 + 3 * 0.1 is 0.34.
+        minimum, maximum, step = (
+            Decimal(str(x)) for x in (self.minimum, self.maximum, self.step)
         )
-        if n_decimals:
-            value = round(value, n_decimals)
-        return value
+        n_steps = int((maximum - minimum) // step)
+        value = minimum + random.randint(0, n_steps) * step
+        if isinstance(self.minimum, int) and isinstance(self.step, int):
+            return int(value)
+        return float(value)
 
     def postprocess(self, value: float | None) -> float:
         """
