@@ -566,28 +566,32 @@ class GradioMCPServer:
         creates a mapping from the tool names to the endpoint names in the API docs.
         """
         tool_to_endpoint = {}
-        for endpoint_name in self.api_info["named_endpoints"]:
-            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-            if block_fn is None or block_fn.fn is None:
-                continue
-            fn_name = (
-                getattr(block_fn.fn, "__name__", None)
-                or (
-                    hasattr(block_fn.fn, "__class__")
-                    and getattr(block_fn.fn.__class__, "__name__", None)
+        # Reserve existing tool and resource names before assigning prompt names.
+        for prompts in (False, True):
+            for endpoint_name in self.api_info["named_endpoints"]:
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                if block_fn is None or block_fn.fn is None:
+                    continue
+                is_prompt = getattr(block_fn.fn, "_mcp_type", None) == "prompt"
+                if is_prompt != prompts:
+                    continue
+                fn_name = (
+                    getattr(block_fn.fn, "__name__", None)
+                    or (
+                        hasattr(block_fn.fn, "__class__")
+                        and getattr(block_fn.fn.__class__, "__name__", None)
+                    )
+                    or endpoint_name.lstrip("/")
                 )
-                or endpoint_name.lstrip("/")
-            )
-            # Prompts are named by `gr.mcp.prompt(name=...)`, kept as-is because the
-            # MCP spec puts no character rules on prompt names
-            is_prompt = getattr(block_fn.fn, "_mcp_type", None) == "prompt"
-            if is_prompt:
-                fn_name = block_fn.fn._mcp_name  # type: ignore
-            tool_name = self.tool_prefix + fn_name
-            tool_name = self.valid_and_unique_tool_name(
-                tool_name, set(tool_to_endpoint.keys()), sanitize=not is_prompt
-            )
-            tool_to_endpoint[tool_name] = endpoint_name
+                # Prompts are named by `gr.mcp.prompt(name=...)`, kept as-is because the
+                # MCP spec puts no character rules on prompt names
+                if is_prompt:
+                    fn_name = block_fn.fn._mcp_name  # type: ignore
+                tool_name = self.tool_prefix + fn_name
+                tool_name = self.valid_and_unique_tool_name(
+                    tool_name, set(tool_to_endpoint.keys()), sanitize=not is_prompt
+                )
+                tool_to_endpoint[tool_name] = endpoint_name
         return tool_to_endpoint
 
     def warn_about_state_inputs(self) -> None:
