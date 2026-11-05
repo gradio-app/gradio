@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, TypeVar, cast
+from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 import fastapi
 
@@ -10,13 +10,12 @@ from gradio import utils
 from gradio.context import LocalContext, MultiprocessWorkerContextualizer
 from gradio.exceptions import Error
 from gradio.helpers import log_message
+from gradio.route_utils import Request
 
 if TYPE_CHECKING:
     from spaces.zero import ZeroGPUErrorResponse, ZeroGPULog
 
-    from gradio.route_utils import Request
-
-T = TypeVar("T")
+    from gradio.blocks import Blocks
 
 
 def exception_mapper(err: ZeroGPUErrorResponse, exc: Exception | None):
@@ -62,52 +61,40 @@ def maybe_setup_zerogpu_middleware(app: fastapi.FastAPI):
     if any(m.cls is ZeroGPUMiddleware for m in app.user_middleware):
         return
 
-    app.add_middleware(
-        ZeroGPUMiddleware,  # ty: ignore[invalid-argument-type]
-        exception_mapper=exception_mapper,
-        log_emitter=log_emitter,
-        worker_contextualizer=MultiprocessWorkerContextualizer,
-        disconnect_detector=disconnect_detector,
-    )
+    app.add_middleware(ZeroGPUMiddleware)  # ty: ignore[invalid-argument-type]
 
 
-async def run_with_zerogpu_middleware(
-    func: Callable[[], Awaitable[T]],
-    request: Request | list[Request] | None,
-    server_port: int | None,
-) -> T:
-    """Restore middleware context for an event received over the process executor's IPC."""
+@contextmanager
+def maybe_setup_zerogpu_context(
+    blocks: Blocks, request: Request | fastapi.Request | None
+):
     if not utils.is_zero_gpu_space():
-        return await func()
+        yield
+        return
+
     try:
-        from spaces.zero import ZeroGPUMiddleware
+        from spaces.zero import context
     except ImportError:
-        return await func()
+        yield
+        return
 
-    result: T | None = None
+    with context.set_context_var(
+        context.ZeroGPUContext(
+            exception_mapper=exception_mapper,
+            log_emitter=log_emitter,
+            worker_contextualizer=MultiprocessWorkerContextualizer,
+            disconnect_detector=disconnect_detector,
+            server_port=_get_server_port(blocks, request),
+            headers=dict(request.headers) if request is not None else {},
+        )
+    ):
+        yield
 
-    async def app(_scope, _receive, send):
-        nonlocal result
-        result = await func()
-        await send({"type": "http.response.start", "status": 204, "headers": []})
-        await send({"type": "http.response.body", "body": b""})
 
-    async def receive():
-        return {"type": "http.request", "body": b"", "more_body": False}
-
-    async def send(_message):
-        pass
-
-    if isinstance(request, list):
-        request = request[0] if request else None
-    scope = dict(request.request.scope) if request and request.request else {}
-    scope.update(type="http", server=("127.0.0.1", server_port))
-    middleware = ZeroGPUMiddleware(
-        app,
-        exception_mapper=exception_mapper,
-        log_emitter=log_emitter,
-        worker_contextualizer=MultiprocessWorkerContextualizer,
-        disconnect_detector=disconnect_detector,
-    )
-    await middleware(scope, receive, send)
-    return cast(T, result)
+def _get_server_port(blocks: Blocks, req: Request | fastapi.Request | None):
+    if (worker := getattr(blocks, "_process_worker", None)) is not None:
+        return worker.http_port
+    http_request = req.request if isinstance(req, Request) else req
+    if http_request is not None and (server := http_request.scope.get("server")):
+        return server[1]
+    return getattr(blocks, "server_port", None)

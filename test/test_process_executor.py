@@ -6,7 +6,6 @@ import os
 import threading
 import time
 from contextlib import closing, contextmanager
-from contextvars import ContextVar
 
 import httpx2
 import pytest
@@ -62,39 +61,26 @@ def test_zerogpu_startup_runs_in_the_app_process(executor, monkeypatch, connect)
     assert startup_pids == [os.getpid()]
 
 
+@pytest.mark.parametrize("executor", ["thread", "process"])
 @pytest.mark.parametrize("generator", [False, True])
-def test_process_event_restores_zerogpu_middleware_scope(generator, monkeypatch):
-    import spaces.zero
-    from spaces.zero import middleware
+def test_event_restores_zerogpu_context(executor, generator, monkeypatch):
+    from spaces.zero import context, middleware
 
-    current_scope: ContextVar[tuple[bytes | None, int | None] | None] = ContextVar(
-        "zerogpu_test_scope", default=None
-    )
-
-    class InspectScope(middleware.ZeroGPUMiddleware):
-        async def __call__(self, scope, receive, send):
-            if scope["type"] != "http":
-                return await super().__call__(scope, receive, send)
-            token = current_scope.set(
-                (
-                    dict(scope.get("headers", [])).get(b"x-test-context"),
-                    scope["server"][1],
-                )
-            )
-            try:
-                return await super().__call__(scope, receive, send)
-            finally:
-                current_scope.reset(token)
+    from gradio.context import MultiprocessWorkerContextualizer
+    from gradio.zerogpu import disconnect_detector, exception_mapper, log_emitter
 
     monkeypatch.setenv("SPACES_ZERO_GPU", "true")
-    monkeypatch.setattr(spaces.zero, "ZeroGPUMiddleware", InspectScope)
     monkeypatch.setattr(middleware, "zerogpu_mode_enabled", lambda: True)
     monkeypatch.setattr(middleware, "zerogpu_startup", lambda: None)
+    original_context = context.get()
 
     def predict():
-        scope = current_scope.get()
-        assert scope is not None and scope[0] is not None
-        return [scope[0].decode(), scope[1]]
+        ctx = context.get()
+        assert ctx.exception_mapper is exception_mapper
+        assert ctx.log_emitter is log_emitter
+        assert ctx.worker_contextualizer is MultiprocessWorkerContextualizer
+        assert ctx.disconnect_detector is disconnect_detector
+        return [ctx.headers["x-test-context"], ctx.server_port]
 
     def generate():
         yield predict()
@@ -103,17 +89,59 @@ def test_process_event_restores_zerogpu_middleware_scope(generator, monkeypatch)
     demo = gr.Interface(
         generate if generator else predict, None, gr.JSON(), api_name="predict"
     )
-    with launched(demo):
-        worker = demo._process_worker
-        assert worker is not None
+    demo.launch(executor=executor, prevent_thread_lock=True)
+    try:
+        worker = getattr(demo, "_process_worker", None)
+        port = worker.http_port if worker is not None else demo.server_port
         with closing(
             Client(str(demo.local_url), headers={"x-test-context": "forwarded"})
         ) as client:
-            assert client.predict(api_name="/predict") == [
-                "forwarded",
-                worker.http_port,
-            ]
-    assert current_scope.get() is None
+            assert client.predict(api_name="/predict") == ["forwarded", port]
+    finally:
+        demo.close()
+    assert context.get() is original_context
+
+
+def test_mounted_app_uses_default_middleware_and_gradio_function_context(monkeypatch):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from spaces.zero import context, middleware
+
+    from gradio.zerogpu import exception_mapper
+
+    startup_calls = []
+    monkeypatch.setenv("SPACES_ZERO_GPU", "true")
+    monkeypatch.setattr(middleware, "zerogpu_mode_enabled", lambda: True)
+    monkeypatch.setattr(
+        middleware, "zerogpu_startup", lambda: startup_calls.append(True)
+    )
+    app = FastAPI()
+
+    @app.get("/custom")
+    def custom():
+        ctx = context.get()
+        assert ctx.exception_mapper is context.exception_mapper_default
+        return [ctx.headers["x-test-context"], ctx.server_port]
+
+    def predict():
+        ctx = context.get()
+        assert ctx.exception_mapper is exception_mapper
+        return [ctx.headers["x-test-context"], ctx.server_port]
+
+    with gr.Blocks() as demo:
+        gr.Button().click(predict, outputs=gr.JSON(), queue=False, api_name="predict")
+    gr.mount_gradio_app(app, demo, path="/gradio")
+    with TestClient(app, base_url="http://testserver:8099") as client:
+        assert startup_calls == [True]
+        for value in ("first", "second"):
+            headers = {"x-test-context": value}
+            response = client.post(
+                "/gradio/gradio_api/api/predict", headers=headers, json={"data": []}
+            )
+            assert response.status_code == 200
+            assert response.json()["data"] == [[value, 8099]]
+            response = client.get("/custom", headers=headers)
+            assert response.json() == [value, 8099]
 
 
 def test_state_globals_and_closures_behave_as_with_threads():

@@ -21,7 +21,6 @@ import sys
 import tempfile
 import threading
 import time
-from functools import partial
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
 
@@ -361,7 +360,6 @@ class Worker:
         from gradio import caching, route_utils
         from gradio.data_classes import PredictBodyInternal
         from gradio.queueing import create_validator_fn
-        from gradio.zerogpu import run_with_zerogpu_middleware
 
         if protocol.files_by_value():
             from gradio.utils import get_upload_folder
@@ -393,18 +391,13 @@ class Worker:
                 gr_request = protocol.restore_request(
                     p["request"], self.lifespan_state()
                 )
-                output = await run_with_zerogpu_middleware(
-                    partial(
-                        route_utils.call_process_api,
-                        app=self.app,
-                        body=body,
-                        gr_request=gr_request,
-                        fn=fn,
-                        root_path=p["root_path"],
-                        record_history=False,
-                    ),
-                    gr_request,
-                    self.http_port,
+                output = await route_utils.call_process_api(
+                    app=self.app,
+                    body=body,
+                    gr_request=gr_request,
+                    fn=fn,
+                    root_path=p["root_path"],
+                    record_history=False,
                 )
         except asyncio.CancelledError:
             if running is not None:

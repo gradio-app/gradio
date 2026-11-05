@@ -31,12 +31,12 @@ from collections import OrderedDict
 from collections.abc import (
     Callable,
     Hashable,
-    Iterable,
     Iterator,
     MutableMapping,
     Sequence,
 )
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, ExitStack, contextmanager
+from contextvars import ContextVar
 from functools import wraps
 from io import BytesIO
 from pathlib import Path
@@ -1051,43 +1051,30 @@ def is_prop_update(val):
 
 def function_wrapper(
     f: Callable,
-    before_fn: Callable | None = None,
-    before_args: Iterable | None = None,
-    after_fn: Callable | None = None,
-    after_args: Iterable | None = None,
+    context_factory: Callable[[], AbstractContextManager],
 ):
-    before_args = [] if before_args is None else before_args
-    after_args = [] if after_args is None else after_args
+    """Run each call or generator step in a fresh context, exiting before yielding."""
     if inspect.isasyncgenfunction(f):
 
         @functools.wraps(f)
         async def asyncgen_wrapper(*args, **kwargs):
             iterator = f(*args, **kwargs)
             while True:
-                if before_fn:
-                    before_fn(*before_args)
                 try:
-                    response = await iterator.__anext__()
+                    with context_factory():
+                        response = await iterator.__anext__()
                 except StopAsyncIteration:
-                    if after_fn:
-                        after_fn(*after_args)
                     break
-                if after_fn:
-                    after_fn(*after_args)
                 yield response
 
         return asyncgen_wrapper
 
-    elif asyncio.iscoroutinefunction(f):
+    elif inspect.iscoroutinefunction(f):
 
         @functools.wraps(f)
         async def async_wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
-            response = await f(*args, **kwargs)
-            if after_fn:
-                after_fn(*after_args)
-            return response
+            with context_factory():
+                return await f(*args, **kwargs)
 
         return async_wrapper
 
@@ -1097,16 +1084,11 @@ def function_wrapper(
         def gen_wrapper(*args, **kwargs):
             iterator = f(*args, **kwargs)
             while True:
-                if before_fn:
-                    before_fn(*before_args)
                 try:
-                    response = next(iterator)
+                    with context_factory():
+                        response = next(iterator)
                 except StopIteration:
-                    if after_fn:
-                        after_fn(*after_args)
                     break
-                if after_fn:
-                    after_fn(*after_args)
                 yield response
 
         return gen_wrapper
@@ -1115,12 +1097,8 @@ def function_wrapper(
 
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
-            response = f(*args, **kwargs)
-            if after_fn:
-                after_fn(*after_args)
-            return response
+            with context_factory():
+                return f(*args, **kwargs)
 
         return wrapper
 
@@ -1133,29 +1111,25 @@ def get_function_with_locals(
     request: "Request | None",
     state: "SessionState | None",
 ):
-    def before_fn(blocks, event_id):
+    def set_and_reset(stack: ExitStack, var: ContextVar[V], value: V):
+        stack.callback(var.reset, var.set(value))
+
+    @contextmanager
+    def context():
         from gradio.context import LocalContext
+        from gradio.zerogpu import maybe_setup_zerogpu_context
 
-        LocalContext.blocks.set(blocks)
-        LocalContext.in_event_listener.set(in_event_listener)
-        LocalContext.event_id.set(event_id)
-        LocalContext.request.set(request)
-        if state:
-            LocalContext.blocks_config.set(state.blocks_config)
+        with ExitStack() as stack:
+            set_and_reset(stack, LocalContext.blocks, blocks)
+            set_and_reset(stack, LocalContext.in_event_listener, in_event_listener)
+            set_and_reset(stack, LocalContext.event_id, event_id)
+            set_and_reset(stack, LocalContext.request, request)
+            if state:
+                set_and_reset(stack, LocalContext.blocks_config, state.blocks_config)
+            with maybe_setup_zerogpu_context(blocks, request):
+                yield
 
-    def after_fn():
-        from gradio.context import LocalContext
-
-        LocalContext.in_event_listener.set(False)
-        LocalContext.request.set(None)
-        LocalContext.blocks_config.set(None)
-
-    return function_wrapper(
-        fn,
-        before_fn=before_fn,
-        before_args=(blocks, event_id),
-        after_fn=after_fn,
-    )
+    return function_wrapper(fn, context)
 
 
 async def cancel_tasks(task_ids: set[str]) -> list[str]:
