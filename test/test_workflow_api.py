@@ -428,6 +428,23 @@ class TestLiveSchemaUpdate:
         assert manager._fn_ids == fn_ids
         assert manager._inputs[0][0].value == "new"
 
+    def test_masking_a_reference_rebuilds_its_app_input(self, tmp_path):
+        import gradio as gr
+
+        graph = json.loads(_graph_with_subjects(1))
+        path = tmp_path / "wf.json"
+        path.write_text(json.dumps(graph))
+        wf = gr.Workflow(graph=str(path))
+        manager = wf._api_endpoints
+        assert manager is not None
+        assert manager._inputs[0][0].type == "text"
+
+        graph["references"][0]["type"] = "password"
+        path.write_text(json.dumps(graph))
+        manager.sync()
+
+        assert manager._inputs[0][0].type == "password"
+
     def test_save_workflow_rejects_malformed_schema(self, tmp_path):
         import gradio as gr
         from gradio.route_utils import Request
