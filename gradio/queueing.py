@@ -60,7 +60,6 @@ from gradio.utils import (
 from .block_function import BlockFunction
 
 if TYPE_CHECKING:
-    from gradio.block_function import BlockFunction
     from gradio.blocks import Blocks
 
 

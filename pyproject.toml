@@ -130,6 +130,7 @@ extend-select = [
   "SIM",
   "UP",
   "W",
+  "TC004",
 ]
 ignore = [
   "B008",    # function call in argument defaults

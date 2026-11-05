@@ -29,7 +29,9 @@ from gradio.processing import protocol
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
+    from gradio.queueing import Queue
     from gradio.routes import App
+    from gradio.server_messages import EventMessage
 
 STARTUP_TIMEOUT = 300
 REPLICA_STABLE_SECONDS = 30
@@ -68,7 +70,7 @@ class ForwardingQueue:
     """Stands in for `blocks._queue` here, so gr.Info and gr.Progress reach the
     gateway's queue, which owns the events and their connections."""
 
-    def __init__(self, worker: Worker, original: Any):
+    def __init__(self, worker: Worker, original: Queue):
         self.worker = worker
         self.original = original
         self.server_app = worker.app
@@ -83,26 +85,27 @@ class ForwardingQueue:
     def active_jobs(self) -> list[list[RunningEvent]]:
         return [list(self.worker.running.values())]
 
-    def forward_message(self, event_id, message):
+    def forward_message(self, event_id: str, message: EventMessage):
         from gradio.server_messages import LogMessage, ProgressMessage
 
-        if isinstance(message, LogMessage):
-            self.worker.send(
-                (
-                    "log",
-                    event_id,
-                    {
-                        "log": message.log,
-                        "title": message.title,
-                        "level": message.level,
-                        "duration": message.duration,
-                        "visible": message.visible,
-                    },
+        match message:
+            case LogMessage():
+                self.worker.send(
+                    (
+                        "log",
+                        event_id,
+                        {
+                            "log": message.log,
+                            "title": message.title,
+                            "level": message.level,
+                            "duration": message.duration,
+                            "visible": message.visible,
+                        },
+                    )
                 )
-            )
-        elif isinstance(message, ProgressMessage):
-            units = [unit.model_dump() for unit in message.progress_data]
-            self.worker.send(("progress", event_id, units))
+            case ProgressMessage():
+                units = [unit.model_dump() for unit in message.progress_data]
+                self.worker.send(("progress", event_id, units))
 
     def close(self):
         pass
