@@ -470,19 +470,17 @@ class Pool:
         self.blocks.app.change_count += 1
 
     def deliver(self, message: tuple) -> None:
-        from gradio.server_messages import ProgressMessage, ProgressUnit
+        from gradio.server_messages import LogMessage, ProgressMessage
 
         kind, event_id, data = message
         queue = self.blocks._queue
         if kind == "log":
-            queue.log_message(event_id=event_id, **data)
+            queue.dispatch_event_message(event_id, LogMessage(**data))
             return
         for job in queue.active_jobs:
             for event in job or []:
                 if event._id == event_id:
-                    event.progress = ProgressMessage(
-                        progress_data=[ProgressUnit(**unit) for unit in data]
-                    )
+                    event.progress = ProgressMessage(**data)
                     event.progress_pending = True
 
     def status(self) -> dict:

@@ -33,6 +33,37 @@ class LocalContext:
     )
 
 
+class MultiprocessWorkerContextualizer:
+    """
+    Refreshes LocalContext for persistent multiprocessing workers processing consecutive requests.
+
+    Example usage:
+        ```
+        pool = ProcessPoolExecutor()
+
+        def handler(value):
+            contextualize = MultiprocessWorkerContextualizer()
+            return e.submit(process_wrapper, contextualize, value).result()
+
+        def process_wrapper(contextualize, value):
+            contextualize()
+            return process(value)
+
+        demo = gr.Interface(handler, gr.Text(), gr.Text())
+        ```
+    """
+
+    def __init__(self):
+        self.event_id = LocalContext.event_id.get(None)
+        self.in_event_listener = LocalContext.in_event_listener.get(False)
+        self.progress = LocalContext.progress.get(None)
+
+    def __call__(self):
+        LocalContext.event_id.set(self.event_id)
+        LocalContext.in_event_listener.set(self.in_event_listener)
+        LocalContext.progress.set(self.progress)
+
+
 def get_render_context() -> BlockContext | None:
     if LocalContext.renderable.get(None):
         return LocalContext.render_block.get(None)
