@@ -2,7 +2,7 @@ import http from "node:http";
 import process from "node:process";
 import httpProxy from "http-proxy";
 import { handler } from "./handler.js";
-import { classifyRoute } from "./proxy_routes.js";
+import { appendForwardedFor, classifyRoute } from "./proxy_routes.js";
 
 const host = process.env.HOST || "0.0.0.0";
 const port = parseInt(process.env.PORT || "7860", 10);
@@ -36,6 +36,15 @@ proxy.on("error", (err, req, res) => {
 		res.writeHead(502, { "Content-Type": "text/plain" });
 		res.end("Bad Gateway");
 	}
+});
+
+// Pass the client's address on to Python, which otherwise sees every request
+// as coming from this process on 127.0.0.1.
+proxy.on("proxyReq", (proxyReq, req) => {
+	proxyReq.setHeader(
+		"x-forwarded-for",
+		appendForwardedFor(req.headers["x-forwarded-for"], req.socket.remoteAddress)
+	);
 });
 
 // When the browser closes an SSE/streaming connection, propagate the

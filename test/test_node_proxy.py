@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+import fastapi
 import httpx
 import pytest
 from fastapi.testclient import TestClient
@@ -356,6 +357,58 @@ class TestNodeProxyStartupOrdering:
             )
         finally:
             self._cleanup(demo)
+
+
+class TestNodeProxyClientAddress:
+    """Behind the Node proxy, Python must see the browser's address, not the
+    proxy's 127.0.0.1, or a remote request passes for a local one."""
+
+    def test_python_sees_the_client_address(self):
+        import gradio as gr
+        from gradio.history import _is_direct_local_request
+
+        demo = gr.Interface(lambda x: x, "text", "text")
+        try:
+            demo.launch(
+                ssr_mode=True,
+                server_port=18868,
+                prevent_thread_lock=True,
+                quiet=True,
+            )
+            if not getattr(demo, "_node_is_proxy", False):
+                pytest.skip("Node proxy mode did not engage in this environment")
+
+            @demo.app.get("/gradio_api/test_client_address")
+            def client_address(request: fastapi.Request):
+                return {
+                    "forwarded_for": request.headers.get("x-forwarded-for"),
+                    "host": request.client.host,
+                    "direct_local": _is_direct_local_request(request),
+                }
+
+            url = f"http://127.0.0.1:{demo.node_port}/gradio_api/test_client_address"
+
+            # Node appends the address of whoever connected to it, here a
+            # local browser, which is still treated as local.
+            assert httpx.get(url).json() == {
+                "forwarded_for": "127.0.0.1",
+                "host": "127.0.0.1",
+                "direct_local": True,
+            }
+
+            # Python reads the client's address from what Node forwards, so a
+            # request that came through another proxy is not local, even with
+            # a Host of localhost.
+            assert httpx.get(
+                url,
+                headers={"Host": "localhost", "X-Forwarded-For": "203.0.113.7"},
+            ).json() == {
+                "forwarded_for": "203.0.113.7, 127.0.0.1",
+                "host": "203.0.113.7",
+                "direct_local": False,
+            }
+        finally:
+            TestNodeProxyStartupOrdering._cleanup(None, demo)
 
 
 class _FakeNodeProcess:
