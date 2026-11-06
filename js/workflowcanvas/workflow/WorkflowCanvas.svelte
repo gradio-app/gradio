@@ -3044,9 +3044,10 @@
 				class="tool-btn api-btn"
 				onclick={() => (showApiPanel = true)}
 				title="View the API for this workflow"
+				aria-label="View API"
 			>
 				<CodeIcon />
-				View API
+				<span class="tool-btn-label">View API</span>
 			</button>
 			{#if bucketId}
 				<button
@@ -3081,7 +3082,8 @@
 				<button
 					class="tool-btn get-started-btn"
 					onclick={() => (showTemplatesOverlay = true)}
-					><LayoutIcon /> Templates</button
+					aria-label="Templates"
+					><LayoutIcon /> <span class="tool-btn-label">Templates</span></button
 				>
 			{/if}
 			{#if auth.status !== "checking"}

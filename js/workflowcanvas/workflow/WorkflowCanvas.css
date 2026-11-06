@@ -25,6 +25,7 @@
 	background: #101118;
 	border-bottom: 1px solid #1e1f2a;
 	flex-shrink: 0;
+	gap: 12px;
 }
 
 .toolbar-left,
@@ -32,6 +33,16 @@
 	display: flex;
 	align-items: center;
 	gap: 10px;
+}
+
+/* The name gives way first; buttons keep their labels on one line. */
+.toolbar-left {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.toolbar-right {
+	flex-shrink: 0;
 }
 
 .name-btn {
@@ -44,6 +55,7 @@
 	padding: 4px 8px;
 	border-radius: 6px;
 	transition: background 0.15s;
+	min-width: 0;
 }
 
 .name-btn:hover {
@@ -51,6 +63,9 @@
 }
 
 .name-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	font-size: 14px;
 	font-weight: 700;
 	color: #d5d6de;
@@ -95,9 +110,13 @@
 	font-size: 10px;
 	color: #3e3f4d;
 	letter-spacing: 0.02em;
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .tool-btn {
+	white-space: nowrap;
+	flex-shrink: 0;
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -867,6 +886,37 @@
 	white-space: nowrap;
 }
 
+/* Mid-width windows, e.g. embedded in a chat side panel. */
+@media (max-width: 1100px) {
+	.toolbar-stat {
+		display: none;
+	}
+	.tool-btn-label {
+		display: none;
+	}
+	.toolbar-user-name {
+		max-width: 84px;
+	}
+}
+
+/* The bottom bar spans most of the width here, so the zoom controls move
+   to the top-left corner and leave the bottom row to the bar. */
+@media (max-width: 1280px) {
+	.zoom-controls,
+	.zoom-controls.history-open {
+		top: 12px;
+		bottom: auto;
+		left: 12px;
+		right: auto;
+	}
+	.shortcuts-panel {
+		top: 52px;
+		bottom: auto;
+		left: 12px;
+		right: auto;
+	}
+}
+
 @media (max-width: 640px), (pointer: coarse) {
 	.workflow-root {
 		min-height: 100dvh;
@@ -929,9 +979,10 @@
 	.save-menu {
 		right: 0;
 	}
-	.zoom-controls {
-		bottom: calc(84px + env(safe-area-inset-bottom));
-		right: 8px;
+	.zoom-controls,
+	.zoom-controls.history-open {
+		top: 8px;
+		left: 8px;
 	}
 	.shortcuts-panel,
 	.zoom-ctrl-shortcuts {

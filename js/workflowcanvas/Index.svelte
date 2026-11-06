@@ -258,6 +258,7 @@
 	<div
 		class="workflow-fullscreen"
 		class:hidden={view !== "canvas"}
+		class:has-view-toggle={!!app_view_id}
 		inert={view !== "canvas"}
 	>
 		<WorkflowCanvas
@@ -421,11 +422,19 @@
 		cursor: pointer;
 	}
 
-	/* The canvas's centered bottom bar (~700px wide with the editing controls)
-	   would run into the toggle on narrower windows, so sit above it there. */
-	@media (max-width: 1100px) {
+	/* The canvas's centered bottom bar would run into the toggle on narrower
+	   windows, so center it in the space right of the toggle instead, on the
+	   same baseline. */
+	@media (min-width: 641px) and (max-width: 1280px) and (pointer: fine) {
+		.workflow-fullscreen.has-view-toggle :global(.bottom-bar) {
+			left: 206px;
+			right: 12px;
+			width: fit-content;
+			margin-inline: auto;
+			transform: none;
+		}
 		.view-toggle.on-canvas {
-			bottom: calc(72px + var(--frame-lift, 0px));
+			bottom: calc(25px + var(--frame-lift, 0px));
 		}
 	}
 	@media (max-width: 640px), (pointer: coarse) {
