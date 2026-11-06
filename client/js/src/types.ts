@@ -225,6 +225,7 @@ export interface Config {
 	 * Gradio, which is treated as permitted.
 	 */
 	run_history?: boolean;
+	history_storage?: "spaces";
 }
 
 // todo: DRY up types

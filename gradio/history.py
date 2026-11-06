@@ -185,6 +185,7 @@ class HistoryTarget(NamedTuple):
     bucket: str
     token: str
     app_id: str
+    endpoint: str | None = None
 
     @classmethod
     def build(cls, bucket: str, token: str, app_id: str) -> HistoryTarget:
@@ -194,7 +195,7 @@ class HistoryTarget(NamedTuple):
 
 
 def _api(target: HistoryTarget) -> HfApi:
-    return HfApi(token=target.token)
+    return HfApi(endpoint=target.endpoint, token=target.token)
 
 
 RUNS_PREFIX = "runs"
@@ -230,6 +231,8 @@ def _invalidate_list_cache(bucket: str, app_id: str) -> None:
 
 def ensure_bucket(target: HistoryTarget) -> None:
     """Create the bucket if it does not exist; new ones default to private."""
+    if target.endpoint:
+        return  # Spaces storage: the facade owns the bucket
     key = (target.token, target.bucket)
     with _ensure_lock:
         if key in _ensured:
@@ -364,10 +367,27 @@ def _list_paths(target: HistoryTarget, prefix: str) -> list[str]:
         status = getattr(getattr(e, "response", None), "status_code", None)
         if status == 404:
             return []
+        consent_url = _consent_url(e)
+        if consent_url:
+            raise HistoryError(
+                f"Allow this Space to save runs to your Hugging Face storage: {consent_url}",
+                403,
+            ) from e
         raise HistoryError(
             f"could not list {prefix}: {e}", status if status in (401, 403) else 502
         ) from e
     return paths
+
+
+def _consent_url(e: Exception) -> str | None:
+    """The grant URL a Spaces storage 403 carries, if this is one."""
+    try:
+        body = e.response.json()  # type: ignore[attr-defined]
+    except Exception:
+        return None
+    if isinstance(body, dict) and body.get("error") == "storage_grant_required":
+        return body.get("consent_url")
+    return None
 
 
 def _download_many(target: HistoryTarget, paths: list[str]) -> list[tuple[str, bytes]]:
@@ -475,6 +495,14 @@ def _content_type_of(node, path_or_url: str) -> str:
 
 
 BUCKET_HEADER = "x-gradio-history-bucket"
+
+# Spaces storage: the Spaces proxy injects a short-lived token for the viewer of
+# each request, valid against an in-cluster bucket API facade that maps
+# SPACES_STORAGE_BUCKET to <viewer>/spaces-storage and prefixes every path with
+# this Space. The Space never learns who the viewer is.
+SPACES_STORAGE_TOKEN_HEADER = "x-hf-storage-token"
+SPACES_STORAGE_BUCKET = "me/spaces-storage"
+SPACES_STORAGE_APP_ID = "gradio"
 MAX_CONCURRENT_WRITES = 8
 
 
@@ -568,6 +596,22 @@ def require_token(request: Request) -> str:
     return token
 
 
+def spaces_storage_target(request) -> HistoryTarget | None:
+    """The viewer's Spaces storage, when the Spaces proxy provides one."""
+    endpoint = os.getenv("HF_STORAGE_ENDPOINT")
+    raw = _fastapi_request(request)
+    if not endpoint or raw is None:
+        return None
+    try:
+        token = raw.headers.get(SPACES_STORAGE_TOKEN_HEADER)
+    except Exception:
+        return None
+    if not token:
+        return None
+    # A fixed app id, unlike the per-restart one, so history survives restarts.
+    return HistoryTarget(SPACES_STORAGE_BUCKET, token, SPACES_STORAGE_APP_ID, endpoint)
+
+
 def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | None:
     """Which bucket this run belongs in, resolved per request."""
     if explicit:
@@ -595,6 +639,9 @@ def resolve_target(
     blocks = app.get_blocks()
     if not getattr(blocks, "run_history", True):
         return None
+    spaces = spaces_storage_target(request)
+    if spaces is not None:
+        return spaces
     bucket = resolve_bucket_id(blocks, request, bucket_id)
     if not bucket:
         return None
@@ -693,10 +740,14 @@ async def offload(fn, *args):
 
 def get_target(
     request: Request,
-    token: Annotated[str, Depends(require_token)],
     bucket: Annotated[str, Query(min_length=3, max_length=200)],
 ) -> HistoryTarget:
-    """The bucket named on this request, addressed with the caller's token."""
+    """The viewer's Spaces storage, else the bucket named on this request,
+    addressed with the caller's token."""
+    spaces = spaces_storage_target(request)
+    if spaces is not None:
+        return spaces
+    token = require_token(request)
     blocks = request.app.get_blocks()
     try:
         return HistoryTarget.build(bucket, token, app_id_of(blocks))

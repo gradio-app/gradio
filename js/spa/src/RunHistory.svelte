@@ -316,15 +316,21 @@
 	<header class="page-header">
 		<div class="title-block">
 			<h1>Run history ({runs.length})</h1>
-			<HistoryStorageControl {root} {scope} bind:storage />
+			{#if scope.history_storage === "spaces"}
+				<p>Saved privately to your Hugging Face storage.</p>
+			{:else}
+				<HistoryStorageControl {root} {scope} bind:storage />
+			{/if}
 		</div>
 		{#if using_bucket}
-			<a
-				class="view-bucket"
-				href="https://huggingface.co/buckets/{bucket_id}"
-				target="_blank"
-				rel="noopener noreferrer">View bucket ↗</a
-			>
+			{#if scope.history_storage !== "spaces"}
+				<a
+					class="view-bucket"
+					href="https://huggingface.co/buckets/{bucket_id}"
+					target="_blank"
+					rel="noopener noreferrer">View bucket ↗</a
+				>
+			{/if}
 		{:else if runs.length}
 			<button class="clear" onclick={clear_all}>Clear history</button>
 		{/if}
