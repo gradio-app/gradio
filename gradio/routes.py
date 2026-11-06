@@ -792,9 +792,12 @@ class App(FastAPI):
             async def connect_history(
                 request: fastapi.Request,
                 body: history.ConnectBody,
-                token: history.TokenDep,
             ):
-                """Create the bucket if needed and confirm it is writable."""
+                """Create the bucket if needed and confirm it is writable. A
+                token sent with the bucket is kept in this browser's cookies
+                once it works, and used for this caller's history from then on."""
+                given_token = (body.token or "").strip()
+                token = given_token or history.require_token(request)
                 blocks = request.app.get_blocks()
                 try:
                     target = history.HistoryTarget.build(
@@ -803,7 +806,10 @@ class App(FastAPI):
                 except ValueError as exc:
                     raise HTTPException(422, "invalid bucket id") from exc
                 await history.offload(history.ensure_bucket, target)
-                return {"ok": True}
+                response = JSONResponse({"ok": True})
+                if given_token:
+                    history.set_token_cookies(response, request.app, given_token)
+                return response
 
             @router.get("/run-history/buckets")
             async def list_history_buckets(token: history.TokenDep):

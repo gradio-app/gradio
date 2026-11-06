@@ -102,6 +102,25 @@ describe("bucket setup", () => {
 		expect(result).toMatchObject({ ok: true, data: null });
 	});
 
+	it("sends the caller's token with the bucket only when given one", async () => {
+		const spy = vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({ ok: true })
+		});
+		globalThis.fetch = spy as any;
+		await connect_bucket("http://x", "alice/history", "hf_alice");
+		await connect_bucket("http://x", "alice/history");
+		expect(JSON.parse(spy.mock.calls[0][1].body)).toEqual({
+			bucket_id: "alice/history",
+			token: "hf_alice"
+		});
+		expect(JSON.parse(spy.mock.calls[1][1].body)).toEqual({
+			bucket_id: "alice/history"
+		});
+		expect(spy.mock.calls[0][1].credentials).toBe("include");
+	});
+
 	it("returns bucket ids as strings", async () => {
 		globalThis.fetch = vi.fn().mockResolvedValue({
 			ok: true,
