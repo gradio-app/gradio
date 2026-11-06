@@ -41,12 +41,16 @@ function redirect_to(path: string): void {
 
 const INFERENCE_JWT_REQUEST = "INFERENCE_JWT_REQUEST";
 const INFERENCE_JWT_RESPONSE = "INFERENCE_JWT_RESPONSE";
+const INFERENCE_JWT_PROBE = "INFERENCE_JWT_PROBE";
+const INFERENCE_JWT_PROBE_RESPONSE = "INFERENCE_JWT_PROBE_RESPONSE";
 const EMBEDDER_TOKEN_TIMEOUT_MS = 30_000;
 const EMBEDDER_TOKEN_FALLBACK_TTL_MS = 4 * 60_000;
 
 type EmbedderToken = { token: string; expires: number };
 
-export function request_embedder_token(): Promise<EmbedderToken | null> {
+export function request_embedder_token(
+	probe = false
+): Promise<EmbedderToken | null> {
 	if (typeof window === "undefined" || window.self === window.top) {
 		return Promise.resolve(null);
 	}
@@ -63,7 +67,11 @@ export function request_embedder_token(): Promise<EmbedderToken | null> {
 				token?: unknown;
 				exp?: unknown;
 			};
-			if (data?.type !== INFERENCE_JWT_RESPONSE) return;
+			if (
+				data?.type !==
+				(probe ? INFERENCE_JWT_PROBE_RESPONSE : INFERENCE_JWT_RESPONSE)
+			)
+				return;
 			if (typeof data.token !== "string" || !data.token) return done(null);
 			done({
 				token: data.token,
@@ -75,7 +83,10 @@ export function request_embedder_token(): Promise<EmbedderToken | null> {
 		};
 		const timer = setTimeout(() => done(null), EMBEDDER_TOKEN_TIMEOUT_MS);
 		window.addEventListener("message", on_message);
-		window.parent.postMessage({ type: INFERENCE_JWT_REQUEST }, "*");
+		window.parent.postMessage(
+			{ type: probe ? INFERENCE_JWT_PROBE : INFERENCE_JWT_REQUEST },
+			"*"
+		);
 	});
 }
 
@@ -275,6 +286,11 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 			return;
 		}
 
+		void request_embedder_token(true).then((t) => {
+			if (!t || embedder) return;
+			embedder = t;
+			embedded = true;
+		});
 		status = "ready";
 	}
 
