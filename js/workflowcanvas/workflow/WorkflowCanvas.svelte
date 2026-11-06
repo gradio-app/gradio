@@ -2188,7 +2188,9 @@
 
 		if (
 			flatView.nodes.some((n) => n.source === "space" && n.space_id) &&
-			!auth.token
+			!auth.token &&
+			!(window as { supports_zerogpu_headers?: boolean })
+				.supports_zerogpu_headers
 		) {
 			showToast(
 				"Running as guest — GPU Spaces may hit quota limits. Sign in with HuggingFace for your own compute.",
@@ -2239,6 +2241,9 @@
 						server.call_space([spaceId, endpoint, argsJson, auth.token])
 				: undefined;
 
+		const can_stream =
+			flatView.nodes.some((n) => n.source === "model" && n.model_id) &&
+			!!(await auth.inferenceToken());
 		const callModelWithToken = server?.call_model
 			? async (
 					modelId: string,
@@ -2250,7 +2255,7 @@
 						modelId,
 						pipelineTag,
 						argsJson,
-						auth.token,
+						await auth.inferenceToken(),
 						provider ?? ""
 					])
 			: undefined;
@@ -2366,14 +2371,14 @@
 			callModelWithToken,
 			fetchDatasetWithToken,
 			callFnWithToken,
-			auth.token
-				? (modelId, content, provider, signal, onChunk, params) =>
+			can_stream
+				? async (modelId, content, provider, signal, onChunk, params) =>
 						stream_text_generation({
 							modelId,
 							content,
 							provider,
 							params,
-							hfToken: auth.token,
+							hfToken: await auth.inferenceToken(),
 							signal: signal ?? undefined,
 							onChunk
 						})
@@ -3125,6 +3130,12 @@
 							</div>
 						{/if}
 					</div>
+				{:else if auth.embedded}
+					<span
+						class="toolbar-user-chip"
+						title="Signed in by the page this workflow is embedded in: runs use your Hugging Face account."
+						>Signed in</span
+					>
 				{:else}
 					<HfAuthControl {auth} {onSpace} onsignin={signInPreservingEdits} />
 				{/if}
