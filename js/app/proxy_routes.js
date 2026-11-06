@@ -131,3 +131,24 @@ function extractUploadId(qs) {
 	}
 	return null;
 }
+
+/**
+ * The X-Forwarded-For value to send to Python: the incoming value with the
+ * connecting client's address appended, as any proxy does. Python sees every
+ * proxied request coming from this process, so uvicorn reads the client's
+ * address from this header instead. It trusts the header only from loopback
+ * and reads it from the right, so a client can't pick its own address by
+ * sending X-Forwarded-For itself.
+ *
+ * @param {string | undefined} existing - the incoming X-Forwarded-For value
+ * @param {string | undefined} remoteAddress - the connecting client's address
+ * @returns {string}
+ */
+export function appendForwardedFor(existing, remoteAddress) {
+	// An IPv4 client of a dual-stack socket shows up as ::ffff:a.b.c.d.
+	let address = remoteAddress || "unknown";
+	if (address.startsWith("::ffff:") && address.includes(".")) {
+		address = address.slice("::ffff:".length);
+	}
+	return existing ? `${existing}, ${address}` : address;
+}
