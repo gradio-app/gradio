@@ -346,13 +346,12 @@ class Worker:
             self.running[event_id] = running
         try:
             with caching.ProbeCache() if p["probe_cache"] else contextlib.nullcontext():
-                gr_request = protocol.restore_request(
-                    p["request"], self.lifespan_state()
-                )
                 output = await route_utils.call_process_api(
                     app=self.app,
                     body=body,
-                    gr_request=gr_request,
+                    gr_request=protocol.restore_request(
+                        p["request"], self.lifespan_state()
+                    ),
                     fn=fn,
                     root_path=p["root_path"],
                     record_history=False,
