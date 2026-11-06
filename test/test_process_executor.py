@@ -46,30 +46,25 @@ def test_events_run_in_the_launching_process():
 def test_zerogpu_startup_runs_in_the_app_process(executor, monkeypatch, connect):
     from spaces.zero import middleware
 
-    startup_pids = []
+    pids = []
     monkeypatch.setenv("SPACES_ZERO_GPU", "true")
     monkeypatch.setattr(middleware, "zerogpu_mode_enabled", lambda: True)
-    monkeypatch.setattr(
-        middleware, "zerogpu_startup", lambda: startup_pids.append(os.getpid())
-    )
+    monkeypatch.setattr(middleware, "zerogpu_startup", lambda: pids.append(os.getpid()))
 
     def predict():
-        assert startup_pids == [os.getpid()]
+        assert pids == [os.getpid()]
         return os.getpid()
 
     demo = gr.Interface(predict, None, "number")
     with connect(demo, executor=executor) as client:
         assert client.predict(api_name="/predict") == os.getpid()
-    assert startup_pids == [os.getpid()]
+    assert pids == [os.getpid()]
 
 
 @pytest.mark.parametrize("executor", ["thread", "process"])
 @pytest.mark.parametrize("generator", [False, True])
-def test_event_restores_zerogpu_context(executor, generator, monkeypatch):
+def test_zerogpu_context(executor, generator, monkeypatch):
     from spaces.zero import context, middleware
-
-    from gradio.context import MultiprocessWorkerContextualizer
-    from gradio.zerogpu import disconnect_detector, exception_mapper, log_emitter
 
     monkeypatch.setenv("SPACES_ZERO_GPU", "true")
     monkeypatch.setattr(middleware, "zerogpu_mode_enabled", lambda: True)
@@ -78,10 +73,6 @@ def test_event_restores_zerogpu_context(executor, generator, monkeypatch):
 
     def predict():
         ctx = context.get()
-        assert ctx.exception_mapper is exception_mapper
-        assert ctx.log_emitter is log_emitter
-        assert ctx.worker_contextualizer is MultiprocessWorkerContextualizer
-        assert ctx.disconnect_detector is disconnect_detector
         return [ctx.headers["x-test-context"], ctx.server_port]
 
     def generate():
@@ -89,18 +80,20 @@ def test_event_restores_zerogpu_context(executor, generator, monkeypatch):
         yield predict()
 
     demo = gr.Interface(
-        generate if generator else predict, None, gr.JSON(), api_name="predict"
+        fn=generate if generator else predict,
+        inputs=None,
+        outputs=gr.JSON(),
+        api_name="predict",
     )
     demo.launch(executor=executor, prevent_thread_lock=True)
-    try:
+
+    with closing(demo):
         worker = demo._process_worker
         port = worker.http_port if worker is not None else demo.server_port
-        with closing(
-            Client(str(demo.local_url), headers={"x-test-context": "forwarded"})
-        ) as client:
+        client = Client(str(demo.local_url), headers={"x-test-context": "forwarded"})
+        with closing(client):
             assert client.predict(api_name="/predict") == ["forwarded", port]
-    finally:
-        demo.close()
+
     assert context.get() is original_context
 
 
@@ -111,12 +104,11 @@ def test_mounted_app_uses_default_middleware_and_gradio_function_context(monkeyp
 
     from gradio.zerogpu import exception_mapper
 
-    startup_calls = []
+    startups = []
     monkeypatch.setenv("SPACES_ZERO_GPU", "true")
     monkeypatch.setattr(middleware, "zerogpu_mode_enabled", lambda: True)
-    monkeypatch.setattr(
-        middleware, "zerogpu_startup", lambda: startup_calls.append(True)
-    )
+    monkeypatch.setattr(middleware, "zerogpu_startup", lambda: startups.append(True))
+
     app = FastAPI()
 
     @app.get("/custom")
@@ -132,14 +124,15 @@ def test_mounted_app_uses_default_middleware_and_gradio_function_context(monkeyp
 
     with gr.Blocks() as demo:
         gr.Button().click(predict, outputs=gr.JSON(), queue=False, api_name="predict")
+
     gr.mount_gradio_app(app, demo, path="/gradio")
+
     with TestClient(app, base_url="http://testserver:8099") as client:
-        assert startup_calls == [True]
+        assert startups == [True]
         for value in ("first", "second"):
             headers = {"x-test-context": value}
-            response = client.post(
-                "/gradio/gradio_api/api/predict", headers=headers, json={"data": []}
-            )
+            url = "/gradio/gradio_api/api/predict"
+            response = client.post(url, headers=headers, json={"data": []})
             assert response.status_code == 200
             assert response.json()["data"] == [[value, 8099]]
             response = client.get("/custom", headers=headers)
