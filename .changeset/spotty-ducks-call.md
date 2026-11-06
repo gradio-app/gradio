@@ -1,6 +1,7 @@
 ---
 "@gradio/core": minor
 "@gradio/paramviewer": minor
+"@self/app": minor
 "gradio": minor
 ---
 
