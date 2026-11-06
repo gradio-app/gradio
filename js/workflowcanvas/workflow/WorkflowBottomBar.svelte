@@ -194,7 +194,7 @@
 				title="Add a component node — becomes an output once something is wired into it"
 			>
 				<PlusIcon />
-				Component
+				<span class="bb-input-label">Component</span>
 			</button>
 			{#if showComponentMenu}
 				<div class="input-type-menu">
@@ -216,7 +216,7 @@
 					title="Add Python function node"
 				>
 					<FunctionIcon />
-					Function
+					<span class="bb-input-label">Function</span>
 				</button>
 				{#if showFnMenu}
 					<div class="input-type-menu fn-menu">
@@ -540,6 +540,28 @@
 	:global(body:not(.dark)) .input-type-opt:hover {
 		background: #f0f1f5;
 		color: #1a1b25;
+	}
+
+	@media (max-width: 1280px) {
+		.bb-group-label {
+			display: none;
+		}
+		.bb-modality-group {
+			padding: 2px 4px;
+		}
+	}
+	@media (max-width: 1100px) {
+		.bb-label {
+			display: none;
+		}
+		.bb-btn {
+			padding: 6px 10px;
+		}
+	}
+	@media (max-width: 820px) {
+		.bb-input-label {
+			display: none;
+		}
 	}
 
 	@media (max-width: 640px), (pointer: coarse) {

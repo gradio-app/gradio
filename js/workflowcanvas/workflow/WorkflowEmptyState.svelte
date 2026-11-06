@@ -57,22 +57,14 @@
 
 	.template-grid {
 		display: grid;
-		grid-template-columns: repeat(3, 196px);
+		grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
 		gap: 12px;
-		max-width: 100%;
+		width: min(612px, calc(100% - 32px));
 		pointer-events: all;
 	}
 
-	@media (max-width: 720px) {
-		.template-grid {
-			grid-template-columns: repeat(2, 196px);
-		}
-	}
-
-	@media (max-width: 480px) {
-		.template-grid {
-			grid-template-columns: 196px;
-		}
+	.inline .template-grid {
+		width: 100%;
 	}
 
 	.template-card {
@@ -131,5 +123,11 @@
 		font-family: "Manrope", sans-serif;
 		font-size: 11px;
 		color: #252738;
+	}
+
+	@media (max-width: 640px) {
+		.template-card {
+			height: 96px;
+		}
 	}
 </style>

@@ -3044,9 +3044,10 @@
 				class="tool-btn api-btn"
 				onclick={() => (showApiPanel = true)}
 				title="View the API for this workflow"
+				aria-label="View API"
 			>
 				<CodeIcon />
-				View API
+				<span class="tool-btn-label">View API</span>
 			</button>
 			{#if bucketId}
 				<button
@@ -3081,7 +3082,8 @@
 				<button
 					class="tool-btn get-started-btn"
 					onclick={() => (showTemplatesOverlay = true)}
-					><LayoutIcon /> Templates</button
+					aria-label="Templates"
+					><LayoutIcon /> <span class="tool-btn-label">Templates</span></button
 				>
 			{/if}
 			{#if auth.status !== "checking"}
@@ -4099,10 +4101,17 @@
 		flex-direction: column;
 		gap: 20px;
 		box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
-		min-width: 680px;
-		max-width: calc(100% - 48px);
-		max-height: calc(100% - 48px);
+		width: min(680px, calc(100% - 32px));
+		max-height: calc(100% - 32px);
 		overflow-y: auto;
+		box-sizing: border-box;
+	}
+
+	@media (max-width: 640px) {
+		.templates-overlay-panel {
+			padding: 16px;
+			gap: 14px;
+		}
 	}
 
 	.templates-overlay-header {
