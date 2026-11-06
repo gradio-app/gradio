@@ -87,17 +87,17 @@ def maybe_setup_zerogpu_context(
             log_emitter=log_emitter,
             worker_contextualizer=MultiprocessWorkerContextualizer,
             disconnect_detector=disconnect_detector,
-            server_port=_get_server_port(blocks, request),
+            server_ports=filter(None, _get_server_ports(blocks, request)),
             headers=dict(request.headers) if request is not None else {},
         )
     ):
         yield
 
 
-def _get_server_port(blocks: Blocks, req: Request | fastapi.Request | None):
+def _get_server_ports(blocks: Blocks, req: Request | fastapi.Request | None):
     if (worker := blocks._process_worker) is not None:
-        return worker.http_port
+        return (worker.http_port, worker.ipc_port)
     http_request = req.request if isinstance(req, Request) else req
     if http_request is not None and (server := http_request.scope.get("server")):
-        return server[1]
-    return getattr(blocks, "server_port", None)
+        return (server[1],)
+    return (getattr(blocks, "server_port", None),)

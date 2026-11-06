@@ -132,6 +132,7 @@ class Worker:
         self.http_server: Any = None
         self.http_task: asyncio.Task | None = None
         self.http_port: int | None = None
+        self.ipc_port: int | None = None
         self.token = secrets.token_hex(16)
         self.loop: asyncio.AbstractEventLoop | None = None
         self.writer: asyncio.StreamWriter | None = None
@@ -503,6 +504,7 @@ class Worker:
         self.blocks._queue.set_server_app(self.app)
         self.blocks._queue.maybe_start_rpc()
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
+        self.ipc_port = server.sockets[0].getsockname()[1]
         http_port = await self.serve_http()
         self.http_port = http_port
         self.blocks.create_limiter()
@@ -510,7 +512,7 @@ class Worker:
             await self.blocks.run_extra_startup_events()
             self.app.startup_events_triggered = True
         address = {
-            "port": server.sockets[0].getsockname()[1],
+            "port": self.ipc_port,
             "token": self.token,
             "pid": os.getpid(),
             "http_port": http_port,
@@ -531,7 +533,7 @@ class Worker:
             "session_capacity": self.blocks.state_session_capacity,
             "replicas": self.replicas,
             "autoscale": self.autoscale,
-            "port": server.sockets[0].getsockname()[1],
+            "port": self.ipc_port,
             "token": self.token,
             "http_port": http_port,
             "http_token": self.http_token,

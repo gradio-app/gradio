@@ -73,7 +73,7 @@ def test_zerogpu_context(executor, generator, monkeypatch):
 
     def predict():
         ctx = context.get()
-        return [ctx.headers["x-test-context"], ctx.server_port]
+        return [ctx.headers["x-test-context"], sorted(ctx.server_ports)]
 
     def generate():
         yield predict()
@@ -89,10 +89,15 @@ def test_zerogpu_context(executor, generator, monkeypatch):
 
     with closing(demo):
         worker = demo._process_worker
-        port = worker.http_port if worker is not None else demo.server_port
+        if worker is not None:
+            assert worker.http_port is not None and worker.ipc_port is not None
+            assert worker.http_port != worker.ipc_port
+            ports = sorted([worker.http_port, worker.ipc_port])
+        else:
+            ports = [demo.server_port]
         client = Client(str(demo.local_url), headers={"x-test-context": "forwarded"})
         with closing(client):
-            assert client.predict(api_name="/predict") == ["forwarded", port]
+            assert client.predict(api_name="/predict") == ["forwarded", ports]
 
     assert context.get() is original_context
 
@@ -115,12 +120,12 @@ def test_mounted_app_uses_default_middleware_and_gradio_function_context(monkeyp
     def custom():
         ctx = context.get()
         assert ctx.exception_mapper is context.exception_mapper_default
-        return [ctx.headers["x-test-context"], ctx.server_port]
+        return [ctx.headers["x-test-context"], sorted(ctx.server_ports)]
 
     def predict():
         ctx = context.get()
         assert ctx.exception_mapper is exception_mapper
-        return [ctx.headers["x-test-context"], ctx.server_port]
+        return [ctx.headers["x-test-context"], sorted(ctx.server_ports)]
 
     with gr.Blocks() as demo:
         gr.Button().click(predict, outputs=gr.JSON(), queue=False, api_name="predict")
@@ -134,9 +139,9 @@ def test_mounted_app_uses_default_middleware_and_gradio_function_context(monkeyp
             url = "/gradio/gradio_api/api/predict"
             response = client.post(url, headers=headers, json={"data": []})
             assert response.status_code == 200
-            assert response.json()["data"] == [[value, 8099]]
+            assert response.json()["data"] == [[value, [8099]]]
             response = client.get("/custom", headers=headers)
-            assert response.json() == [value, 8099]
+            assert response.json() == [value, [8099]]
 
 
 def test_state_globals_and_closures_behave_as_with_threads():
