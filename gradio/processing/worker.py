@@ -28,7 +28,6 @@ from gradio.processing import protocol
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
-    from gradio.queueing import Queue
     from gradio.routes import App
     from gradio.server_messages import EventMessage
 
@@ -63,51 +62,6 @@ def custom_component_locations() -> dict[str, tuple[str, str]]:
                 os.path.dirname(os.path.abspath(module.__file__)),  # type: ignore[arg-type]
             )
     return locations
-
-
-class ForwardingQueue:
-    """Stands in for `blocks._queue` here, so gr.Info and gr.Progress reach the
-    gateway's queue, which owns the events and their connections."""
-
-    def __init__(self, worker: Worker, original: Queue):
-        self.worker = worker
-        self.original = original
-        self.server_app = worker.app
-        original.message_handler = self.forward_message
-        if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED") == "true":
-            original.start_rpc()
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self.original, name)
-
-    @property
-    def active_jobs(self) -> list[list[RunningEvent]]:
-        return [list(self.worker.running.values())]
-
-    def forward_message(self, event_id: str, message: EventMessage):
-        from gradio.server_messages import LogMessage, ProgressMessage
-
-        match message:
-            case LogMessage():
-                self.worker.send(
-                    (
-                        "log",
-                        event_id,
-                        {
-                            "log": message.log,
-                            "title": message.title,
-                            "level": message.level,
-                            "duration": message.duration,
-                            "visible": message.visible,
-                        },
-                    )
-                )
-            case ProgressMessage():
-                units = [unit.model_dump() for unit in message.progress_data]
-                self.worker.send(("progress", event_id, units))
-
-    def close(self):
-        pass
 
 
 class RunningEvent:
@@ -219,6 +173,10 @@ class Worker:
         self.shutting_down = False
         self.replica_failures = 0
         self.files = protocol.FileCopies()
+
+    def forward_message(self, event_id: str, message: EventMessage):
+        data = message.model_dump(exclude={"msg", "event_id"})
+        self.send((message.msg, event_id, data))
 
     def send(self, message: Any) -> None:
         """Writes a message from any thread (functions run in worker threads).
@@ -513,7 +471,7 @@ class Worker:
         """Reload mode swapped in the script's new Blocks: they run the events
         here, and the gateway serves their config."""
         self.blocks = demo
-        demo._process_worker = self  # type: ignore[attr-defined]
+        demo._process_worker = self
         try:
             description = self.description()
         except Exception as err:  # noqa: BLE001
@@ -543,6 +501,8 @@ class Worker:
         from gradio.data_classes import _StaticFiles
 
         self.loop = asyncio.get_running_loop()
+        self.blocks._queue.set_server_app(self.app)
+        self.blocks._queue.maybe_start_rpc()
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
         http_port = await self.serve_http()
         self.http_port = http_port
@@ -811,18 +771,15 @@ def serve(
     app: App | None = None,
     launch_kwargs: dict[str, Any] | None = None,
 ) -> tuple[App, str, str | None]:
-    original_queue = blocks._queue
+    queue = blocks._queue
     queue_kwargs = {
-        "max_size": original_queue.max_size,
-        "default_concurrency_limit": original_queue.default_concurrency_limit,
+        "max_size": queue.max_size,
+        "default_concurrency_limit": queue.default_concurrency_limit,
         "api_open": blocks.api_open,
-        "status_update_rate": "auto"
-        if original_queue.live_updates
-        else original_queue.update_intervals,
+        "status_update_rate": "auto" if queue.live_updates else queue.update_intervals,
     }
     worker = Worker(blocks, gateway_kwargs, queue_kwargs, app, launch_kwargs)
-    blocks._queue = ForwardingQueue(worker, original_queue)  # type: ignore[assignment]
-    blocks._process_worker = worker  # type: ignore[attr-defined]
+    blocks._process_worker = worker
     blocks.has_launched = True
     threading.Thread(
         target=asyncio.run, args=(worker.main(),), daemon=True, name="gradio-worker"
@@ -845,9 +802,7 @@ def serve(
                 )
         if failure is not None:
             worker.close()
-            blocks._queue = original_queue
-            original_queue.message_handler = None
-            blocks._process_worker = None  # type: ignore[attr-defined]
+            blocks._process_worker = None
             raise RuntimeError(failure)
 
     worker.start_reloader()
@@ -879,8 +834,7 @@ def serve_replica(blocks: Blocks, app: App | None, launch_kwargs: dict[str, Any]
         launch_kwargs,
         replica_fd=int(os.environ["GRADIO_PROCESS_REPLICA_FD"]),
     )
-    blocks._queue = ForwardingQueue(worker, blocks._queue)  # type: ignore[assignment]
-    blocks._process_worker = worker  # type: ignore[attr-defined]
+    blocks._process_worker = worker
     threading.Thread(
         target=asyncio.run, args=(worker.main(),), daemon=True, name="gradio-worker"
     ).start()

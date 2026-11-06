@@ -172,7 +172,6 @@ class Queue:
         self.server_app = None
         self.server_pid = os.getpid()
         self.rpc_queue: SimpleQueue[tuple[str, EventMessage]] | None = None
-        self.message_handler: Callable[[str, EventMessage], None] | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -257,10 +256,11 @@ class Queue:
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
-        if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED") == "true":
-            self.start_rpc()
+        self.maybe_start_rpc()
 
-    def start_rpc(self):
+    def maybe_start_rpc(self):
+        if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED") != "true":
+            return
         if self.rpc_queue is not None:
             return
         try:
@@ -276,9 +276,8 @@ class Queue:
         while True:
             event_id, message = self.rpc_queue.get()
             try:
-                self._send_message_rpc(event_id, message)
+                self.dispatch_event_message(event_id, message)
             except Exception:
-                print("Exception while calling _send_message_rpc from Queue RPC thread")
                 traceback.print_exc()
 
     def create_event_queue_for_fn(self, block_fn: BlockFunction):
@@ -910,7 +909,7 @@ class Queue:
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
-    def _send_message_rpc(
+    def dispatch_event_message(
         self,
         event_id: str,
         message: EventMessage,
@@ -918,13 +917,13 @@ class Queue:
         if os.getpid() != self.server_pid:
             if self.rpc_queue is None:
                 warnings.warn(
-                    "Sending queue event from child process without GRADIO_QUEUE_MULTIPROCESSING_ENABLED"
+                    "Queue event from forked process without GRADIO_QUEUE_MULTIPROCESSING_ENABLED"
                 )
-            else:
-                self.rpc_queue.put((event_id, message))
+                return
+            self.rpc_queue.put((event_id, message))
             return
-        if self.message_handler is not None:
-            self.message_handler(event_id, message)
+        if (worker := self.blocks._process_worker) is not None:
+            worker.forward_message(event_id, message)
             return
         events = [evt for job in self.active_jobs if job is not None for evt in job]
         for event in events:
@@ -953,7 +952,8 @@ class Queue:
                 desc=iterable.desc,
             )
             progress_data.append(progress_unit)
-        self._send_message_rpc(event_id, ProgressMessage(progress_data=progress_data))
+        message = ProgressMessage(progress_data=progress_data)
+        self.dispatch_event_message(event_id, message)
 
     def log_message(
         self,
@@ -971,7 +971,7 @@ class Queue:
             visible=visible,
             title=title,
         )
-        self._send_message_rpc(event_id, log_message)
+        self.dispatch_event_message(event_id, log_message)
 
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None

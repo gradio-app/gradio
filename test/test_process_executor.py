@@ -34,7 +34,9 @@ def test_events_run_in_the_launching_process():
     )
     with launched(demo) as client:
         assert client.predict("hi", api_name="/predict") == f"hi {os.getpid()}"
-        gateway = demo._process_worker.gateway  # type: ignore[union-attr]
+        worker = demo._process_worker
+        assert worker is not None and worker.gateway is not None
+        gateway = worker.gateway
         assert gateway.pid != os.getpid()
         assert gateway.poll() is None
     gateway.wait(timeout=10)
@@ -91,7 +93,7 @@ def test_event_restores_zerogpu_context(executor, generator, monkeypatch):
     )
     demo.launch(executor=executor, prevent_thread_lock=True)
     try:
-        worker = getattr(demo, "_process_worker", None)
+        worker = demo._process_worker
         port = worker.http_port if worker is not None else demo.server_port
         with closing(
             Client(str(demo.local_url), headers={"x-test-context": "forwarded"})
@@ -213,8 +215,10 @@ def test_streaming_logs_progress_and_errors():
         assert client.predict("c d", api_name="/chat") == "cd"
 
 
-@pytest.mark.parametrize("executor", ["thread", "process"])
-def test_forked_worker_logs_and_progress_reach_the_event_stream(executor, monkeypatch):
+@pytest.mark.parametrize(
+    "executors", [("thread",), ("process",), ("process", "thread", "process")]
+)
+def test_forked_worker_logs_and_progress_reach_the_event_stream(executors, monkeypatch):
     import multiprocessing
 
     from gradio.route_utils import API_PREFIX
@@ -245,8 +249,10 @@ def test_forked_worker_logs_and_progress_reach_the_event_stream(executor, monkey
         return "done"
 
     demo = gr.Interface(predict, None, gr.Textbox())
-    demo.launch(executor=executor, prevent_thread_lock=True)
-    try:
+    queue = demo._queue
+
+    def interact():
+        assert demo._queue is queue
         with httpx2.stream(
             "POST",
             f"{demo.local_url}{API_PREFIX.lstrip('/')}/queue/join",
@@ -274,9 +280,17 @@ def test_forked_worker_logs_and_progress_reach_the_event_stream(executor, monkey
         ]
         assert messages[-1]["success"]
         assert messages[-1]["output"]["data"] == ["done"]
-    finally:
-        received_progress.set()
-        demo.close()
+
+    for executor in executors:
+        received_progress.clear()
+        demo.launch(executor=executor, prevent_thread_lock=True)
+        try:
+            interact()
+        finally:
+            received_progress.set()
+            demo.close()
+        assert demo._queue is queue
+        assert demo._process_worker is None
 
 
 def test_event_concurrency_settings_reach_the_gateway():
@@ -401,15 +415,16 @@ def test_running_event_and_server_are_visible_to_the_app():
         blocks = LocalContext.blocks.get()
         assert blocks is not None and blocks.server is not None
         event_id = LocalContext.event_id.get()
-        events = [e for job in blocks._queue.active_jobs for e in job or []]
-        alive = [e.alive for e in events if e._id == event_id]
+        assert event_id is not None
+        assert blocks._process_worker is not None
+        alive = blocks._process_worker.running[event_id].alive
         return f"{alive} {isinstance(blocks.server.config.port, int)}"
 
     with gr.Blocks() as demo:
         t = gr.Textbox()
         gr.Button().click(fn, None, t, api_name="fn")
     with launched(demo) as client:
-        assert client.predict(api_name="/fn") == "[True] True"
+        assert client.predict(api_name="/fn") == "True True"
 
 
 def test_oauth_login_reaches_the_app_process():
@@ -500,7 +515,9 @@ def test_server_websockets_are_relayed():
         with connect(url.replace("http", "ws", 1) + "ws") as websocket:
             websocket.send("hi")
             assert websocket.recv() == f"hi {os.getpid()}"
-        port = app.get_blocks()._process_worker.http_port  # type: ignore[attr-defined]
+        worker = app.get_blocks()._process_worker
+        assert worker is not None
+        port = worker.http_port
         with pytest.raises(InvalidStatus):
             connect(f"ws://127.0.0.1:{port}/ws")
     finally:
@@ -532,12 +549,12 @@ def test_lifespan_runs_before_events_on_their_loop():
 def test_launch_again_keeps_the_running_server():
     demo = gr.Interface(lambda x: x, "textbox", "textbox")
     _, first_url, _ = demo.launch(executor="process", prevent_thread_lock=True)
-    worker = demo._process_worker  # type: ignore[attr-defined]
+    worker = demo._process_worker
     assert worker is not None and worker.gateway is not None
     try:
         _, second_url, _ = demo.launch(executor="process", prevent_thread_lock=True)
         assert second_url == first_url
-        assert demo._process_worker is worker  # type: ignore[attr-defined]
+        assert demo._process_worker is worker
     finally:
         demo.close()
     worker.gateway.wait(timeout=10)
@@ -964,8 +981,11 @@ def test_gateway_module_serves_routes_and_middleware(executor, tmp_path, monkeyp
     app.mount("/site", StaticFiles(directory=tmp_path / "site", html=True))
     _, url, _ = app.launch(executor=executor, prevent_thread_lock=True)
     try:
-        worker = getattr(app.get_blocks(), "_process_worker", None)
-        landing_pid = worker.gateway.pid if worker else os.getpid()
+        if (worker := app.get_blocks()._process_worker) is not None:
+            assert worker.gateway is not None
+            landing_pid = worker.gateway.pid
+        else:
+            landing_pid = os.getpid()
         landing = httpx2.get(url)
         assert landing.text == f"<p>welcome {landing_pid}</p>"
         for path in ("", "config", "here", "routed/pid"):
@@ -1382,7 +1402,8 @@ def test_failed_events_do_not_leak_their_sessions():
         for _ in range(5):
             with pytest.raises(Exception):
                 client.predict("x", api_name="/fail")
-        assert demo._process_worker.event_sessions == {}  # type: ignore[union-attr]
+        assert demo._process_worker is not None
+        assert demo._process_worker.event_sessions == {}
 
 
 def test_processes_route_needs_login():

@@ -42,6 +42,9 @@ def disconnect_detector():
     blocks = LocalContext.blocks.get(None)
     event_id = LocalContext.event_id.get(None)
     if blocks is not None and event_id is not None:
+        if (worker := blocks._process_worker) is not None:
+            event = worker.running.get(event_id)
+            return event is not None and not event.alive
         jobs = blocks._queue.active_jobs
         for event in [evt for job in jobs if job is not None for evt in job]:
             if event._id == event_id:
@@ -92,7 +95,7 @@ def maybe_setup_zerogpu_context(
 
 
 def _get_server_port(blocks: Blocks, req: Request | fastapi.Request | None):
-    if (worker := getattr(blocks, "_process_worker", None)) is not None:
+    if (worker := blocks._process_worker) is not None:
         return worker.http_port
     http_request = req.request if isinstance(req, Request) else req
     if http_request is not None and (server := http_request.scope.get("server")):

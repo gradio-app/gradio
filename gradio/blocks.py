@@ -106,6 +106,7 @@ from gradio.zerogpu import maybe_setup_zerogpu_middleware
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
     from gradio.mcp import GradioMCPServer
+    from gradio.processing.worker import Worker
     from gradio.renderable import Renderable
 
 
@@ -1360,6 +1361,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
 
+        self._process_worker: Worker | None = None
         self.limiter = None
         self.encrypt = False
         self.mcp_server_obj: None | GradioMCPServer = None
@@ -3314,7 +3316,7 @@ Received inputs:
                         "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 launch_kwargs["share"] = True
-            if getattr(self, "_process_worker", None) is not None and self.is_running:
+            if self._process_worker is not None and self.is_running:
                 if not quiet:
                     print(
                         "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
@@ -3332,7 +3334,8 @@ Received inputs:
                     launch_kwargs=launch_kwargs,
                 )
                 if not quiet:
-                    worker = self._process_worker  # type: ignore[attr-defined]
+                    worker = self._process_worker
+                    assert worker is not None and worker.gateway is not None  # noqa: S101
                     self._print_running(
                         str(self.local_url).rstrip("/"),
                         self.share_url,
@@ -4167,11 +4170,9 @@ Received inputs:
         """
         Closes the Interface that was launched and frees the port.
         """
-        worker = getattr(self, "_process_worker", None)
+        worker = self._process_worker
         if worker is not None:
             worker.close()
-            self._queue = getattr(self._queue, "original", self._queue)
-            self._queue.message_handler = None
             self._process_worker = None
             self.server = None
             self.is_running = False
@@ -4209,7 +4210,7 @@ Received inputs:
                 time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
-            if getattr(self, "_process_worker", None) is not None:
+            if self._process_worker is not None:
                 self.close()
             if self.server:
                 self.server.close()
