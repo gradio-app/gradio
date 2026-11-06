@@ -1,3 +1,5 @@
+import { post_message } from "./data";
+
 const ZEROGPU_HEADERS_MESSAGE = "supports-zerogpu-headers";
 
 let zerogpu_handshake_initialized = false;
@@ -18,6 +20,38 @@ export function get_zerogpu_origin(hostname: string): string | null {
 		return "https://huggingface.co";
 	}
 	return null;
+}
+
+/** Resolves with `fallback` if `promise` has not settled within `ms`. */
+export function with_timeout<T, F>(
+	promise: Promise<T>,
+	ms: number,
+	fallback: F
+): Promise<T | F> {
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const timeout = new Promise<F>((res) => {
+		timer = setTimeout(() => res(fallback), ms);
+	});
+	return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+/** How long a WebRTC offer waits for the ZeroGPU headers. */
+export const ZEROGPU_HEADERS_TIMEOUT_MS = 5000;
+
+/**
+ * Asks the Hugging Face page that embeds this Space for the visitor's ZeroGPU
+ * headers, so that the Spaces proxy can attribute GPU usage to the visitor.
+ * Resolves with null outside a ZeroGPU-capable iframe.
+ */
+export function get_zerogpu_headers(): Promise<Record<string, string> | null> {
+	if (typeof window === "undefined" || typeof document === "undefined") {
+		return Promise.resolve(null);
+	}
+	const origin = get_zerogpu_origin(window.location.hostname);
+	if (window.parent == window || !origin || !window.supports_zerogpu_headers) {
+		return Promise.resolve(null);
+	}
+	return post_message<Record<string, string>>("zerogpu-headers", origin);
 }
 
 export function initialize_zerogpu_handshake(): void {

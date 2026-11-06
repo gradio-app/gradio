@@ -660,6 +660,7 @@ class TestQueuedEventsAndStreams:
         event = SimpleNamespace(
             data=SimpleNamespace(client_state=carried),
             signal=_asyncio.Event(),
+            fn=SimpleNamespace(batch=False),
             streaming=True,
             session_hash="s",
         )

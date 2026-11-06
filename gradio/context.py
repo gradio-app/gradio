@@ -10,6 +10,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.helpers import Progress
     from gradio.renderable import Renderable
     from gradio.routes import Request
+    from gradio.webrtc.utils import StreamNotifier
 
 
 class Context:
@@ -28,6 +29,8 @@ class LocalContext:
     event_id: ContextVar[str | None] = ContextVar("event_id")
     request: ContextVar[Request | None] = ContextVar("request")
     progress: ContextVar[Progress | None] = ContextVar("progress")
+    # Set while a gr.WebRTC stream handler runs, which has no queued event
+    stream_notifier: ContextVar[StreamNotifier | None] = ContextVar("stream_notifier")
     key_to_id_map: ContextVar[dict[int | str | tuple[str | int, ...], int] | None] = (
         ContextVar("key_to_id_map")
     )

@@ -2260,6 +2260,7 @@ Received inputs:
         predictions: list | dict,
         state: SessionState | None,
     ) -> list[Any]:
+        from gradio.components.api_component import Api
         from gradio.profiling import trace_phase
 
         state = state or SessionState(self)
@@ -2328,7 +2329,15 @@ Received inputs:
                         k: v for k, v in prediction_value.items() if k in keys
                     }
                     prediction_value["__type__"] = "update"
-                if utils.is_prop_update(prediction_value):
+                if (
+                    isinstance(block, Api)
+                    and isinstance(prediction_value, dict)
+                    and prediction_value == skip()
+                ):
+                    # The output of gr.api() or gr.Server has no properties to
+                    # update, so gr.skip() leaves it as it is
+                    pass
+                elif utils.is_prop_update(prediction_value):
                     # The output block may be absent from the session config if
                     # the app was hot-reloaded mid-run and this component was
                     # added by the reload; fall back to the block's own args.
@@ -2750,13 +2759,15 @@ Received inputs:
                         )
                         # Diff state serves the later chunks of a run, which
                         # can only be fetched under an event id. A call without
-                        # one gets full values, which is what its clients
-                        # expect.
+                        # one, or a stream's call (never continued), gets full
+                        # values, which is what its clients expect.
                         data = self.handle_streaming_diffs(
                             block_fn,
                             data,
                             session_hash=session_hash,
-                            run=run if event_id is not None else None,
+                            run=run
+                            if event_id is not None and block_fn.continues_runs
+                            else None,
                             final=not is_generating,
                             simple_format=simple_format,
                         )

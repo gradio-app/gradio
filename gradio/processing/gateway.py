@@ -14,12 +14,14 @@ import asyncio
 import contextlib
 import inspect
 import itertools
+import math
 import os
 import pickle
 import signal
 import sys
 import threading
 import time
+from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
@@ -28,9 +30,15 @@ from starlette.requests import Request
 from gradio.processing import protocol
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
     from gradio.blocks import BlockFunction, Blocks
     from gradio.data_classes import PredictBodyInternal
     from gradio.routes import App
+
+# Seconds the page's close of a stream waits for the app's process to end it,
+# before the queue ends the event itself
+CLOSE_STREAM_TIMEOUT = 5
 
 
 class Link:
@@ -57,6 +65,9 @@ class Link:
         self.running = 0
         self.slots: dict[str, asyncio.Semaphore] = {}
         self.held: dict[str, asyncio.Semaphore] = {}
+        # Events whose function keeps working here between its calls (a
+        # gr.WebRTC stream's media), until the queue ends them
+        self.serving_events: set[str] = set()
         self.started: dict[str, float] = {}
         self.completed = 0
         self.draining = False
@@ -99,8 +110,13 @@ class Link:
     @property
     def active(self) -> bool:
         """Whether an event is running here, or a generator or stream is
-        between steps, holding its slot here."""
-        return self.running > 0 or bool(self.started) or bool(self.held)
+        between steps, holding its slot here or working here meanwhile."""
+        return (
+            self.running > 0
+            or bool(self.started)
+            or bool(self.held)
+            or bool(self.serving_events)
+        )
 
     @property
     def responsive(self) -> bool:
@@ -141,6 +157,10 @@ class Link:
                 future.set_exception(protocol.restore_error(message[2]))
         elif kind in ("log", "progress") and self.server_loop is not None:
             self.server_loop.call_soon_threadsafe(self.pool.deliver, message)
+        elif kind == "event_action" and self.server_loop is not None:
+            self.server_loop.call_soon_threadsafe(
+                self.pool.apply_event_actions, self, message[1], [message[2]]
+            )
         elif kind == "replica":
             self.pool.add_replica(message[1])
         elif kind == "replica_failed":
@@ -197,6 +217,19 @@ class Link:
         self.loop.call_soon_threadsafe(fail)
 
 
+@dataclass(eq=False)
+class Placement:
+    """A stream event's process: the one its first call went to. Its later
+    calls go there too when its function keeps working there between calls
+    (`works_here`, gr.WebRTC) or holds a slot there between chunks."""
+
+    link: Link
+    works_here: bool
+    session_hash: str | None = None
+    # The WebRTC stream that its first call admitted, if any
+    stream_id: str | None = None
+
+
 class Pool:
     """The app's processes: the one that launched the app, and its replicas,
     which re-ran its script. A session stays on the process that first served
@@ -213,7 +246,13 @@ class Pool:
         self.lock = threading.Lock()
         self.limits: dict[int, int | None] = {}
         self.reserved: dict[str, tuple[Link, str]] = {}
-        self.streams: dict[str, Link] = {}
+        # Stream events from their first call until the queue ends them, and
+        # the same placements by the WebRTC stream they admitted
+        self.placements: dict[str, Placement] = {}
+        self.stream_placements: dict[str, Placement] = {}
+        # The streams that work in a process for each session: the session
+        # stays with that process while they run
+        self.session_streams: dict[str, list[Placement]] = {}
         self.group_limits: dict[str, int] = {}
         self.expected = 1
         self.autoscaler: Any = None
@@ -249,9 +288,21 @@ class Pool:
             if link in self.links:
                 self.links.remove(link)
         link.fail_pending(RuntimeError("A replica of the app exited"))
+        if link.server_loop is not None:
+            link.server_loop.call_soon_threadsafe(self.wake_streams_of, link)
         self.scale_limits()
         if self.autoscaler is not None:
             self.autoscaler.replica_lost(link)
+
+    def wake_streams_of(self, link: Link) -> None:
+        """`link`'s process exited: the gr.WebRTC streams that ran there get
+        their next call now, which fails them (see `placed`). Nothing else
+        would wake them: their keepalive came from that process."""
+        queue = self.blocks._queue
+        for event_id, placement in list(self.placements.items()):
+            event = queue.event_ids_to_events.get(event_id)
+            if placement.link is link and placement.works_here and event is not None:
+                event.signal.set()
 
     def replica_failed(self) -> None:
         self.expected = max(self.expected - 1, 1)
@@ -292,9 +343,14 @@ class Pool:
     def _holder(self, session_hash: str | None) -> Link | None:
         """The process that holds `session_hash`. Each process keeps as many
         sessions as its state holder does, so a session is forgotten here when
-        its process has let go of its state."""
+        its process has let go of its state. A session with a gr.WebRTC stream
+        stays with the stream's process until the stream ends, even through a
+        drain: its inputs and signalling must reach the stream."""
         if not session_hash:
             return None
+        for placement in self.session_streams.get(session_hash, []):
+            if not placement.link.closed:
+                return placement.link
         for link in self.links:
             if session_hash in link.sessions:
                 link.sessions[session_hash] = True
@@ -305,6 +361,18 @@ class Pool:
         """The process that holds `session_hash`, or else the primary."""
         with self.lock:
             return self._holder(session_hash) or self.primary
+
+    def for_stream(self, stream_id: Any) -> Link | None:
+        """The process running the WebRTC stream `stream_id`, which may no
+        longer hold its session (e.g. after a drain)."""
+        placement = (
+            self.stream_placements.get(stream_id)
+            if isinstance(stream_id, str)
+            else None
+        )
+        if placement is None or placement.link.closed:
+            return None
+        return placement.link
 
     def for_session(self, session_hash: str | None) -> Link:
         with self.lock:
@@ -334,7 +402,10 @@ class Pool:
             if getattr(fn, "rendered_in_id", None) == render_id:
                 del blocks_config.fns[fn_id]
         count = max(len(self.serving()), 1)
-        for fn_id, fn in event_table(render, fn_settings, blocks_config.blocks).items():
+        table = event_table(
+            render, fn_settings, blocks_config.blocks, self.close_stream
+        )
+        for fn_id, fn in table.items():
             fn.rendered_in_id = render_id  # type: ignore[attr-defined]
             limit = fn.concurrency_limit
             limit = queue.default_concurrency_limit if limit == "default" else limit
@@ -388,25 +459,127 @@ class Pool:
             self.reserved[event._id] = (link, fn.concurrency_id)
             return True
 
-    def with_slot(self, event_id: str | None, session_hash: str | None) -> Link | None:
-        """The process where the stream `event_id` holds a slot between
-        chunks, which is where its later chunks go. Each chunk keeps the
-        stream's session fresh there, as `for_session` would."""
-        link = self.streams.get(event_id) if event_id is not None else None
-        if link is None or link.closed:
+    def place(
+        self, event_id: str, link: Link, works_here: bool, session_hash: str | None
+    ) -> None:
+        """The first call of the stream event `event_id` goes to `link`."""
+        placement = Placement(link, works_here, session_hash)
+        self.placements[event_id] = placement
+        if works_here:
+            link.serving_events.add(event_id)
+            if session_hash:
+                with self.lock:
+                    self.session_streams.setdefault(session_hash, []).append(placement)
+
+    def placed(self, event_id: str | None, session_hash: str | None) -> Link | None:
+        """Where a later call of the stream event `event_id` goes, if it has
+        to go back to its first call's process (see `Placement`). Each call
+        keeps the stream's session fresh there, as `for_session` would, unless
+        the process is being retired (its sessions move on once the stream
+        ends). A stream whose process exited is over: its media was there."""
+        placement = self.placements.get(event_id) if event_id is not None else None
+        if placement is None:
             return None
-        if session_hash:
+        link = placement.link
+        if link.closed:
+            if placement.works_here:
+                from gradio.exceptions import Error
+
+                raise Error("The app's process that ran this stream has stopped.")
+            return None
+        if not placement.works_here and event_id not in link.held:
+            return None
+        if session_hash and not link.draining:
             with self.lock:
                 link.sessions[session_hash] = True
         return link
 
+    def follow(self, event_id: str | None, link: Link) -> None:
+        """A call of a plain stream went to `link`, e.g. because the process of
+        its earlier calls exited: the slot it takes there is released when the
+        stream ends."""
+        placement = self.placements.get(event_id) if event_id is not None else None
+        if placement is not None and not placement.works_here:
+            placement.link = link
+
+    def stream_admitted(self, event_id: str, stream_id: str) -> None:
+        placement = self.placements.get(event_id)
+        if placement is not None:
+            placement.stream_id = stream_id
+            self.stream_placements[stream_id] = placement
+
     def end_event(self, event: Any) -> None:
         """The queue is done with `event`: a stream gives back the slot that it
-        held between chunks. A generator's goes back when it is closed."""
-        link = self.streams.pop(event._id, None)
-        if link is not None:
-            link.release(event._id)
-            self.check_drained(link)
+        held between chunks (a generator's goes back when it is closed), and a
+        process that works for it between its calls is told."""
+        placement = self.placements.pop(event._id, None)
+        if placement is None:
+            return
+        link = placement.link
+        link.release(event._id)
+        link.serving_events.discard(event._id)
+        stream_id = placement.stream_id
+        if stream_id is not None and self.stream_placements.get(stream_id) is placement:
+            del self.stream_placements[stream_id]
+        session_hash = placement.session_hash
+        if session_hash in self.session_streams:
+            with self.lock:
+                streams = self.session_streams[session_hash]
+                if placement in streams:
+                    streams.remove(placement)
+                if not streams:
+                    del self.session_streams[session_hash]
+        if placement.works_here and not link.closed:
+            link.send(("event_ended", event._id))
+        self.check_drained(link)
+
+    def apply_event_actions(self, link: Link, event_id: str, actions: list) -> None:
+        """What a stream's function in `link`'s process asked of the queue (see
+        `queueing.EventHandle`). Too late once the queue has ended the event:
+        the process is told so instead."""
+        if not actions:
+            return
+        event = self.blocks._queue.event_ids_to_events.get(event_id)
+        if event is None or event_id not in self.placements:
+            link.send(("event_ended", event_id))
+            return
+        for action in actions:
+            if action == "wake":
+                event.signal.set()
+            elif action == "disable_time_limit":
+                event.run_time = -math.inf
+            elif action == "finish":
+                event.closed = True
+
+    async def close_stream(self, event_id: str) -> bool:
+        """`BlockFunction.close_stream` in the gateway, for a stream whose
+        function works in an app's process: asks it there. False, so that the
+        queue ends the event itself, when no process works for it or the
+        process does not answer."""
+        placement = self.placements.get(event_id)
+        event = self.blocks._queue.event_ids_to_events.get(event_id)
+        if placement is None or not placement.works_here or event is None:
+            return False
+        if placement.link.closed:
+            # Already woken by `wake_streams_of`: its next call fails it, which
+            # a close here would turn into a success
+            return True
+        try:
+            return bool(
+                await asyncio.wait_for(
+                    placement.link.call(
+                        "close_stream",
+                        {
+                            "event_id": event_id,
+                            "session_hash": event.session_hash,
+                            "fn_index": event.fn._id,
+                        },
+                    ),
+                    CLOSE_STREAM_TIMEOUT,
+                )
+            )
+        except Exception:  # noqa: BLE001 -- the queue ends the event instead
+            return False
 
     def process_limit(self, fn: BlockFunction) -> int | None:
         """How many events of `fn`'s concurrency group one process runs at
@@ -540,15 +713,25 @@ async def forward_event(
     from gradio.client_state import get_sealer
 
     session_state, iterator = route_utils.restore_session_state(app=app, body=body)
+    if not fn.continues_runs:
+        iterator = None
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
     streaming = fn.connection == "stream"
+    # An event is counted once, however many calls a stream makes
+    counted_id = (
+        body.event_id
+        if fn.continues_runs or queue_event_id not in pool.placements
+        else None
+    )
     link = (
         iterator.link
         if isinstance(iterator, RemoteIterator)
-        else pool.with_slot(queue_event_id if streaming else None, body.session_hash)
+        else pool.placed(queue_event_id if streaming else None, body.session_hash)
         or pool.for_session(body.session_hash)
     )
+    if streaming:
+        pool.follow(queue_event_id, link)
     probing = caching._probe_mode_active.get()
     limit = (
         pool.process_limit(fn)
@@ -568,8 +751,20 @@ async def forward_event(
             pool.reserved.pop(queue_event_id or "", None)
             await candidate.acquire()
             slot = candidate
-        if iterator is None and body.event_id is not None:
-            link.started.setdefault(body.event_id, time.monotonic())
+        if iterator is None and counted_id is not None:
+            link.started.setdefault(counted_id, time.monotonic())
+        if (
+            streaming
+            and queue_event_id is not None
+            and queue_event_id not in pool.placements
+        ):
+            # A function that can end its stream itself works between calls
+            pool.place(
+                queue_event_id,
+                link,
+                works_here=fn.close_stream is not None,
+                session_hash=body.session_hash,
+            )
         sent_body = body.model_dump(exclude={"request", "client_state"})
         if protocol.files_by_value():
             sent_body["data"] = link.files.pack(sent_body["data"])
@@ -584,9 +779,17 @@ async def forward_event(
                 "request": protocol.portable_request(gr_request),
                 "root_path": root_path,
                 "probe_cache": probing,
+                "concurrency_limit": pool.process_limit(fn),
             },
         )
         returned = True
+        actions = output.pop("event_actions", None)
+        stream_id = output.pop("admitted_stream", None)
+        event_id = queue_event_id or body.event_id
+        if stream_id and queue_event_id:
+            pool.stream_admitted(queue_event_id, stream_id)
+        if actions and event_id:
+            pool.apply_event_actions(link, event_id, actions)
         if protocol.files_by_value():
             from gradio.utils import get_upload_folder
 
@@ -602,10 +805,10 @@ async def forward_event(
             slot.release()
         elif iterator is not None:
             link.release(queue_event_id)
-        if returned and body.event_id is not None:
+        if returned and body.event_id is not None and fn.continues_runs:
             link.send(("close_iterator", body.event_id))
-        if body.event_id is not None:
-            pool.finished(link, body.event_id, success=False)
+        if counted_id is not None:
+            pool.finished(link, counted_id, success=False)
         raise
     finally:
         link.running -= 1
@@ -614,16 +817,14 @@ async def forward_event(
     if slot is not None:
         if (has_iterator or streaming) and queue_event_id is not None:
             link.held[queue_event_id] = slot
-            if streaming and not has_iterator:
-                pool.streams[queue_event_id] = link
         else:
             slot.release()
     elif not has_iterator and not streaming:
         link.release(queue_event_id)
-    if not has_iterator and body.event_id is not None:
-        pool.finished(link, body.event_id, success=True)
+    if not has_iterator and counted_id is not None:
+        pool.finished(link, counted_id, success=True)
         pool.check_drained(link)
-    if body.event_id is not None:
+    if body.event_id is not None and fn.continues_runs:
         app.iterators[body.event_id] = (  # type: ignore[assignment]
             RemoteIterator(link, body.event_id) if has_iterator else None
         )
@@ -693,9 +894,15 @@ def make_stub(fn_id: int, generator: bool = False, cached: bool = False):
     return stub
 
 
-def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
+def event_table(
+    config: dict,
+    fn_settings: dict,
+    blocks: dict,
+    close_stream: Callable[[str], Awaitable[bool]] | None = None,
+) -> dict:
     """The app's events, for the gateway's queue, from its config and the
-    settings the config does not carry."""
+    settings the config does not carry. `close_stream` asks the app's process
+    to end a stream, for the functions that can (see `Pool.close_stream`)."""
     from gradio.block_function import BlockFunction
 
     pages = {
@@ -751,6 +958,8 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
             validator=make_stub(dep["id"]) if settings["has_validator"] else None,
             input_parameter_names=settings["parameter_names"],
         )
+        if settings.get("closes_streams") and close_stream is not None:
+            fns[dep["id"]].close_stream = close_stream
     return fns
 
 
@@ -781,7 +990,11 @@ def configure(blocks: Blocks, description: dict) -> None:
     }
     blocks.default_config.blocks = app_blocks
     blocks.default_config.fns = event_table(
-        config, description["fn_settings"], app_blocks
+        config,
+        description["fn_settings"],
+        app_blocks,
+        # Looked up when called: the pool is created after the first configure
+        lambda event_id: blocks._process_pool.close_stream(event_id),  # type: ignore[attr-defined]
     )
     blocks.default_config.fn_id = max(blocks.fns, default=-1) + 1
     blocks.app_id = config["app_id"]
@@ -904,6 +1117,9 @@ FORWARDED_ROUTES = [
     ("/mcp/{rest:path}", None),
 ]
 
+# WebRTC signalling, forwarded to the process running the stream it names
+SIGNALLING_ROUTES = ["/webrtc/offer", "/webrtc/rtc_configuration"]
+
 
 async def logged_in_user(app: App, request: Request) -> str | None:
     """Who `launch(auth=...)` logged in, by the gateway's own login cookie.
@@ -919,17 +1135,25 @@ async def logged_in_user(app: App, request: Request) -> str | None:
 async def session_of(request: Request) -> str | None:
     """The session a forwarded request is for, so that it reaches the process
     that holds it."""
-    import json
-
     session_hash = request.path_params.get("session_hash") or request.query_params.get(
         "session_hash"
     )
-    if session_hash is None and request.headers.get("content-type", "").startswith(
-        "application/json"
-    ):
-        with contextlib.suppress(ValueError, AttributeError):
-            session_hash = json.loads(await request.body()).get("session_hash")
+    if session_hash is None:
+        session_hash = (await json_body(request)).get("session_hash")
     return session_hash if isinstance(session_hash, str) else None
+
+
+async def json_body(request: Request) -> dict:
+    """A JSON request body as a dict ({} otherwise). The body is read once and
+    kept, so the request can still be forwarded."""
+    import json
+
+    if not request.headers.get("content-type", "").startswith("application/json"):
+        return {}
+    with contextlib.suppress(ValueError):
+        body = json.loads(await request.body())
+        return body if isinstance(body, dict) else {}
+    return {}
 
 
 def add_forwarded_routes(
@@ -968,6 +1192,14 @@ def add_forwarded_routes(
     async def to_session(request: Request):
         return await send(request, pool.holding(await session_of(request)))
 
+    async def to_stream(request: Request):
+        body = await json_body(request)
+        session_hash = body.get("session_hash")
+        link = pool.for_stream(body.get("webrtc_id")) or pool.holding(
+            session_hash if isinstance(session_hash, str) else None
+        )
+        return await send(request, link)
+
     async def websocket_to_app(websocket):
         await relay(websocket, f"ws://127.0.0.1:{port}", token)
 
@@ -995,6 +1227,12 @@ def add_forwarded_routes(
         )
         for path, methods in FORWARDED_ROUTES
     ]
+    routes.extend(
+        APIRoute(
+            API_PREFIX + path, to_stream, methods=["POST"], include_in_schema=False
+        )
+        for path in SIGNALLING_ROUTES
+    )
     routes.append(
         APIRoute(
             API_PREFIX + "/processes",

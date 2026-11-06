@@ -431,6 +431,8 @@ async def call_process_api(
         )
 
     session_state, iterator = restore_session_state(app=app, body=body)
+    if not fn.continues_runs:
+        iterator = None
     # A batch mixes events from different sessions, so its state stays on the server
     client_state = body.client_state if not body.batched else None
     if client_state is not None and not fn.is_validator_function:
@@ -474,13 +476,14 @@ async def call_process_api(
                     oauth_token=oauth_token_from_body(body),
                 )
         iterator = output.pop("iterator", None)
-        if event_id is not None:
+        if event_id is not None and fn.continues_runs:
             app.iterators[event_id] = iterator  # type: ignore
         elif iterator is not None:
-            # Only the queue continues a generator, and it always carries an
-            # event id, so nobody will come back for this run: its streams are
-            # completed here, or they hold an encoder for the session's lifetime
-            # with the tail of the only chunk it will ever get still inside.
+            # Only the queue continues a generator, and never a stream's call
+            # (see `continues_runs`), so nobody will come back for
+            # this run: its streams are completed here, or they hold an encoder
+            # for the session's lifetime with the tail of the only chunk it
+            # will ever get still inside.
             await app.get_blocks()._finish_run_streams(session_hash, iterator)
         if isinstance(output, Error):
             raise output

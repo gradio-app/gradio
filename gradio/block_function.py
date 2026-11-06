@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from typing import TYPE_CHECKING, Literal
 
 from . import utils
@@ -114,6 +114,11 @@ class BlockFunction:
         self.time_limit = time_limit
         self.stream_every = stream_every
         self.connection = connection
+        # For a connection="stream" function that ends a running stream itself
+        # when the page closes it, given the queue event's id. Returns False
+        # to leave it to the queue. With executor="process", the gateway's
+        # copy asks the app's process.
+        self.close_stream: Callable[[str], bool | Awaitable[bool]] | None = None
         self.event_specific_args = event_specific_args
         self.component_prop_inputs = component_prop_inputs or []
         self.input_keyword_names = input_keyword_names or []
@@ -121,6 +126,13 @@ class BlockFunction:
         self.key = key
 
         self.spaces_auto_wrap()
+
+    @property
+    def continues_runs(self) -> bool:
+        """Whether a later call of an event can continue what an earlier call
+        of it started (a generator the queue steps through). Each call of a
+        stream is a run of its own, though it carries the event's id."""
+        return self.connection != "stream"
 
     def spaces_auto_wrap(self):
         if spaces is None:
