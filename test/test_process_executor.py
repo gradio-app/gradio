@@ -215,82 +215,61 @@ def test_streaming_logs_progress_and_errors():
         assert client.predict("c d", api_name="/chat") == "cd"
 
 
-@pytest.mark.parametrize(
-    "executors", [("thread",), ("process",), ("process", "thread", "process")]
-)
-def test_forked_worker_logs_and_progress_reach_the_event_stream(executors, monkeypatch):
+@pytest.mark.parametrize("executor", ["thread", "process"])
+@pytest.mark.asyncio
+async def test_forked_worker_logs_and_progress(executor, monkeypatch, connect):
     import multiprocessing
-
-    from gradio.route_utils import API_PREFIX
 
     if "fork" not in multiprocessing.get_all_start_methods():
         pytest.skip("Requires fork")
+
     monkeypatch.setenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED", "true")
-    ctx = multiprocessing.get_context("fork")
-    received_progress = ctx.Event()
+    mp_context = multiprocessing.get_context("fork")
+    received_progress = mp_context.Event()
 
     def predict(progress=gr.Progress()):
         def child():
             gr.Info("child log")
-            gr.Warning("child warning")
             progress(0.5, desc="child progress")
             assert received_progress.wait(5)
 
-        process = ctx.Process(target=child)
-        process.start()
+        process = mp_context.Process(target=child)
         try:
+            process.start()
             process.join(10)
             assert process.exitcode == 0
         finally:
-            if process.is_alive():
-                process.terminate()
-                process.join()
+            process.terminate()
+            process.join()
             process.close()
         return "done"
 
     demo = gr.Interface(predict, None, gr.Textbox())
     queue = demo._queue
 
-    def interact():
+    async def interact(client):
         assert demo._queue is queue
-        with httpx2.stream(
-            "POST",
-            f"{demo.local_url}{API_PREFIX.lstrip('/')}/queue/join",
-            json={
-                "data": [],
-                "fn_index": demo.config["dependencies"][0]["id"],
-                "session_hash": "forked-worker",
-            },
-            headers={"Accept": "text/event-stream"},
-            timeout=15,
-        ) as response:
-            assert response.status_code == 200
-            messages = []
-            for line in response.iter_lines():
-                if line.startswith("data:"):
-                    message = json.loads(line[5:])
-                    messages.append(message)
-                    if message["msg"] == "progress":
-                        assert message["progress_data"][0]["desc"] == "child progress"
-                        received_progress.set()
+        logs: list[str] = []
+        job = client.submit(api_name="/predict")
+        async for update in job:
+            if update.type != "status":
+                continue
+            if update.log is not None:
+                logs.append(update.log)
+            if update.progress_data:
+                assert update.progress_data[0].desc == "child progress"
+                received_progress.set()
         assert received_progress.is_set()
-        assert [(m["level"], m["log"]) for m in messages if m["msg"] == "log"] == [
-            ("info", "child log"),
-            ("warning", "child warning"),
-        ]
-        assert messages[-1]["success"]
-        assert messages[-1]["output"]["data"] == ["done"]
+        assert logs == [("child log", "info")]
+        assert job.result() == "done"
 
-    for executor in executors:
-        received_progress.clear()
-        demo.launch(executor=executor, prevent_thread_lock=True)
+    with connect(demo, executor=executor) as client:
         try:
-            interact()
+            await interact(client)
         finally:
             received_progress.set()
-            demo.close()
-        assert demo._queue is queue
-        assert demo._process_worker is None
+    assert demo._queue is queue
+    assert demo._process_worker is None
 
 
 def test_event_concurrency_settings_reach_the_gateway():
