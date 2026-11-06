@@ -10,6 +10,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+	appendForwardedFor,
 	classifyRoute,
 	hashString,
 	matchesPrefix,
@@ -337,5 +338,40 @@ describe("route prefix lists are consistent", () => {
 
 	it("/gradio_api is in PYTHON_ROUTE_PREFIXES", () => {
 		assert.ok(PYTHON_ROUTE_PREFIXES.includes("/gradio_api"));
+	});
+});
+
+describe("appendForwardedFor", () => {
+	it("uses the client's address when there is no incoming header", () => {
+		assert.equal(appendForwardedFor(undefined, "192.168.1.5"), "192.168.1.5");
+	});
+
+	it("appends the client's address to an incoming header", () => {
+		assert.equal(
+			appendForwardedFor("203.0.113.7", "10.0.0.2"),
+			"203.0.113.7, 10.0.0.2"
+		);
+	});
+
+	it("keeps a forged loopback entry to the left of the real address", () => {
+		assert.equal(
+			appendForwardedFor("127.0.0.1", "192.168.1.5"),
+			"127.0.0.1, 192.168.1.5"
+		);
+	});
+
+	it("unwraps IPv4-mapped IPv6 addresses", () => {
+		assert.equal(
+			appendForwardedFor(undefined, "::ffff:127.0.0.1"),
+			"127.0.0.1"
+		);
+		assert.equal(appendForwardedFor(undefined, "::1"), "::1");
+	});
+
+	it("never forwards a client-supplied value alone", () => {
+		assert.equal(
+			appendForwardedFor("127.0.0.1", undefined),
+			"127.0.0.1, unknown"
+		);
 	});
 });
