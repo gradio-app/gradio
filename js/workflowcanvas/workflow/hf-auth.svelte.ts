@@ -54,6 +54,9 @@ export function request_embedder_token(
 	if (typeof window === "undefined" || window.self === window.top) {
 		return Promise.resolve(null);
 	}
+	const handshake = (window as { supports_zerogpu_headers?: boolean })
+		.supports_zerogpu_headers;
+	if (!probe && !handshake) return Promise.resolve(null);
 	return new Promise((resolve) => {
 		const done = (value: EmbedderToken | null): void => {
 			window.removeEventListener("message", on_message);
