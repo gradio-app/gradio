@@ -4101,10 +4101,17 @@
 		flex-direction: column;
 		gap: 20px;
 		box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
-		min-width: 680px;
-		max-width: calc(100% - 48px);
-		max-height: calc(100% - 48px);
+		width: min(680px, calc(100% - 32px));
+		max-height: calc(100% - 32px);
 		overflow-y: auto;
+		box-sizing: border-box;
+	}
+
+	@media (max-width: 640px) {
+		.templates-overlay-panel {
+			padding: 16px;
+			gap: 14px;
+		}
 	}
 
 	.templates-overlay-header {

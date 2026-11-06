@@ -422,9 +422,11 @@
 		cursor: pointer;
 	}
 
-	/* The canvas's centered bottom bar would run into the toggle on narrower
-	   windows, so center it in the space right of the toggle instead, on the
-	   same baseline. */
+	.workflow-fullscreen:has(:global(.templates-overlay-backdrop))
+		~ .view-toggle {
+		display: none;
+	}
+
 	@media (min-width: 641px) and (max-width: 1280px) and (pointer: fine) {
 		.workflow-fullscreen.has-view-toggle :global(.bottom-bar) {
 			left: 206px;

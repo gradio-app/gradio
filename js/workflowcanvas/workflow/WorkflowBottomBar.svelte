@@ -542,9 +542,6 @@
 		color: #1a1b25;
 	}
 
-	/* Keep the bar inside mid-width windows (e.g. a chat side panel):
-	   drop the group label, then fall back to icon-only node buttons
-	   (each keeps its title tooltip). */
 	@media (max-width: 1280px) {
 		.bb-group-label {
 			display: none;

@@ -35,7 +35,6 @@
 	gap: 10px;
 }
 
-/* The name gives way first; buttons keep their labels on one line. */
 .toolbar-left {
 	flex: 1 1 auto;
 	min-width: 0;
@@ -886,7 +885,6 @@
 	white-space: nowrap;
 }
 
-/* Mid-width windows, e.g. embedded in a chat side panel. */
 @media (max-width: 1100px) {
 	.toolbar-stat {
 		display: none;
@@ -899,8 +897,6 @@
 	}
 }
 
-/* The bottom bar spans most of the width here, so the zoom controls move
-   to the top-left corner and leave the bottom row to the bar. */
 @media (max-width: 1280px) {
 	.zoom-controls,
 	.zoom-controls.history-open {
