@@ -145,6 +145,10 @@ def encode_pil_to_bytes(pil_image, format="png"):
         else:
             if format.lower() == "png":
                 params = {"pnginfo": get_pil_metadata(pil_image)}
+                if pil_image.mode == "I":
+                    # Pillow 13 can no longer write 32-bit integer images as PNG;
+                    # earlier versions clipped them to 16 bits, so do that explicitly.
+                    pil_image = pil_image.convert("I;16")
             else:
                 exif = get_pil_exif_bytes(pil_image)
                 params = {"exif": exif} if exif else {}
