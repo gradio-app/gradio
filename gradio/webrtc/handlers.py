@@ -303,11 +303,13 @@ class VideoStreamHandler(StreamHandlerBase, ABC):
     (or, when it is slower than the camera, with the newest one that arrived
     while it ran) and `video_emit()` is polled for the next outgoing frame; `start_up()` is
     called once when the connection is established (frames may already arrive
-    while it runs) and `shutdown()` when it closes. Works in mode="send-receive". For a function called once per frame,
+    while it runs) and `shutdown()` when it closes. Works in mode="send-receive" and
+    in mode="send", where `video_emit()` is still called and only its
+    `AdditionalOutputs` are used (it can return them without a frame). For a function called once per frame,
     pass the function (or a `VideoOptions`) to `WebRTC.stream()` instead.
 
     Parameters:
-        fps: the frame rate at which frames are sent to the client.
+        fps: the frame rate at which frames are sent to the client; in mode="send", how often `video_emit()` is called.
     """
 
     def __init__(self, fps: int = 30) -> None:

@@ -300,11 +300,12 @@ class ConnectionManager:
         return True
 
     @staticmethod
-    async def _drain(track: AudioCallback) -> None:
+    async def _drain(track: AudioCallback | HandlerVideoTrack) -> None:
         """
-        Runs an audio handler whose output nobody plays (mode="send"): its
-        output still has to be read, or CloseStream never takes effect and
-        the frames pile up.
+        Runs a handler class whose output nobody plays (mode="send"): its
+        output still has to be read, or its AdditionalOutputs never reach the
+        page, CloseStream never takes effect, and audio frames pile up.
+        Frames it returns are dropped.
         """
         while track.readyState != "ended":
             try:
@@ -719,7 +720,17 @@ class ConnectionManager:
                     conn.set_channel(self.data_channels[webrtc_id])
             if self.mode == "send-receive":
                 pc.addTrack(cb)
-            elif self.mode == "send" and isinstance(cb, AudioCallback):
+            elif self.mode == "send" and (
+                isinstance(cb, AudioCallback)
+                or (
+                    isinstance(cb, HandlerVideoTrack)
+                    and isinstance(
+                        handler, VideoStreamHandler | AsyncVideoStreamHandler
+                    )
+                )
+            ):
+                # Handler classes give their values through emit() and
+                # video_emit(), which run only when their track is read
                 self._spawn(self._drain(cb))
             elif self.mode == "send":
                 self._spawn(cb.start())

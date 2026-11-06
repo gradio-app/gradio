@@ -146,11 +146,11 @@ def _check_handler(fn: HandlerType, mode: str, modality: str) -> None:
                 "StreamHandler or AsyncStreamHandler subclass or instance."
             )
     elif modality == "video" and is_video_handler:
-        if mode != "send-receive":
+        if mode == "receive":
             raise ValueError(
-                "A VideoStreamHandler or AsyncVideoStreamHandler works in "
-                f'mode="send-receive" only; in mode="{mode}", pass a '
-                "function (or a VideoOptions)."
+                "A VideoStreamHandler or AsyncVideoStreamHandler takes the "
+                'video from the page, in mode="send" and "send-receive"; in '
+                'mode="receive", pass a generator function (or a VideoOptions).'
             )
     elif is_handler and modality == "audio":
         raise ValueError(
@@ -161,7 +161,7 @@ def _check_handler(fn: HandlerType, mode: str, modality: str) -> None:
     elif is_handler:
         raise ValueError(
             f'For modality="{modality}" in mode="{mode}", `fn` must '
-            'be a function, a VideoOptions or, in mode="send-receive", a '
+            'be a function, a VideoOptions or, in mode="send" or "send-receive", a '
             "VideoStreamHandler or AsyncVideoStreamHandler subclass or "
             "instance."
         )
@@ -178,7 +178,7 @@ def _check_handler(fn: HandlerType, mode: str, modality: str) -> None:
             raise ValueError(
                 "`fn` must be a regular function or generator, which runs in "
                 "a worker thread; for async code, use an "
-                'AsyncVideoStreamHandler (in mode="send-receive").'
+                'AsyncVideoStreamHandler (in mode="send" or "send-receive").'
             )
 
     if is_a((AsyncStreamHandler, AsyncVideoStreamHandler)) and not (
@@ -453,7 +453,7 @@ class WebRTC(Component):
         trigger: Callable | None = None,
     ) -> Dependency:
         """
-        Attaches the function or handler that processes the media of this component. For video streams, `fn` is called with each frame as an RGB numpy array of shape (height, width, 3), like the numpy value of `gr.Image`, followed by the values of the other inputs, and returns the frame to show in the same format. For audio streams, `fn` is a `StreamHandler` or `AsyncStreamHandler` subclass (or instance) from `gradio.webrtc`. A video stream that needs state or resources for its whole duration, for example one GPU allocation per stream on ZeroGPU, can instead use a `VideoStreamHandler` or `AsyncVideoStreamHandler` subclass in mode="send-receive". In mode="receive", `fn` is a generator that yields frames and takes the values of `inputs` as arguments; it is closed when the stream ends, so its `finally` blocks and `with` statements run then. A handler can return `(frame, AdditionalOutputs(...))` or yield `AdditionalOutputs(...)` to update the other components in `outputs`, and `CloseStream()` to end the connection.
+        Attaches the function or handler that processes the media of this component. For video streams, `fn` is called with each frame as an RGB numpy array of shape (height, width, 3), like the numpy value of `gr.Image`, followed by the values of the other inputs, and returns the frame to show in the same format. For audio streams, `fn` is a `StreamHandler` or `AsyncStreamHandler` subclass (or instance) from `gradio.webrtc`. A video stream that needs state or resources for its whole duration, for example one GPU allocation per stream on ZeroGPU, can instead use a `VideoStreamHandler` or `AsyncVideoStreamHandler` subclass, in mode="send-receive" or in mode="send" (where only the `AdditionalOutputs` of its `video_emit()` are used). In mode="receive", `fn` is a generator that yields frames and takes the values of `inputs` as arguments; it is closed when the stream ends, so its `finally` blocks and `with` statements run then. A handler can return `(frame, AdditionalOutputs(...))` or yield `AdditionalOutputs(...)` to update the other components in `outputs`, and `CloseStream()` to end the connection.
         Parameters:
             fn: the function or handler that processes the stream. One handler serves one connection: pass a handler class to create a new instance per connection, or an instance that implements `copy()`. Like an event listener, a function (and the `start_up` method of a handler class) can take `gr.Request`, `gr.OAuthProfile` or `gr.OAuthToken` parameters, which receive the values of the visitor who started the stream.
             inputs: the components whose values are passed to the handler. In mode="send" and mode="send-receive", the first element must be this component. The values of the other inputs are passed to video functions after the frame, to receive-mode generators as arguments, and to stream handlers through `latest_args` after `wait_for_args()`.

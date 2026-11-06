@@ -283,6 +283,39 @@ class AsyncRecordingVideo(AsyncVideoStreamHandler):
         self.events.append("shutdown on the loop" if on_event_loop() else "shutdown")
 
 
+class CaptionVideo(VideoStreamHandler):
+    """Like a captioner: frames in, values out, never a frame back."""
+
+    def __init__(self):
+        super().__init__(fps=10)
+        self.events = []
+        self.frames = 0
+
+    def start_up(self):
+        self.events.append("start_up")
+
+    def video_receive(self, frame):
+        self.frames += 1
+
+    def video_emit(self):
+        time.sleep(0.02)
+        if not self.latest_args:
+            return None
+        return AdditionalOutputs(self.latest_args[0] * 2)
+
+    def shutdown(self):
+        self.events.append("shutdown on the loop" if on_event_loop() else "shutdown")
+
+
+class CloseOnVideoEmit(VideoStreamHandler):
+    def video_receive(self, frame):
+        pass
+
+    def video_emit(self):
+        time.sleep(0.2)
+        return CloseStream("done")
+
+
 class RecordingAudioVideo(AsyncAudioVideoStreamHandler):
     def __init__(self):
         super().__init__()
@@ -543,10 +576,10 @@ class TestWebRTC:
                 audio.stream(RecordingVideo, inputs=[audio], outputs=[audio])
             with pytest.raises(ValueError, match="copy"):
                 video.stream(RecordingVideo(), inputs=[video], outputs=[video])
-            send = gr.WebRTC(mode="send")
-            with pytest.raises(ValueError, match="send-receive"):
-                send.stream(RecordingVideo, inputs=[send], outputs=[send])
             receive = gr.WebRTC(mode="receive")
+            # Nothing comes from the page for video_receive() to take
+            with pytest.raises(ValueError, match='"send" and "send-receive"'):
+                receive.stream(RecordingVideo, outputs=[receive], trigger=slider.change)
             with pytest.raises(ValueError, match="trigger"):
                 receive.stream(flip, inputs=[slider], outputs=[receive])
             with pytest.raises(ValueError, match="cannot be one of"):
@@ -646,6 +679,10 @@ class TestWebRTC:
         with gr.Blocks():
             video = gr.WebRTC()
             video.stream(handler, inputs=[video], outputs=[video])
+            # Camera in, values out (e.g. a caption per frame), with state
+            send = gr.WebRTC(mode="send")
+            number = gr.Number()
+            send.stream(handler, inputs=[send], outputs=[send, number])
             options = gr.WebRTC()
             options.stream(
                 VideoOptions(flip, fps=5), inputs=[options], outputs=[options]
@@ -2075,6 +2112,58 @@ class TestStreams:
         server_pc = h.manager.pcs["one"]
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
         # Nothing plays back in "send", but CloseStream still ends the stream
+        await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
+        await h.wait_until(lambda: not h.event_running(event_id))
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched",
+        [
+            {"mode": "send", "handler": RecordingVideo},
+            {"mode": "send", "handler": AsyncRecordingVideo},
+            {"mode": "send", "handler": CaptionVideo},
+        ],
+        indirect=True,
+    )
+    async def test_a_video_handler_class_streams_in_send_mode(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(video=True)
+        answer = await h.connect(pc, "one")
+        # No video goes back to the page, only the values
+        assert "a=recvonly" in answer["sdp"]
+        handler = h.handler("one")
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: handler.events == ["start_up"])
+        await h.wait_until(lambda: handler.frames > 0)
+        # Nothing reads video_emit()'s frames here, so the server calls it
+        # itself; otherwise its AdditionalOutputs would never reach the page
+        await h.push_inputs("one", 21)
+
+        def got_output(ms):
+            return any(
+                m.get("msg") == "process_streaming" and m["output"]["data"][1] == 42
+                for m in ms
+            )
+
+        await h.messages("one", got_output, timeout=15)
+        await pc.close()
+        await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
+        await h.wait_until(lambda: "shutdown" in handler.events)
+        assert handler.events == ["start_up", "shutdown"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"mode": "send", "handler": CloseOnVideoEmit}], indirect=True
+    )
+    async def test_close_stream_ends_a_send_only_video_stream(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        server_pc = h.manager.pcs["one"]
+        await h.wait_until(lambda: h.manager.sessions["one"].connected)
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
         await h.wait_until(lambda: not h.event_running(event_id))
         await pc.close()
@@ -4355,9 +4444,9 @@ class TestCleanUp:
         await asyncio.wait_for(waiting, 1)
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("kind", ["audio", "video"])
+    @pytest.mark.parametrize("kind", ["audio", "video", "video handler"])
     async def test_a_send_mode_reader_ends_with_its_track(self, kind):
-        from gradio.webrtc.tracks import AudioCallback
+        from gradio.webrtc.tracks import AudioCallback, HandlerVideoTrack
         from gradio.webrtc.utils import Context
 
         # In mode="send" nothing plays the output, so the server reads the
@@ -4373,9 +4462,20 @@ class TestCleanUp:
             reader = asyncio.create_task(
                 webrtc_connection.ConnectionManager._drain(track)
             )
-        else:
+        elif kind == "video":
             track = TestVideoTracks.callback(flip, mode="send")
             reader = asyncio.create_task(track.start())
+        else:
+            # Like a captioner: video_emit() gives no frame, only outputs
+            track = HandlerVideoTrack(
+                VideoStreamTrack(),
+                event_handler=cast(Callable, CaptionVideo()),
+                context=Context("one"),
+            )
+            track.channel_set.set()
+            reader = asyncio.create_task(
+                webrtc_connection.ConnectionManager._drain(track)
+            )
         await asyncio.sleep(0.2)
         assert not reader.done()
         track.stop()
@@ -4479,13 +4579,23 @@ class TestCleanUp:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("executor", ["thread", "process"])
-async def test_a_server_webrtc_endpoint_streams_like_the_component(executor):
+@pytest.mark.parametrize("mode", ["send-receive", "send"])
+async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mode):
     forget_earlier_streams()
     server = gr.Server()
 
-    @server.webrtc(name="echo", time_limit=30)
-    def echo(frame, *args):
-        return (frame, AdditionalOutputs(*args)) if args else frame
+    if mode == "send":
+        # Camera in, values out, with a handler class that keeps state for the
+        # stream (like a captioner with one GPU allocation per stream)
+        server.webrtc(CaptionVideo, name="echo", mode="send", time_limit=30)
+        expected = [1.0]
+    else:
+
+        @server.webrtc(name="echo", time_limit=30)
+        def echo(frame, *args):
+            return (frame, AdditionalOutputs(*args)) if args else frame
+
+        expected = [0.5]
 
     session = "visitor"
     _, local_url, _ = server.launch(prevent_thread_lock=True, executor=executor)
@@ -4545,6 +4655,8 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor):
                 )
             ).json()
             assert answer["type"] == "answer", answer
+            if mode == "send":
+                assert "a=recvonly" in answer["sdp"]
             await pc.setRemoteDescription(
                 RTCSessionDescription(answer["sdp"], answer["type"])
             )
@@ -4558,12 +4670,12 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor):
                 ]
 
             deadline = time.monotonic() + 15
-            while [0.5] not in streamed():
+            while expected not in streamed():
                 assert time.monotonic() < deadline, messages
                 await asyncio.sleep(0.05)
             # Each AdditionalOutputs arrives as the list of its values; the
             # other messages (the turn, keepalives) carry a no-op update
-            assert all(o in ([0.5], {"__type__": "update"}) for o in streamed())
+            assert all(o in (expected, {"__type__": "update"}) for o in streamed())
 
             await http.post(f"{api}/stream/{event_id}/close")
             deadline = time.monotonic() + 10
