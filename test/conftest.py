@@ -90,6 +90,14 @@ def gradio_temp_dir(monkeypatch, tmp_path):
 
 
 @pytest.fixture(autouse=True)
+def disable_default_ssr(monkeypatch):
+    """SSR is on by default when a supported Node is installed, which would start a
+    Node proxy for every launched test app. Tests that need SSR pass ssr_mode=True.
+    """
+    monkeypatch.setenv("GRADIO_SSR_MODE", "false")
+
+
+@pytest.fixture(autouse=True)
 def clear_static_files():
     """Clears all static files from the _StaticFiles class.
 

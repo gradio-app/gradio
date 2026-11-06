@@ -122,6 +122,11 @@
 	let messages: (ToastMessage & { fn_index: number })[] = $state([]);
 	let reconnect_interval: ReturnType<typeof setInterval> | null = null;
 
+	// prefix_css needs the browser's CSS parser, and hydration keeps the server's
+	// {@html} as is, so SSR pages swap in the prefixed CSS once mounted.
+	let mounted = $state(false);
+	let custom_css = $derived(css && mounted ? prefix_css(css, version) : css);
+
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
@@ -476,6 +481,7 @@
 	}
 
 	onMount(() => {
+		mounted = true;
 		if ("parentIFrame" in window) {
 			window.parentIFrame?.autoResize(false);
 		}
@@ -555,8 +561,8 @@
 	{#if control_page_title}
 		<title>{title}</title>
 	{/if}
-	{#if css}
-		{@html `\<style\>${prefix_css(css, version)}</style>`}
+	{#if custom_css}
+		{@html `\<style\>${custom_css}</style>`}
 	{/if}
 </svelte:head>
 

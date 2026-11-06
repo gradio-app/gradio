@@ -2102,7 +2102,7 @@ def get_node_path():
 
     print("Unable to find node install path, falling back to SPA mode.")
     print(
-        "If you wish to use the node backend, please install node 20 and/ or set the path with the GRADIO_NODE_PATH environment variable."
+        "If you wish to use the node backend, please install node 22.23.4+, 24.22.1+ or 26.12.1+ and/ or set the path with the GRADIO_NODE_PATH environment variable."
     )
     return None
 
