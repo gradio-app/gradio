@@ -24,7 +24,7 @@ from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.routing import Mount, Route
-from starlette.types import Receive, Scope, Send
+from starlette.types import Message, Receive, Scope, Send
 
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
@@ -42,9 +42,15 @@ if TYPE_CHECKING:
     from gradio.routes import App
 
 
-# Headers of an incoming MCP request that describe the request itself rather
-# than the caller, and so aren't forwarded when calling the app over HTTP.
-_NON_CREDENTIAL_HEADERS = {
+# Headers of an incoming MCP request that are never forwarded when calling the
+# app over HTTP on the caller's behalf.
+_NON_FORWARDED_HEADERS = {"content-length", "x-gradio-user"}
+
+# Headers that describe the MCP request itself rather than the caller. A Client
+# created for a single caller is created with the remaining headers, which carry
+# the caller's credentials (e.g. the login cookie, or whatever headers an
+# `auth_dependency` reads).
+_NON_CREDENTIAL_HEADERS = _NON_FORWARDED_HEADERS | {
     "accept",
     "accept-encoding",
     "connection",
@@ -55,7 +61,6 @@ _NON_CREDENTIAL_HEADERS = {
     "mcp-protocol-version",
     "mcp-session-id",
     "transfer-encoding",
-    "x-gradio-user",
 }
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
@@ -607,7 +612,9 @@ class GradioMCPServer:
                     "used each time."
                 )
 
-    def _create_client(self, headers: dict[str, str]) -> Client:
+    def _create_client(
+        self, headers: dict[str, str], ssl_verify: bool = False
+    ) -> Client:
         context_request: Request | None = self.mcp_server.request_context.request
         if context_request is None:
             raise ValueError(
@@ -624,7 +631,7 @@ class GradioMCPServer:
             download_files=False,
             verbose=False,
             analytics_enabled=False,
-            ssl_verify=False,
+            ssl_verify=ssl_verify,
             _skip_components=False,
             headers={**headers, "x-gradio-user": "mcp"},
         )
@@ -639,11 +646,9 @@ class GradioMCPServer:
             self._app.auth is not None or self._app.auth_dependency is not None
         )
 
-    def _get_credential_headers(self) -> dict[str, str]:
+    def _get_request_headers(self, exclude: set[str]) -> dict[str, str]:
         """
-        Returns the headers of the current MCP request that may carry the user's
-        credentials (e.g. the login cookie, or whatever headers an `auth_dependency`
-        reads), dropping the ones that only describe the MCP request itself.
+        Returns the headers of the current MCP request, except those in `exclude`.
         """
         context_request: Request | None = self.mcp_server.request_context.request
         if context_request is None:
@@ -651,7 +656,7 @@ class GradioMCPServer:
         return {
             key: value
             for key, value in context_request.headers.items()
-            if key.lower() not in _NON_CREDENTIAL_HEADERS
+            if key.lower() not in exclude
         }
 
     @contextlib.asynccontextmanager
@@ -666,7 +671,16 @@ class GradioMCPServer:
         if not self._auth_enabled():
             yield await run_sync(self._get_or_create_client)
             return
-        client = await run_sync(self._create_client, self._get_credential_headers())
+        # The caller's credentials are only sent without checking the TLS
+        # certificate to the app's own local URL. Apps mounted with
+        # `mount_gradio_app` have no local URL and are called at the URL of the
+        # incoming request, so the certificate is verified there to keep the
+        # credentials from being sent to anyone who intercepts the connection.
+        client = await run_sync(
+            self._create_client,
+            self._get_request_headers(_NON_CREDENTIAL_HEADERS),
+            self.local_url is None,
+        )
         try:
             yield client
         finally:
@@ -713,9 +727,7 @@ class GradioMCPServer:
             raise ValueError(
                 "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
             )
-        request_headers = dict(context_request.headers.items())
-        request_headers.pop("content-length", None)
-        request_headers.pop("x-gradio-user", None)
+        request_headers = self._get_request_headers(_NON_FORWARDED_HEADERS)
 
         return endpoint_name, processed_args, request_headers, block_fn
 
@@ -1210,9 +1222,25 @@ class GradioMCPServer:
             # go through the `login_check` dependency used by the other API routes.
             # Apply the same check here so that an app launched with `auth` or
             # `auth_dependency` doesn't expose its functions via MCP.
-            if scope["type"] == "http" and not await app.is_authenticated(
-                Request(scope, receive)
-            ):
+            if scope["type"] != "http":
+                await mcp_app(scope, receive, send)
+                return
+
+            # An `auth_dependency` may read the request body, so keep the messages
+            # it receives and replay them to the MCP app afterwards.
+            received: list[Message] = []
+
+            async def recording_receive() -> Message:
+                message = await receive()
+                received.append(message)
+                return message
+
+            async def replaying_receive() -> Message:
+                if received:
+                    return received.pop(0)
+                return await receive()
+
+            if not await app.is_authenticated(Request(scope, recording_receive)):
                 response = JSONResponse(
                     {
                         "detail": {
@@ -1224,7 +1252,7 @@ class GradioMCPServer:
                 )
                 await response(scope, receive, send)
                 return
-            await mcp_app(scope, receive, send)
+            await mcp_app(scope, replaying_receive, send)
 
         app.mount(subpath, mcp_app_with_auth)
 

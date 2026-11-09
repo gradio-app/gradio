@@ -538,6 +538,14 @@ def build_auth_test_app():
         time.sleep(0.5)
         return f"{greeting} {request.username}"
 
+    @gr.mcp.resource("info://user")
+    def user_info(request: gr.Request) -> str:
+        return f"user: {request.username}"
+
+    @gr.mcp.prompt()
+    def ask(topic: str, request: gr.Request) -> str:
+        return f"{request.username} asks about {topic}"
+
     with gr.Blocks() as demo:
         input_box = gr.Textbox()
         output_box = gr.Textbox()
@@ -545,6 +553,8 @@ def build_auth_test_app():
         # while the queued event is called over HTTP through the queue
         input_box.change(double, input_box, output_box, api_name="double", queue=False)
         input_box.submit(greet, input_box, output_box, api_name="greet")
+        gr.api(user_info, api_name="user_info")
+        gr.api(ask, api_name="ask")
     return demo
 
 
@@ -581,7 +591,8 @@ async def test_mcp_server_requires_login_when_auth_is_set():
             assert (await client.get(f"{mcp_url}schema")).is_success
             cookie = "; ".join(f"{k}={v}" for k, v in client.cookies.items())
 
-        # Once logged in, both queued and non-queued tools work, and run as the user
+        # Once logged in, tools (queued or not), resources and prompts all work,
+        # and run as the user
         async with streamablehttp_client(mcp_url, headers={"Cookie": cookie}) as (
             read_stream,
             write_stream,
@@ -594,6 +605,10 @@ async def test_mcp_server_requires_login_when_auth_is_set():
                 assert result.content[0].text == "HiHi"  # type: ignore
                 result = await session.call_tool("greet", arguments={"greeting": "Hi"})
                 assert result.content[0].text == "Hi admin"  # type: ignore
+                resource = await session.read_resource("info://user")  # type: ignore
+                assert resource.contents[0].text == "user: admin"  # type: ignore
+                prompt = await session.get_prompt("ask", arguments={"topic": "MCP"})
+                assert prompt.messages[0].content.text == "admin asks about MCP"  # type: ignore
     finally:
         demo.close()
 
@@ -601,7 +616,9 @@ async def test_mcp_server_requires_login_when_auth_is_set():
 @pytest.mark.asyncio
 @pytest.mark.serial
 async def test_mcp_server_respects_auth_dependency():
-    def get_user(request: Request):
+    async def get_user(request: Request):
+        # Reading the body checks that the MCP server still receives it afterwards
+        await request.body()
         return request.headers.get("x-user")
 
     demo = build_auth_test_app()
