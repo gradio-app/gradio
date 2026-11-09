@@ -4804,12 +4804,14 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
                         if line.startswith("data:"):
                             messages.append(json.loads(line[5:]))
 
-            reader = asyncio.create_task(read())
             join = await http.post(
                 f"{api}/queue/join",
                 json={"data": ["one"], "fn_index": fn_index, "session_hash": session},
             )
             event_id = join.json()["event_id"]
+            # After the join, as clients do: a message stream opened before the
+            # server knows the session is refused (404, session_not_found)
+            reader = asyncio.create_task(read())
             # Once the turn has come: the configuration, then the connection
             rtc = await http.post(
                 f"{api}/webrtc/rtc_configuration",
