@@ -129,6 +129,11 @@ def warn(frame, *args):
     return frame
 
 
+def succeed(frame, *args):
+    gr.Success("Saved")
+    return frame
+
+
 def three_frames(*args):
     import numpy as np
 
@@ -1429,6 +1434,16 @@ class TestStreams:
         message = await self.stream_until_message(h, pc, "warning")
         assert message["message"] == "Careful"
         assert live_pc(h.manager, "one") is not None
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("launched", [{"handler": succeed}], indirect=True)
+    async def test_gr_success_in_the_handler_is_shown(self, launched):
+        h = launched
+        pc = await make_offer(video=True)
+        # A log message of level "success", which the page shows as such
+        message = await self.stream_until_message(h, pc, "success")
+        assert message["message"] == "Saved"
         await pc.close()
 
     @pytest.mark.asyncio
@@ -2894,8 +2909,8 @@ reported = set()
 
 
 def handler(frame):
-    # The pid once per stream: no call of the stream's event is under way
-    # afterwards, until the next keepalive
+    # The pid once per stream: no step of the stream's event is under way
+    # afterwards, until the next wake
     webrtc_id = get_current_context().webrtc_id
     if webrtc_id in reported:
         return frame
@@ -3101,8 +3116,8 @@ async def test_a_stream_whose_replica_exits_fails_at_once(tmp_path):
         session = next(s for s, (_, _, pid) in streams.items() if pid != app.pids[0])
         event_id = streams[session][0]
         os.kill(streams[session][2], signal.SIGKILL)
-        # Nothing comes from that process any more, not even the keepalive;
-        # the queue's own wait would end the event as a success after 30 s
+        # Nothing comes from that process any more, and the queue does not time
+        # out a lease's wait: the gateway wakes it when it loses the process
         await app.wait_for(
             session, lambda _: app.completion(session, event_id), timeout=15
         )
@@ -4897,7 +4912,7 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
                 assert time.monotonic() < deadline, messages
                 await asyncio.sleep(0.05)
             # Each AdditionalOutputs arrives as the list of its values; the
-            # other messages (the turn, keepalives) carry a no-op update
+            # other messages (the turn) carry a no-op update
             assert all(o in (expected, {"__type__": "update"}) for o in streamed())
 
             await http.post(f"{api}/stream/{event_id}/close")

@@ -296,8 +296,8 @@ class Pool:
 
     def wake_streams_of(self, link: Link) -> None:
         """`link`'s process exited: the gr.WebRTC streams that ran there get
-        their next call now, which fails them (see `placed`). Nothing else
-        would wake them: their keepalive came from that process."""
+        their next step now, which fails them (see `placed`). Nothing else
+        would wake them: their wakes came from that process."""
         queue = self.blocks._queue
         for event_id, placement in list(self.placements.items()):
             event = queue.event_ids_to_events.get(event_id)
