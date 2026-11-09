@@ -79,6 +79,7 @@ from gradio.exceptions import (
 )
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
+from gradio.launch import _capture_launch
 from gradio.node_server import start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream, slugify
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
@@ -3038,6 +3039,7 @@ Received inputs:
             else os.getenv("GRADIO_SSR_MODE", "False").lower() == "true"
         )
 
+    @_capture_launch
     def launch(
         self,
         inline: bool | None = None,

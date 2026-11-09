@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Awaitable, Callable, Sequence
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, Literal
 
 import fastapi
@@ -12,6 +13,7 @@ from gradio_client.documentation import document
 
 from gradio import mcp
 from gradio.i18n import I18n
+from gradio.launch import APIEndpoint, _capture_launch, _wrap_api
 from gradio.routes import App
 from gradio.themes import ThemeClass as Theme
 
@@ -218,6 +220,15 @@ class Server(App):
 
         return wrapper
 
+    @property
+    def api_endpoints(self) -> tuple[APIEndpoint, ...]:
+        """Snapshot of registered API callbacks, in registration order."""
+        return tuple(
+            APIEndpoint(index, fn, MappingProxyType(options.copy()))
+            for index, (fn, options) in enumerate(self._deferred_apis)
+        )
+
+    @_capture_launch
     def launch(
         self,
         inline: bool | None = None,
@@ -286,8 +297,8 @@ class Server(App):
         from gradio.events import api as gr_api
 
         with Blocks(mode="server") as blocks:
-            for fn, api_kwargs in self._deferred_apis:
-                gr_api(fn=fn, **api_kwargs)
+            for endpoint in self.api_endpoints:
+                gr_api(fn=_wrap_api(self, endpoint), **endpoint.options)
 
         os.environ["GRADIO_SERVER_MODE_ENABLED"] = "1"
 
