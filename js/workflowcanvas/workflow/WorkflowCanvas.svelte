@@ -3672,6 +3672,7 @@
 			workflowName={$workflow.name}
 			username={auth.user ?? ""}
 			signedIn={!!auth.token}
+			oauthAvailable={auth.oauthAvailable}
 			onsignin={auth.signIn}
 			onconnected={(id) => {
 				setBucketId(id);
