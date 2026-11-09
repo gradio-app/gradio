@@ -3,7 +3,10 @@ import json
 import os
 import tempfile
 
+import httpx
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 from PIL import Image
@@ -500,3 +503,99 @@ async def test_mcp_browser_get_returns_landing_page():
     # connection snippets for common MCP clients.
     assert b"example.com/gradio_api/mcp/" in body
     assert b"Connect your AI assistant" in body
+
+
+TOOLS_CALL_PAYLOAD = {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {"name": "double", "arguments": {"word": "Hello"}},
+}
+MCP_HEADERS = {
+    "Accept": "application/json, text/event-stream",
+    "Content-Type": "application/json",
+}
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+async def test_mcp_server_requires_login_when_auth_is_set():
+    def double(word: str) -> str:
+        return word * 2
+
+    with gr.Blocks() as demo:
+        input_box = gr.Textbox()
+        output_box = gr.Textbox()
+        # queue=False exercises the fast path that calls process_api directly
+        input_box.change(double, input_box, output_box, api_name="double", queue=False)
+
+    _, local_url, _ = demo.launch(
+        prevent_thread_lock=True, mcp_server=True, auth=("admin", "password")
+    )
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with httpx.AsyncClient() as client:
+            # Unauthenticated requests are rejected, as they are for /gradio_api/run
+            assert (
+                await client.post(
+                    f"{local_url}gradio_api/run/double", json={"data": ["Hello"]}
+                )
+            ).status_code == 401
+            assert (await client.get(f"{mcp_url}schema")).status_code == 401
+            assert (await client.get(f"{mcp_url}sse")).status_code == 401
+            response = await client.post(
+                mcp_url, json=TOOLS_CALL_PAYLOAD, headers=MCP_HEADERS
+            )
+            assert response.status_code == 401
+            assert b"HelloHello" not in response.content
+
+            # Once logged in, the MCP server works as usual
+            login = await client.post(
+                f"{local_url}login",
+                data={"username": "admin", "password": "password"},
+            )
+            assert login.is_success
+            assert (await client.get(f"{mcp_url}schema")).is_success
+            cookie = "; ".join(f"{k}={v}" for k, v in client.cookies.items())
+
+        async with streamablehttp_client(mcp_url, headers={"Cookie": cookie}) as (
+            read_stream,
+            write_stream,
+            _,
+        ):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                tools = (await session.list_tools()).tools
+                assert len(tools) == 1
+                result = await session.call_tool(
+                    tools[0].name, arguments={"word": "Hello"}
+                )
+                assert result.content[0].text == "HelloHello"  # type: ignore
+    finally:
+        demo.close()
+
+
+def test_mcp_server_respects_auth_dependency():
+    def get_user(request: Request):
+        return request.headers.get("user")
+
+    def double(word: str) -> str:
+        return word * 2
+
+    demo = gr.Interface(double, "text", "text", api_name="double")
+    app = gr.mount_gradio_app(
+        FastAPI(), demo, path="/", auth_dependency=get_user, mcp_server=True
+    )
+
+    with TestClient(app) as client:
+        assert client.get("/gradio_api/mcp/schema").status_code == 401
+        response = client.post(
+            "/gradio_api/mcp/", json=TOOLS_CALL_PAYLOAD, headers=MCP_HEADERS
+        )
+        assert response.status_code == 401
+        assert b"HelloHello" not in response.content
+
+        assert client.get(
+            "/gradio_api/mcp/schema", headers={"user": "abubakar"}
+        ).is_success

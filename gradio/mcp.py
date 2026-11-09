@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 
     from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
+    from gradio.routes import App
 
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
@@ -1104,7 +1105,7 @@ class GradioMCPServer:
 
         return server
 
-    def launch_mcp_on_sse(self, app: Starlette, subpath: str, root_path: str) -> None:
+    def launch_mcp_on_sse(self, app: "App", subpath: str, root_path: str) -> None:
         """
         Launch the MCP server on the SSE transport.
 
@@ -1132,20 +1133,40 @@ class GradioMCPServer:
                 print(f"MCP SSE connection error: {str(e)}")
                 raise
 
-        app.mount(
-            subpath,
-            Starlette(
-                routes=[
-                    Route(
-                        "/schema",
-                        endpoint=self.get_complete_schema,  # Not required for MCP but used by the Hugging Face MCP server to get the schema for MCP Spaces without needing to establish an SSE connection
-                    ),
-                    Route("/sse", endpoint=handle_sse),
-                    Mount("/messages/", app=sse.handle_post_message),
-                    Mount("/", app=self.handle_streamable_http),
-                ],
-            ),
+        mcp_app = Starlette(
+            routes=[
+                Route(
+                    "/schema",
+                    endpoint=self.get_complete_schema,  # Not required for MCP but used by the Hugging Face MCP server to get the schema for MCP Spaces without needing to establish an SSE connection
+                ),
+                Route("/sse", endpoint=handle_sse),
+                Mount("/messages/", app=sse.handle_post_message),
+                Mount("/", app=self.handle_streamable_http),
+            ],
         )
+
+        async def mcp_app_with_auth(scope: Scope, receive: Receive, send: Send) -> None:
+            # The MCP routes are mounted as a separate Starlette app, so they don't
+            # go through the `login_check` dependency used by the other API routes.
+            # Apply the same check here so that an app launched with `auth` or
+            # `auth_dependency` doesn't expose its functions via MCP.
+            if scope["type"] == "http" and not await app.is_authenticated(
+                Request(scope, receive)
+            ):
+                response = JSONResponse(
+                    {
+                        "detail": {
+                            "error": "Not authenticated",
+                            "auth_message": self.blocks.auth_message,
+                        }
+                    },
+                    status_code=401,
+                )
+                await response(scope, receive, send)
+                return
+            await mcp_app(scope, receive, send)
+
+        app.mount(subpath, mcp_app_with_auth)
 
     def get_block_fn_from_endpoint_name(
         self, endpoint_name: str
