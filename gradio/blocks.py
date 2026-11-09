@@ -80,7 +80,7 @@ from gradio.exceptions import (
 )
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
-from gradio.node_server import start_node_server
+from gradio.node_server import node_proxy_forwarded_allow_ips, start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream, slugify
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
@@ -3392,6 +3392,7 @@ Received inputs:
         # `if _pending_node_proxy_kwargs is not None:` block further
         # down for the rationale.
         _pending_node_proxy_kwargs: dict | None = None
+        python_forwarded_allow_ips: list[str] | None = None
 
         if self.ssr_mode:
             self.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
@@ -3453,6 +3454,7 @@ Received inputs:
                 # left listening on the internal port — a degraded but
                 # working state we surface via a warning below.
                 server_port = python_internal_port
+                python_forwarded_allow_ips = node_proxy_forwarded_allow_ips(python_host)
                 _pending_node_proxy_kwargs = {
                     "server_name": node_server_name or python_host,
                     "server_port": user_port,
@@ -3511,6 +3513,7 @@ Received inputs:
                 ssl_keyfile=ssl_keyfile,
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
+                forwarded_allow_ips=python_forwarded_allow_ips,
             )
             self.server_name = server_name
             self.local_url = local_url
