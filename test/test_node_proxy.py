@@ -202,7 +202,8 @@ class TestNodeProxyStartupOrdering:
     backend was ready, causing 502 errors on hosts like HF Spaces that
     route traffic as soon as the port opens."""
 
-    def _cleanup(self, demo):
+    @staticmethod
+    def _cleanup(demo):
         node_process = getattr(demo, "node_process", None)
         if node_process is not None:
             node_process.terminate()
@@ -383,7 +384,7 @@ class TestNodeProxyClientAddress:
             def client_address(request: fastapi.Request):
                 return {
                     "forwarded_for": request.headers.get("x-forwarded-for"),
-                    "host": request.client.host,
+                    "host": request.client.host if request.client else None,
                     "direct_local": _is_direct_local_request(request),
                 }
 
@@ -409,7 +410,7 @@ class TestNodeProxyClientAddress:
                 "direct_local": False,
             }
         finally:
-            TestNodeProxyStartupOrdering._cleanup(None, demo)
+            TestNodeProxyStartupOrdering._cleanup(demo)
 
     def test_spaces_proxy_header_is_passed_through(self, monkeypatch):
         """On Spaces, Hugging Face's proxy appends the visitor's address and is
@@ -445,7 +446,7 @@ class TestNodeProxyClientAddress:
             def client_address(request: fastapi.Request):
                 return {
                     "forwarded_for": request.headers.get("x-forwarded-for"),
-                    "host": request.client.host,
+                    "host": request.client.host if request.client else None,
                 }
 
             url = f"http://127.0.0.1:{demo.node_port}/gradio_api/test_client_address"
@@ -458,7 +459,7 @@ class TestNodeProxyClientAddress:
                 "host": "203.0.113.7",
             }
         finally:
-            TestNodeProxyStartupOrdering._cleanup(None, demo)
+            TestNodeProxyStartupOrdering._cleanup(demo)
 
 
 class _FakeNodeProcess:
