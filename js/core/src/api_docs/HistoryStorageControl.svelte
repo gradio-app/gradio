@@ -11,7 +11,7 @@
 
 	interface HistoryStorageScope extends RunHistoryScope {
 		title?: string;
-		components?: { type: string }[];
+		oauth_available?: boolean;
 	}
 
 	interface Props {
@@ -43,10 +43,7 @@
 
 	const bucket_id = $derived(storage.bucket_id ?? "");
 	const using_bucket = $derived(storage.type === "bucket");
-	const oauth_available = $derived(
-		scope.components?.some((component) => component.type === "loginbutton") ??
-			false
-	);
+	const oauth_available = $derived(scope.oauth_available ?? false);
 	onMount(() => {
 		storage = read_run_history_storage(scope);
 	});

@@ -15,7 +15,7 @@ import threading
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import httpx
 import pytest
@@ -1066,3 +1066,40 @@ def test_a_recorded_run_uses_the_browsers_token():
         assert set(tokens) == {"hf_alice"}
     io.close()
     close_all()
+
+
+def test_an_oauth_session_is_only_used_on_a_space():
+    """Off Spaces, signing in is mocked with a token the Hub rejects, so it must
+    not stand in for a real token, or the visitor never gets asked for one."""
+    from gradio.routes import App
+
+    hub = FakeHub()
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = App.create_app(demo)
+    tokens, hf_api = _hub_tokens(hub)
+    url = "/gradio_api/run-history/records?bucket=alice/hist"
+    session = {"access_token": "oauth-token"}
+
+    with (
+        hf_api,
+        patch("starlette.requests.Request.session", new_callable=PropertyMock),
+        patch("gradio.oauth._get_valid_oauth_info_from_session", return_value=session),
+    ):
+        assert TestClient(app).get(url).status_code == 401
+        with patch("gradio.history.get_space", return_value="user/space"):
+            assert TestClient(app).get(url).status_code == 200
+    assert set(tokens) == {"oauth-token"}
+    close_all()
+
+
+def test_oauth_is_available_only_on_a_space_with_a_login_button():
+    with gr.Blocks() as with_login:
+        gr.LoginButton()
+    with gr.Blocks() as without_login:
+        gr.Textbox()
+
+    assert with_login.get_config_file()["oauth_available"] is False
+    with_login.space_id = without_login.space_id = "user/space"
+    assert with_login.get_config_file()["oauth_available"] is True
+    assert without_login.get_config_file()["oauth_available"] is False

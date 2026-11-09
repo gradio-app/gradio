@@ -27,7 +27,7 @@ from huggingface_hub import HfApi
 from pydantic import BaseModel
 
 from gradio import oauth, processing_utils
-from gradio.utils import get_upload_folder, is_in_or_equal
+from gradio.utils import get_space, get_upload_folder, is_in_or_equal
 
 logger = logging.getLogger(__name__)
 
@@ -549,9 +549,10 @@ def _token_from_cookies(raw, app) -> str | None:
 def resolve_token(request, app=None) -> str | None:
     """The caller's own HF token, for reading and writing their bucket.
 
-    The token they gave the app for run history, else their OAuth token. The
-    host's locally saved token is only for Workflow's write-token holder; a
-    request's origin never grants it. Imported lazily because `gradio.workflow`
+    The token they gave the app for run history, else their OAuth token on a
+    Space (elsewhere OAuth is mocked, with a token the Hub rejects). The host's
+    locally saved token is only for Workflow's write-token holder; a request's
+    origin never grants it. Imported lazily because `gradio.workflow`
     imports this module.
     """
     from gradio.workflow import _get_locally_saved_hf_token, _request_has_write_token
@@ -562,13 +563,14 @@ def resolve_token(request, app=None) -> str | None:
     token = _token_from_cookies(raw, app or getattr(raw, "app", None))
     if token:
         return token
-    try:
-        info = oauth._get_valid_oauth_info_from_session(raw.session)
-    except Exception:
-        info = None
-    token = (info or {}).get("access_token")
-    if isinstance(token, str) and token:
-        return token
+    if get_space() is not None:
+        try:
+            info = oauth._get_valid_oauth_info_from_session(raw.session)
+        except Exception:
+            info = None
+        token = (info or {}).get("access_token")
+        if isinstance(token, str) and token:
+            return token
     if _request_has_write_token(raw):
         return _get_locally_saved_hf_token()
     return None

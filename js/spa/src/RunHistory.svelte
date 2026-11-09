@@ -23,6 +23,7 @@
 
 	interface HistoryConfig extends RunHistoryScope {
 		title?: string;
+		oauth_available?: boolean;
 		components: {
 			id: number;
 			type: string;
@@ -54,9 +55,7 @@
 
 	const bucket_id = $derived(storage.bucket_id ?? "");
 	const using_bucket = $derived(storage.type === "bucket");
-	const oauth_available = $derived(
-		scope.components.some((component) => component.type === "loginbutton")
-	);
+	const oauth_available = $derived(scope.oauth_available ?? false);
 
 	let groups = $derived.by(() => {
 		const grouped = new Map<string, StoredRun[]>();
