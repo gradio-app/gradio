@@ -21,12 +21,15 @@ from huggingface_hub import HfApi, get_token
 HERE = Path(__file__).parent
 BASE_SHA = "e6f0dd47471bb459dac110d38f5e61f62c64f498"  # 7.0-dev, merge base of #14016
 PR_SHA = "e297d03bd0005012343511ef9cc3ba3fd5a6a900"  # head of #14016
+MAIN_SHA = "ebccfcf3194dd3cd132491a6bc35968f1321611a"  # main, gradio 6.31.0
+# arm -> (gradio sha, gradio version, extra environment)
 ARMS = {
-    "fastapi": (BASE_SHA, ""),
-    "base-csr": (BASE_SHA, ""),
-    "base-ssr": (BASE_SHA, "GRADIO_SSR_MODE=true"),
-    "pr-default": (PR_SHA, ""),
-    "pr-csr": (PR_SHA, "GRADIO_SSR_MODE=false"),
+    "fastapi": (BASE_SHA, "7.0.0.dev0", ""),
+    "main": (MAIN_SHA, "6.31.0", ""),
+    "base-csr": (BASE_SHA, "7.0.0.dev0", ""),
+    "base-ssr": (BASE_SHA, "7.0.0.dev0", "GRADIO_SSR_MODE=true"),
+    "pr-default": (PR_SHA, "7.0.0.dev0", ""),
+    "pr-csr": (PR_SHA, "7.0.0.dev0", "GRADIO_SSR_MODE=false"),
 }
 APP_SCRIPTS = {"simple": "simple_gradio", "many_tabs": "many_tabs"}
 
@@ -39,21 +42,26 @@ def space_url(owner, arm):
     return f"https://{owner}-bench-14016-{arm}.hf.space"
 
 
-def deploy(api: HfApi, owner: str):
+def deploy(api: HfApi, owner: str, arms: list[str]):
     template = (HERE / "Dockerfile").read_text()
-    for arm, (sha, env) in ARMS.items():
+    for arm in arms:
+        sha, version, env = ARMS[arm]
         rid = repo_id(owner, arm)
         api.create_repo(
             rid, repo_type="space", space_sdk="docker", private=True, exist_ok=True
         )
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
-            (tmp / "Dockerfile").write_text(template.format(sha=sha, env=env))
+            (tmp / "Dockerfile").write_text(
+                template.format(sha=sha, version=version, env=env)
+            )
             (tmp / "README.md").write_text(
                 f"---\ntitle: bench-14016 {arm}\nsdk: docker\napp_port: 7860\n---\n\n"
                 f"Benchmark arm `{arm}` for gradio-app/gradio#14016 (gradio@{sha[:7]} {env}).\n"
             )
-            shutil.copy(HERE.parent / "constraints.txt", tmp / "constraints.txt")
+            # main still uses httpx, so it gets the same pins minus the httpx2 stack
+            constraints = "constraints_main.txt" if arm == "main" else "constraints.txt"
+            shutil.copy(HERE.parent / constraints, tmp / "constraints.txt")
             shutil.copytree(
                 HERE.parent / "apps",
                 tmp / "apps",
@@ -71,8 +79,8 @@ def deploy(api: HfApi, owner: str):
         print("deployed", rid)
 
 
-def set_app(api: HfApi, owner: str, app: str):
-    for arm in ARMS:
+def set_app(api: HfApi, owner: str, app: str, arms: list[str]):
+    for arm in arms:
         if arm == "fastapi":
             continue
         api.add_space_variable(repo_id(owner, arm), "APP", APP_SCRIPTS[app])
@@ -121,10 +129,10 @@ def startup_stamps(owner, arm) -> dict | None:
     return last
 
 
-def startup(api: HfApi, owner: str, reps: int, app: str) -> list[dict]:
+def startup(api: HfApi, owner: str, reps: int, app: str, arms: list[str]) -> list[dict]:
     rows = []
     for rep in range(reps):
-        for arm in ARMS:
+        for arm in arms:
             if arm == "fastapi" and app != "simple":
                 continue
             t = time.time()
@@ -153,21 +161,23 @@ def main():
     ap.add_argument("--app", default="simple")
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("--out")
+    ap.add_argument("--arms", default=",".join(ARMS), help="comma-separated subset")
     args = ap.parse_args()
     api = HfApi()
+    arms = args.arms.split(",")
     if args.command == "deploy":
-        deploy(api, args.owner)
+        deploy(api, args.owner, arms)
     elif args.command == "set-app":
-        set_app(api, args.owner, args.app)
+        set_app(api, args.owner, args.app, arms)
     elif args.command == "wait":
-        for arm in ARMS:
+        for arm in arms:
             wait_ready(api, args.owner, arm)
             print("ready", arm, flush=True)
     elif args.command == "urls":
         print(
             " ".join(
                 f"--remote {arm}/{args.app}={space_url(args.owner, arm)}"
-                for arm in ARMS
+                for arm in arms
                 if arm != "fastapi" or args.app == "simple"
             )
         )
@@ -176,9 +186,11 @@ def main():
         results = json.loads(out.read_text()) if out.exists() else {}
         results.setdefault("startup_spaces", [])
         results["startup_spaces"] = [
-            r for r in results["startup_spaces"] if r["app"] != args.app
+            r
+            for r in results["startup_spaces"]
+            if not (r["app"] == args.app and r["arm"] in arms)
         ]
-        results["startup_spaces"] += startup(api, args.owner, args.reps, args.app)
+        results["startup_spaces"] += startup(api, args.owner, args.reps, args.app, arms)
         out.write_text(json.dumps(results, indent=1))
 
 

@@ -9,9 +9,10 @@ import argparse
 import json
 from pathlib import Path
 
-ARM_ORDER = ["fastapi", "base-csr", "base-ssr", "pr-default", "pr-csr"]
+ARM_ORDER = ["fastapi", "main", "base-csr", "base-ssr", "pr-default", "pr-csr"]
 ARM_LABEL = {
     "fastapi": "FastAPI",
+    "main": "main (6.31.0, CSR, default)",
     "base-csr": "7.0-dev (CSR, default)",
     "base-ssr": "7.0-dev (SSR opt-in)",
     "pr-default": "**#14016 (default → SSR)**",

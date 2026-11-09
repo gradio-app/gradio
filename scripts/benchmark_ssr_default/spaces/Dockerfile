@@ -17,7 +17,7 @@ WORKDIR /home/user/app
 COPY --chown=user constraints.txt .
 RUN pip install --no-cache-dir --user -c constraints.txt \
     "gradio-client @ git+https://github.com/gradio-app/gradio@{sha}#subdirectory=client/python" \
-    "gradio @ https://huggingface.co/buckets/gradio/pypi-previews/resolve/{sha}/gradio-7.0.0.dev0-py3-none-any.whl"
+    "gradio @ https://huggingface.co/buckets/gradio/pypi-previews/resolve/{sha}/gradio-{version}-py3-none-any.whl"
 
 COPY --chown=user apps apps
 ENV BENCH_HOST=0.0.0.0 BENCH_PORT=7860 GRADIO_ANALYTICS_ENABLED=False PYTHONUNBUFFERED=1 {env}

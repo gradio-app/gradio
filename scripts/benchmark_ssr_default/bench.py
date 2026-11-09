@@ -42,6 +42,7 @@ VENVS = Path(os.environ.get("BENCH_VENVS", HERE / ".venvs"))
 # environment first, so "unset" really means each version's default.
 ARMS = {
     "fastapi": ("base", {}),
+    "main": ("main", {}),  # main (6.x) default: client-side rendering
     "base-csr": ("base", {}),  # 7.0-dev default: client-side rendering
     "base-ssr": (
         "base",

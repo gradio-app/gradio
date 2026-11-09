@@ -11,9 +11,11 @@ Results are in [RESULTS.md](RESULTS.md). This folder holds the harness that prod
 | `base-ssr` | 7.0-dev `e6f0dd4` | `true` | SSR (what Spaces opts into today) |
 | `pr-default` | #14016 `e297d03` | unset | SSR (the new default, since Node 24.22.1 is installed) |
 | `pr-csr` | #14016 `e297d03` | `false` | client-side rendering |
+| `main` | main `ebccfcf` (6.31.0) | unset | client-side rendering (no gateway process) |
 
-Both Gradio builds are the PR-preview wheels, installed with the same pinned
-dependencies (`constraints.txt`). FastAPI and uvicorn are the versions that the
+All Gradio builds are the PR-preview wheels, installed with the same pinned
+dependencies (`constraints.txt`; `main` still uses httpx, so it uses
+`constraints_main.txt`, which drops only the httpx2 pins). FastAPI and uvicorn are the versions that the
 Gradio wheels pull in. Analytics are off in every arm.
 
 ## Apps
@@ -65,4 +67,15 @@ uv venv --python 3.12 .venvs/tools && VIRTUAL_ENV=.venvs/tools uv pip install pl
 
 .venvs/tools/bin/python merge.py results/spaces.json results/spaces-simple.json results/spaces-many_tabs.json
 .venvs/tools/bin/python report.py --local results/local.json --spaces results/spaces.json  # tables in RESULTS.md
+
+# main, measured later with 7.0-dev and #14016 rerun alongside as controls
+uv venv --python 3.12 .venvs/main && VIRTUAL_ENV=.venvs/main uv pip install -c constraints_main.txt \
+  "gradio-client @ git+https://github.com/gradio-app/gradio@ebccfcf3194dd3cd132491a6bc35968f1321611a#subdirectory=client/python" \
+  https://huggingface.co/buckets/gradio/pypi-previews/resolve/ebccfcf3194dd3cd132491a6bc35968f1321611a/gradio-6.31.0-py3-none-any.whl
+.venvs/tools/bin/python bench.py --arms main,base-csr,pr-default --apps simple --http-levels 1,100 \
+  --http-scenarios page,api --tab-counts 50 --tab-modes isolated --out results/local-main.json
+.venvs/tools/bin/python spaces/deploy.py deploy --owner <you> --arms main
+.venvs/tools/bin/python spaces/deploy.py startup --owner <you> --app simple --reps 3 --arms main,base-csr,pr-default --out results/spaces-main.json
+.venvs/tools/bin/python bench.py --hf-auth --suites pageload --page-reps 10 --throttled-reps 3 --out results/spaces-main.json \
+  $(.venvs/tools/bin/python spaces/deploy.py urls --owner <you> --app simple --arms main,base-csr,pr-default)
 ```
