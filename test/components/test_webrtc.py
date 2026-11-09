@@ -3917,6 +3917,43 @@ class TestAudioArrays:
         assert "cannot read the input" in str(notifier.failure["error"])
         assert track.thread_quit.is_set()
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("handler_class", [False, True])
+    async def test_an_error_receiving_video_ends_the_stream(self, handler_class):
+        from gradio.webrtc.tracks import HandlerVideoTrack, VideoCallback
+        from gradio.webrtc.utils import Context, StreamNotifier
+
+        class Camera(VideoStreamTrack):
+            async def recv(self):  # e.g. a frame the decoder cannot take
+                raise RuntimeError("cannot receive the video")
+
+        class Handler(VideoStreamHandler):
+            def video_receive(self, frame):
+                pass
+
+            def video_emit(self):
+                return None
+
+        notifier = StreamNotifier(
+            asyncio.get_running_loop(), end_stream=lambda: None, show_error=True
+        )
+        LocalContext.stream_notifier.set(notifier)
+        # Both read the camera in VideoCallback.accept_input
+        if handler_class:
+            track: Any = HandlerVideoTrack(
+                Camera(), event_handler=cast(Callable, Handler()), context=Context("id")
+            )
+        else:
+            track = VideoCallback(
+                Camera(), event_handler=lambda frame: frame, context=Context("id")
+            )
+        track.channel_set.set()
+        await asyncio.wait_for(track.process_frames(), 2)
+        # The page hears it and the stream ends, instead of waiting for frames
+        assert notifier.failure is not None
+        assert "cannot receive the video" in str(notifier.failure["error"])
+        assert track.thread_quit.is_set()
+
     @staticmethod
     async def decode(*returned):
         import av

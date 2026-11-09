@@ -270,6 +270,12 @@ class VideoCallback(VideoStreamTrack):
             except MediaStreamError:
                 self.stop()
                 return
+            except Exception as e:
+                # As in AudioCallback.process_input_frames: the stream is broken
+                # for good, and the page hears it instead of waiting for frames
+                handler_failed(e)
+                self.stop()
+                return
 
     def accept_input_in_background(self):
         if not self.has_started:
