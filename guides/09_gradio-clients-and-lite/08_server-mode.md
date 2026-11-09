@@ -232,10 +232,17 @@ A few things to know:
 
 ## Sign in with Hugging Face
 
-A function of the app (an `app.api()` function, an `app.webrtc()` handler or its `rtc_configuration` function) can take the visitor's `gr.OAuthProfile` or `gr.OAuthToken`, as an event listener in a `gr.Blocks` app can. The app then gets the sign-in routes that a `gr.LoginButton` brings to a `gr.Blocks` app, so the page signs in with a link instead of the button:
+When an `app.webrtc()` handler or its `rtc_configuration` function takes the visitor's `gr.OAuthProfile` or `gr.OAuthToken`, the app gets the sign-in routes that a `gr.LoginButton` brings to a `gr.Blocks` app, so the page signs in with a link instead of the button. The app's `app.api()` functions then get the signed-in visitor's values as well:
 
 ```python
 import gradio as gr
+
+async def turn_credentials(token: gr.OAuthToken | None) -> dict:
+    ...  # issue TURN credentials with the visitor's token
+
+@app.webrtc(name="flip", rtc_configuration=turn_credentials)
+def flip(frame):
+    return frame[::-1]
 
 @app.api(name="whoami")
 def whoami(profile: gr.OAuthProfile | None) -> str:
@@ -246,6 +253,8 @@ def whoami(profile: gr.OAuthProfile | None) -> str:
 <a href="/login/huggingface">Sign in with Hugging Face</a> <a href="/logout">Sign out</a>
 ```
 
-As for a `gr.Blocks` app, add `hf_oauth: true` to the metadata of your Space's `README.md` and install `gradio[oauth]`. Outside of Spaces, signing in uses a mocked profile of the account your machine is logged in to.
+As for a `gr.Blocks` app, add `hf_oauth: true` to the metadata of your Space's `README.md` and install `gradio[oauth]`. Outside of Spaces, signing in uses a mocked profile of the account your machine is logged in to, so the app starts only when your machine is logged in to Hugging Face.
+
+An `app.api()` function that takes a `gr.OAuthToken` does not bring the sign-in routes by itself. Callers of such an endpoint pass their own token with `Client(..., oauth_token=...)`, which needs none of the setup above.
 
 For the full API reference, see the [`Server` documentation](/docs/gradio/server).

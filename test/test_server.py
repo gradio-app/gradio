@@ -120,10 +120,11 @@ class TestServer:
         finally:
             gr.close_all()
 
-    def test_server_has_login_routes_only_when_a_function_asks_for_oauth(
+    def test_server_has_login_routes_only_when_a_webrtc_function_asks_for_oauth(
         self, monkeypatch
     ):
         pytest.importorskip("authlib")
+        pytest.importorskip("aiortc")
         from gradio import oauth
 
         monkeypatch.setattr(oauth, "_get_mocked_oauth_info", lambda: {})
@@ -135,9 +136,12 @@ class TestServer:
 
         signed_in = gr.Server()
 
-        @signed_in.api(name="whoami")
-        def whoami(profile: gr.OAuthProfile | None) -> str:
-            return profile.username if profile else "nobody"
+        def issue_credentials(token: gr.OAuthToken | None) -> dict:
+            return {"iceServers": []}
+
+        @signed_in.webrtc(name="flip", rtc_configuration=issue_credentials)
+        def flip(frame):
+            return frame
 
         try:
             for server, expected in ((plain, 404), (signed_in, 307)):
@@ -145,6 +149,37 @@ class TestServer:
                 with TestClient(app) as client:
                     response = client.get("/login/huggingface", follow_redirects=False)
                 assert response.status_code == expected
+        finally:
+            gr.close_all()
+
+    def test_server_api_taking_an_oauth_token_gets_the_callers_token_without_login(
+        self, monkeypatch
+    ):
+        # An API caller passes its token with Client(oauth_token=...), so the
+        # app needs no sign-in: it must start without gradio[oauth], an HF
+        # login on the machine, or `hf_oauth: true` on a Space
+        from gradio import oauth
+
+        def no_login():
+            raise ValueError("Your machine must be logged in to HF")
+
+        monkeypatch.setattr(oauth, "_get_mocked_oauth_info", no_login)
+        server = gr.Server()
+
+        @server.api(name="report")
+        def report(token: gr.OAuthToken | None) -> str:
+            return token.token if token else "none"
+
+        app, local_url, _ = server.launch(prevent_thread_lock=True, executor="thread")
+        try:
+            with TestClient(app) as client:
+                login = client.get("/login/huggingface", follow_redirects=False)
+            assert login.status_code == 404
+            client = Client(local_url, oauth_token="caller-token")
+            try:
+                assert client.predict(api_name="/report") == "caller-token"
+            finally:
+                client.close()
         finally:
             gr.close_all()
 

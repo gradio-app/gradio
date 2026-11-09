@@ -443,7 +443,8 @@ class Server(App):
                 for webrtc_kwargs in self._deferred_webrtc:
                     server_stream(**webrtc_kwargs)
         # The login routes that gr.LoginButton brings to a Blocks app, for a
-        # function that takes the visitor's gr.OAuthProfile or gr.OAuthToken
+        # webrtc() function that takes the visitor's gr.OAuthProfile or
+        # gr.OAuthToken
         if any(map(_takes_oauth, self._oauth_candidates())):
             blocks._expects_oauth = True  # type: ignore[attr-defined]
 
@@ -504,8 +505,13 @@ class Server(App):
         )
 
     def _oauth_candidates(self) -> list[Any]:
-        """The functions that may take the visitor's OAuth values."""
-        candidates: list[Any] = [fn for fn, _ in self._deferred_apis]
+        """The functions whose OAuth type hints bring the sign-in routes: those
+        of `webrtc()`. An `api()` function's hint does not, since an API caller
+        passes its token with the request (`Client(oauth_token=...)`), and an
+        app that only takes tokens that way must start without `gradio[oauth]`,
+        `hf_oauth: true` on its Space, or an HF login on the machine. Once the
+        routes are there, `api()` functions get the visitor's values too."""
+        candidates: list[Any] = []
         for webrtc_kwargs in self._deferred_webrtc:
             candidates += [webrtc_kwargs["fn"], webrtc_kwargs["rtc_configuration"]]
         return candidates
