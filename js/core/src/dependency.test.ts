@@ -1002,6 +1002,42 @@ describe("DependencyManager.dispatch with an observer", () => {
 		expect(watcher.on_end.mock.calls).toEqual([["ended"]]);
 	});
 
+	test("the handle of a run that is not a stream cancels it", async () => {
+		const generator = dependency(0, "generator", [10]);
+		generator.targets = [[5, "click"]];
+		let release!: () => void;
+		const held = new Promise<void>((resolve) => (release = resolve));
+		const run = Object.assign(
+			submission(
+				(async function* () {
+					yield waiting;
+					await held;
+					yield complete;
+				})()
+			),
+			{ cancel: vi.fn(async () => release()), close_stream: vi.fn() }
+		);
+		const client = { submit: () => run } as unknown as Client;
+		const dependency_manager = manager([generator], client);
+		const watcher = observer();
+
+		const running = dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 5,
+			event_data: null,
+			observer: watcher
+		});
+		await vi.waitFor(() => expect(watcher.on_start).toHaveBeenCalled());
+		const [handle] = watcher.on_start.mock.calls[0];
+		handle.close();
+		await running;
+
+		expect(run.cancel).toHaveBeenCalled();
+		expect(run.close_stream).not.toHaveBeenCalled();
+		expect(watcher.on_end).toHaveBeenCalledTimes(1);
+	});
+
 	test("the handle of an earlier run leaves a newer run of the event alone", async () => {
 		let hold!: () => void;
 		const held = new Promise<void>((resolve) => (hold = resolve));

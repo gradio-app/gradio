@@ -179,7 +179,10 @@
 				event_data: data,
 				observer
 			});
+			return;
 		}
+		// The events handled here run no event function
+		observer?.on_end?.("not_started");
 	}
 
 	let app_tree = new AppTree(
