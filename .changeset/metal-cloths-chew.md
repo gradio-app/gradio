@@ -1,7 +1,9 @@
 ---
 "@gradio/client": minor
 "@gradio/core": minor
+"@gradio/utils": minor
 "@gradio/webrtc": minor
+"@self/tootils": minor
 "gradio": minor
 "website": minor
 ---
