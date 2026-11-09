@@ -151,6 +151,10 @@
 				exist yet. This browser keeps it for this app until you close it or the app
 				restarts. The app's server uses it, so only add a token to apps you trust.
 			</p>
+			<p class="connect-hint">
+				This token is only used to save history. The token field at the top
+				right is separate: it runs nodes on your inference quota.
+			</p>
 		{/if}
 
 		{#if existingBuckets.length > 0}
