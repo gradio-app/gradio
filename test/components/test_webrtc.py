@@ -877,16 +877,15 @@ class TestWebRTC:
         try:
             skip = gr.skip()
             assert await webrtc._run_stream(manager, "abc") == (skip, skip, skip)
-            assert manager.sessions["abc"].event.id == "event"
+            assert stream_of(manager, "abc").event.id == "event"
             # A hot reload gives the event a new function, whose manager never
             # saw the stream; the stream stays with the one that admitted it
             reloaded = TestCleanUp.manager()
 
             # Every output is delivered, oldest first, one per call; a call
             # that leaves outputs behind wakes the event again
-            set_outputs = manager._output_setter("abc")
-            set_outputs(AdditionalOutputs(1, "a"))
-            set_outputs(AdditionalOutputs(2, "b"))
+            add_outputs(manager, "abc", AdditionalOutputs(1, "a"))
+            add_outputs(manager, "abc", AdditionalOutputs(2, "b"))
             event.signal.clear()
             assert await webrtc._run_stream(reloaded, "abc") == (skip, 1, "a")
             assert event.signal.is_set()
@@ -897,22 +896,22 @@ class TestWebRTC:
 
             # A later call (a chunk) cannot admit another stream through the
             # same event, and still serves the stream it admitted
-            set_outputs(AdditionalOutputs(3, "c"))
+            add_outputs(manager, "abc", AdditionalOutputs(3, "c"))
             assert await webrtc._run_stream(reloaded, "other") == (skip, 3, "c")
-            assert "other" not in manager.sessions
+            assert not has_stream(manager, "other")
 
             # A stream that ends still delivers what it emitted before, and
             # its event finishes once nothing is pending
-            set_outputs(AdditionalOutputs(5, "e"))
-            set_outputs(AdditionalOutputs(6, "f"))
-            manager.end("abc")
+            add_outputs(manager, "abc", AdditionalOutputs(5, "e"))
+            add_outputs(manager, "abc", AdditionalOutputs(6, "f"))
+            end_stream(manager, "abc")
             assert not event.closed
             assert await webrtc._run_stream(reloaded, "abc") == (skip, 5, "e")
             assert not event.closed
             assert await webrtc._run_stream(reloaded, "abc") == (skip, 6, "f")
             assert event.closed
 
-            set_outputs(AdditionalOutputs(4))
+            add_outputs(manager, "abc", AdditionalOutputs(4))
             with pytest.raises(ValueError, match="2 outputs besides"):
                 await webrtc._run_stream(reloaded, "abc")
 
@@ -927,13 +926,13 @@ class TestWebRTC:
             finally:
                 LocalContext.event_id.reset(other_token)
             assert other.closed
-            assert manager.sessions["abc"].event.id == "event"
+            assert stream_of(manager, "abc").event.id == "event"
         finally:
             LocalContext.blocks.reset(blocks_token)
             LocalContext.event_id.reset(event_token)
             queue.event_ids_to_events.clear()
-            await asyncio.wait_for(manager.sessions["abc"].watcher, 2)  # type: ignore
-        assert "abc" not in manager.sessions
+            await asyncio.wait_for(stream_of(manager, "abc").watcher, 2)  # type: ignore
+        assert not has_stream(manager, "abc")
 
 
 async def make_offer(audio=False, video=False, receive=None):
@@ -1013,7 +1012,7 @@ class Harness:
 
     async def start(self, webrtc_id):
         event_id = await self.join(webrtc_id)
-        await self.wait_until(lambda: webrtc_id in self.manager.sessions)
+        await self.wait_until(lambda: has_stream(self.manager, webrtc_id))
         return event_id
 
     async def offer(self, pc, webrtc_id, session_hash=None, **extra):
@@ -1086,8 +1085,46 @@ def forget_earlier_streams() -> None:
     webrtc_connection._pending_candidates.clear()
 
 
-# Tests read and set a stream's connection only through these, not through the
-# manager's attributes, so that how the manager keeps it can change
+# Tests read and set a stream and its connection only through these, not
+# through the manager's attributes, so that how streams are kept can change
+def stream_of(manager, webrtc_id):
+    """The admitted stream `webrtc_id` of `manager`, until its watcher ends."""
+    return manager.sessions[webrtc_id]
+
+
+def has_stream(manager, webrtc_id):
+    """Whether `manager` has the stream `webrtc_id`, until its watcher ends."""
+    return webrtc_id in manager.sessions
+
+
+def streams_of(manager):
+    """The streams `manager` has admitted and whose watcher has not ended."""
+    return list(manager.sessions.values())
+
+
+def pending_candidates(webrtc_id):
+    """The ICE candidates kept for a stream until its offer, or None."""
+    return webrtc_connection._pending_candidates.get(webrtc_id)
+
+
+def end_stream(manager, webrtc_id):
+    """Ends the stream as the page's close or its time limit does."""
+    manager.end(webrtc_id)
+
+
+def release_stream(manager, webrtc_id):
+    """Ends the stream as its closed peer connection or ended track does,
+    releasing its tracks and handler."""
+    manager.clean_up(webrtc_id)
+
+
+def add_outputs(manager, webrtc_id, *outputs):
+    """Hands the stream AdditionalOutputs as its handler does."""
+    set_outputs = manager._output_setter(webrtc_id)
+    for output in outputs:
+        set_outputs(output)
+
+
 def live_pc(manager, webrtc_id):
     """The stream's peer connection, until the stream's clean-up releases it."""
     connection = manager.connection(webrtc_id)
@@ -1168,7 +1205,7 @@ class TestStreams:
                 manager = harness.manager
                 deadline = time.monotonic() + 5
                 while time.monotonic() < deadline:
-                    watchers = {s.watcher for s in list(manager.sessions.values())}
+                    watchers = {s.watcher for s in list(streams_of(manager))}
                     if not any(
                         not task.done() and task not in watchers
                         for task in list(manager.tasks)
@@ -1191,7 +1228,7 @@ class TestStreams:
     async def stream_until_message(self, h, pc, type_):
         await h.start("one")
         await h.connect(pc, "one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         # The handler runs once the page has sent the input values
         await h.push_inputs("one", 0.2)
         await h.wait_until(lambda: any(m["type"] == type_ for m in pc.messages))
@@ -1344,7 +1381,7 @@ class TestStreams:
         await h.start("one")
         pc = await make_offer(**tracks)
         await h.connect(pc, "one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         await h.push_inputs("one", 0.2)
         await h.wait_until(lambda: bool(seen_requests))
         assert isinstance(seen_requests[0], gr.Request)
@@ -1414,7 +1451,7 @@ class TestStreams:
         first_event = await h.start("one")
         second_event = await h.join("two")
         await asyncio.sleep(0.5)
-        assert "two" not in h.manager.sessions
+        assert not has_stream(h.manager, "two")
         line = h.demo._queue.event_queue_per_concurrency_id[
             h.stream_fn.concurrency_id
         ].queue
@@ -1422,11 +1459,11 @@ class TestStreams:
 
         first = await make_offer(video=True)
         await h.connect(first, "one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         await first.close()
         # The first stream ends with its connection, and the second gets in
         await h.wait_until(lambda: not h.event_running(first_event))
-        await h.wait_until(lambda: "two" in h.manager.sessions)
+        await h.wait_until(lambda: has_stream(h.manager, "two"))
         assert h.event_running(second_event)
 
     @pytest.mark.asyncio
@@ -1439,7 +1476,7 @@ class TestStreams:
         messages = await h.messages("one", completed)
         assert completed(messages)
         await h.wait_until(lambda: live_pc(h.manager, "one") is None)
-        await h.wait_until(lambda: "one" not in h.manager.sessions)
+        await h.wait_until(lambda: not has_stream(h.manager, "one"))
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1449,7 +1486,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         # Outputs the queue has not delivered yet, e.g. while workers are busy
-        h.manager.sessions["one"].outputs.extend(
+        stream_of(h.manager, "one").outputs.extend(
             AdditionalOutputs(n) for n in (1, 2, 3)
         )
         await h.http.post(f"{h.api}/stream/{event_id}/close")
@@ -1470,7 +1507,7 @@ class TestStreams:
         event_id = await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        notifier = h.manager.sessions["one"].notifier
+        notifier = stream_of(h.manager, "one").notifier
         assert notifier is not None
         # The handler failed, and the stream has not ended yet
         notifier.failure = {"error": "Bad frame", "title": "Oops", "visible": False}
@@ -1490,7 +1527,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         # The page never applies the answer, so the data channel never opens
         assert (await h.offer(pc, "one"))["type"] == "answer"
-        notifier = h.manager.sessions["one"].notifier
+        notifier = stream_of(h.manager, "one").notifier
         assert notifier is not None
         notifier.fail(gr.Error("Sign in first"))
         messages = await h.messages("one", completed)
@@ -1529,7 +1566,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         await h.start("one")
         await h.connect(pc, "one")
-        notifier = h.manager.sessions["one"].notifier
+        notifier = stream_of(h.manager, "one").notifier
         assert notifier is not None
         notifier.failure = {"error": "Bad frame", "visible": False}
         # No frames wake the event, so the queue would end it at its time
@@ -1546,7 +1583,7 @@ class TestStreams:
         monkeypatch.setattr(webrtc_connection, "CONNECT_TIMEOUT", 0.5)
         event_id = await h.start("one")
         await h.wait_until(lambda: not h.event_running(event_id))
-        await h.wait_until(lambda: "one" not in h.manager.sessions)
+        await h.wait_until(lambda: not has_stream(h.manager, "one"))
 
     @pytest.mark.asyncio
     async def test_keepalive_wakes_a_quiet_stream(self, launched, monkeypatch):
@@ -1594,7 +1631,7 @@ class TestStreams:
             },
         )
         await asyncio.sleep(1)
-        assert "two" not in h.manager.sessions
+        assert not has_stream(h.manager, "two")
         pc = await make_offer(video=True)
         assert (await h.offer(pc, "two"))["meta"]["error"] == "not_admitted"
         await pc.close()
@@ -1773,7 +1810,7 @@ class TestStreams:
         assert await ask("one", "one") == {}
         assert "error" in await ask("one", "intruder")
         # Nor once the turn is over, while its event still finishes
-        h.manager.end("one")
+        end_stream(h.manager, "one")
         assert "error" in await ask("one", "one")
 
     @pytest.mark.asyncio
@@ -1857,12 +1894,12 @@ class TestStreams:
         await h.start("one")
         first = await make_offer(audio=True)
         await h.connect(first, "one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         await h.join("two")
         # The queue gives the slot to "two" before the handler of "one" has
         # shut down; a model loaded per handler must not be in memory twice
         await first.close()
-        await h.wait_until(lambda: "two" in h.manager.sessions, timeout=10)
+        await h.wait_until(lambda: has_stream(h.manager, "two"), timeout=10)
         second = await make_offer(audio=True)
         await h.connect(second, "two")
         assert SlowShutdown.log[:4] == [
@@ -1873,7 +1910,7 @@ class TestStreams:
         ]
         # Closed before it connects, the stream would end only at the connect
         # timeout, and its shutdown would land in a later test's log
-        await h.wait_until(lambda: h.manager.sessions["two"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "two").connected)
         await second.close()
         await h.wait_until(lambda: SlowShutdown.log.count("shutdown ends") == 2)
 
@@ -1897,7 +1934,7 @@ class TestStreams:
         await h.start("one")
         first = await make_offer(audio=True)
         await h.connect(first, "one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         await first.close()
         await h.wait_until(lambda: "shutdown begins" in SlowShutdown.log)
         await h.start("two")
@@ -1912,7 +1949,7 @@ class TestStreams:
             "created",
             "shutdown ends",
         ]
-        await h.wait_until(lambda: h.manager.sessions["two"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "two").connected)
         await second.close()
         await h.wait_until(lambda: SlowShutdown.log.count("shutdown ends") == 2)
 
@@ -2066,8 +2103,8 @@ class TestStreams:
         event_id = await h.start("one")
         pc = await make_offer(audio=True)
         await h.connect(pc, "one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
-        notifier = h.manager.sessions["one"].notifier
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        notifier = stream_of(h.manager, "one").notifier
         assert notifier is not None
         # The browser leaves; the handler's shutdown() raises while cleaning up
         await pc.close()
@@ -2092,7 +2129,7 @@ class TestStreams:
         # Video only: the page does not have to send (or ask for) a microphone
         assert "m=audio" not in answer["sdp"]
         handler = h.handler("one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         await h.wait_until(lambda: handler.events == ["start_up"])
         await h.wait_until(lambda: handler.frames > 0)
         assert handler.channel is not None
@@ -2124,7 +2161,7 @@ class TestStreams:
         pc = await make_offer(audio=True, video=True)
         await h.connect(pc, "one")
         handler = h.handler("one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         # Both tracks share the handler; closing must not shut it down twice
         await pc.close()
         await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
@@ -2144,7 +2181,7 @@ class TestStreams:
         pc = await make_offer(audio=True)
         await h.connect(pc, "one")
         server_pc = live_pc(h.manager, "one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         # Nothing plays back in "send", but CloseStream still ends the stream
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
         await h.wait_until(lambda: not h.event_running(event_id))
@@ -2168,7 +2205,7 @@ class TestStreams:
         # No video goes back to the page, only the values
         assert "a=recvonly" in answer["sdp"]
         handler = h.handler("one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         await h.wait_until(lambda: handler.events == ["start_up"])
         await h.wait_until(lambda: handler.frames > 0)
         # Nothing reads video_emit()'s frames here, so the server calls it
@@ -2197,7 +2234,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         server_pc = live_pc(h.manager, "one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
         await h.wait_until(lambda: not h.event_running(event_id))
         await pc.close()
@@ -2209,7 +2246,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         server_pc = live_pc(h.manager, "one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         # What the page sends for `stop.click(None, cancels=[stream])`
         await h.http.post(
             f"{h.api}/cancel",
@@ -2248,22 +2285,22 @@ class TestStreams:
 
         # Anyone can send an id that is not admitted yet, so nothing is kept
         assert (await send_candidate())["meta"]["error"] == "unknown_connection"
-        assert "one" not in webrtc_connection._pending_candidates
+        assert pending_candidates("one") is None
         await h.http.post(f"{h.api}/stream/{first_event}/close")
-        await h.wait_until(lambda: "one" in h.manager.sessions)
+        await h.wait_until(lambda: has_stream(h.manager, "one"))
         # After the turn, the offer can still be on its way. A browser with
         # several networks and TURN URLs can send many candidates meanwhile.
         for _ in range(40):
             assert (await send_candidate()).get("status") == "success"
-        assert len(webrtc_connection._pending_candidates["one"]) == 40
+        assert len(pending_candidates("one")) == 40
         # Past the bound, a candidate is dropped, but not silently
         monkeypatch.setattr(webrtc_connection, "MAX_PENDING_CANDIDATES", 40)
         await send_candidate()
-        assert len(webrtc_connection._pending_candidates["one"]) == 40
+        assert len(pending_candidates("one")) == 40
         assert "ICE candidate" in caplog.text
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        assert "one" not in webrtc_connection._pending_candidates
+        assert pending_candidates("one") is None
         await pc.close()
 
     @pytest.mark.asyncio
@@ -2580,7 +2617,7 @@ class TestStreamsWithProcesses:
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         # Each output takes a call of the stream's event
-        h.manager.sessions["one"].outputs.extend(
+        stream_of(h.manager, "one").outputs.extend(
             AdditionalOutputs(n) for n in (1, 2, 3)
         )
         await h.http.post(f"{h.api}/stream/{event_id}/close")
@@ -3034,7 +3071,7 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         await h.connect(pc, "one")
         server_pc = live_pc(h.manager, "one")
         await h.push_inputs("one")
-        await h.wait_until(lambda: h.manager.sessions["one"].connected)
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         # A long job takes the only worker slot while the stream waits
         await h.http.post(
             f"{h.api}/queue/join",
@@ -3046,7 +3083,7 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         assert time.monotonic() - started < 2.5
         # Once a worker is free, the event still delivers every pending
         # output, however long past its time limit, and reports the failure
-        session = h.manager.sessions["one"]
+        session = stream_of(h.manager, "one")
         session.outputs.append(AdditionalOutputs(99))
         assert session.notifier is not None
         session.notifier.failure = {"error": "Bad frame", "visible": False}
@@ -4338,12 +4375,12 @@ class TestCleanUp:
             tracks=[TestVideoTracks.callback(flip)],
         )
         handle.live = False
-        watcher = manager.sessions["one"].watcher
+        watcher = stream_of(manager, "one").watcher
         assert watcher is not None
         with pytest.raises(RuntimeError, match="close failed"):
             await asyncio.wait_for(watcher, 2)
         assert not tracks_of(manager, "one")
-        assert "one" not in manager.sessions
+        assert not has_stream(manager, "one")
         assert "one" not in webrtc_connection._streams
         assert "event" not in webrtc_connection._admitted
 
@@ -4356,7 +4393,7 @@ class TestCleanUp:
         manager = self.manager()
         handle = self.Handle()
         assert manager.admit("one", cast(Any, handle))
-        session = manager.sessions["one"]
+        session = stream_of(manager, "one")
 
         def broken(time_limit):
             raise RuntimeError("watch failed")
@@ -4388,7 +4425,7 @@ class TestCleanUp:
         LocalContext.blocks.set(cast(Any, blocks))
         LocalContext.event_id.set("event")
         assert webrtc_connection.stream_call(manager, "one") is None
-        assert "one" not in manager.sessions
+        assert not has_stream(manager, "one")
         assert finished == [True]
 
     @pytest.mark.asyncio
@@ -4403,7 +4440,7 @@ class TestCleanUp:
         LocalContext.event_id.set("event")
         # Signalling only takes string ids, so it could never reach this stream
         assert webrtc_connection.stream_call(manager, cast(Any, 5)) is None
-        assert not manager.sessions
+        assert not streams_of(manager)
         assert finished == [True]
 
     def test_input_for_a_stream_id_that_is_not_a_string_is_ignored(self):
@@ -4455,7 +4492,7 @@ class TestCleanUp:
         manager = self.manager()
         tracks = [TestVideoTracks.callback(flip) for _ in range(2)]
         attach(manager, "one", tracks=tracks)
-        manager.clean_up("one")
+        release_stream(manager, "one")
         assert [track.readyState for track in tracks] == ["ended", "ended"]
         assert not tracks_of(manager, "one")
 
@@ -4477,7 +4514,7 @@ class TestCleanUp:
         notifier.send("info", "before the end")
         await asyncio.sleep(0)
         assert len(notifier.pending) == (1 if channel in (None, "connecting") else 0)
-        manager.end("one")
+        end_stream(manager, "one")
         notifier.send("info", "after the end")
         await asyncio.sleep(0)
         assert notifier.pending == []
@@ -4519,7 +4556,7 @@ class TestCleanUp:
         waiting = asyncio.create_task(handler.wait_for_args())
         await asyncio.sleep(0.05)
         assert not waiting.done()
-        manager.clean_up("one")
+        release_stream(manager, "one")
         await asyncio.wait_for(waiting, 1)
 
     @pytest.mark.asyncio
@@ -4541,7 +4578,7 @@ class TestCleanUp:
                 )
             ],
         )
-        manager.clean_up("one")
+        release_stream(manager, "one")
         await manager._wait_for_shutdowns()
         # A last call of the handler (e.g. a sync emit() in its thread) may
         # reach wait_for_args() only now, after shutdown(). Nothing will send
@@ -4655,7 +4692,7 @@ class TestCleanUp:
         await track.recv()
         pending = asyncio.create_task(track.recv())
         await asyncio.sleep(0.2)
-        manager.clean_up("one")
+        release_stream(manager, "one")
         resume.set()
         # A finally block or a with statement in the generator releases what
         # it holds when the stream ends, before the next stream starts
