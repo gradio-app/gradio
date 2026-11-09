@@ -1,5 +1,16 @@
 # @self/app
 
+## 2.5.0-dev.0
+
+### Features
+
+- [#13585](https://github.com/gradio-app/gradio/pull/13585) [`8888208`](https://github.com/gradio-app/gradio/commit/88882080b380a00273e8d14e409c477cb07e9976) - Keep sessions (outputs, gr.State, running jobs) across refreshes, restarts and replicas.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.8.0-dev.0
+- @gradio/core@1.14.0-dev.0
+
 ## 2.4.0
 
 ### Dependency updates
