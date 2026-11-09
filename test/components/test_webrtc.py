@@ -4811,12 +4811,25 @@ async def test_a_server_webrtc_stream_gets_the_visitor_oauth_token(executor):
     def echo(frame):
         return frame
 
+    @server.api(name="whoami")
+    def whoami(profile: gr.OAuthProfile | None) -> str:
+        return profile.username if profile else "nobody"
+
     _, local_url, _ = server.launch(prevent_thread_lock=True, executor=executor)
     try:
         async with httpx2.AsyncClient(timeout=10, base_url=local_url) as http:
             # gr.Server has the login routes, since a function takes the token
             login = await http.get("login/callback", params={"_target_url": "/"})
             http.cookies.set("session", login.cookies["session"])
+            # and its api() functions get the signed-in visitor too
+            call = await http.post(
+                f"{API_PREFIX.lstrip('/')}/call/whoami", json={"data": []}
+            )
+            result = await http.get(
+                f"{API_PREFIX.lstrip('/')}/call/whoami/{call.json()['event_id']}"
+            )
+            assert "event: complete" in result.text
+            assert "nobody" not in result.text
             config = (await http.get("config")).json()
             fn_index = next(
                 d["id"] for d in config["dependencies"] if d["api_name"] == "echo"

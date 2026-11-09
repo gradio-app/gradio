@@ -1059,7 +1059,8 @@ def is_oauth_hint(type_hint: Any) -> bool:
 
 def takes_oauth(fn: Callable) -> bool:
     """Whether `special_args` would give `fn` the visitor's OAuth profile or
-    token, so that the app needs its login routes."""
+    token (for a `gr.Server` webrtc() function, the app then needs its login
+    routes)."""
     try:
         parameters = inspect.signature(fn).parameters.values()
     except ValueError:
