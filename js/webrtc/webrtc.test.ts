@@ -1,7 +1,13 @@
 import { test, describe, afterEach, beforeEach, expect, vi } from "vitest";
 import type { Mock } from "vitest";
 import { tick } from "svelte";
-import { cleanup, render, fireEvent, waitFor } from "@self/tootils/render";
+import {
+	cleanup,
+	render as render_component,
+	fireEvent,
+	waitFor
+} from "@self/tootils/render";
+import type { DispatchObserver } from "@gradio/utils";
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 
 import WebRTC from "./Index.svelte";
@@ -127,6 +133,63 @@ const loading_status = {
 
 type SetData = (data: Record<string, any>) => Promise<void>;
 
+// The runs of the stream event that a rendered component started, each with
+// the observer it dispatched it with (see `Gradio.dispatch`), as the app's
+// dependency manager would follow them
+type StreamRun = { observer: DispatchObserver; started: boolean };
+type StreamRuns = { runs: StreamRun[]; closed: Mock };
+const stream_runs = new WeakMap<SetData, StreamRuns>();
+
+// `render` that also records the stream runs. `listen("close_stream")` hears
+// the page closing its stream run, which it does through the run's handle.
+async function render(
+	...args: Parameters<typeof render_component>
+): ReturnType<typeof render_component> {
+	const result = await render_component(...args);
+	const runs: StreamRuns = { runs: [], closed: vi.fn() };
+	result.listen("stream").mockImplementation((_data, observer) => {
+		if (observer) runs.runs.push({ observer, started: false });
+	});
+	stream_runs.set(result.set_data, runs);
+	const listen = result.listen;
+	result.listen = ((event_name: string, opts?: any) =>
+		event_name === "close_stream"
+			? runs.closed
+			: listen(event_name, opts)) as typeof listen;
+	return result;
+}
+
+// The latest stream run, which the queue has now taken
+function latest_run(set_data: SetData): StreamRun | null {
+	const runs = stream_runs.get(set_data)!;
+	const run = runs.runs.at(-1) ?? null;
+	if (run && !run.started) {
+		run.started = true;
+		run.observer.on_start?.({ close: () => runs.closed() });
+	}
+	return run;
+}
+
+// What the queue reports for the latest stream run: a status as its loading
+// status gets it
+async function queue_status(
+	set_data: SetData,
+	status: Record<string, unknown>
+): Promise<void> {
+	const run = latest_run(set_data);
+	run?.observer.on_status?.(status as any);
+	if (status.stream_state === "closed") run?.observer.on_end?.("ended");
+	await tick();
+}
+
+// The join of the latest stream run fails before it starts, e.g. a full
+// queue answers it with 503
+async function join_fails(set_data: SetData): Promise<void> {
+	const runs = stream_runs.get(set_data)!;
+	runs.runs.at(-1)?.observer.on_end?.("error");
+	await tick();
+}
+
 // What the queue reports for the stream's event: it waits in line, its turn
 // comes, and it ends
 async function queue_reports(
@@ -134,12 +197,10 @@ async function queue_reports(
 	...states: ("waiting" | "open" | "closed")[]
 ): Promise<void> {
 	for (const stream_state of states) {
-		await set_data({
-			loading_status: {
-				...loading_status,
-				status: stream_state === "closed" ? "complete" : "pending",
-				stream_state
-			}
+		await queue_status(set_data, {
+			...loading_status,
+			status: stream_state === "closed" ? "complete" : "pending",
+			stream_state
 		});
 	}
 }
@@ -924,9 +985,7 @@ describe("WebRTC queue turn", () => {
 		const { getByRole, server, set_data } = await ready_webcam();
 		await fireEvent.click(getByRole("button", { name: "start stream" }));
 		// e.g. a full queue answers the join with 503, before any "waiting"
-		await set_data({
-			loading_status: { ...loading_status, status: "error", stream_state: null }
-		});
+		await join_fails(set_data);
 		await waitFor(() => {
 			expect(getByRole("button", { name: "start stream" })).toHaveTextContent(
 				"audio.record"
@@ -945,7 +1004,7 @@ describe("WebRTC queue turn", () => {
 			queue_size: 3,
 			eta: 24.6
 		};
-		await set_data({ loading_status: waiting });
+		await queue_status(set_data, waiting);
 		await waitFor(() => {
 			expect(getByRole("status")).toHaveTextContent(
 				"audio.waiting · 2/3 · ~25s"
@@ -962,11 +1021,14 @@ describe("WebRTC queue turn", () => {
 			{ timeout: 2000 }
 		);
 		// ...and the same status delivered again does not restart it
-		await set_data({ loading_status: { ...waiting } });
+		await queue_status(set_data, { ...waiting });
 		expect(getByRole("status")).toHaveTextContent("audio.waiting · 2/3 · ~24s");
 		// A new estimate (someone ahead left) replaces it
-		await set_data({
-			loading_status: { ...waiting, queue_position: 0, queue_size: 2, eta: 4.2 }
+		await queue_status(set_data, {
+			...waiting,
+			queue_position: 0,
+			queue_size: 2,
+			eta: 4.2
 		});
 		await waitFor(() => {
 			expect(getByRole("status")).toHaveTextContent(
@@ -978,14 +1040,12 @@ describe("WebRTC queue turn", () => {
 	test("once the estimate runs out, only the place is shown", async () => {
 		const { getByRole, set_data } = await ready_webcam();
 		await fireEvent.click(getByRole("button", { name: "start stream" }));
-		await set_data({
-			loading_status: {
-				...loading_status,
-				stream_state: "waiting",
-				queue_position: 0,
-				queue_size: 1,
-				eta: 0.4
-			}
+		await queue_status(set_data, {
+			...loading_status,
+			stream_state: "waiting",
+			queue_position: 0,
+			queue_size: 1,
+			eta: 0.4
 		});
 		await waitFor(
 			() => {
@@ -1004,14 +1064,12 @@ describe("WebRTC queue turn", () => {
 			client: make_server()
 		});
 		await set_data({ value: START_STREAM });
-		await set_data({
-			loading_status: {
-				...loading_status,
-				stream_state: "waiting",
-				queue_position: 0,
-				queue_size: 2,
-				eta: 10
-			}
+		await queue_status(set_data, {
+			...loading_status,
+			stream_state: "waiting",
+			queue_position: 0,
+			queue_size: 2,
+			eta: 10
 		});
 		await waitFor(() =>
 			expect(getByText("audio.waiting · 1/2 · ~10s")).toBeVisible()

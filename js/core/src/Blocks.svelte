@@ -18,7 +18,12 @@
 	import type { ThemeMode, Payload } from "./types";
 	import { LiveStatus, Toast } from "@gradio/statustracker";
 	import type { LoadingStatusArgs, ToastMessage } from "@gradio/statustracker";
-	import { type ShareData, GRADIO_ROOT, on_page_info } from "@gradio/utils";
+	import {
+		type DispatchObserver,
+		type ShareData,
+		GRADIO_ROOT,
+		on_page_info
+	} from "@gradio/utils";
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
@@ -126,7 +131,8 @@
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
-		data: unknown
+		data: unknown,
+		observer?: DispatchObserver
 	): void {
 		const toast = event_toast(event, data);
 		if (event === "share") {
@@ -170,7 +176,8 @@
 				type: "event",
 				event_name: event,
 				target_id: id,
-				event_data: data
+				event_data: data,
+				observer
 			});
 		}
 	}

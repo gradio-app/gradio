@@ -7,6 +7,36 @@ import { fromStore } from "svelte/store";
 import type { Readable } from "svelte/store";
 
 export const I18N_MARKER = "__i18n__";
+
+/** A run of an event that a component started with `Gradio.dispatch`. */
+export interface EventRun {
+	/**
+	 * Ends the run as the page's close of a stream does: the server still
+	 * delivers what is pending and reports how the run ended.
+	 */
+	close(): void;
+}
+
+/** What a run reports as it goes, the same as the event's loading status. */
+export interface EventRunStatus {
+	status: string;
+	stream_state?: "waiting" | "open" | "closed" | null;
+	queue_position?: number | null;
+	queue_size?: number;
+	eta?: number | null;
+}
+
+/**
+ * Follows the run that a `Gradio.dispatch` call starts. `on_end` is called
+ * exactly once: "not_started" when the dispatch started no run (e.g. the
+ * event is already running and takes no second run), "ended" when the run
+ * ended, and "error" when it failed.
+ */
+export interface DispatchObserver {
+	on_start?(run: EventRun): void;
+	on_status?(status: EventRunStatus): void;
+	on_end?(outcome: "not_started" | "ended" | "error"): void;
+}
 const TRANSLATABLE_PROPS = [
 	"label",
 	"info",
@@ -574,8 +604,17 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		return this.i18n(value);
 	};
 
-	dispatch<E extends keyof T>(event_name: E, data?: T[E]): void {
-		this.dispatcher(this.shared.id, event_name, data);
+	/**
+	 * Dispatches an event of the component. `observer`, if given, follows the
+	 * run of the event's function that this dispatch starts (see
+	 * `DispatchObserver`).
+	 */
+	dispatch<E extends keyof T>(
+		event_name: E,
+		data?: T[E],
+		observer?: DispatchObserver
+	): void {
+		this.dispatcher(this.shared.id, event_name, data, observer);
 	}
 
 	async get_data(): Promise<any> {

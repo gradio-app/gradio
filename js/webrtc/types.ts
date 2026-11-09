@@ -63,7 +63,6 @@ export interface WebRTCEvents {
 	change: never;
 	tick: never;
 	stream: never;
-	close_stream: never;
 	start_recording: never;
 	stop_recording: never;
 	error: string | Toast;

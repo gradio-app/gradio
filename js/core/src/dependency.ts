@@ -19,6 +19,7 @@ import type {
 	LogMessage
 } from "@gradio/client";
 import { settled } from "svelte";
+import type { DispatchObserver } from "@gradio/utils";
 const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 const NOVALUE = Symbol("NOVALUE");
@@ -171,6 +172,8 @@ interface DispatchEvent {
 	event_name?: string;
 	target_id?: number;
 	event_data: unknown;
+	// Follows the run that this dispatch starts (see `Gradio.dispatch`)
+	observer?: DispatchObserver;
 }
 
 type UpdateStateCallback = (
@@ -397,7 +400,14 @@ export class DependencyManager {
 	 * @returns a value if there is no backend fn, a 'submission' if there is a backend fn, or null if there is no dependency
 	 */
 	async dispatch(event_meta: DispatchFunction | DispatchEvent): Promise<void> {
-		if (this.connection_lost) return;
+		// Follows the run of the first function this dispatch would start, and
+		// hears exactly once how it went
+		let observer =
+			event_meta.type === "event" ? event_meta.observer : undefined;
+		if (this.connection_lost) {
+			observer?.on_end?.("not_started");
+			return;
+		}
 		let deps: Dependency[] | undefined;
 		if (event_meta.type === "fn") {
 			const dep = this.dependencies_by_fn.get(event_meta.fn_index!);
@@ -407,9 +417,21 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
+		if (!deps?.length) observer?.on_end?.("not_started");
+		// A later dispatch of the same event (a deferred run) is not this one
+		const redispatch = (): Promise<void> =>
+			this.dispatch(
+				event_meta.type === "event"
+					? { ...event_meta, observer: undefined }
+					: event_meta
+			);
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
-			if (dep) {
+			if (!dep) continue;
+			const dep_observer = observer;
+			observer = undefined;
+			let outcome: "not_started" | "ended" | "error" = "not_started";
+			try {
 				this.cancel(dep.cancels);
 
 				const dispatch_status = should_dispatch(
@@ -453,6 +475,14 @@ export class DependencyManager {
 						return;
 					}
 					this.update_loading_status(status);
+					// In the field names of the loading status that components get
+					dep_observer?.on_status?.({
+						status: status.status,
+						stream_state: status.stream_state,
+						queue_position: status.position ?? null,
+						queue_size: status.size,
+						eta: status.eta ?? null
+					});
 				};
 				const target_id = event_meta.target_id ?? null;
 
@@ -486,6 +516,7 @@ export class DependencyManager {
 					);
 
 					if (dep_submission.type !== "submit") {
+						outcome = "ended";
 						if (dep_submission.type === "data") {
 							await this.handle_data(dep.outputs, dep_submission.data);
 						}
@@ -512,6 +543,11 @@ export class DependencyManager {
 						this.submission_trigger_ids.set(dep.id, target_id);
 						this.active_dependencies.set(dep_submission.data, dep);
 						active_submission = dep_submission.data;
+						outcome = "ended";
+						const run = dep_submission.data;
+						dep_observer?.on_start?.({
+							close: () => this.end_run(dep, run)
+						});
 						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
@@ -598,6 +634,7 @@ export class DependencyManager {
 									this.update_loading_stati_state();
 								} else if (result.stage === "error") {
 									if (result.broken || result.session_not_found) {
+										outcome = "error";
 										if (!this.connection_lost) {
 											this.connection_lost = true;
 											this.on_connection_lost_cb();
@@ -611,6 +648,7 @@ export class DependencyManager {
 										break submit_loop;
 									}
 									if (Array.isArray(result?.message)) {
+										outcome = "error";
 										// Settle this run's status: a pending entry left behind
 										// here is repainted by the next event, and since it
 										// keeps its time_start the spinner resumes from the
@@ -668,7 +706,7 @@ export class DependencyManager {
 										this.clear_submission(dep.id, dep_submission.data);
 										if (this.queue.has(dep.id)) {
 											this.queue.delete(dep.id);
-											this.dispatch(event_meta);
+											redispatch();
 										}
 										return;
 									}
@@ -732,10 +770,11 @@ export class DependencyManager {
 
 						if (this.queue.has(dep.id)) {
 							this.queue.delete(dep.id);
-							this.dispatch(event_meta);
+							redispatch();
 						}
 					}
 				} catch (error) {
+					outcome = "error";
 					// This run's own: with trigger_mode="multiple" the latest one
 					// may be another run, which acknowledging would close
 					await active_submission?.acknowledge();
@@ -759,6 +798,8 @@ export class DependencyManager {
 						});
 					});
 				}
+			} finally {
+				dep_observer?.on_end?.(outcome);
 			}
 		}
 		return;
@@ -1204,12 +1245,7 @@ export class DependencyManager {
 			}
 			const submission = this.submissions.get(fn_id);
 			if (submission) {
-				// The server still delivers the outputs pending for the stream
-				// and then reports how it ended, for its `.success()` /
-				// `.failure()` listeners. A new stream is a new event meanwhile.
-				this.page_ended.add(submission);
-				submission.close_stream({ read_to_end: true });
-				this.clear_submission(fn_id);
+				this.end_stream_run(fn_id, submission);
 			}
 
 			this.update_loading_status({
@@ -1221,6 +1257,45 @@ export class DependencyManager {
 			});
 		}
 
+		this.update_loading_stati_state();
+	}
+
+	/**
+	 * Ends a stream run that the page closes. The server still delivers the
+	 * outputs pending for the stream and then reports how it ended, for its
+	 * `.success()` / `.failure()` listeners. A new stream is a new event
+	 * meanwhile.
+	 */
+	end_stream_run(
+		fn_id: number,
+		submission: ReturnType<Client["submit"]>
+	): void {
+		if (this.page_ended.has(submission)) return;
+		this.page_ended.add(submission);
+		submission.close_stream({ read_to_end: true });
+		this.clear_submission(fn_id, submission);
+	}
+
+	/**
+	 * Ends one run that a component started (see `EventRun.close`): a stream
+	 * as the page's close does, any other run as a cancel does. A newer run of
+	 * the same event is left alone.
+	 */
+	end_run(dep: Dependency, submission: ReturnType<Client["submit"]>): void {
+		const current = this.submissions.get(dep.id) === submission;
+		if (dep.connection_type !== "stream") {
+			if (current) this.cancel([dep.id]);
+			return;
+		}
+		this.end_stream_run(dep.id, submission);
+		if (!current) return;
+		this.update_loading_status({
+			status: "complete",
+			fn_index: dep.id,
+			eta: 0,
+			queue: false,
+			stream_state: "closed"
+		});
 		this.update_loading_stati_state();
 	}
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { untrack } from "svelte";
-	import { Gradio } from "@gradio/utils";
+	import { Gradio, type EventRun, type EventRunStatus } from "@gradio/utils";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Music, Video } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -101,22 +101,24 @@
 		}
 		return parts.length ? parts.join(" · ") : null;
 	});
-	// The loading status also reports the events that only take this
-	// component as an input, such as the one that pushes the input values, and
-	// those report a "closed" stream_state when they complete. Only the status
-	// of the stream's own event counts, the only one that reports "waiting".
-	let stream_fn_index: number | null = null;
-	// Whether the page wants a stream: from the request until it ends
-	let wants_stream = false;
+	// The stream the page asked for: its run of the stream event, once the
+	// queue has it, and the turn waiting on it. Only the current one updates
+	// the state shown; an earlier one is only ever ended.
+	type StreamRequest = {
+		run: EventRun | null;
+		wanted: boolean;
+		resolve: ((admitted: boolean) => void) | null;
+	};
+	let current: StreamRequest | null = null;
 
-	let pending_turn: {
-		resolve: (admitted: boolean) => void;
-		saw_waiting: boolean;
-	} | null = null;
+	function settle(request: StreamRequest, admitted: boolean): void {
+		request.resolve?.(admitted);
+		request.resolve = null;
+	}
 
-	function settle_turn(admitted: boolean): void {
-		pending_turn?.resolve(admitted);
-		pending_turn = null;
+	function show_closed(): void {
+		queue_state = "closed";
+		update_place(null);
 	}
 
 	// The value must already hold the stream's id: the queue event gets it
@@ -124,7 +126,7 @@
 	const turn: QueueTurn = {
 		request: () =>
 			new Promise((resolve) => {
-				settle_turn(false);
+				if (current) settle(current, false);
 				if (!gradio.props.has_stream) {
 					gradio.dispatch(
 						"error",
@@ -133,50 +135,42 @@
 					resolve(false);
 					return;
 				}
-				wants_stream = true;
-				pending_turn = { resolve, saw_waiting: false };
-				gradio.dispatch("stream");
+				const request: StreamRequest = { run: null, wanted: true, resolve };
+				current = request;
+				gradio.dispatch("stream", undefined, {
+					on_start: (run) => {
+						request.run = run;
+						// Stopped while the join was on its way: end it before it
+						// takes a turn nobody uses
+						if (!request.wanted) run.close();
+					},
+					on_status: (status: EventRunStatus) => {
+						if (current !== request) return;
+						const state = status.stream_state ?? null;
+						queue_state = state;
+						update_place(state === "waiting" ? status : null);
+						if (state === "open") settle(request, true);
+					},
+					on_end: () => {
+						// A join that failed (a full queue, a lost connection), a
+						// stream that ended before its turn, or one that ran
+						settle(request, false);
+						if (current !== request) return;
+						current = null;
+						show_closed();
+					}
+				});
 			}),
 		end: () => {
-			wants_stream = false;
-			settle_turn(false);
-			gradio.dispatch("close_stream");
+			const request = current;
+			if (!request) return;
+			current = null;
+			request.wanted = false;
+			settle(request, false);
+			request.run?.close();
+			show_closed();
 		}
 	};
-
-	$effect(() => {
-		const status = gradio.shared.loading_status;
-		const state = status?.stream_state ?? null;
-		// A join that fails (a full queue, a lost connection) reports an error
-		// before any "waiting", so the stream's event is not known yet
-		if (
-			pending_turn &&
-			!pending_turn.saw_waiting &&
-			status?.status === "error"
-		) {
-			settle_turn(false);
-			return;
-		}
-		if (state === "waiting") stream_fn_index = status.fn_index;
-		if (status?.fn_index !== stream_fn_index) return;
-		queue_state = state;
-		update_place(state === "waiting" ? status : null);
-		if (!wants_stream && (state === "waiting" || state === "open")) {
-			// A stream event the page no longer wants, e.g. one whose join was
-			// still on its way when the user pressed stop: end it before it
-			// takes a turn nobody uses
-			gradio.dispatch("close_stream");
-			return;
-		}
-		if (!pending_turn) return;
-		// Until the new event reports "waiting", the state can still be the one
-		// a previous stream left behind
-		if (state === "waiting") {
-			pending_turn.saw_waiting = true;
-		} else if (pending_turn.saw_waiting) {
-			settle_turn(state === "open");
-		}
-	});
 
 	function update_place(
 		status: {
