@@ -312,19 +312,19 @@ class Server(App):
             from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
 
             raise ImportError(WEBRTC_EXTRA_HINT) from e
-        from gradio.components.webrtc import (
-            _check_handler,
-            _check_mode,
-            _check_turn,
-            _check_video_bitrate,
+        from gradio.webrtc.endpoint import (
+            check_handler,
+            check_mode,
+            check_turn,
+            check_video_bitrate,
         )
 
-        _check_mode(mode, modality)
-        _check_video_bitrate(video_bitrate)
-        _check_turn(rtc_configuration, "server.webrtc()")
+        check_mode(mode, modality)
+        check_video_bitrate(video_bitrate)
+        check_turn(rtc_configuration, "server.webrtc()")
 
         def register(func: Any) -> Any:
-            _check_handler(func, mode, modality)
+            check_handler(func, mode, modality)
             named = getattr(func, "callable", func)
             endpoint = name or getattr(named, "__name__", None) or type(named).__name__
             taken = {
@@ -438,7 +438,7 @@ class Server(App):
             for fn, api_kwargs in self._deferred_apis:
                 gr_api(fn=fn, **api_kwargs)
             if self._deferred_webrtc:
-                from gradio.components.webrtc import server_stream
+                from gradio.webrtc.endpoint import server_stream
 
                 for webrtc_kwargs in self._deferred_webrtc:
                     server_stream(**webrtc_kwargs)

@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import dataclasses
-import inspect
 import logging
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from gradio_client.documentation import document
 
-from gradio import utils
 from gradio.components.audio import MicrophoneOptions
 from gradio.components.base import Component
 from gradio.components.image_editor import WebcamOptions
@@ -19,23 +17,17 @@ from gradio.data_classes import GradioRootModel
 from gradio.events import Dependency, EventListenerMethod, Events
 from gradio.helpers import skip
 from gradio.i18n import I18nData
+from gradio.webrtc.endpoint import (
+    add_stream_event,
+    check_handler,
+    check_mode,
+    check_turn,
+    check_video_bitrate,
+)
 from gradio.webrtc.handlers import (
-    AsyncAudioVideoStreamHandler,
-    AsyncStreamHandler,
-    AsyncVideoStreamHandler,
-    AudioVideoStreamHandler,
     HandlerType,
-    StreamHandler,
-    StreamHandlerBase,
-    VideoOptions,
-    VideoStreamHandler,
 )
-from gradio.webrtc.utils import (
-    WEBRTC_EXTRA_HINT,
-    is_async,
-    is_async_generator,
-    mark_streaming,
-)
+from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -69,136 +61,6 @@ DEFAULT_AUDIO_CONSTRAINTS: dict[str, Any] = {
 
 class WebRTCModel(GradioRootModel):
     root: str
-
-
-def _check_video_bitrate(video_bitrate: dict[str, int] | None) -> None:
-    if video_bitrate is None:
-        return
-    keys = ("min", "start", "max")
-    unknown = set(video_bitrate) - set(keys)
-    if unknown:
-        raise ValueError(f"video_bitrate takes the keys {keys}, got {sorted(unknown)}")
-    for key, kbps in video_bitrate.items():
-        if not isinstance(kbps, int) or isinstance(kbps, bool) or kbps <= 0:
-            raise ValueError(
-                f"video_bitrate[{key!r}] must be a positive int (kbps), got {kbps!r}"
-            )
-    given = [video_bitrate[key] for key in keys if key in video_bitrate]
-    if given != sorted(given):
-        raise ValueError(
-            f'video_bitrate must have "min" <= "start" <= "max", got {video_bitrate}'
-        )
-
-
-def _check_mode(mode: str, modality: str) -> None:
-    if mode not in ("send-receive", "receive", "send"):
-        raise ValueError(
-            f'mode must be "send-receive", "send" or "receive", got {mode!r}'
-        )
-    if modality not in ("video", "audio", "audio-video"):
-        raise ValueError(
-            f'modality must be "video", "audio" or "audio-video", got {modality!r}'
-        )
-    if modality == "audio-video" and mode != "send-receive":
-        raise ValueError(
-            'modality="audio-video" is only supported with mode="send-receive".'
-        )
-
-
-def _check_turn(rtc_configuration: Any, what: str) -> None:
-    if is_async_generator(rtc_configuration):
-        raise ValueError(
-            f"The rtc_configuration function of {what} must return a dict, "
-            "not yield one."
-        )
-    if (utils.get_space() or utils.colab_check()) and rtc_configuration is None:
-        raise ValueError(
-            f"{what} needs a TURN server on Hugging Face Spaces or Google "
-            "Colab: the browser often cannot reach the app directly, and then "
-            "the media has to be relayed. Pass `rtc_configuration=` with your "
-            "ICE servers, or a function that returns them. Hugging Face "
-            "accounts get a free monthly "
-            "TURN quota through Cloudflare; on a public Space, issue the "
-            "credentials with each visitor's own account (gr.OAuthToken) so "
-            "that visitors do not use up yours. See the 'Deploying to Hugging "
-            "Face Spaces' section of the WebRTC guide: "
-            "https://www.gradio.app/guides/object-detection-from-webcam-with-webrtc"
-        )
-
-
-def _check_handler(fn: HandlerType, mode: str, modality: str) -> None:
-    def is_a(classes: tuple[type, ...]) -> bool:
-        return (inspect.isclass(fn) and issubclass(fn, classes)) or isinstance(
-            fn, classes
-        )
-
-    is_handler = is_a((StreamHandlerBase,))
-    is_audio_handler = is_a((StreamHandler, AsyncStreamHandler))
-    is_av_handler = is_a((AudioVideoStreamHandler, AsyncAudioVideoStreamHandler))
-    is_video_handler = is_a((VideoStreamHandler, AsyncVideoStreamHandler))
-
-    if modality == "audio-video":
-        if not is_av_handler:
-            raise ValueError(
-                'For modality="audio-video", `fn` must be an '
-                "AudioVideoStreamHandler or AsyncAudioVideoStreamHandler "
-                "subclass or instance."
-            )
-    elif modality == "audio" and mode in ("send", "send-receive"):
-        if not is_audio_handler:
-            raise ValueError(
-                f'For modality="audio" in mode="{mode}", `fn` must be a '
-                "StreamHandler or AsyncStreamHandler subclass or instance."
-            )
-    elif modality == "video" and is_video_handler:
-        if mode == "receive":
-            raise ValueError(
-                "A VideoStreamHandler or AsyncVideoStreamHandler takes the "
-                'video from the page, in mode="send" and "send-receive"; in '
-                'mode="receive", pass a generator function (or a VideoOptions).'
-            )
-    elif is_handler and modality == "audio":
-        raise ValueError(
-            'For modality="audio" in mode="receive", `fn` must be a generator '
-            "function that yields audio. Handler classes are for the modes "
-            'that take media from the page, "send" and "send-receive".'
-        )
-    elif is_handler:
-        raise ValueError(
-            f'For modality="{modality}" in mode="{mode}", `fn` must '
-            'be a function, a VideoOptions or, in mode="send" or "send-receive", a '
-            "VideoStreamHandler or AsyncVideoStreamHandler subclass or "
-            "instance."
-        )
-    elif isinstance(fn, VideoOptions) and modality != "video":
-        raise ValueError(
-            f'A VideoOptions is for modality="video"; for modality='
-            f'"{modality}" in mode="{mode}", pass a function.'
-        )
-    elif not callable(fn) and not isinstance(fn, VideoOptions):
-        raise ValueError("`fn` must be a callable or a VideoOptions.")
-    elif not is_handler:
-        function = fn.callable if isinstance(fn, VideoOptions) else fn
-        if is_async(function):
-            raise ValueError(
-                "`fn` must be a regular function or generator, which runs in "
-                "a worker thread; for async code, use an "
-                'AsyncVideoStreamHandler (in mode="send" or "send-receive").'
-            )
-
-    if is_a((AsyncStreamHandler, AsyncVideoStreamHandler)) and not (
-        inspect.iscoroutinefunction(fn.start_up)  # type: ignore[union-attr]  # is_a() narrowed fn to a handler
-    ):
-        raise ValueError(
-            f"{getattr(fn, '__name__', type(fn).__name__)}.start_up must be a "
-            "coroutine (async def) in an async handler."
-        )
-    if isinstance(fn, StreamHandlerBase) and type(fn).copy is StreamHandlerBase.copy:
-        raise ValueError(
-            f"{type(fn).__name__} does not implement copy(), which is needed "
-            "to create a handler per connection. Pass the class itself to "
-            "stream() instead of an instance, or implement copy()."
-        )
 
 
 @document()
@@ -316,7 +178,7 @@ class WebRTC(Component):
             every: continuously calls `value` to recalculate it if `value` is a function (has no effect otherwise). Can provide a Timer whose tick resets `value`, or a float that provides the regular interval for the reset Timer.
             inputs: components that are used as inputs to calculate `value` if `value` is a function (has no effect otherwise). `value` is recalculated any time the inputs change.
         """
-        _check_mode(mode, modality)
+        check_mode(mode, modality)
         self.mode = mode
         self.modality = modality
         # Kept off the config: a callable cannot be serialized, and the browser
@@ -334,7 +196,7 @@ class WebRTC(Component):
         else:
             self.microphone_options = microphone_options
         self.rtp_params = rtp_params or {}
-        _check_video_bitrate(video_bitrate)
+        check_video_bitrate(video_bitrate)
         self.video_bitrate = video_bitrate
         self.allow_extra_tracks = allow_extra_tracks
         if stream_options is None:
@@ -493,7 +355,7 @@ class WebRTC(Component):
                 "stream() can only be called once per WebRTC component. Use "
                 "another gr.WebRTC component for another stream."
             )
-        _check_turn(self._rtc_configuration, "gr.WebRTC")
+        check_turn(self._rtc_configuration, "gr.WebRTC")
 
         inputs = _to_list(inputs)
         outputs = _to_list(outputs)
@@ -517,13 +379,11 @@ class WebRTC(Component):
                 )
             extra_inputs = inputs
         extra_outputs = [o for o in outputs if o is not self]
-        _check_handler(fn, self.mode, self.modality)
+        check_handler(fn, self.mode, self.modality)
 
         self.time_limit = time_limit
         self._num_extra_outputs = len(extra_outputs)
         self._has_stream = True
-        # Signalling waits for streams only in an app that has a handler
-        mark_streaming(root_block)
         manager = webrtc_connection.register_manager(
             self._id,
             handler=fn,
@@ -547,24 +407,20 @@ class WebRTC(Component):
         # then delivers AdditionalOutputs until the stream ends. It takes only
         # the stream's id: the other inputs reach the handler through the
         # events below, so the event's wakes do not preprocess them again.
-        stream_fn, stream_index = root_block.set_event_trigger(
+        stream_fn, stream_index = add_stream_event(
+            root_block,
             [EventListenerMethod(self, "stream")],
             run_stream,
-            inputs=[self],
-            outputs=cast(list, [self, *extra_outputs]),
+            [self],
+            cast(list, [self, *extra_outputs]),
+            time_limit=time_limit,
+            concurrency_limit=concurrency_limit,
             # The component shows the place in line and the wait itself,
             # next to the button that cancels it
             show_progress="hidden",
             show_progress_on=self,
             api_visibility="private",
-            concurrency_limit=concurrency_limit,
-            trigger_mode="multiple",
-            connection="stream",
-            time_limit=time_limit,
         )
-        # A running stream that the page closes ends through its manager, so
-        # that the event still delivers every pending output
-        stream_fn.close_stream = webrtc_connection.end_admitted_stream
         # The frontend fires "tick" when the handler asks for the inputs, and
         # every extra input pushes its new value as soon as it changes.
         push_inputs = cast(list, [self, *extra_inputs])
@@ -656,74 +512,3 @@ class WebRTC(Component):
                 )
             nothing = [skip(), *outputs.args]
         return nothing[0] if len(nothing) == 1 else tuple(nothing)
-
-
-def server_stream(
-    fn: HandlerType,
-    *,
-    name: str,
-    modality: Literal["video", "audio", "audio-video"],
-    mode: Literal["send-receive", "receive", "send"],
-    rtc_configuration: dict[str, Any] | Callable | None,
-    server_rtc_configuration: dict[str, Any] | None,
-    video_bitrate: dict[str, int] | None,
-    allow_extra_tracks: bool,
-    time_limit: float | None,
-    concurrency_limit: int | None | Literal["default"],
-) -> None:
-    """
-    Adds the queued event of a gr.Server WebRTC endpoint (see
-    `Server.webrtc()`) to the Blocks being created. Like the stream of
-    gr.WebRTC, each stream is one queue event that admits the stream when its
-    turn comes and then delivers its AdditionalOutputs, each as one list. The
-    client sends the extra inputs over the stream's data channel.
-    """
-    from gradio_client.utils import python_type_to_json_schema
-
-    from gradio.components.api_component import Api
-    from gradio.webrtc import connection
-
-    root_block = get_blocks_context()
-    if root_block is None:
-        raise AttributeError("Cannot add a WebRTC endpoint outside of a Blocks.")
-    # Blocks would quietly rename it to name_1
-    if name in {f.api_name for f in root_block.fns.values()}:
-        raise ValueError(
-            f"An endpoint named {name!r} already exists. Pass a different "
-            "name to server.webrtc(name=...)."
-        )
-    mark_streaming(root_block)
-    manager = connection.ConnectionManager(
-        handler=fn,
-        mode=mode,
-        modality=modality,
-        time_limit=time_limit,
-        allow_extra_tracks=allow_extra_tracks,
-        server_rtc_configuration=server_rtc_configuration,
-        video_bitrate=video_bitrate,
-        rtc_configuration=rtc_configuration,
-        inputs_over_channel=True,
-    )
-
-    async def run_stream(webrtc_id: str | None) -> Any:
-        outputs = connection.stream_call(manager, webrtc_id)
-        return skip() if outputs is None else list(outputs.args)
-
-    stream_fn, _ = root_block.set_event_trigger(
-        [],
-        run_stream,
-        [Api(None, python_type_to_json_schema(str), "webrtc_id")],
-        [Api(None, python_type_to_json_schema(list), "outputs")],
-        preprocess=False,
-        postprocess=False,
-        show_progress="hidden",
-        api_name=name,
-        # Clients call it, but not as a plain endpoint: the API page and the
-        # Python client leave it out
-        api_visibility="undocumented",
-        concurrency_limit=concurrency_limit,
-        trigger_mode="multiple",
-        connection="stream",
-        time_limit=time_limit,
-    )
-    stream_fn.close_stream = connection.end_admitted_stream

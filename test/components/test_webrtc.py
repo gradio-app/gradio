@@ -4949,7 +4949,7 @@ def test_server_webrtc_checks_the_handler_when_it_is_declared():
 
 @pytest.mark.parametrize("other", ["api", "webrtc"])
 def test_a_server_webrtc_endpoint_needs_a_name_of_its_own(other):
-    from gradio.components.webrtc import server_stream
+    from gradio.webrtc.endpoint import server_stream
     from gradio.events import api as gr_api
 
     def flip_text(text: str) -> str:  # an endpoint that is not a stream
