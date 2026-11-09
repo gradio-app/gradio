@@ -1080,7 +1080,9 @@ def forget_earlier_streams() -> None:
     # Tests reuse stream ids, and a stream an earlier test left open stays
     # registered after its app is closed
     webrtc_connection._streams.clear()
+    webrtc_connection._admitted.clear()
     webrtc_connection._admissions.clear()
+    webrtc_connection._admission_waiters.clear()
     webrtc_connection._pending_candidates.clear()
 
 
