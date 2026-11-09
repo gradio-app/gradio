@@ -725,6 +725,64 @@ describe("DependencyManager.close_stream", () => {
 			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
 		).toEqual([2, 3]);
 	});
+
+	test("a stream ended on the page while its process_starts was on the way still runs .failure()", async () => {
+		const stream = dependency(0, "stream", [10]);
+		stream.connection = "stream";
+		stream.targets = [[5, "stream"]];
+		const on_success = dependency(1, "on_success", []);
+		on_success.trigger_after = 0;
+		on_success.trigger_only_on_success = true;
+		const then = dependency(2, "then", []);
+		then.trigger_after = 0;
+		const on_failure = dependency(3, "on_failure", []);
+		on_failure.trigger_after = 0;
+		on_failure.trigger_only_on_failure = true;
+		let end!: () => void;
+		const ended = new Promise<void>((resolve) => (end = resolve));
+		const run = Object.assign(
+			submission(
+				(async function* () {
+					yield { type: "status", stage: "pending", queue: true };
+					await ended;
+					// The queue had started the event when the page ended it:
+					// its first call runs and finishes it
+					yield {
+						type: "status",
+						stage: "pending",
+						queue: true,
+						original_msg: "process_starts"
+					};
+					yield { type: "data", data: undefined };
+					yield { type: "status", stage: "complete", queue: true };
+				})()
+			),
+			{ close_stream: vi.fn(() => end()) }
+		);
+		const client = { submit: () => run } as unknown as Client;
+		const dependency_manager = manager(
+			[stream, on_success, then, on_failure],
+			client
+		);
+
+		const running = dependency_manager.dispatch({
+			type: "fn",
+			fn_index: 0,
+			event_data: null
+		});
+		await vi.waitFor(() =>
+			expect((dependency_manager as any).submissions.has(0)).toBe(true)
+		);
+		const dispatch = vi
+			.spyOn(dependency_manager, "dispatch")
+			.mockResolvedValue(undefined);
+		dependency_manager.close_stream(5);
+		await running;
+
+		expect(
+			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
+		).toEqual([2, 3]);
+	});
 });
 
 describe("DependencyManager.dispatch_load_events", () => {

@@ -535,9 +535,12 @@ export class DependencyManager {
 								await this.handle_data(dep.outputs, result.data);
 							}
 							if (result.type === "status") {
+								// A stream the page ended while the queue was starting
+								// it stays stopped in line: the page saw it waiting
 								if (
 									result.original_msg === "process_starts" &&
-									dep.connection_type === "stream"
+									dep.connection_type === "stream" &&
+									!this.page_ended.has(dep_submission.data)
 								) {
 									stream_state = "open";
 								}
