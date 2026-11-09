@@ -10,7 +10,7 @@ goes through the queue: the event is only woken up to deliver
 does.
 
 One `Stream` holds everything of one admitted stream (its place in the queue,
-peer connection, tracks, handler, inputs, pending outputs and notifier) and has
+peer connection, tracks, handler, inputs, pending outputs and errors) and has
 one way to end, `Stream.close()`, whichever path notices the end. The streams of
 an app are kept in its `StreamRegistry`, one per queue: a hot reload keeps the
 queue. Signalling and input updates find a stream there by its id, not by
@@ -76,9 +76,10 @@ from gradio.webrtc.utils import (
     AdditionalOutputs,
     Context,
     HandlerFailedError,
+    StreamErrors,
     StreamInputs,
-    StreamNotifier,
     bind_special_args,
+    current_errors,
     is_async,
     webrtc_error_handler,
 )
@@ -325,7 +326,8 @@ class Stream:
         # AdditionalOutputs not delivered yet, oldest first. A handler that
         # emits faster than the outputs can be delivered loses the oldest ones.
         self.outputs: deque[AdditionalOutputs] = deque(maxlen=MAX_PENDING_OUTPUTS)
-        self.notifier: StreamNotifier | None = None
+        # The handler's first error, which ends the stream and its event
+        self.errors: StreamErrors | None = None
         # The page's rtc_configuration, resolved once per stream
         self.rtc_configuration: asyncio.Future | None = None
         # Set by the offer, and let go of when the stream ends. The stream
@@ -395,20 +397,18 @@ class Stream:
         Lets the queue event of an ended stream finish once its outputs are
         delivered. Called at the end of each of the event's calls, `delivered`
         saying whether the call delivers outputs. Returns the handler's error
-        (see `StreamNotifier.fail`) for the call that finishes the event of a
-        stream whose handler failed, which delivers nothing.
+        (see `StreamErrors.fail`) for the call that finishes the event of a
+        stream whose handler failed, which delivers nothing. The page shows it
+        as the error of an event.
         """
         if not self.ended or self.outputs:
             return None
-        notifier = self.notifier
-        failure = notifier.failure if notifier else None
+        failure = self.errors.failure if self.errors else None
         if failure is not None and delivered:
             # The next call reports the error
             self.lease.wake()
             return None
         self.lease.finish()
-        if failure is not None and notifier is not None and notifier.failure_shown:
-            failure = {**failure, "visible": False}
         return failure
 
     def close(self) -> None:
@@ -427,8 +427,6 @@ class Stream:
             self.state = StreamState.ENDING
         self._release()
         if first:
-            if self.notifier is not None:
-                self.notifier.close()
             self.lease.wake()
 
     def _release(self) -> None:
@@ -731,29 +729,31 @@ class ConnectionManager:
             return _failed("connection_already_exists")
 
         # The handler's tasks and threads are all started from here, so they
-        # inherit it: errors, gr.Warning and gr.Info reach this stream's page
+        # inherit the stream's queue event, through which gr.Warning and
+        # gr.Info reach the page as an event's do, and where errors go
         blocks = LocalContext.blocks.get(None)
         show_error = bool(blocks and blocks.show_error)
-        notifier = StreamNotifier(
+        errors = StreamErrors(
             asyncio.get_running_loop(),
             end_stream=stream.close,
             show_error=show_error,
         )
-        LocalContext.stream_notifier.set(notifier)
-        stream.notifier = notifier
+        LocalContext.event_id.set(stream.event.id)
+        current_errors.set(errors)
+        stream.errors = errors
         pc = RTCPeerConnection(configuration=self.server_rtc_configuration)
         stream.pc = pc
         stream.state = StreamState.CONNECTING
         try:
-            return await self._connect(stream, pc, body, request, notifier)
+            return await self._connect(stream, pc, body, request)
         except Exception as e:
             if not isinstance(e, Error):
                 logger.exception("Could not set up the stream")
             await pc.close()
             payload = error_payload(e, show_error)
-            # The page shows the error from the answer; the event fails too
-            notifier.failure = payload
-            notifier.failure_shown = True
+            # The stream's event fails with it, which the page shows; a
+            # client also gets it from the answer
+            errors.failure = payload
             stream.close()
             return _failed(
                 "setup_failed", message=payload["error"] or "An error occurred."
@@ -765,7 +765,6 @@ class ConnectionManager:
         pc: RTCPeerConnection,
         body: dict[str, Any],
         request: Any,
-        notifier: StreamNotifier,
     ) -> dict[str, Any]:
         session_hash = getattr(request, "session_hash", None)
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
@@ -915,7 +914,6 @@ class ConnectionManager:
         def on_datachannel(channel):
             logger.debug("Data channel established: %s", channel.label)
             stream.channel = channel
-            notifier.set_channel(channel)
             if self.inputs_over_channel:
 
                 @channel.on("message")
@@ -945,8 +943,7 @@ class ConnectionManager:
         if rejected:
             await pc.close()
             # As for a handler that cannot start
-            notifier.failure = {"error": rejected[0]}
-            notifier.failure_shown = True
+            cast(StreamErrors, stream.errors).failure = {"error": rejected[0]}
             stream.close()
             return _failed("unsupported_track", message=rejected[0])
         for sender, candidate in stream.registry.pending_candidates.pop(stream.id, []):

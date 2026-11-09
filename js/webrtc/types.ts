@@ -29,11 +29,6 @@ export interface QueueTurn {
 export interface ControlMessage {
 	type: string;
 	data?: unknown;
-	message?: string;
-	// Toasts (errors of the handler, gr.Warning / gr.Info / gr.Success)
-	title?: string | null;
-	duration?: number | null;
-	visible?: boolean;
 }
 
 export interface WebRTCProps {
@@ -65,19 +60,10 @@ export interface WebRTCEvents {
 	stream: never;
 	start_recording: never;
 	stop_recording: never;
-	error: string | Toast;
-	warning: string | Toast;
-	info: Toast;
+	error: string;
+	warning: string;
+	info: string;
 	clear_status: LoadingStatus;
-}
-
-/** A toast from the stream's handler, shown like an event's. */
-export interface Toast {
-	type?: "error" | "warning" | "info" | "success";
-	message: string;
-	title?: string;
-	duration?: number | null;
-	visible?: boolean;
 }
 
 /** Setting the component value to this string starts a stream in mode="receive". */

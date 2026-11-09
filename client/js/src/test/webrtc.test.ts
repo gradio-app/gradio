@@ -369,6 +369,40 @@ describe("client.webrtc", () => {
 		expect(track.stop).not.toHaveBeenCalled();
 	});
 
+	it("tells on_message the handler's gr.Info, gr.Warning and error, which come through the queue", async () => {
+		const messages: any[] = [];
+		const stream = webrtc.call(client, "/echo", {
+			on_message: (msg) => messages.push(msg)
+		});
+		job.send(turn);
+		job.send({
+			type: "log",
+			log: "Careful",
+			level: "warning",
+			title: "Warning",
+			duration: 5,
+			visible: true
+		});
+		job.send({
+			type: "status",
+			stage: "error",
+			message: "Bad frame",
+			title: "Oops"
+		});
+		job.end();
+		await expect(stream.done).rejects.toThrow("Bad frame");
+		expect(messages).toEqual([
+			{
+				type: "warning",
+				message: "Careful",
+				title: "Warning",
+				duration: 5,
+				visible: true
+			},
+			{ type: "error", message: "Bad frame", title: "Oops" }
+		]);
+	});
+
 	it("fails when the queue reports an error before the turn", async () => {
 		const stream = webrtc.call(client, "/echo");
 		job.send({ type: "status", stage: "error", message: "Queue is full." });

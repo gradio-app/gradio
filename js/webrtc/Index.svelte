@@ -197,22 +197,10 @@
 	}
 
 	function handle_message(msg: ControlMessage): void {
-		const text = typeof msg.data === "string" ? msg.data : (msg.message ?? "");
+		// The handler's errors and its gr.Info / gr.Warning come through the
+		// stream's queue event, like an event's
+		const text = typeof msg.data === "string" ? msg.data : "";
 		switch (msg.type) {
-			case "error":
-			case "warning":
-			case "info":
-			case "success":
-				// Shown like the toasts of a queued event. "success" itself is
-				// not a toast event (a component may have a "success" event)
-				gradio.dispatch(msg.type === "success" ? "info" : msg.type, {
-					type: msg.type,
-					message: text,
-					title: msg.title ?? undefined,
-					duration: msg.duration,
-					visible: msg.visible
-				});
-				break;
 			case "end_stream":
 				gradio.dispatch("warning", text);
 				break;
@@ -229,6 +217,10 @@
 	}
 
 	function handle_reject(response: Record<string, any>): void {
+		// A stream that could not start fails its queue event with the error,
+		// which the page shows like an event's
+		const error = response?.meta?.error;
+		if (error === "setup_failed" || error === "unsupported_track") return;
 		gradio.dispatch("error", rejection_message(response));
 	}
 </script>

@@ -989,17 +989,18 @@ class Queue:
         duration: float | None = 10,
         visible: bool = True,
     ):
-        events = [evt for job in self.active_jobs if job is not None for evt in job]
-        for event in events:
-            if event._id == event_id:
-                log_message = LogMessage(
-                    log=log,
-                    level=level,
-                    duration=duration,
-                    visible=visible,
-                    title=title,
-                )
-                self.send_message(event, log_message)
+        # Not only the events that hold a worker slot now: the handler of a
+        # gr.WebRTC stream logs between its event's calls
+        event = self.event_ids_to_events.get(event_id)
+        if event is not None:
+            log_message = LogMessage(
+                log=log,
+                level=level,
+                duration=duration,
+                visible=visible,
+                title=title,
+            )
+            self.send_message(event, log_message)
 
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None

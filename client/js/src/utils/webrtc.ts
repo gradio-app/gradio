@@ -1,12 +1,15 @@
 import type { Client } from "../client";
 import type { StatusMessage } from "../types";
 
-/** A message the server sends over a stream's data channel. */
+/**
+ * A message about a stream: a control message from its data channel, or a
+ * toast of its handler (`gr.Info`, `gr.Warning`, `gr.Success`, its error),
+ * which comes through the stream's queue event.
+ */
 export interface WebRTCControlMessage {
 	type: string;
 	data?: unknown;
 	message?: string;
-	// Toasts (errors of the handler, gr.Warning / gr.Info / gr.Success)
 	title?: string | null;
 	duration?: number | null;
 	visible?: boolean;
@@ -393,8 +396,20 @@ export function webrtc(
 				if (msg.type === "status") {
 					on_status(msg);
 					if (msg.stage === "error") {
-						fail(new Error(String(msg.message ?? "The stream failed.")));
+						const message = String(msg.message ?? "The stream failed.");
+						if (msg.visible !== false) {
+							on_message({ type: "error", message, title: msg.title });
+						}
+						fail(new Error(message));
 					}
+				} else if (msg.type === "log") {
+					on_message({
+						type: msg.level,
+						message: msg.log,
+						title: msg.title,
+						duration: msg.duration,
+						visible: msg.visible
+					});
 				} else if (msg.type === "data") {
 					// No data: the stream left the line before its turn
 					if (msg.data === undefined) continue;

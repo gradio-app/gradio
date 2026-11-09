@@ -26,7 +26,6 @@ from aiortc.contrib.media import AudioFrame, VideoFrame
 from aiortc.mediastreams import VIDEO_CLOCK_RATE, VIDEO_TIME_BASE, MediaStreamError
 
 from gradio import processing_utils
-from gradio.context import LocalContext
 from gradio.webrtc.handlers import (
     AsyncAudioVideoStreamHandler,
     AsyncHandler,
@@ -46,6 +45,7 @@ from gradio.webrtc.utils import (
     CloseStream,
     Context,
     DataChannel,
+    HandlerContext,
     HandlerFailedError,
     StreamInputs,
     create_message,
@@ -118,7 +118,7 @@ _thread_limiters: weakref.WeakKeyDictionary[
 async def run_in_thread(fn: Callable, *args: Any) -> Any:
     """
     Runs a sync handler call in a worker thread, in the caller's context (the
-    visitor's request, the stream's notifier). Its threads are counted apart
+    visitor's request, the stream's queue event and errors). Its threads are counted apart
     from the default limiter, whose `max_threads` tokens Gradio's sync event
     listeners share, so that busy streams do not hold those up.
     """
@@ -530,7 +530,7 @@ class AudioCallback(AudioStreamTrack):
         self.set_additional_outputs = set_additional_outputs
         self.context = context
         # Set again in each sync emit(), on the worker thread that runs it
-        self.notifier = LocalContext.stream_notifier.get(None)
+        self.handler_context = HandlerContext.capture()
 
     def clear_queue(self):
         while not self.queue.empty():
@@ -557,7 +557,7 @@ class AudioCallback(AudioStreamTrack):
     def event_handler_emit(self) -> AudioEmitType:
         current_channel.set(self.event_handler.channel)
         current_context.set(self.context)
-        LocalContext.stream_notifier.set(self.notifier)
+        self.handler_context.apply()
         return cast(Callable, self.event_handler.emit)()
 
     async def process_input_frames(self) -> None:
@@ -854,7 +854,7 @@ class ServerToClientAudio(AudioStreamTrack):
         self._last_sent = 0.0
         self.context = context
         # Set again in each next(), on the worker thread that runs it
-        self.notifier = LocalContext.stream_notifier.get(None)
+        self.handler_context = HandlerContext.capture()
         super().__init__()
 
     def clear_queue(self):
@@ -889,14 +889,14 @@ class ServerToClientAudio(AudioStreamTrack):
 
     def next(self) -> Any:
         current_context.set(self.context)
-        LocalContext.stream_notifier.set(self.notifier)
+        self.handler_context.apply()
         current_channel.set(self.channel)
         return self.generator.next(lambda: self.event_handler(*self.latest_args))
 
     async def close_generator(self) -> None:
         """Closes the handler's generator, once the track has stopped."""
         current_context.set(self.context)
-        LocalContext.stream_notifier.set(self.notifier)
+        self.handler_context.apply()
         current_channel.set(self.channel)
         await run_in_thread(self.generator.close)
 

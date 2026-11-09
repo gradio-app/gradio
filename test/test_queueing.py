@@ -1478,3 +1478,25 @@ def test_a_stream_dropped_while_waiting_for_a_worker_does_not_run_again():
             assert len(calls) == 1
     finally:
         demo.close()
+
+
+def test_a_log_reaches_a_running_event_between_its_calls():
+    # A gr.WebRTC handler logs (gr.Info, gr.Warning) between the calls of its
+    # stream's event, while the event holds no worker slot
+    from types import SimpleNamespace
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.queue()
+    queue = demo._queue
+    event = SimpleNamespace(_id="stream-event")
+    queue.event_ids_to_events["stream-event"] = cast(queueing.Event, event)
+    sent = []
+    queue.send_message = lambda event, message: sent.append((event, message))  # type: ignore[method-assign]
+
+    queue.log_message("stream-event", "Careful", "Warning", "warning")
+    queue.log_message("unknown-event", "Lost", "Info", "info")
+
+    assert [(e._id, m.log, m.level) for e, m in sent] == [
+        ("stream-event", "Careful", "warning")
+    ]

@@ -158,13 +158,12 @@ class HandlerFailedError(Exception):
     """A stream handler raised: the user has been told, and the stream ends."""
 
 
-class StreamNotifier:
+class StreamErrors:
     """
-    Shows toasts on the page of one stream: the errors of its handler, and
-    `gr.Warning` / `gr.Info` / `gr.Success` called from it, which have no queued
-    event to go through. Usable from any thread. Messages sent before the data
-    channel is open wait for it; once it closed, or the stream ended, they are
-    dropped.
+    Records the first error of a stream's handler and ends the stream. The
+    stream's queue event then fails with it, as an event whose function
+    raised, so the page shows it like any event's error. Usable from any
+    thread.
     """
 
     def __init__(
@@ -178,109 +177,63 @@ class StreamNotifier:
         # Taken when the stream starts: the threads that run sync handlers do
         # not have the app in their context
         self.show_error = show_error
-        self.channel: Any = None
-        self.pending: list[str] = []
-        self.closed = False
         # The handler's error as error_payload() shows it, once it failed
         self.failure: dict[str, Any] | None = None
-        # Whether the page has shown the failure, over the data channel or
-        # from the offer's answer; the queue event shows it otherwise
-        self.failure_shown = False
-        self._failure_message: str | None = None
         # fail() can be called from several handler threads at once
-        self._fail_lock = threading.Lock()
-
-    def set_channel(self, channel: Any) -> None:
-        """Called on the event loop once the data channel is there."""
-        self.channel = channel
-        if self._is_open():
-            self._flush()
-        else:
-            channel.on("open", self._flush)
-
-    def _is_open(self) -> bool:
-        return getattr(self.channel, "readyState", None) == "open"
-
-    def _flush(self) -> None:
-        pending, self.pending = self.pending, []
-        for message in pending:
-            self._send_now(message)
-
-    def close(self) -> None:
-        """Called on the event loop when the stream ends."""
-        self.closed = True
-        self.pending.clear()
-
-    def _send_now(self, message: str) -> None:
-        if self.closed:
-            return
-        if not self._is_open():
-            # A handler, or a thread it started, may keep logging after the
-            # channel closed, and nothing would ever read those
-            if getattr(self.channel, "readyState", "connecting") == "connecting":
-                self.pending.append(message)
-            return
-        try:
-            self.channel.send(message)
-        except Exception:
-            logger.debug("Could not send %s", message, exc_info=True)
-            return
-        if message is self._failure_message:
-            self.failure_shown = True
-
-    def send(
-        self,
-        type: Literal["error", "warning", "info", "success"],
-        message: str,
-        title: str | None = None,
-        duration: float | None = 10,
-        visible: bool = True,
-    ) -> None:
-        payload = self._toast(type, message, title, duration, visible)
-        self.loop.call_soon_threadsafe(self._send_now, payload)
-
-    @staticmethod
-    def _toast(
-        type: str,
-        message: str,
-        title: str | None,
-        duration: float | None,
-        visible: bool,
-    ) -> str:
-        return json.dumps(
-            {
-                "type": type,
-                "message": message,
-                "title": title,
-                "duration": duration,
-                "visible": visible,
-            }
-        )
+        self._lock = threading.Lock()
 
     def fail(self, error: BaseException) -> None:
         """
-        Reports the handler's error the way a queued event's error is shown
-        (the message of a `gr.Error`; others only with `show_error=True`), once,
-        and ends the stream.
+        Records the handler's error the way a queued event's error is shown
+        (the message of a `gr.Error`; others only with `show_error=True`),
+        once, and ends the stream.
         """
         from gradio.utils import error_payload
 
         payload = error_payload(error, self.show_error)
-        with self._fail_lock:
+        with self._lock:
             if self.failure is not None:
                 return
             self.failure = payload
-        message = self._toast(
-            "error",
-            cast(str | None, payload["error"]) or "",
-            cast(str | None, payload.get("title")) or "Error",
-            cast(float | None, payload.get("duration", 10)),
-            bool(payload.get("visible", True)),
+        self.loop.call_soon_threadsafe(self.end_stream)
+
+
+# Where the errors of the stream whose handler runs here go
+current_errors: ContextVar[StreamErrors | None] = ContextVar(
+    "current_errors", default=None
+)
+
+
+@dataclass
+class HandlerContext:
+    """
+    What a stream's handler calls need in their context: the stream's queue
+    event and its app, through which `gr.Info` / `gr.Warning` reach the page
+    as an event's do, and where the handler's errors go. Captured where the
+    stream's tracks are made, and set again where a call runs in a context of
+    its own (a worker thread started from elsewhere).
+    """
+
+    event_id: str | None
+    blocks: Any
+    errors: StreamErrors | None
+
+    @classmethod
+    def capture(cls) -> HandlerContext:
+        from gradio.context import LocalContext
+
+        return cls(
+            event_id=LocalContext.event_id.get(None),
+            blocks=LocalContext.blocks.get(None),
+            errors=current_errors.get(),
         )
-        self._failure_message = message
-        self.loop.call_soon_threadsafe(self._send_now, message)
-        # Leaves the message time to go out before the connection closes
-        self.loop.call_soon_threadsafe(self.loop.call_later, 0.2, self.end_stream)
+
+    def apply(self) -> None:
+        from gradio.context import LocalContext
+
+        LocalContext.event_id.set(self.event_id)
+        LocalContext.blocks.set(self.blocks)
+        current_errors.set(self.errors)
 
 
 def handler_failed(error: BaseException) -> HandlerFailedError:
@@ -289,7 +242,6 @@ def handler_failed(error: BaseException) -> HandlerFailedError:
     exception to raise in its place. The errors of a connection's handler end
     its stream, whichever task notices them.
     """
-    from gradio.context import LocalContext
     from gradio.exceptions import Error as AppError
 
     if isinstance(error, HandlerFailedError):
@@ -299,9 +251,9 @@ def handler_failed(error: BaseException) -> HandlerFailedError:
             "Error in the stream handler",
             exc_info=(type(error), error, error.__traceback__),
         )
-    notifier = LocalContext.stream_notifier.get(None)
-    if notifier is not None:
-        notifier.fail(error)
+    errors = current_errors.get()
+    if errors is not None:
+        errors.fail(error)
     return HandlerFailedError(str(error))
 
 

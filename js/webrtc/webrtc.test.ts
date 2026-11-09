@@ -545,6 +545,28 @@ describe("WebRTC send-receive video", () => {
 		expect(close_stream).toHaveBeenCalled();
 	});
 
+	test("a stream whose handler cannot start shows its error only once", async () => {
+		const server = make_server({
+			status: "failed",
+			meta: { error: "setup_failed", message: "No GPU" }
+		});
+		const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
+			...base_props,
+			client: server
+		});
+		await fireEvent.click(getByText("Click to Access Webcam"));
+		await waitFor(() => {
+			expect(getByRole("button", { name: "start stream" })).toBeVisible();
+		});
+		const error = listen("error");
+		const close_stream = listen("close_stream");
+		await fireEvent.click(getByRole("button", { name: "start stream" }));
+		await admit(set_data);
+		await waitFor(() => expect(close_stream).toHaveBeenCalled());
+		// The stream's queue event fails with it, which the page shows
+		expect(error).not.toHaveBeenCalled();
+	});
+
 	test("a rejected offer dispatches an error and ends the turn", async () => {
 		const server = make_server({
 			status: "failed",
@@ -760,43 +782,14 @@ describe("WebRTC send-receive video", () => {
 		pc.receive({ type: "send_input", data: [] });
 		expect(tick).toHaveBeenCalledTimes(1);
 
-		// Errors of the handler and gr.Info keep their title and duration
+		// The handler's errors and its gr.Info come through the stream's
+		// queue event, like an event's: the channel carries no toasts
 		const error = listen("error");
 		const info = listen("info");
-		pc.receive({
-			type: "error",
-			message: "Bad frame",
-			title: "Oops",
-			duration: 5,
-			visible: true
-		});
-		expect(error).toHaveBeenCalledWith({
-			type: "error",
-			message: "Bad frame",
-			title: "Oops",
-			duration: 5,
-			visible: true
-		});
-		pc.receive({ type: "info", message: "Hi", title: null, duration: 10 });
-		expect(info).toHaveBeenCalledWith({
-			type: "info",
-			message: "Hi",
-			title: undefined,
-			duration: 10,
-			visible: undefined
-		});
-		// gr.Success: a "success" dispatch would run the component's
-		// `.success` listeners instead of showing a toast
-		const success = listen("success");
-		pc.receive({ type: "success", message: "Done", duration: 10 });
-		expect(info).toHaveBeenLastCalledWith({
-			type: "success",
-			message: "Done",
-			title: undefined,
-			duration: 10,
-			visible: undefined
-		});
-		expect(success).not.toHaveBeenCalled();
+		pc.receive({ type: "error", message: "Bad frame", title: "Oops" });
+		pc.receive({ type: "info", message: "Hi" });
+		expect(error).not.toHaveBeenCalled();
+		expect(info).not.toHaveBeenCalled();
 
 		pc.receive({ type: "end_stream", data: "Time is up" });
 		expect(warning).toHaveBeenCalledWith("Time is up");

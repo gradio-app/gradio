@@ -798,7 +798,7 @@ class TestWebRTC:
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc], time_limit=30)
         # gr.update() gives the session a new instance, with its own id, stored
         # under the original id in the session's blocks
-        updated = gr.WebRTC(**{**webrtc.constructor_args, "render": False})
+        updated = gr.WebRTC(**cast(Any, {**webrtc.constructor_args, "render": False}))
         assert updated._id != webrtc._id
         session_config = copy.copy(demo.default_config)
         session_config.blocks = {**session_config.blocks, webrtc._id: updated}
@@ -1289,14 +1289,43 @@ class TestStreams:
         assert live_pc(h.manager, "one") is not None
         await pc.close()
 
+    @staticmethod
+    def toast(message):
+        """The toast a page shows for a queue message, as the frontend makes it
+        (a log message, or the error an event failed with), or None."""
+        if message.get("msg") == "log":
+            return {
+                "type": message["level"],
+                "message": message["log"],
+                "title": message.get("title"),
+            }
+        if message.get("msg") == "process_completed" and not message["success"]:
+            output = message["output"]
+            return {
+                "type": "error",
+                "message": output.get("error"),
+                "title": output.get("title"),
+                "visible": output.get("visible", True),
+            }
+        return None
+
     async def stream_until_message(self, h, pc, type_):
+        """Streams until the stream's queue event brings a toast of `type_`."""
         await h.start("one")
         await h.connect(pc, "one")
         await h.wait_until(lambda: stream_of(h.manager, "one").connected)
         # The handler runs once the page has sent the input values
         await h.push_inputs("one", 0.2)
-        await h.wait_until(lambda: any(m["type"] == type_ for m in pc.messages))
-        return next(m for m in pc.messages if m["type"] == type_)
+
+        def toasts(messages):
+            return [
+                toast
+                for m in messages
+                if (toast := self.toast(m)) and toast["type"] == type_
+            ]
+
+        messages = await h.messages("one", toasts)
+        return toasts(messages)[0]
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -1305,17 +1334,15 @@ class TestStreams:
     async def test_gr_error_in_the_handler_is_shown_and_ends_the_stream(self, launched):
         h = launched
         pc = await make_offer(video=True)
+        # The stream's event fails with it, which the page shows (once) and
+        # which runs .failure()
         message = await self.stream_until_message(h, pc, "error")
         assert message["message"] == "Bad frame"
         assert message["title"] == "Oops"
+        assert message["visible"] is True
         await h.wait_until(lambda: live_pc(h.manager, "one") is None)
-        # The event fails too, for .failure() and a page that resumes it,
-        # without showing the error a second time
-        messages = await h.messages("one", completed)
-        completion = next(m for m in messages if m["msg"] == "process_completed")
-        assert completion["success"] is False
-        assert completion["output"]["error"] == "Bad frame"
-        assert completion["output"]["visible"] is False
+        # Nothing went over the data channel
+        assert not [m for m in pc.messages if m["type"] == "error"]
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1329,10 +1356,7 @@ class TestStreams:
             "failed",
             handle,
             state=webrtc_connection.StreamState.ENDING,
-            notifier=cast(
-                Any,
-                SimpleNamespace(failure={"error": "Bad frame"}, failure_shown=False),
-            ),
+            errors=cast(Any, SimpleNamespace(failure={"error": "Bad frame"})),
         )
         stream.outputs.append(AdditionalOutputs(1))
         try:
@@ -1570,10 +1594,10 @@ class TestStreams:
         event_id = await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        notifier = stream_of(h.manager, "one").notifier
-        assert notifier is not None
+        errors = stream_of(h.manager, "one").errors
+        assert errors is not None
         # The handler failed, and the stream has not ended yet
-        notifier.failure = {"error": "Bad frame", "title": "Oops", "visible": False}
+        errors.failure = {"error": "Bad frame", "title": "Oops", "visible": False}
         await h.http.post(f"{h.api}/stream/{event_id}/close")
         messages = await h.messages("one", completed)
         completion = next(m for m in messages if m["msg"] == "process_completed")
@@ -1590,9 +1614,9 @@ class TestStreams:
         pc = await make_offer(video=True)
         # The page never applies the answer, so the data channel never opens
         assert (await h.offer(pc, "one"))["type"] == "answer"
-        notifier = stream_of(h.manager, "one").notifier
-        assert notifier is not None
-        notifier.fail(gr.Error("Sign in first"))
+        errors = stream_of(h.manager, "one").errors
+        assert errors is not None
+        errors.fail(gr.Error("Sign in first"))
         messages = await h.messages("one", completed)
         completion = next(m for m in messages if m["msg"] == "process_completed")
         assert completion["success"] is False
@@ -1629,9 +1653,9 @@ class TestStreams:
         pc = await make_offer(video=True)
         await h.start("one")
         await h.connect(pc, "one")
-        notifier = stream_of(h.manager, "one").notifier
-        assert notifier is not None
-        notifier.failure = {"error": "Bad frame", "visible": False}
+        errors = stream_of(h.manager, "one").errors
+        assert errors is not None
+        errors.failure = {"error": "Bad frame", "visible": False}
         # No frames wake the event, so the queue would end it at its time
         # limit itself, without the call that reports the failure
         messages = await h.messages("one", completed)
@@ -1754,8 +1778,8 @@ class TestStreams:
         messages = await h.messages("one", completed)
         completion = next(m for m in messages if m["msg"] == "process_completed")
         assert completion["success"] is False
-        # The page shows the error from the answer
-        assert completion["output"]["visible"] is False
+        # The page shows it as the event's error, not from the answer
+        assert completion["output"]["visible"] is True
         await pc.close()
 
     @pytest.mark.asyncio
@@ -2024,8 +2048,8 @@ class TestStreams:
         messages = await h.messages("one", completed)
         completion = next(m for m in messages if m["msg"] == "process_completed")
         assert completion["success"] is False
-        # The page shows the error from the answer
-        assert completion["output"]["visible"] is False
+        # The page shows it as the event's error, not from the answer
+        assert completion["output"]["visible"] is True
         await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
         await pc.close()
 
@@ -2141,14 +2165,14 @@ class TestStreams:
         pc = await make_offer(audio=True)
         await h.connect(pc, "one")
         await h.wait_until(lambda: stream_of(h.manager, "one").connected)
-        notifier = stream_of(h.manager, "one").notifier
-        assert notifier is not None
+        errors = stream_of(h.manager, "one").errors
+        assert errors is not None
         # The browser leaves; the handler's shutdown() raises while cleaning up
         await pc.close()
         await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
         await h.wait_until(lambda: "shutdown failed" in caplog.text)
         # Clean-up after the stream, not a failure of it, and logged once
-        assert notifier.failure is None
+        assert errors.failure is None
         logged = [r.getMessage() for r in caplog.records if r.exc_info]
         assert logged == ["Stream handler shutdown() failed"]
 
@@ -3120,8 +3144,8 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         # output, however long past its time limit, and reports the failure
         session = stream_of(h.manager, "one")
         session.outputs.append(AdditionalOutputs(99))
-        assert session.notifier is not None
-        session.notifier.failure = {"error": "Bad frame", "visible": False}
+        assert session.errors is not None
+        session.errors.failure = {"error": "Bad frame", "visible": False}
         messages = await h.messages("one", completed)
         assert any(
             m.get("msg") == "process_streaming" and m["output"]["data"][1] == 99
@@ -3921,7 +3945,7 @@ class TestAudioArrays:
         from aiortc.mediastreams import MediaStreamError
 
         from gradio.webrtc.tracks import AudioCallback, HandlerVideoTrack
-        from gradio.webrtc.utils import Context, StreamNotifier
+        from gradio.webrtc.utils import Context, StreamErrors, current_errors
 
         released = asyncio.Event()
 
@@ -3962,10 +3986,10 @@ class TestAudioArrays:
             def video_emit(self):
                 return None
 
-        notifier = StreamNotifier(
+        errors = StreamErrors(
             asyncio.get_running_loop(), end_stream=lambda: None, show_error=True
         )
-        LocalContext.stream_notifier.set(notifier)
+        current_errors.set(errors)
         if kind == "audio":
             track: Any = AudioCallback(
                 Input(), event_handler=Audio(), context=Context("id")
@@ -3987,15 +4011,15 @@ class TestAudioArrays:
         finally:
             released.set()
         # The page hears it and the stream ends, instead of going quiet
-        assert notifier.failure is not None
-        assert "cannot read the input" in str(notifier.failure["error"])
+        assert errors.failure is not None
+        assert "cannot read the input" in str(errors.failure["error"])
         assert track.thread_quit.is_set()
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("handler_class", [False, True])
     async def test_an_error_receiving_video_ends_the_stream(self, handler_class):
         from gradio.webrtc.tracks import HandlerVideoTrack, VideoCallback
-        from gradio.webrtc.utils import Context, StreamNotifier
+        from gradio.webrtc.utils import Context, StreamErrors, current_errors
 
         class Camera(VideoStreamTrack):
             async def recv(self):  # e.g. a frame the decoder cannot take
@@ -4008,10 +4032,10 @@ class TestAudioArrays:
             def video_emit(self):
                 return None
 
-        notifier = StreamNotifier(
+        errors = StreamErrors(
             asyncio.get_running_loop(), end_stream=lambda: None, show_error=True
         )
-        LocalContext.stream_notifier.set(notifier)
+        current_errors.set(errors)
         # Both read the camera in VideoCallback.accept_input
         if handler_class:
             track: Any = HandlerVideoTrack(
@@ -4024,8 +4048,8 @@ class TestAudioArrays:
         track.channel_set.set()
         await asyncio.wait_for(track.process_frames(), 2)
         # The page hears it and the stream ends, instead of waiting for frames
-        assert notifier.failure is not None
-        assert "cannot receive the video" in str(notifier.failure["error"])
+        assert errors.failure is not None
+        assert "cannot receive the video" in str(errors.failure["error"])
         assert track.thread_quit.is_set()
 
     @staticmethod
@@ -4545,24 +4569,20 @@ class TestCleanUp:
         assert not tracks_of(manager, "one")
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("channel", [None, "connecting", "open", "closed"])
-    async def test_messages_of_an_ended_stream_are_not_kept(self, channel):
-        from gradio.webrtc.utils import StreamNotifier
+    async def test_a_handler_error_ends_its_stream_once(self):
+        from gradio.webrtc.utils import StreamErrors
 
-        # A handler, or a thread it started, may keep logging after its stream
-        # ended or its data channel closed
-        notifier = StreamNotifier(asyncio.get_running_loop(), end_stream=lambda: None)
-        if channel is not None:
-            notifier.channel = SimpleNamespace(readyState=channel, send=lambda m: None)
-        manager = self.manager()
-        unit_stream(manager, "one", notifier=notifier)
-        notifier.send("info", "before the end")
+        ended = []
+        errors = StreamErrors(
+            asyncio.get_running_loop(), end_stream=lambda: ended.append(True)
+        )
+        # Several handler threads may fail at once; the first error stays
+        errors.fail(gr.Error("first"))
+        errors.fail(gr.Error("second"))
         await asyncio.sleep(0)
-        assert len(notifier.pending) == (1 if channel in (None, "connecting") else 0)
-        end_stream(manager, "one")
-        notifier.send("info", "after the end")
-        await asyncio.sleep(0)
-        assert notifier.pending == []
+        assert errors.failure is not None
+        assert errors.failure["error"] == "first"
+        assert ended == [True]
 
     @pytest.mark.asyncio
     async def test_a_shutdown_that_never_ends_delays_only_the_next_stream(
