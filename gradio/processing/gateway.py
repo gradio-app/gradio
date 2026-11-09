@@ -32,6 +32,7 @@ from gradio.processing import protocol
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
+    from gradio import route_utils
     from gradio.blocks import BlockFunction, Blocks
     from gradio.data_classes import PredictBodyInternal
     from gradio.routes import App
@@ -706,24 +707,25 @@ async def forward_event(
     record_history: bool = True,
     *,
     queue_event_id: str | None = None,
+    run: route_utils.RunStep | None = None,
 ) -> dict[str, Any]:
     """`route_utils.call_process_api`, run in the app's process that holds the
-    event's session."""
+    event's session. `run` says what the call is in its event's run (see
+    `route_utils.RunStep`)."""
     from gradio import caching, history, route_utils
     from gradio.client_state import get_sealer
 
+    if run is None:
+        run = route_utils.RunStep.from_event_id(body.event_id)
     session_state, iterator = route_utils.restore_session_state(app=app, body=body)
-    if not fn.continues_runs:
+    if not run.continues:
         iterator = None
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
     streaming = fn.connection == "stream"
-    # An event is counted once, however many calls a stream makes
-    counted_id = (
-        body.event_id
-        if fn.continues_runs or queue_event_id not in pool.placements
-        else None
-    )
+    # An event is counted once, however many calls a stream makes: a run of
+    # chunks at its first call, a continued run until its last
+    counted_id = body.event_id if run.keeps or run.first else None
     link = (
         iterator.link
         if isinstance(iterator, RemoteIterator)
@@ -776,6 +778,11 @@ async def forward_event(
                 "body": sent_body,
                 "client_state": protocol.portable_client_state(client_state),
                 "continuing": iterator is not None,
+                "run": {
+                    "first": run.first,
+                    "continues": iterator is not None,
+                    "keeps": run.keeps,
+                },
                 "request": protocol.portable_request(gr_request),
                 "root_path": root_path,
                 "probe_cache": probing,
@@ -805,7 +812,7 @@ async def forward_event(
             slot.release()
         elif iterator is not None:
             link.release(queue_event_id)
-        if returned and body.event_id is not None and fn.continues_runs:
+        if returned and body.event_id is not None and run.keeps:
             link.send(("close_iterator", body.event_id))
         if counted_id is not None:
             pool.finished(link, counted_id, success=False)
@@ -824,7 +831,7 @@ async def forward_event(
     if not has_iterator and counted_id is not None:
         pool.finished(link, counted_id, success=True)
         pool.check_drained(link)
-    if body.event_id is not None and fn.continues_runs:
+    if body.event_id is not None and run.keeps:
         app.iterators[body.event_id] = (  # type: ignore[assignment]
             RemoteIterator(link, body.event_id) if has_iterator else None
         )

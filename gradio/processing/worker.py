@@ -483,6 +483,8 @@ class Worker:
                     fn=fn,
                     root_path=p["root_path"],
                     record_history=False,
+                    # As the gateway's queue decided: never a default here
+                    run=route_utils.RunStep(**p["run"]),
                 )
         except BaseException as e:
             if running is not None and isinstance(e, asyncio.CancelledError):

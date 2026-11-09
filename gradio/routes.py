@@ -1745,6 +1745,7 @@ class App(FastAPI):
                         gr_request=req,
                         fn=app.get_blocks().fns[fn_index],
                         root_path=root_path,
+                        run=route_utils.RunStep.alone(),
                     )
 
             async def iterator():
@@ -1818,6 +1819,7 @@ class App(FastAPI):
                     gr_request=gr_request,
                     fn=fn,
                     root_path=root_path,
+                    run=route_utils.RunStep.alone(),
                 )
             except BaseException as error:
                 content = utils.error_payload(error, app.get_blocks().show_error)

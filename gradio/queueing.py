@@ -578,6 +578,7 @@ class Queue:
                         gr_request=gr_request,
                         fn=fn,
                         root_path=root_path,
+                        run=route_utils.RunStep.alone(),
                     )
                     for fn in unload_fns
                 ),
@@ -682,6 +683,7 @@ class Queue:
                     gr_request=gr_request,
                     fn=validator_fn,
                     root_path=root_path,
+                    run=route_utils.RunStep.alone(),
                 )
 
                 validation_response: list[dict[str, Any]] | dict[str, Any] | None = (
@@ -751,6 +753,9 @@ class Queue:
                         fn=fn,
                         root_path=root_path,
                         record_history=fn.connection != "stream",
+                        run=route_utils.RunStep.alone()
+                        if fn.connection == "stream"
+                        else route_utils.RunStep.start(),
                     )
                     while response and response.get("is_generating", False):
                         self.send_message(
@@ -767,6 +772,9 @@ class Queue:
                             fn=fn,
                             root_path=root_path,
                             record_history=fn.connection != "stream",
+                            run=route_utils.RunStep.alone(first=False)
+                            if fn.connection == "stream"
+                            else route_utils.RunStep.next(),
                         )
                 cache_duration = time.time() - cache_start
                 avg_time = (
@@ -1323,6 +1331,11 @@ class Queue:
                     root_path=root_path,
                     record_history=fn.connection != "stream",
                     queue_event_id=queue_event_id,
+                    # Each call of a stream of chunks is a run of its own; the
+                    # queue continues any other event's generator
+                    run=route_utils.RunStep.alone()
+                    if events[0].streaming
+                    else route_utils.RunStep.start(),
                 )
                 end = time.monotonic()
                 first_iteration = end - start
@@ -1450,6 +1463,9 @@ class Queue:
                             root_path=root_path,
                             record_history=fn.connection != "stream",
                             queue_event_id=queue_event_id,
+                            run=route_utils.RunStep.alone(first=False)
+                            if awake_events[0].streaming
+                            else route_utils.RunStep.next(),
                         )
                         end = time.monotonic()
                         for event in awake_events:

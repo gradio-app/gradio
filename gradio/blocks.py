@@ -2622,6 +2622,7 @@ Received inputs:
         explicit_call: bool = False,
         root_path: str | None = None,
         oauth_token: oauth.OAuthToken | None = None,
+        keeps_run: bool | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -2638,6 +2639,7 @@ Received inputs:
             in_event_listener: whether this API call is being made in response to an event listener
             explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
             root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
+            keeps_run: whether a later call continues this run (see `route_utils.RunStep`), so that the diffs of its streamed outputs are kept for it. If None, a call with an `event_id` keeps its run.
 
         Returns a dictionary with the following keys:
             - "data": the output data from the function
@@ -2757,17 +2759,18 @@ Received inputs:
                             root_path=root_path,
                             final=not is_generating,
                         )
-                        # Diff state serves the later chunks of a run, which
-                        # can only be fetched under an event id. A call without
-                        # one, or a stream's call (never continued), gets full
-                        # values, which is what its clients expect.
+                        # Diff state serves the later calls of a run, which can
+                        # only be fetched under an event id. A call without one,
+                        # or one that is a run of its own (a stream's chunk),
+                        # gets full values, which is what its clients expect.
+                        keeps = event_id is not None and (
+                            keeps_run if keeps_run is not None else True
+                        )
                         data = self.handle_streaming_diffs(
                             block_fn,
                             data,
                             session_hash=session_hash,
-                            run=run
-                            if event_id is not None and block_fn.continues_runs
-                            else None,
+                            run=run if keeps else None,
                             final=not is_generating,
                             simple_format=simple_format,
                         )
