@@ -1500,3 +1500,102 @@ def test_a_log_reaches_a_running_event_between_its_calls():
     assert [(e._id, m.log, m.level) for e, m in sent] == [
         ("stream-event", "Careful", "warning")
     ]
+
+
+def test_a_lease_runs_past_its_time_limit_until_it_ends_itself():
+    # A gr.WebRTC stream event: a generator that the queue steps each time the
+    # event is woken, and that keeps its own time limit
+    from gradio.context import LocalContext
+
+    handles = []
+    end = []
+
+    async def lease(x):
+        blocks = cast(Any, LocalContext.blocks.get())
+        handles.append(blocks._queue.event_handle(LocalContext.event_id.get()))
+        yield "admitted"
+        while not end:
+            yield None
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(lease, audio, heard, time_limit=0.5)
+    demo.fns[0].lease = True
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: bool(handles))
+            # Well past the time limit, and nothing woke it meanwhile
+            time.sleep(1.5)
+            assert event_id in demo._queue.event_ids_to_events
+            end.append(True)
+            handles[0].wake()
+            _wait_for(lambda: event_id not in demo._queue.event_ids_to_events)
+    finally:
+        demo.close()
+
+
+def test_a_lease_is_not_finished_by_its_time_limit():
+    from types import SimpleNamespace
+
+    fn = SimpleNamespace(connection="stream", time_limit=1, lease=True)
+    # Its calls add up past its time limit; the stream keeps that limit itself
+    event = SimpleNamespace(fn=fn, closed=False, run_time=5.0, streaming=True)
+    is_finished = cast(Any, queueing.Event.is_finished).fget
+    assert is_finished(event) is False
+    fn.lease = False
+    assert is_finished(event) is True
+
+
+def test_a_lease_completes_with_the_outputs_of_its_last_step():
+    # As a stream's last outputs do: the step that finishes the run sends its
+    # outputs with the event's completion, not in a message of their own
+    from gradio.context import LocalContext
+
+    handles = []
+
+    async def lease(x):
+        blocks = cast(Any, LocalContext.blocks.get())
+        handle = blocks._queue.event_handle(LocalContext.event_id.get())
+        handles.append(handle)
+        yield "first"
+        handle.finish()
+        yield "last"
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(lease, audio, heard)
+    demo.fns[0].lease = True
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: bool(handles))
+            streamed = []
+            completion = None
+            with http.stream(
+                "GET", f"{api}/queue/data", params={"session_hash": "s"}
+            ) as messages:
+                for line in messages.iter_lines():
+                    if not line.startswith("data:"):
+                        continue
+                    message = json.loads(line[5:])
+                    if message.get("event_id") != event_id:
+                        continue
+                    if message.get("msg") == "process_streaming":
+                        streamed.append(message["output"]["data"])
+                        handles[0].wake()
+                    if message.get("msg") == "process_completed":
+                        completion = message
+                        break
+            assert streamed == [["first"]]
+            assert completion is not None
+            assert completion["success"] is True
+            assert completion["output"]["data"] == ["last"]
+    finally:
+        demo.close()

@@ -6,7 +6,7 @@ settings, and adding the queue event that runs each stream. Imports without the
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
 from typing import TYPE_CHECKING, Any, Literal
 
 from gradio import utils
@@ -179,10 +179,12 @@ def add_stream_event(
     Adds the queue event that runs each stream: one event per stream, from the
     moment it is started until it ends. `fn` is the event's function, which
     holds the `ConnectionManager` of the streams. The event waits in
-    line like any other, then admits the stream on its first call (see
-    `connection.stream_call`), and delivers its AdditionalOutputs on the later
-    ones. A running stream that the page closes ends through its manager, so
-    that the event still delivers every pending output.
+    line like any other. It is a lease (`BlockFunction.lease`): `fn` is a
+    generator that admits the stream on its first step (see
+    `connection.stream_run`) and delivers its AdditionalOutputs on the later
+    ones, each time the stream wakes the event. A running stream that the page
+    closes ends through its manager, so that the event still delivers every
+    pending output.
     """
     from gradio.webrtc import connection
 
@@ -200,6 +202,7 @@ def add_stream_event(
         **kwargs,
     )
     stream_fn.close_stream = connection.end_admitted_stream
+    stream_fn.lease = True
     return stream_fn, index
 
 
@@ -249,9 +252,9 @@ def server_stream(
         inputs_over_channel=True,
     )
 
-    async def run_stream(webrtc_id: str | None) -> Any:
-        outputs = connection.stream_call(manager, webrtc_id)
-        return skip() if outputs is None else list(outputs.args)
+    async def run_stream(webrtc_id: str | None) -> AsyncIterator[Any]:
+        async for outputs in connection.stream_run(manager, webrtc_id):
+            yield skip() if outputs is None else list(outputs.args)
 
     add_stream_event(
         root_block,

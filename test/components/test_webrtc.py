@@ -900,44 +900,23 @@ class TestWebRTC:
         event_token = LocalContext.event_id.set("event")
         try:
             skip = gr.skip()
-            assert await webrtc._run_stream(manager, "abc") == (skip, skip, skip)
+            # The queue steps the event's run each time the stream wakes it.
+            # Its first step admits the stream.
+            run = webrtc._run_stream(manager, "abc")
+            assert await anext(run) == (skip, skip, skip)
             assert stream_of(manager, "abc").event.id == "event"
-            # A hot reload gives the event a new function, whose manager never
-            # saw the stream; the stream stays with the one that admitted it
-            reloaded = TestCleanUp.manager()
 
-            # Every output is delivered, oldest first, one per call; a call
+            # Every output is delivered, oldest first, one per step; a step
             # that leaves outputs behind wakes the event again
             add_outputs(manager, "abc", AdditionalOutputs(1, "a"))
             add_outputs(manager, "abc", AdditionalOutputs(2, "b"))
             event.signal.clear()
-            assert await webrtc._run_stream(reloaded, "abc") == (skip, 1, "a")
+            assert await anext(run) == (skip, 1, "a")
             assert event.signal.is_set()
             event.signal.clear()
-            assert await webrtc._run_stream(reloaded, "abc") == (skip, 2, "b")
+            assert await anext(run) == (skip, 2, "b")
             assert not event.signal.is_set()
-            assert await webrtc._run_stream(reloaded, "abc") == (skip, skip, skip)
-
-            # A later call (a chunk) cannot admit another stream through the
-            # same event, and still serves the stream it admitted
-            add_outputs(manager, "abc", AdditionalOutputs(3, "c"))
-            assert await webrtc._run_stream(reloaded, "other") == (skip, 3, "c")
-            assert not has_stream(manager, "other")
-
-            # A stream that ends still delivers what it emitted before, and
-            # its event finishes once nothing is pending
-            add_outputs(manager, "abc", AdditionalOutputs(5, "e"))
-            add_outputs(manager, "abc", AdditionalOutputs(6, "f"))
-            end_stream(manager, "abc")
-            assert not event.closed
-            assert await webrtc._run_stream(reloaded, "abc") == (skip, 5, "e")
-            assert not event.closed
-            assert await webrtc._run_stream(reloaded, "abc") == (skip, 6, "f")
-            assert event.closed
-
-            add_outputs(manager, "abc", AdditionalOutputs(4))
-            with pytest.raises(ValueError, match="2 outputs besides"):
-                await webrtc._run_stream(reloaded, "abc")
+            assert await anext(run) == (skip, skip, skip)
 
             # Another queue event that joins with an id already in use ends at
             # once instead of holding a place it can never use
@@ -946,17 +925,51 @@ class TestWebRTC:
             queue.event_ids_to_events["other"] = other
             other_token = LocalContext.event_id.set("other")
             try:
-                assert await webrtc._run_stream(manager, "abc") == (skip, skip, skip)
+                values = [x async for x in webrtc._run_stream(manager, "abc")]
+                assert values == [(skip, skip, skip)]
             finally:
                 LocalContext.event_id.reset(other_token)
             assert other.closed
             assert stream_of(manager, "abc").event.id == "event"
+
+            # A stream that ends still delivers what it emitted before; the
+            # step with its last outputs ends the run, so that they go out
+            # with the event's completion
+            add_outputs(manager, "abc", AdditionalOutputs(5, "e"))
+            add_outputs(manager, "abc", AdditionalOutputs(6, "f"))
+            end_stream(manager, "abc")
+            assert await anext(run) == (skip, 5, "e")
+            assert not event.closed
+            assert await anext(run) == (skip, 6, "f")
+            assert event.closed
+
+            # Ended with nothing pending: the last step changes nothing (a run
+            # that just ran out would complete with empty outputs, which the
+            # page would apply)
+            event.closed = False
+            assert await anext(run) == (skip, skip, skip)
+            assert event.closed
+
+            # The AdditionalOutputs of a handler must match stream()'s outputs
+            third = FakeEvent()
+            third._id = "third"
+            queue.event_ids_to_events["third"] = third
+            third_token = LocalContext.event_id.set("third")
+            try:
+                mismatched = webrtc._run_stream(manager, "def")
+                assert await anext(mismatched) == (skip, skip, skip)
+                add_outputs(manager, "def", AdditionalOutputs(4))
+                with pytest.raises(ValueError, match="2 outputs besides"):
+                    await anext(mismatched)
+            finally:
+                LocalContext.event_id.reset(third_token)
         finally:
             LocalContext.blocks.reset(blocks_token)
             LocalContext.event_id.reset(event_token)
+            watchers = [stream.watcher for stream in streams_of(manager)]
             queue.event_ids_to_events.clear()
-            await asyncio.wait_for(stream_of(manager, "abc").watcher, 2)  # type: ignore
-        assert not has_stream(manager, "abc")
+            await asyncio.wait_for(asyncio.gather(*watchers), 2)  # type: ignore
+        assert not streams_of(manager)
 
 
 async def make_offer(audio=False, video=False, receive=None):
@@ -1351,22 +1364,30 @@ class TestStreams:
 
         manager = launched.manager
         event, handle = queue_event()
-        stream = unit_stream(
-            manager,
-            "failed",
-            handle,
-            state=webrtc_connection.StreamState.ENDING,
-            errors=cast(Any, SimpleNamespace(failure={"error": "Bad frame"})),
-        )
+        # Keys the app's stream registry, so not a SimpleNamespace
+        queue = cast(Any, UnitQueue())
+        queue.event_handle = lambda _: handle
+        LocalContext.blocks.set(cast(Any, SimpleNamespace(_queue=queue)))
+        LocalContext.event_id.set(handle.id)
+        run = webrtc_connection.stream_run(manager, "failed")
+        # The first step admits the stream
+        assert await anext(run) is None
+        stream = stream_of(manager, "failed")
+        stream.errors = cast(Any, SimpleNamespace(failure={"error": "Bad frame"}))
         stream.outputs.append(AdditionalOutputs(1))
+        stream.close()
+        event.signal.clear()
         try:
-            assert stream.take_output() is not None
-            assert stream.finish_if_drained(delivered=True) is None
-            assert not event.closed and event.signal.is_set()
-            assert stream.finish_if_drained(delivered=False) == {"error": "Bad frame"}
-            assert event.closed
+            # What the handler emitted before it failed is delivered first,
+            # and the run comes back for the end
+            assert (await anext(run)).args == (1,)
+            assert event.signal.is_set()
+            with pytest.raises(gr.Error, match="Bad frame"):
+                await anext(run)
         finally:
-            unit_registry().remove(stream)
+            event.alive = False
+            assert stream.watcher is not None
+            await asyncio.wait_for(stream.watcher, 2)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("show_error", [False, True])
@@ -1673,23 +1694,20 @@ class TestStreams:
         await h.wait_until(lambda: not has_stream(h.manager, "one"))
 
     @pytest.mark.asyncio
-    async def test_keepalive_wakes_a_quiet_stream(self, launched, monkeypatch):
+    async def test_a_quiet_stream_keeps_its_turn(self, launched):
         h = launched
-        monkeypatch.setattr(webrtc_connection, "KEEPALIVE_INTERVAL", 0.3)
-        await h.start("one")
+        event_id = await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        messages = await h.messages(
-            "one",
-            lambda ms: sum(m.get("msg") == "process_streaming" for m in ms) >= 3,
-        )
-        assert not completed(messages)
+        # Its event is a lease: nothing has to wake it to keep it running
+        assert h.stream_fn.lease
+        await asyncio.sleep(1.5)
+        assert h.event_running(event_id)
         await pc.close()
 
     @pytest.mark.asyncio
     async def test_input_values_come_from_the_page(self, launched, monkeypatch):
         h = launched
-        monkeypatch.setattr(webrtc_connection, "KEEPALIVE_INTERVAL", 0.3)
         await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
@@ -1704,7 +1722,6 @@ class TestStreams:
     @pytest.mark.asyncio
     async def test_a_chunk_cannot_admit_another_stream(self, launched, monkeypatch):
         h = launched
-        monkeypatch.setattr(webrtc_connection, "KEEPALIVE_INTERVAL", 0.3)
         event_id = await h.start("one")
         # A client that sends its event's own id with a new stream id, to get a
         # second stream through one place in the concurrency limit
@@ -2639,13 +2656,11 @@ class TestStreamsWithProcesses:
     test_video_offer_gets_answer_once_admitted = (
         TestStreams.test_video_offer_gets_answer_once_admitted
     )
-    # Outputs emitted between calls, and keepalives, wake the event there
+    # Outputs emitted between steps wake the event there
     test_additional_outputs_reach_the_other_outputs = (
         TestStreams.test_additional_outputs_reach_the_other_outputs
     )
-    test_keepalive_wakes_a_quiet_stream = (
-        TestStreams.test_keepalive_wakes_a_quiet_stream
-    )
+    test_a_quiet_stream_keeps_its_turn = TestStreams.test_a_quiet_stream_keeps_its_turn
     # The page's close reaches the stream here, which delivers what is
     # pending; the media closes once the gateway says that the event ended
     test_closing_the_stream_closes_the_connection = (
@@ -4401,16 +4416,15 @@ class TestCleanUp:
         session_hash = "s"
         live = True
 
+        finished = False
+
         def wake(self):
             pass
 
-        def disable_time_limit(self):
-            pass
+        def finish(self):
+            self.finished = True
 
         def stream_admitted(self, stream_id):
-            pass
-
-        def finish(self):
             pass
 
     class FailingClose:
@@ -4481,35 +4495,35 @@ class TestCleanUp:
         # E.g. a call still under way when the page session closed, after the
         # stream's watcher let go of the event's admission
         handle.live = False
-        finished = []
-        handle.finish = lambda: finished.append(True)  # type: ignore[method-assign]
         # Keys the app's stream registry, so not a SimpleNamespace
         queue = cast(Any, UnitQueue())
         queue.event_handle = lambda _: handle
         blocks = SimpleNamespace(_queue=queue)
         LocalContext.blocks.set(cast(Any, blocks))
         LocalContext.event_id.set("event")
-        assert webrtc_connection.stream_call(manager, "one") is None
+        # The event's run ends at once instead of holding its place, with a
+        # step that changes nothing
+        assert [x async for x in webrtc_connection.stream_run(manager, "one")] == [None]
+        assert handle.finished
         assert not has_stream(manager, "one")
-        assert finished == [True]
 
     @pytest.mark.asyncio
     async def test_a_stream_id_that_is_not_a_string_is_not_admitted(self):
         forget_earlier_streams()
         manager = self.manager()
         handle = self.Handle()
-        finished = []
-        handle.finish = lambda: finished.append(True)  # type: ignore[method-assign]
         # Keys the app's stream registry, so not a SimpleNamespace
         queue = cast(Any, UnitQueue())
         queue.event_handle = lambda _: handle
         blocks = SimpleNamespace(_queue=queue)
         LocalContext.blocks.set(cast(Any, blocks))
         LocalContext.event_id.set("event")
-        # Signalling only takes string ids, so it could never reach this stream
-        assert webrtc_connection.stream_call(manager, cast(Any, 5)) is None
+        # Signalling only takes string ids, so it could never reach this stream;
+        # the event's run ends at once
+        run = webrtc_connection.stream_run(manager, cast(Any, 5))
+        assert [x async for x in run] == [None]
+        assert handle.finished
         assert not streams_of(manager)
-        assert finished == [True]
 
     def test_input_for_a_stream_id_that_is_not_a_string_is_ignored(self):
         registry = unit_registry()

@@ -14,7 +14,6 @@ import asyncio
 import contextlib
 import inspect
 import itertools
-import math
 import os
 import pickle
 import signal
@@ -547,8 +546,6 @@ class Pool:
         for action in actions:
             if action == "wake":
                 event.signal.set()
-            elif action == "disable_time_limit":
-                event.run_time = -math.inf
             elif action == "finish":
                 event.closed = True
 
@@ -723,13 +720,16 @@ async def forward_event(
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
     streaming = fn.connection == "stream"
-    # An event is counted once, however many calls a stream makes: a run of
-    # chunks at its first call, a continued run until its last
-    counted_id = body.event_id if run.keeps or run.first else None
+    # An event is counted once: a continued run until its last call, and a
+    # stream (its chunks, or the lease of a gr.WebRTC stream) as one call at
+    # its first, since how long a visitor streams says nothing of the load
+    counted_id = body.event_id if run.first or (run.keeps and not streaming) else None
+    # A stream goes back to its process, which fails it at once if it exited
+    # (`Pool.placed`), also a lease whose generator is there
+    placed = pool.placed(queue_event_id if streaming else None, body.session_hash)
     link = (
-        iterator.link
-        if isinstance(iterator, RemoteIterator)
-        else pool.placed(queue_event_id if streaming else None, body.session_hash)
+        placed
+        or (iterator.link if isinstance(iterator, RemoteIterator) else None)
         or pool.for_session(body.session_hash)
     )
     if streaming:
@@ -828,7 +828,7 @@ async def forward_event(
             slot.release()
     elif not has_iterator and not streaming:
         link.release(queue_event_id)
-    if not has_iterator and counted_id is not None:
+    if (not has_iterator or streaming) and counted_id is not None:
         pool.finished(link, counted_id, success=True)
         pool.check_drained(link)
     if body.event_id is not None and run.keeps:
@@ -967,6 +967,7 @@ def event_table(
         )
         if settings.get("closes_streams") and close_stream is not None:
             fns[dep["id"]].close_stream = close_stream
+        fns[dep["id"]].lease = bool(settings.get("lease"))
     return fns
 
 

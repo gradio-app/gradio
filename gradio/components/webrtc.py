@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import logging
-from collections.abc import Callable, Sequence
+from collections.abc import AsyncIterator, Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from gradio_client.documentation import document
@@ -394,8 +394,9 @@ class WebRTC(Component):
 
         # Only the event holds this stream()'s manager, so the manager goes
         # away with it (e.g. when a @gr.render replaces its events)
-        async def run_stream(webrtc_id: str | None) -> Any:
-            return await self._run_stream(manager, webrtc_id)
+        async def run_stream(webrtc_id: str | None) -> AsyncIterator[Any]:
+            async for value in self._run_stream(manager, webrtc_id):
+                yield value
 
         # Each stream is one queue event: the frontend fires "stream" when the
         # user starts it, waits for its turn, and only then connects. The event
@@ -489,24 +490,23 @@ class WebRTC(Component):
 
     async def _run_stream(
         self, manager: ConnectionManager, webrtc_id: str | None
-    ) -> Any:
+    ) -> AsyncIterator[Any]:
         """
-        The queue event of one stream. Its first call admits the stream, and
-        each later call delivers the next AdditionalOutputs. The value of this
-        component itself is never changed. `manager` is the one of the
-        `stream()` call: the one registered for this component id may belong to
-        another session's render, or to a later render of it.
+        The run of one stream's queue event (see `connection.stream_run`): its
+        first step admits the stream, and each later one delivers the next
+        AdditionalOutputs. The value of this component itself is never
+        changed. `manager` is the one of the `stream()` call.
         """
-        from gradio.webrtc.connection import stream_call
+        from gradio.webrtc.connection import stream_run
 
-        nothing = [skip()] * (1 + self._num_extra_outputs)
-        outputs = stream_call(manager, webrtc_id)
-        if outputs is not None:
-            if len(outputs.args) != self._num_extra_outputs:
-                raise ValueError(
-                    f"AdditionalOutputs has {len(outputs.args)} values, "
-                    f"but stream() has {self._num_extra_outputs} outputs "
-                    "besides the WebRTC component."
-                )
-            nothing = [skip(), *outputs.args]
-        return nothing[0] if len(nothing) == 1 else tuple(nothing)
+        async for outputs in stream_run(manager, webrtc_id):
+            values = [skip()] * (1 + self._num_extra_outputs)
+            if outputs is not None:
+                if len(outputs.args) != self._num_extra_outputs:
+                    raise ValueError(
+                        f"AdditionalOutputs has {len(outputs.args)} values, "
+                        f"but stream() has {self._num_extra_outputs} outputs "
+                        "besides the WebRTC component."
+                    )
+                values = [skip(), *outputs.args]
+            yield values[0] if len(values) == 1 else tuple(values)

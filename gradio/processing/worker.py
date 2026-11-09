@@ -173,9 +173,6 @@ class RemoteEventHandle:
     def wake(self) -> None:
         self._act("wake")
 
-    def disable_time_limit(self) -> None:
-        self._act("disable_time_limit")
-
     def finish(self) -> None:
         self._act("finish")
 
@@ -628,6 +625,8 @@ class Worker:
             "parameter_names": list(fn.input_parameter_names) or parameter_names(fn.fn),
             # A stream whose function works here between its calls (gr.WebRTC)
             "closes_streams": fn.close_stream is not None,
+            # A stream that holds its place until it ends itself (gr.WebRTC)
+            "lease": fn.lease,
         }
 
     def reloaded(self, demo: Blocks) -> None:

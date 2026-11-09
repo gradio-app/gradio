@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-import math
 import os
 import platform
 import random
@@ -96,7 +95,8 @@ class Event:
             raise ValueError("Cannot access if_finished during a non-streaming event")
         if self.closed:
             return True
-        if self.fn.time_limit is None:
+        # A lease keeps its own time limit, and ends its run itself
+        if self.fn.time_limit is None or self.fn.lease:
             return False
         return self.run_time >= self.fn.time_limit
 
@@ -117,15 +117,12 @@ class EventHandle:
         self.concurrency_limit = group.concurrency_limit if group else None
 
     def wake(self) -> None:
-        """Has the queue call the event's function again (a stream event)."""
+        """Has the queue step the event's run again (a stream event)."""
         self._event.signal.set()
 
-    def disable_time_limit(self) -> None:
-        """Leaves the event's time limit to the caller, which ends it."""
-        self._event.run_time = -math.inf
-
     def finish(self) -> None:
-        """Ends the event once its current call returns."""
+        """Makes the step running now the run's last: its outputs go out with
+        the event's completion, as a stream's last outputs do."""
         self._event.closed = True
 
     def stream_admitted(self, stream_id: str) -> None:
@@ -1153,13 +1150,17 @@ class Queue:
         return "signal"
 
     @staticmethod
-    async def timeout(timeout: float) -> str:
-        await asyncio.sleep(timeout)
+    async def timeout(timeout: float | None) -> str:
+        if timeout is None:
+            # Woken only by its signal (see `BlockFunction.lease`)
+            await asyncio.Event().wait()
+        else:
+            await asyncio.sleep(timeout)
         return "timeout"
 
     @staticmethod
     async def wait_for_event_or_timeout(
-        event: Event, timeout: float
+        event: Event, timeout: float | None
     ) -> Literal["signal", "timeout"]:
         t1 = asyncio.create_task(Queue.wait_for_event(event))
         t2 = asyncio.create_task(Queue.timeout(timeout))
@@ -1179,7 +1180,7 @@ class Queue:
 
     @staticmethod
     async def wait_for_batch(
-        events: list[Event], timeouts: list[float]
+        events: list[Event], timeouts: list[float | None]
     ) -> tuple[list[Event], list[Event]]:
         tasks = []
         for event, timeout in zip(events, timeouts, strict=False):
@@ -1334,7 +1335,7 @@ class Queue:
                     # Each call of a stream of chunks is a run of its own; the
                     # queue continues any other event's generator
                     run=route_utils.RunStep.alone()
-                    if events[0].streaming
+                    if events[0].streaming and not fn.lease
                     else route_utils.RunStep.start(),
                 )
                 end = time.monotonic()
@@ -1342,8 +1343,11 @@ class Queue:
                 err = None
                 for event in awake_events:
                     event.run_time += end - start
-                    if event.streaming:
+                    # A lease's run says itself when it is over
+                    if event.streaming and not fn.lease:
                         response["is_generating"] = not event.is_finished
+                    elif fn.lease and event.closed:
+                        response["is_generating"] = False
 
             except Exception as e:
                 if not isinstance(e, Error) or e.print_exception:
@@ -1404,7 +1408,13 @@ class Queue:
                                 # the max time is the time limit of the function or 30 seconds (arbitrary) but should
                                 # never really take that long to make a request from the client to the server unless
                                 # the client disconnected.
-                                [cast(float, fn.time_limit or 30) - first_iteration]
+                                # A lease is woken by its stream, however long it waits
+                                [
+                                    None
+                                    if fn.lease
+                                    else cast(float, fn.time_limit or 30)
+                                    - first_iteration
+                                ]
                                 * len(awake_events),
                             )
                             # The last response went out with its chunk. A
@@ -1464,14 +1474,16 @@ class Queue:
                             record_history=fn.connection != "stream",
                             queue_event_id=queue_event_id,
                             run=route_utils.RunStep.alone(first=False)
-                            if awake_events[0].streaming
+                            if awake_events[0].streaming and not fn.lease
                             else route_utils.RunStep.next(),
                         )
                         end = time.monotonic()
                         for event in awake_events:
                             event.run_time += end - start
-                            if event.streaming:
+                            if event.streaming and not fn.lease:
                                 response["is_generating"] = not event.is_finished
+                            elif fn.lease and event.closed:
+                                response["is_generating"] = False
                     except Exception as e:
                         if not isinstance(e, Error) or e.print_exception:
                             traceback.print_exc()

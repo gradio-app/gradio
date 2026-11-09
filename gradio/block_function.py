@@ -119,6 +119,12 @@ class BlockFunction:
         # to leave it to the queue. With executor="process", the gateway's
         # copy asks the app's process.
         self.close_stream: Callable[[str], bool | Awaitable[bool]] | None = None
+        # A connection="stream" function that holds its place in the queue
+        # for as long as its stream runs (gr.WebRTC): a generator that the
+        # queue steps each time the event is woken, which ends the stream
+        # itself. The queue does not time out its wait for a wake and leaves
+        # its time limit to it.
+        self.lease = False
         self.event_specific_args = event_specific_args
         self.component_prop_inputs = component_prop_inputs or []
         self.input_keyword_names = input_keyword_names or []

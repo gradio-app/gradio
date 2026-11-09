@@ -34,7 +34,7 @@ import logging
 import time
 import weakref
 from collections import Counter, OrderedDict, deque
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import anyio
@@ -97,9 +97,6 @@ CONNECT_TIMEOUT = 30
 # Seconds an offer waits for its stream to be admitted. The browser learns that
 # its turn has come just before the event's first call admits the stream.
 ADMISSION_WAIT = 5
-# The queue ends a stream event that is not woken up within 30 seconds, or
-# within its time limit
-KEEPALIVE_INTERVAL = 10
 WATCH_INTERVAL = 0.25
 MAX_PENDING_OUTPUTS = 64
 MAX_PENDING_CANDIDATES = 128
@@ -234,19 +231,18 @@ class StreamState(enum.Enum):
 
 class QueueLease:
     """
-    How a stream holds its place in the queue: through its queue event, which
-    the queue calls again whenever the event is woken up. The event has to be
-    woken before the queue's 30 s wait for a chunk runs out, and its own time
-    limit is turned off, since cutting the event there would drop the outputs
-    still pending: the time limit is kept here instead. Everything a stream
-    asks of the queue goes through this class.
+    How a stream holds its place in the queue: its queue event is a lease
+    (`BlockFunction.lease`), whose run the queue steps each time the stream
+    wakes it, and which ends when the stream has ended (see `stream_run`).
+    The queue leaves the time limit to the stream, kept here, since cutting
+    the event would drop the outputs still pending. Everything a stream asks
+    of the queue goes through this class.
     """
 
     def __init__(self, event: EventHandle, time_limit: float | None) -> None:
         self.event = event
         self.time_limit = time_limit
         self.admitted_at = time.monotonic()
-        self.last_signal = self.admitted_at
 
     @property
     def live(self) -> bool:
@@ -254,16 +250,14 @@ class QueueLease:
         return self.event.live
 
     def begin(self, stream_id: str) -> None:
-        self.event.disable_time_limit()
         self.event.stream_admitted(stream_id)
 
     def wake(self) -> None:
-        """Has the queue call the event again."""
-        self.last_signal = time.monotonic()
+        """Has the queue step the event's run again."""
         self.event.wake()
 
     def finish(self) -> None:
-        """Lets the event end once its current call returns."""
+        """Makes the step running now the run's last (see `EventHandle.finish`)."""
         self.event.finish()
 
     def remaining_time(self) -> float | None:
@@ -274,12 +268,8 @@ class QueueLease:
     async def keep(self, stream: Stream) -> None:
         """
         Runs until the queue event is over, however it ended: ends the stream
-        at its time limit or when it does not connect in time, and keeps the
-        event awake while the stream runs.
+        at its time limit or when it does not connect in time.
         """
-        keepalive = KEEPALIVE_INTERVAL
-        if self.time_limit is not None:
-            keepalive = min(keepalive, self.time_limit / 2)
         while True:
             await asyncio.sleep(WATCH_INTERVAL)
             if not self.live:
@@ -295,8 +285,6 @@ class QueueLease:
                 )
                 if timed_out or never_connected:
                     stream.close()
-                elif now - self.last_signal >= keepalive:
-                    self.wake()
             except Exception:
                 # Watching goes on until the event is over: no re-admission
                 logger.exception("Error while watching stream %s", stream.id)
@@ -384,32 +372,26 @@ class Stream:
         return True
 
     def take_output(self) -> AdditionalOutputs | None:
+        """The next AdditionalOutputs to deliver. One step of the event's run
+        delivers one and comes back for the rest. The last ones of an ended
+        stream go out with the event's completion, as a stream's last outputs
+        do, unless a failure is still to be reported."""
         if not self.outputs:
             return None
         outputs = self.outputs.popleft()
         if self.outputs:
-            # One call delivers one set of outputs; come back for the rest
             self.lease.wake()
+        elif self.ended:
+            if self.failure is None:
+                self.lease.finish()
+            else:
+                self.lease.wake()
         return outputs
 
-    def finish_if_drained(self, delivered: bool) -> dict[str, Any] | None:
-        """
-        Lets the queue event of an ended stream finish once its outputs are
-        delivered. Called at the end of each of the event's calls, `delivered`
-        saying whether the call delivers outputs. Returns the handler's error
-        (see `StreamErrors.fail`) for the call that finishes the event of a
-        stream whose handler failed, which delivers nothing. The page shows it
-        as the error of an event.
-        """
-        if not self.ended or self.outputs:
-            return None
-        failure = self.errors.failure if self.errors else None
-        if failure is not None and delivered:
-            # The next call reports the error
-            self.lease.wake()
-            return None
-        self.lease.finish()
-        return failure
+    @property
+    def failure(self) -> dict[str, Any] | None:
+        """The handler's error (see `StreamErrors.fail`), once it failed."""
+        return self.errors.failure if self.errors else None
 
     def close(self) -> None:
         """
@@ -418,9 +400,9 @@ class Stream:
         later calls only release what was added since. The media stops at once:
         the peer connection closes, the tracks stop, and the handler shuts down,
         without waiting for the queue. The queue event then delivers the outputs
-        still pending and finishes (see `finish_if_drained`), which needs a
-        worker slot, so the stream's place in the concurrency limit is released
-        only once one is free.
+        still pending and ends (see `stream_run`), which needs a worker slot,
+        so the stream's place in the concurrency limit is released only once
+        one is free.
         """
         first = not self.ended
         if first:
@@ -1022,15 +1004,19 @@ async def _add_ice_candidate(
         return _failed(str(e))
 
 
-def stream_call(
+async def stream_run(
     manager: ConnectionManager, webrtc_id: str | None
-) -> AdditionalOutputs | None:
+) -> AsyncIterator[AdditionalOutputs | None]:
     """
-    One call of a stream's queue event. The first call admits the stream; each
-    later call returns the next AdditionalOutputs, if any, and once the stream
-    has ended and its outputs are delivered, ends the event, raising the
-    handler's error if it failed. `manager` is the one that the event's
-    function was created with.
+    The run of a stream's queue event, a lease (`BlockFunction.lease`) that
+    the queue steps each time the stream wakes it. Its first step admits the
+    stream; each later step gives the next AdditionalOutputs, or None when
+    there is none. Once the stream has ended and its outputs are delivered,
+    it raises the handler's error if it failed, or else finishes the event
+    with a step that changes nothing: a run that just ran out would complete
+    with empty outputs, which the page would apply. `manager` is the one that
+    the event's function was created with; after a hot reload the run keeps
+    the stream it admitted.
     """
     blocks = LocalContext.blocks.get(None)
     queue = blocks._queue if blocks is not None else None
@@ -1040,44 +1026,49 @@ def stream_call(
         else None
     )
     if event is None:
-        return None
+        return
     registry = registry_for(queue)
-    # A later call carries whatever id a chunk sent, so it only serves the
-    # stream that the first call admitted. After a hot reload, the event's
-    # function is a new one, but the stream keeps the manager that admitted it.
-    stream = registry.by_event.get(event.id)
-    if stream is None:
-        if (
-            not isinstance(webrtc_id, str)
-            or not webrtc_id
-            or not event.live
-            or not manager.admit(webrtc_id, event, registry)
-        ):
-            # No id (or not a string, which signalling could never match), an
-            # event that is over (its admission may have been let go already),
-            # or an id that belongs to another event's stream:
-            # end this event instead of letting it hold a place it cannot use.
-            # Nothing would wake it before its time limit.
-            event.finish()
-        return None
-    outputs = stream.take_output()
-    failure = stream.finish_if_drained(outputs is not None)
-    if failure is not None:
-        # Hidden when the page has shown it already; the server has logged it
-        raise Error(
-            cast(str, failure["error"] or ""),
-            title=cast(str, failure.get("title") or "Error"),
-            visible=bool(failure.get("visible", True)),
-            print_exception=False,
-        )
-    return outputs
+    if (
+        not isinstance(webrtc_id, str)
+        or not webrtc_id
+        or not event.live
+        or not manager.admit(webrtc_id, event, registry)
+    ):
+        # No id (or not a string, which signalling could never match), an
+        # event that is over, or an id that belongs to another event's stream:
+        # end this event instead of letting it hold a place it cannot use
+        event.finish()
+        yield None
+        return
+    stream = registry.by_event[event.id]
+    # The turn: the page may now connect
+    yield None
+    while True:
+        outputs = stream.take_output()
+        if outputs is not None:
+            yield outputs
+        elif stream.ended:
+            failure = stream.failure
+            if failure is not None:
+                # The server has logged it
+                raise Error(
+                    cast(str, failure["error"] or ""),
+                    title=cast(str, failure.get("title") or "Error"),
+                    visible=bool(failure.get("visible", True)),
+                    print_exception=False,
+                )
+            stream.lease.finish()
+            yield None
+            return
+        else:
+            yield None
 
 
 def end_admitted_stream(event_id: str) -> bool:
     """
     Ends the stream that the queue event `event_id` admitted, for a page that
     closes it: the event then delivers the outputs still pending and fails if
-    the handler did (see `Stream.finish_if_drained`). False if the event has
+    the handler did (see `stream_run`). False if the event has
     no running stream.
     """
     stream = stream_of_event(event_id)
