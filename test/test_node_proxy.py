@@ -436,6 +436,7 @@ class TestNodeProxyClientAddress:
             demo.launch(
                 ssr_mode=True,
                 server_port=18872,
+                executor="thread",
                 prevent_thread_lock=True,
                 quiet=True,
             )
@@ -452,7 +453,7 @@ class TestNodeProxyClientAddress:
             url = f"http://127.0.0.1:{demo.node_port}/gradio_api/test_client_address"
             # What the Spaces proxy sends: anything the visitor sent, then the
             # visitor's real address.
-            assert httpx.get(
+            assert httpx2.get(
                 url, headers={"X-Forwarded-For": "6.6.6.6, 203.0.113.7"}
             ).json() == {
                 "forwarded_for": "6.6.6.6, 203.0.113.7",
