@@ -1,10 +1,13 @@
+import asyncio
 import base64
 import contextlib
 import copy
 import json
 import os
 import tempfile
+import time
 
+import httpx2
 import pytest
 from mcp import Client, ClientSession
 from mcp.client.streamable_http import streamable_http_client
@@ -562,6 +565,114 @@ async def test_mcp_tools_resources_and_prompts(protocol):
 
 
 @pytest.mark.asyncio
+@pytest.mark.serial
+@pytest.mark.parametrize("space_id", [None, "user/my-space"])
+async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown(
+    space_id, monkeypatch
+):
+    if space_id:
+        monkeypatch.setenv("SYSTEM", "spaces")
+        monkeypatch.setenv("SPACE_ID", space_id)
+    prefix = "my_space_" if space_id else ""
+    calls = []
+
+    @gr.mcp.prompt(name="code-review")
+    def review_prompt(language: str = "python") -> str:
+        """Ask for a code review."""
+        return f"Review this {language} code."
+
+    @gr.mcp.prompt(name="code-review")
+    def strict_review_prompt(language: str = "python") -> str:
+        """Ask for a strict code review."""
+        return f"Strictly review this {language} code."
+
+    def send_invoice(customer: str) -> str:
+        """Send an invoice to a customer."""
+        calls.append(customer)
+        return f"invoice sent to {customer}"
+
+    with gr.Blocks() as demo:
+        gr.api(review_prompt)
+        gr.api(strict_review_prompt)
+        gr.api(send_invoice)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+    expected = [f"{prefix}code-review", f"{prefix}code-review_1"]
+
+    try:
+        async with mcp_client(mcp_url, "legacy") as client:
+            names = [p.name for p in (await client.list_prompts()).prompts]
+            assert names == expected
+
+            texts = []
+            for name in names:
+                prompt = await client.get_prompt(name, arguments={"language": "rust"})
+                texts.append(prompt.messages[0].content.text)  # type: ignore
+            assert texts == [
+                "Review this rust code.",
+                "Strictly review this rust code.",
+            ]
+
+            for name in ["no_such_prompt", f"{prefix}send_invoice"]:
+                with pytest.raises(Exception, match="Prompt not found"):
+                    await client.get_prompt(name, arguments={"customer": "x"})
+            assert calls == []
+
+        async with mcp_client(f"{mcp_url}?tools=code-review", "legacy") as client:
+            names = [p.name for p in (await client.list_prompts()).prompts]
+            assert names == [f"{prefix}code-review"]
+
+        schema = httpx2.get(f"{mcp_url}schema").json()
+        assert [s["name"] for s in schema if s["meta"]["mcp_type"] == "prompt"] == (
+            expected
+        )
+    finally:
+        demo.close()
+
+
+@pytest.mark.parametrize("space_id", [None, "user/my-space"])
+@pytest.mark.parametrize("prompt_first", [True, False])
+def test_mcp_prompt_name_does_not_rename_tools(space_id, prompt_first, monkeypatch):
+    if space_id:
+        monkeypatch.setenv("SYSTEM", "spaces")
+        monkeypatch.setenv("SPACE_ID", space_id)
+    prefix = "my_space_" if space_id else ""
+
+    @gr.mcp.prompt(name="send_invoice")
+    def invoice_prompt(customer: str) -> str:
+        """Draft an invoice request."""
+        return f"Draft an invoice for {customer}."
+
+    def send_invoice(customer: str) -> str:
+        """Send an invoice to a customer."""
+        return f"invoice sent to {customer}"
+
+    with gr.Blocks() as demo:
+        if prompt_first:
+            gr.api(invoice_prompt)
+        gr.api(send_invoice)
+        gr.api(send_invoice)
+        if not prompt_first:
+            gr.api(invoice_prompt)
+
+    server = GradioMCPServer(demo)
+    endpoints = server.tool_to_endpoint
+    assert list(endpoints) == [
+        f"{prefix}send_invoice",
+        f"{prefix}send_invoice_1",
+        f"{prefix}send_invoice_2",
+    ]
+    for name, expected_fn in [
+        (f"{prefix}send_invoice", send_invoice),
+        (f"{prefix}send_invoice_1", send_invoice),
+        (f"{prefix}send_invoice_2", invoice_prompt),
+    ]:
+        block_fn = server.get_block_fn_from_endpoint_name(endpoints[name])
+        assert block_fn is not None
+        assert block_fn.fn is expected_fn
+
+
+@pytest.mark.asyncio
 async def test_mcp_browser_get_returns_landing_page():
     def test_tool(x):
         return x
@@ -624,3 +735,154 @@ def test_print_mcp_server_links_huggingchat_for_share_url(capsys):
         "?mcp=https%3A%2F%2Fabc123.gradio.live%2Fgradio_api%2Fmcp%2F"
         "&mcp_name=Letter%20Counter"
     ) in output
+
+
+MCP_HEADERS = {
+    "Accept": "application/json, text/event-stream",
+    "Content-Type": "application/json",
+}
+
+
+async def call_tool_over_http(client, mcp_url, name, arguments, headers=None):
+    response = await client.post(
+        mcp_url,
+        json={
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": name, "arguments": arguments},
+        },
+        headers={**MCP_HEADERS, **(headers or {})},
+    )
+    if response.status_code != 200:
+        return response.status_code
+    data_line = next(
+        line for line in response.text.splitlines() if line.startswith("data:")
+    )
+    return json.loads(data_line[len("data:") :])["result"]["content"][0]["text"]
+
+
+def build_auth_test_app():
+    def double(word: str) -> str:
+        return word * 2
+
+    def greet(greeting: str, request: gr.Request) -> str:
+        time.sleep(0.5)
+        return f"{greeting} {request.username}"
+
+    @gr.mcp.resource("info://user")
+    def user_info(request: gr.Request) -> str:
+        return f"user: {request.username}"
+
+    @gr.mcp.prompt()
+    def ask(topic: str, request: gr.Request) -> str:
+        return f"{request.username} asks about {topic}"
+
+    with gr.Blocks() as demo:
+        input_box = gr.Textbox()
+        output_box = gr.Textbox()
+        # queue=False exercises the fast path that calls process_api directly,
+        # while the queued event is called over HTTP through the queue
+        input_box.change(double, input_box, output_box, api_name="double", queue=False)
+        input_box.submit(greet, input_box, output_box, api_name="greet")
+        gr.api(user_info, api_name="user_info")
+        gr.api(ask, api_name="ask")
+    return demo
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+async def test_mcp_server_requires_login_when_auth_is_set():
+    demo = build_auth_test_app()
+    _, local_url, _ = demo.launch(
+        prevent_thread_lock=True, mcp_server=True, auth=("admin", "password")
+    )
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with httpx2.AsyncClient() as client:
+            # Unauthenticated requests are rejected, as they are for /gradio_api/run
+            assert (
+                await client.post(
+                    f"{local_url}gradio_api/run/double", json={"data": ["Hello"]}
+                )
+            ).status_code == 401
+            assert (await client.get(f"{mcp_url}schema")).status_code == 401
+            assert (await client.get(f"{mcp_url}sse")).status_code == 401
+            for tool in ["double", "greet"]:
+                assert (
+                    await call_tool_over_http(client, mcp_url, tool, {"x": "Hello"})
+                    == 401
+                )
+
+            login = await client.post(
+                f"{local_url}login",
+                data={"username": "admin", "password": "password"},
+            )
+            assert login.is_success
+            assert (await client.get(f"{mcp_url}schema")).is_success
+            cookie = "; ".join(f"{k}={v}" for k, v in client.cookies.items())
+
+        # Once logged in, tools (queued or not), resources and prompts all work,
+        # and run as the user
+        async with (
+            httpx2.AsyncClient(headers={"Cookie": cookie}) as http_client,
+            streamable_http_client(mcp_url, http_client=http_client) as (
+                read_stream,
+                write_stream,
+            ),
+        ):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                assert len((await session.list_tools()).tools) == 2
+                result = await session.call_tool("double", arguments={"word": "Hi"})
+                assert result.content[0].text == "HiHi"  # type: ignore
+                result = await session.call_tool("greet", arguments={"greeting": "Hi"})
+                assert result.content[0].text == "Hi admin"  # type: ignore
+                resource = await session.read_resource("info://user")  # type: ignore
+                assert resource.contents[0].text == "user: admin"  # type: ignore
+                prompt = await session.get_prompt("ask", arguments={"topic": "MCP"})
+                assert prompt.messages[0].content.text == "admin asks about MCP"  # type: ignore
+    finally:
+        demo.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+async def test_mcp_server_respects_auth_dependency():
+    async def get_user(request: Request):
+        return request.headers.get("x-user")
+
+    demo = build_auth_test_app()
+    _, local_url, _ = demo.launch(
+        prevent_thread_lock=True, mcp_server=True, auth_dependency=get_user
+    )
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with httpx2.AsyncClient(timeout=30) as client:
+            assert (await client.get(f"{mcp_url}schema")).status_code == 401
+            assert (
+                await call_tool_over_http(client, mcp_url, "greet", {"greeting": "Hi"})
+                == 401
+            )
+            assert (
+                await client.get(f"{mcp_url}schema", headers={"x-user": "alice"})
+            ).is_success
+
+            # Concurrent queued calls from different users each run as their own user
+            results = await asyncio.gather(
+                *[
+                    call_tool_over_http(
+                        client,
+                        mcp_url,
+                        "greet",
+                        {"greeting": "Hi"},
+                        headers={"x-user": user},
+                    )
+                    for user in ["alice", "bob", "alice", "bob"]
+                ]
+            )
+            assert results == ["Hi alice", "Hi bob", "Hi alice", "Hi bob"]
+    finally:
+        demo.close()
