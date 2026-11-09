@@ -379,7 +379,11 @@ class GradioMCPServer:
         self.mcp_server = self.create_mcp_server()
         self.root_path = ""
         space_id = utils.get_space()
-        self.tool_prefix = space_id.split("/")[-1] + "_" if space_id else ""
+        self.tool_prefix = (
+            re.sub(r"[^a-zA-Z0-9]", "_", space_id.split("/")[-1]) + "_"
+            if space_id
+            else ""
+        )
         self.tool_to_endpoint = self.get_tool_to_endpoint()
         self.warn_about_state_inputs()
         self._local_url: str | None = None
@@ -539,15 +543,16 @@ class GradioMCPServer:
 
     @staticmethod
     def valid_and_unique_tool_name(
-        tool_name: str, existing_tool_names: set[str]
+        tool_name: str, existing_tool_names: set[str], sanitize: bool = True
     ) -> str:
         """
         Sanitizes a tool name to make it a valid MCP tool name (only
         alphanumeric characters, underscores, <= 128 characters)
         and is unique among the existing tool names.
         """
-        tool_name = re.sub(r"[^a-zA-Z0-9]", "_", tool_name)
-        tool_name = tool_name[:120]  # Leave room for suffix if needed
+        if sanitize:
+            tool_name = re.sub(r"[^a-zA-Z0-9]", "_", tool_name)
+            tool_name = tool_name[:120]  # Leave room for suffix if needed
         tool_name_base = tool_name
         suffix = 1
         while tool_name in existing_tool_names:
@@ -561,23 +566,32 @@ class GradioMCPServer:
         creates a mapping from the tool names to the endpoint names in the API docs.
         """
         tool_to_endpoint = {}
-        for endpoint_name in self.api_info["named_endpoints"]:
-            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-            if block_fn is None or block_fn.fn is None:
-                continue
-            fn_name = (
-                getattr(block_fn.fn, "__name__", None)
-                or (
-                    hasattr(block_fn.fn, "__class__")
-                    and getattr(block_fn.fn.__class__, "__name__", None)
+        # Reserve existing tool and resource names before assigning prompt names.
+        for prompts in (False, True):
+            for endpoint_name in self.api_info["named_endpoints"]:
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                if block_fn is None or block_fn.fn is None:
+                    continue
+                is_prompt = getattr(block_fn.fn, "_mcp_type", None) == "prompt"
+                if is_prompt != prompts:
+                    continue
+                fn_name = (
+                    getattr(block_fn.fn, "__name__", None)
+                    or (
+                        hasattr(block_fn.fn, "__class__")
+                        and getattr(block_fn.fn.__class__, "__name__", None)
+                    )
+                    or endpoint_name.lstrip("/")
                 )
-                or endpoint_name.lstrip("/")
-            )
-            tool_name = self.tool_prefix + fn_name
-            tool_name = self.valid_and_unique_tool_name(
-                tool_name, set(tool_to_endpoint.keys())
-            )
-            tool_to_endpoint[tool_name] = endpoint_name
+                # Prompts are named by `gr.mcp.prompt(name=...)`, kept as-is because the
+                # MCP spec puts no character rules on prompt names
+                if is_prompt:
+                    fn_name = block_fn.fn._mcp_name  # type: ignore
+                tool_name = self.tool_prefix + fn_name
+                tool_name = self.valid_and_unique_tool_name(
+                    tool_name, set(tool_to_endpoint.keys()), sanitize=not is_prompt
+                )
+                tool_to_endpoint[tool_name] = endpoint_name
         return tool_to_endpoint
 
     def warn_about_state_inputs(self) -> None:
@@ -1005,25 +1019,17 @@ class GradioMCPServer:
             name = params.name
             client = await run_sync(self._get_or_create_client, ctx.request)
 
-            endpoint_name = None
-            for endpoint_name in self.tool_to_endpoint.values():
-                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-                if (
-                    block_fn
-                    and block_fn.fn
-                    and hasattr(block_fn.fn, "_mcp_type")
-                    and block_fn.fn._mcp_type == "prompt"
-                    and block_fn.fn._mcp_name == name  # type: ignore
-                ):
-                    break
-
-            if not endpoint_name:
+            endpoint_name = self.tool_to_endpoint.get(name)
+            block_fn = (
+                self.get_block_fn_from_endpoint_name(endpoint_name)
+                if endpoint_name
+                else None
+            )
+            if block_fn is None or getattr(block_fn.fn, "_mcp_type", None) != "prompt":
                 raise ValueError(f"Prompt not found: {name}")
+            assert endpoint_name is not None  # noqa: S101
 
             arguments = params.arguments or {}
-
-            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-            assert block_fn is not None  # noqa: S101
 
             if endpoint_name in self.api_info["named_endpoints"]:
                 parameters_info = self.api_info["named_endpoints"][endpoint_name][

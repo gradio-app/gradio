@@ -5,6 +5,7 @@ import json
 import os
 import tempfile
 
+import httpx2
 import pytest
 from mcp import Client, ClientSession
 from mcp.client.streamable_http import streamable_http_client
@@ -559,6 +560,114 @@ async def test_mcp_tools_resources_and_prompts(protocol):
             )
     finally:
         demo.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+@pytest.mark.parametrize("space_id", [None, "user/my-space"])
+async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown(
+    space_id, monkeypatch
+):
+    if space_id:
+        monkeypatch.setenv("SYSTEM", "spaces")
+        monkeypatch.setenv("SPACE_ID", space_id)
+    prefix = "my_space_" if space_id else ""
+    calls = []
+
+    @gr.mcp.prompt(name="code-review")
+    def review_prompt(language: str = "python") -> str:
+        """Ask for a code review."""
+        return f"Review this {language} code."
+
+    @gr.mcp.prompt(name="code-review")
+    def strict_review_prompt(language: str = "python") -> str:
+        """Ask for a strict code review."""
+        return f"Strictly review this {language} code."
+
+    def send_invoice(customer: str) -> str:
+        """Send an invoice to a customer."""
+        calls.append(customer)
+        return f"invoice sent to {customer}"
+
+    with gr.Blocks() as demo:
+        gr.api(review_prompt)
+        gr.api(strict_review_prompt)
+        gr.api(send_invoice)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+    expected = [f"{prefix}code-review", f"{prefix}code-review_1"]
+
+    try:
+        async with mcp_client(mcp_url, "legacy") as client:
+            names = [p.name for p in (await client.list_prompts()).prompts]
+            assert names == expected
+
+            texts = []
+            for name in names:
+                prompt = await client.get_prompt(name, arguments={"language": "rust"})
+                texts.append(prompt.messages[0].content.text)  # type: ignore
+            assert texts == [
+                "Review this rust code.",
+                "Strictly review this rust code.",
+            ]
+
+            for name in ["no_such_prompt", f"{prefix}send_invoice"]:
+                with pytest.raises(Exception, match="Prompt not found"):
+                    await client.get_prompt(name, arguments={"customer": "x"})
+            assert calls == []
+
+        async with mcp_client(f"{mcp_url}?tools=code-review", "legacy") as client:
+            names = [p.name for p in (await client.list_prompts()).prompts]
+            assert names == [f"{prefix}code-review"]
+
+        schema = httpx2.get(f"{mcp_url}schema").json()
+        assert [s["name"] for s in schema if s["meta"]["mcp_type"] == "prompt"] == (
+            expected
+        )
+    finally:
+        demo.close()
+
+
+@pytest.mark.parametrize("space_id", [None, "user/my-space"])
+@pytest.mark.parametrize("prompt_first", [True, False])
+def test_mcp_prompt_name_does_not_rename_tools(space_id, prompt_first, monkeypatch):
+    if space_id:
+        monkeypatch.setenv("SYSTEM", "spaces")
+        monkeypatch.setenv("SPACE_ID", space_id)
+    prefix = "my_space_" if space_id else ""
+
+    @gr.mcp.prompt(name="send_invoice")
+    def invoice_prompt(customer: str) -> str:
+        """Draft an invoice request."""
+        return f"Draft an invoice for {customer}."
+
+    def send_invoice(customer: str) -> str:
+        """Send an invoice to a customer."""
+        return f"invoice sent to {customer}"
+
+    with gr.Blocks() as demo:
+        if prompt_first:
+            gr.api(invoice_prompt)
+        gr.api(send_invoice)
+        gr.api(send_invoice)
+        if not prompt_first:
+            gr.api(invoice_prompt)
+
+    server = GradioMCPServer(demo)
+    endpoints = server.tool_to_endpoint
+    assert list(endpoints) == [
+        f"{prefix}send_invoice",
+        f"{prefix}send_invoice_1",
+        f"{prefix}send_invoice_2",
+    ]
+    for name, expected_fn in [
+        (f"{prefix}send_invoice", send_invoice),
+        (f"{prefix}send_invoice_1", send_invoice),
+        (f"{prefix}send_invoice_2", invoice_prompt),
+    ]:
+        block_fn = server.get_block_fn_from_endpoint_name(endpoints[name])
+        assert block_fn is not None
+        assert block_fn.fn is expected_fn
 
 
 @pytest.mark.asyncio

@@ -202,7 +202,13 @@
 	let mcp_json_stdio: any = $state();
 	let file_data_present = $state(false);
 	let selected_tools: Set<string> = $state(new Set());
-	let tool_prefix = space_id ? space_id.split("/").pop() + "_" : "";
+	// Matches the server's prefix, which sanitizes the Space name (e.g. my-space -> my_space_)
+	let tool_prefix = space_id
+		? space_id
+				.split("/")
+				.pop()!
+				.replace(/[^a-zA-Z0-9]/g, "_") + "_"
+		: "";
 
 	function remove_tool_prefix(toolName: string): string {
 		if (tool_prefix && toolName.startsWith(tool_prefix)) {
