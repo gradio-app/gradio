@@ -1,5 +1,19 @@
 # @gradio/client
 
+## 2.8.0-dev.0
+
+### Features
+
+- [#13585](https://github.com/gradio-app/gradio/pull/13585) [`8888208`](https://github.com/gradio-app/gradio/commit/88882080b380a00273e8d14e409c477cb07e9976) - Keep sessions (outputs, gr.State, running jobs) across refreshes, restarts and replicas.  Thanks @dawoodkhan82!
+- [#14029](https://github.com/gradio-app/gradio/pull/14029) [`85357b1`](https://github.com/gradio-app/gradio/commit/85357b1c5ae47c0eddcc129493604ff3e1a45f23) - Wait until a prerendered page is shown before resuming its session.  Thanks @hysts!
+- [#14002](https://github.com/gradio-app/gradio/pull/14002) [`dd82f43`](https://github.com/gradio-app/gradio/commit/dd82f435ee94c05ab9cdf946861a95ab77e72a47) - Remove `gradio sketch` and the vibe editor.  Thanks @dawoodkhan82!
+- [#13925](https://github.com/gradio-app/gradio/pull/13925) [`466b764`](https://github.com/gradio-app/gradio/commit/466b7644608406b60a3fe5df614e2ea11a1f1446) - Stream each queued event on its own request (sse_v4).  Thanks @abidlabs!
+- [#13926](https://github.com/gradio-app/gradio/pull/13926) [`db0658d`](https://github.com/gradio-app/gradio/commit/db0658d31036c9c4acba07d8153aa1ff6671420a) - Mirror the webcam only for front-facing cameras by default.  Thanks @hysts!
+
+### Fixes
+
+- [#14024](https://github.com/gradio-app/gradio/pull/14024) [`4ff7477`](https://github.com/gradio-app/gradio/commit/4ff7477233ee90b6efe81b2b5d21365ecf91ae84) - Don't restore a streaming webcam's frame after a reload.  Thanks @hysts!
+
 ## 2.7.2
 
 ### Fixes
