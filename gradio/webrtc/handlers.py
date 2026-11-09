@@ -20,6 +20,7 @@ from gradio.webrtc.utils import (
     AdditionalOutputs,
     CloseStream,
     DataChannel,
+    StreamInputs,
     create_message,
     send_to_page,
 )
@@ -98,11 +99,11 @@ class StreamHandlerBase:
         self.output_sample_rate = output_sample_rate
         self.input_sample_rate = input_sample_rate
         self.fps = fps
-        self.latest_args: list[Any] = []
         self._resampler = None
         self._channel: DataChannel | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
-        self.args_set = asyncio.Event()
+        # The extra inputs of the stream it serves (see `_use_inputs`)
+        self._inputs = StreamInputs()
         self.channel_set = asyncio.Event()
         self._clear_queue: Callable | None = None
 
@@ -166,10 +167,29 @@ class StreamHandlerBase:
         except Exception as e:
             logger.debug("Exception sending msg %s", e)
 
+    @property
+    def latest_args(self) -> list[Any]:
+        """The latest values of the extra input components, an empty list
+        until they arrive."""
+        return self._inputs.latest
+
+    @latest_args.setter
+    def latest_args(self, values: list[Any]) -> None:
+        self._inputs.values = list(values)
+
+    @property
+    def args_set(self) -> asyncio.Event:
+        """Set once the values of the extra input components have arrived."""
+        return self._inputs.arrived
+
+    def _use_inputs(self, inputs: StreamInputs) -> None:
+        """Reads the extra inputs of the stream it serves, which its tracks
+        read too. Called when the stream's tracks are created."""
+        self._inputs = inputs
+
     def set_args(self, args: list[Any]) -> None:
         """Stores the latest values of the extra input components."""
-        self.latest_args = list(args)
-        self.args_set.set()
+        self._inputs.set(args)
 
     def reset(self) -> None:
         self.args_set.clear()

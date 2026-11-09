@@ -1,33 +1,40 @@
-"""Server side of gr.WebRTC connections: signalling, peer connections and the
-per-connection handler, track and output bookkeeping.
-
-One `ConnectionManager` exists per `WebRTC.stream()` call, held by the stream's
-queue event. It is not kept on the component, because Gradio copies components
-into each session and every copy has to see the same connections.
+"""Server side of WebRTC streams: admission, signalling, peer connections, and
+the per-stream handler, tracks, inputs and outputs.
 
 Each stream is one event in Gradio's queue, from the moment the user starts it
 until it ends. The event waits in line like any other, which is what limits the
 number of simultaneous streams. Once the event runs, its first call admits the
-stream's id with the event's manager, and only then is an offer with that id
-accepted. Signalling and input updates find the manager by the stream's id, not
-by component id: a component that @gr.render keys keeps its id across sessions
-and renders, so the id alone could lead to another session's handler. The media
-never goes through the queue: the event is only woken up to deliver
-`AdditionalOutputs` to the other output components, and ends when the peer
-connection does.
+stream's id, and only then is an offer with that id accepted. The media never
+goes through the queue: the event is only woken up to deliver
+`AdditionalOutputs` to the other output components, and ends after the stream
+does.
+
+One `Stream` holds everything of one admitted stream (its place in the queue,
+peer connection, tracks, handler, inputs, pending outputs and notifier) and has
+one way to end, `Stream.close()`, whichever path notices the end. The streams of
+an app are kept in its `StreamRegistry`, one per queue: a hot reload keeps the
+queue. Signalling and input updates find a stream there by its id, not by
+component id: a component that @gr.render keys keeps its id across sessions and
+renders, so the id alone could lead to another session's handler.
+
+A `ConnectionManager` is what one `WebRTC.stream()` call or `Server.webrtc()`
+endpoint configures: the handler, mode, modality and limits. It admits the
+streams of its queue event and builds each one's peer connection from the
+offer. It is not kept on the component, because Gradio copies components into
+each session and every copy has to see the same streams.
 """
 
 from __future__ import annotations
 
 import asyncio
+import enum
 import inspect
 import json
 import logging
 import time
 import weakref
-from collections import Counter, OrderedDict, defaultdict, deque
+from collections import Counter, OrderedDict, deque
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import anyio
@@ -69,6 +76,7 @@ from gradio.webrtc.utils import (
     AdditionalOutputs,
     Context,
     HandlerFailedError,
+    StreamInputs,
     StreamNotifier,
     bind_special_args,
     is_async,
@@ -98,83 +106,376 @@ MAX_PENDING_CANDIDATE_IDS = 256
 # Seconds a new stream waits for the handlers of ended streams to shut down
 SHUTDOWN_WAIT = 5
 
-# The stream each queue event admitted, by event id, until the stream's
-# watcher ends. Module-level, so that it outlives a manager that a reload
-# replaces.
-_admitted: dict[str, str] = {}
 
-
-def admitted_id(event_id: str) -> str | None:
-    return _admitted.get(event_id)
-
-
-def has_stream_handlers() -> bool:
-    """Whether a stream handler was ever attached in this process. Signalling
-    for an app without one is answered at once: no stream can be admitted."""
-    return ConnectionManager.created
-
-
-# The manager of each admitted stream, by stream id. Weak, like `_managers`.
-_streams: weakref.WeakValueDictionary[str, ConnectionManager] = (
-    weakref.WeakValueDictionary()
-)
-# Set when a stream is admitted, for an offer that arrives just before
-_admissions: defaultdict[str, asyncio.Event] = defaultdict(asyncio.Event)
-_admission_waiters: Counter[str] = Counter()
-# ICE candidates of an admitted stream that arrive before its peer connection
-# exists, while the offer is still on its way. Each is kept with the session
-# that sent it. MAX_PENDING_CANDIDATE_IDS bounds it for the whole app, not per
-# component.
-_pending_candidates: OrderedDict[str, list[tuple[str | None, RTCIceCandidate]]] = (
-    OrderedDict()
-)
-
-
-@dataclass
-class Connection:
+class StreamRegistry:
     """
-    The peer connection of an admitted stream and what hangs off it, from the
-    stream's offer until its clean-up releases them.
+    The admitted streams of one app, by stream id and by the id of the queue
+    event that admitted each, and what arrives for a stream just before its
+    admission (an offer) or its peer connection (ICE candidates).
     """
 
-    pc: RTCPeerConnection
-    tracks: list[Track] = field(default_factory=list)
-    channel: Any = None
-    # Set by the clean-up. The stream has ended then, so it cannot connect
-    # again.
-    released: bool = False
+    def __init__(self) -> None:
+        self.streams: dict[str, Stream] = {}
+        # Kept until the stream's watcher ends, after the stream itself, so
+        # that the event's next call finishes it instead of admitting again
+        self.by_event: dict[str, Stream] = {}
+        self._admissions: dict[str, asyncio.Event] = {}
+        self._admission_waiters: Counter[str] = Counter()
+        # ICE candidates of an admitted stream that arrive before its peer
+        # connection exists, while the offer is still on its way. Each is kept
+        # with the session that sent it. MAX_PENDING_CANDIDATE_IDS bounds it
+        # for the whole app.
+        self.pending_candidates: OrderedDict[
+            str, list[tuple[str | None, RTCIceCandidate]]
+        ] = OrderedDict()
+
+    def add(self, stream: Stream) -> None:
+        self.streams[stream.id] = stream
+        self.by_event[stream.event.id] = stream
+        admitted = self._admissions.get(stream.id)
+        if admitted is not None:
+            admitted.set()
+
+    def remove(self, stream: Stream) -> None:
+        if self.streams.get(stream.id) is stream:
+            del self.streams[stream.id]
+        if self.by_event.get(stream.event.id) is stream:
+            del self.by_event[stream.event.id]
+        self._admissions.pop(stream.id, None)
+
+    def get(self, webrtc_id: Any) -> Stream | None:
+        """The stream `webrtc_id`. Any value may come in from a client; only a
+        string can name a stream."""
+        return self.streams.get(webrtc_id) if isinstance(webrtc_id, str) else None
+
+    async def wait_for_admission(self, webrtc_id: str) -> Stream | None:
+        """The stream `webrtc_id`, waiting a little for an admission that is
+        just under way."""
+        if webrtc_id not in self.streams:
+            admitted = self._admissions.setdefault(webrtc_id, asyncio.Event())
+            self._admission_waiters[webrtc_id] += 1
+            try:
+                await asyncio.wait_for(admitted.wait(), ADMISSION_WAIT)
+            except TimeoutError:
+                pass
+            finally:
+                self._admission_waiters[webrtc_id] -= 1
+                # The others waiting for the same stream share its event
+                if not self._admission_waiters[webrtc_id]:
+                    del self._admission_waiters[webrtc_id]
+                    if webrtc_id not in self.streams:
+                        self._admissions.pop(webrtc_id, None)
+                        self.pending_candidates.pop(webrtc_id, None)
+        return self.streams.get(webrtc_id)
+
+    def keep_candidate(
+        self, webrtc_id: str, session_hash: str | None, candidate: RTCIceCandidate
+    ) -> None:
+        """Keeps a candidate until the offer creates the connection, within
+        bounds."""
+        pending = self.pending_candidates.setdefault(webrtc_id, [])
+        if len(pending) < MAX_PENDING_CANDIDATES:
+            pending.append((session_hash, candidate))
+        else:
+            logger.warning(
+                "Dropped an ICE candidate of stream %s: %s are already "
+                "waiting for its offer",
+                webrtc_id,
+                MAX_PENDING_CANDIDATES,
+            )
+        while len(self.pending_candidates) > MAX_PENDING_CANDIDATE_IDS:
+            self.pending_candidates.popitem(last=False)
 
 
-@dataclass
-class Session:
-    """A stream that the queue has let in."""
+# The registry of each app, by its queue, which a hot reload keeps
+_registries: weakref.WeakKeyDictionary[Any, StreamRegistry] = (
+    weakref.WeakKeyDictionary()
+)
 
-    event: EventHandle
-    admitted_at: float = field(default_factory=time.monotonic)
-    last_signal: float = field(default_factory=time.monotonic)
-    # AdditionalOutputs not delivered yet, oldest first. A handler that emits
-    # faster than the outputs can be delivered loses the oldest ones.
-    outputs: deque[AdditionalOutputs] = field(
-        default_factory=lambda: deque(maxlen=MAX_PENDING_OUTPUTS)
-    )
-    connected: bool = False
-    ended: bool = False
-    watcher: asyncio.Task | None = None
-    notifier: StreamNotifier | None = None
-    # The page's rtc_configuration, resolved once per stream
-    rtc_configuration: asyncio.Future | None = None
-    # Set by the offer. The session outlives it: an ended stream still
-    # delivers its pending outputs through the queue.
-    connection: Connection | None = None
+
+def registry_for(queue: Any) -> StreamRegistry:
+    registry = _registries.get(queue)
+    if registry is None:
+        registry = _registries[queue] = StreamRegistry()
+    return registry
+
+
+def current_registry() -> StreamRegistry | None:
+    """The registry of the app whose request or event is being served."""
+    blocks = LocalContext.blocks.get(None)
+    queue = getattr(blocks, "_queue", None)
+    return registry_for(queue) if queue is not None else None
+
+
+def stream_of_event(event_id: str) -> Stream | None:
+    """The stream that the queue event `event_id` admitted, until its watcher
+    ends. Event ids are unique, so any app's registry can be asked."""
+    for registry in list(_registries.values()):
+        stream = registry.by_event.get(event_id)
+        if stream is not None:
+            return stream
+    return None
+
+
+class StreamState(enum.Enum):
+    # Its turn came: the page may now connect
+    ADMITTED = "admitted"
+    # The offer arrived: the peer connection is being set up
+    CONNECTING = "connecting"
+    # The peer connection is connected
+    LIVE = "live"
+    # Ended: the media has stopped, and the queue event still delivers the
+    # outputs that are pending
+    ENDING = "ending"
+    # The queue event is over and the stream is out of its registry
+    ENDED = "ended"
+
+
+class QueueLease:
+    """
+    How a stream holds its place in the queue: through its queue event, which
+    the queue calls again whenever the event is woken up. The event has to be
+    woken before the queue's 30 s wait for a chunk runs out, and its own time
+    limit is turned off, since cutting the event there would drop the outputs
+    still pending: the time limit is kept here instead. Everything a stream
+    asks of the queue goes through this class.
+    """
+
+    def __init__(self, event: EventHandle, time_limit: float | None) -> None:
+        self.event = event
+        self.time_limit = time_limit
+        self.admitted_at = time.monotonic()
+        self.last_signal = self.admitted_at
+
+    @property
+    def live(self) -> bool:
+        """Whether the queue still runs the event."""
+        return self.event.live
+
+    def begin(self, stream_id: str) -> None:
+        self.event.disable_time_limit()
+        self.event.stream_admitted(stream_id)
 
     def wake(self) -> None:
+        """Has the queue call the event again."""
         self.last_signal = time.monotonic()
         self.event.wake()
 
-    def remaining_time(self, time_limit: float | None) -> float | None:
-        if time_limit is None:
+    def finish(self) -> None:
+        """Lets the event end once its current call returns."""
+        self.event.finish()
+
+    def remaining_time(self) -> float | None:
+        if self.time_limit is None:
             return None
-        return max(0.0, time_limit - (time.monotonic() - self.admitted_at))
+        return max(0.0, self.time_limit - (time.monotonic() - self.admitted_at))
+
+    async def keep(self, stream: Stream) -> None:
+        """
+        Runs until the queue event is over, however it ended: ends the stream
+        at its time limit or when it does not connect in time, and keeps the
+        event awake while the stream runs.
+        """
+        keepalive = KEEPALIVE_INTERVAL
+        if self.time_limit is not None:
+            keepalive = min(keepalive, self.time_limit / 2)
+        while True:
+            await asyncio.sleep(WATCH_INTERVAL)
+            if not self.live:
+                return
+            if stream.ended:
+                # The event still has to make its last call
+                continue
+            try:
+                now = time.monotonic()
+                timed_out = self.remaining_time() == 0
+                never_connected = (
+                    not stream.connected and now - self.admitted_at > CONNECT_TIMEOUT
+                )
+                if timed_out or never_connected:
+                    stream.close()
+                elif now - self.last_signal >= keepalive:
+                    self.wake()
+            except Exception:
+                # Watching goes on until the event is over: no re-admission
+                logger.exception("Error while watching stream %s", stream.id)
+                stream.close()
+
+
+class Stream:
+    """A stream that the queue has let in, from its admission until its queue
+    event is over."""
+
+    def __init__(
+        self,
+        webrtc_id: str,
+        manager: ConnectionManager,
+        event: EventHandle,
+        registry: StreamRegistry,
+    ) -> None:
+        self.id = webrtc_id
+        self.manager = manager
+        self.registry = registry
+        self.lease = QueueLease(event, manager.time_limit)
+        self.state = StreamState.ADMITTED
+        self.connected_at: float | None = None
+        self.context = Context(webrtc_id=webrtc_id)
+        # The values of the extra inputs, which the tracks and the handler read
+        self.inputs = StreamInputs()
+        # AdditionalOutputs not delivered yet, oldest first. A handler that
+        # emits faster than the outputs can be delivered loses the oldest ones.
+        self.outputs: deque[AdditionalOutputs] = deque(maxlen=MAX_PENDING_OUTPUTS)
+        self.notifier: StreamNotifier | None = None
+        # The page's rtc_configuration, resolved once per stream
+        self.rtc_configuration: asyncio.Future | None = None
+        # Set by the offer, and let go of when the stream ends. The stream
+        # outlives them: an ended stream still delivers its pending outputs.
+        self.pc: RTCPeerConnection | None = None
+        self.tracks: list[Track] = []
+        self.channel: Any = None
+        self.watcher: asyncio.Task | None = None
+        self._shut_down_handlers: set[int] = set()
+
+    @property
+    def event(self) -> EventHandle:
+        return self.lease.event
+
+    @property
+    def connected(self) -> bool:
+        """Whether its peer connection has connected, at any point."""
+        return self.connected_at is not None
+
+    @property
+    def ended(self) -> bool:
+        return self.state in (StreamState.ENDING, StreamState.ENDED)
+
+    def owned_by(self, session_hash: str | None) -> bool:
+        """
+        Whether the stream was admitted for this browser session. A stream id
+        travels in signalling and input messages, so only the session whose
+        queue event admitted it may connect to it or feed it.
+        """
+        return session_hash is not None and self.event.session_hash == session_hash
+
+    def mark_connected(self, pc: RTCPeerConnection) -> None:
+        if self.pc is pc and self.state is StreamState.CONNECTING:
+            self.state = StreamState.LIVE
+            self.connected_at = time.monotonic()
+
+    def set_inputs(self, values: list[Any]) -> None:
+        """Pushes the current values of the extra inputs into the stream, once
+        it has a connection."""
+        if self.pc is not None:
+            self.inputs.set(values)
+
+    def add_output(self, outputs: AdditionalOutputs) -> None:
+        self.outputs.append(outputs)
+        self.lease.wake()
+
+    def add_track(self, track: Track) -> bool:
+        """Adds a track of the peer connection. A track that arrives after the
+        stream ended is stopped at once; returns False then."""
+        self.tracks.append(track)
+        if self.ended:
+            self._release()
+            return False
+        return True
+
+    def take_output(self) -> AdditionalOutputs | None:
+        if not self.outputs:
+            return None
+        outputs = self.outputs.popleft()
+        if self.outputs:
+            # One call delivers one set of outputs; come back for the rest
+            self.lease.wake()
+        return outputs
+
+    def finish_if_drained(self, delivered: bool) -> dict[str, Any] | None:
+        """
+        Lets the queue event of an ended stream finish once its outputs are
+        delivered. Called at the end of each of the event's calls, `delivered`
+        saying whether the call delivers outputs. Returns the handler's error
+        (see `StreamNotifier.fail`) for the call that finishes the event of a
+        stream whose handler failed, which delivers nothing.
+        """
+        if not self.ended or self.outputs:
+            return None
+        notifier = self.notifier
+        failure = notifier.failure if notifier else None
+        if failure is not None and delivered:
+            # The next call reports the error
+            self.lease.wake()
+            return None
+        self.lease.finish()
+        if failure is not None and notifier is not None and notifier.failure_shown:
+            failure = {**failure, "visible": False}
+        return failure
+
+    def close(self) -> None:
+        """
+        Ends the stream, from whichever path notices the end first (the page,
+        the time limit, the handler, the peer connection, a track, the queue);
+        later calls only release what was added since. The media stops at once:
+        the peer connection closes, the tracks stop, and the handler shuts down,
+        without waiting for the queue. The queue event then delivers the outputs
+        still pending and finishes (see `finish_if_drained`), which needs a
+        worker slot, so the stream's place in the concurrency limit is released
+        only once one is free.
+        """
+        first = not self.ended
+        if first:
+            self.state = StreamState.ENDING
+        self._release()
+        if first:
+            if self.notifier is not None:
+                self.notifier.close()
+            self.lease.wake()
+
+    def _release(self) -> None:
+        manager = self.manager
+        if self.pc is not None:
+            manager._close_pc(self.pc)
+            self.pc = None
+        tracks, self.tracks = self.tracks, []
+        self.channel = None
+        self.registry.pending_candidates.pop(self.id, None)
+        for track in tracks:
+            # Stopping a track ends its loops; its "ended" event calls close()
+            # again, which then finds nothing left to release
+            track.stop()
+            if isinstance(track, ServerToClientAudio | ServerToClientVideo):
+                manager._add_shutdown(track.close_generator())
+        # Handler classes, once each: both tracks of an audio-video connection
+        # share one handler
+        for track in tracks:
+            if not isinstance(track, AudioCallback | HandlerVideoTrack):
+                continue
+            handler = track.event_handler
+            if not isinstance(handler, StreamHandlerBase):
+                continue
+            if id(handler) in self._shut_down_handlers:
+                continue
+            self._shut_down_handlers.add(id(handler))
+            # A handler blocked in wait_for_args() would wait forever
+            handler.args_set.set()
+            manager._add_shutdown(manager._shut_down(handler))
+
+    async def watch(self) -> None:
+        """
+        Keeps the stream and its queue event in step for the life of the
+        stream (see `QueueLease.keep`), then lets go of everything the stream
+        holds once the event is over, however it ended.
+        """
+        try:
+            await self.lease.keep(self)
+        finally:
+            try:
+                if self.pc is not None:
+                    await self.pc.close()
+            finally:
+                self.close()
+                self.state = StreamState.ENDED
+                self.registry.remove(self)
 
 
 def to_rtc_configuration(
@@ -254,8 +555,9 @@ def _parse_ice_candidate(candidate: dict[str, Any]) -> RTCIceCandidate | None:
 
 
 class ConnectionManager:
-    # Whether one was ever created in this process (see `has_stream_handlers`)
-    created = False
+    """What one `WebRTC.stream()` call or `Server.webrtc()` endpoint sets up:
+    the handler and how its streams run. It admits the streams of its queue
+    event and builds their peer connections."""
 
     def __init__(
         self,
@@ -270,7 +572,6 @@ class ConnectionManager:
         rtc_configuration: dict[str, Any] | Callable | None = None,
         inputs_over_channel: bool = False,
     ) -> None:
-        ConnectionManager.created = True
         self.handler = handler
         self.mode = mode
         self.modality = modality
@@ -284,43 +585,29 @@ class ConnectionManager:
         self.inputs_over_channel = inputs_over_channel
         self.server_rtc_configuration = to_rtc_configuration(server_rtc_configuration)
         self.video_bitrate = video_bitrate
-        self.sessions: dict[str, Session] = {}
         self.tasks: set[asyncio.Task] = set()
         self.shutdowns: set[asyncio.Task] = set()
 
-    def admit(self, webrtc_id: str, event: EventHandle) -> bool:
+    def admit(
+        self, webrtc_id: str, event: EventHandle, registry: StreamRegistry
+    ) -> bool:
         """
         Lets a stream in. Called by the first call of the stream's queue event,
         that is, once the stream's turn has come. An event admits one stream,
         and a stream id is admitted once: returns False when another event
         already holds the id.
         """
-        session = self.sessions.get(webrtc_id)
-        if session is not None:
-            return session.event.id == event.id
-        other = _streams.get(webrtc_id)
-        if other is not None and webrtc_id in other.sessions:
-            return False
-        _admitted[event.id] = webrtc_id
-        # The watcher keeps the time limit, from admission, and ends the stream
-        # through `end`. The queue's own cut would end the event before its
+        existing = registry.streams.get(webrtc_id)
+        if existing is not None:
+            return existing.event.id == event.id
+        stream = Stream(webrtc_id, self, event, registry)
+        # The lease keeps the time limit, from admission, and ends the stream
+        # through `close`. The queue's own cut would end the event before its
         # last calls deliver what is pending.
-        event.disable_time_limit()
-        event.stream_admitted(webrtc_id)
-        _streams[webrtc_id] = self
-        session = Session(event=event)
-        self.sessions[webrtc_id] = session
-        session.watcher = self._spawn(self._watch(webrtc_id, session))
-        _admissions[webrtc_id].set()
+        stream.lease.begin(webrtc_id)
+        registry.add(stream)
+        stream.watcher = self._spawn(stream.watch())
         return True
-
-    def connection(self, webrtc_id: str) -> Connection | None:
-        """The stream's connection, until its clean-up releases it."""
-        session = self.sessions.get(webrtc_id)
-        connection = session.connection if session is not None else None
-        if connection is None or connection.released:
-            return None
-        return connection
 
     @staticmethod
     async def _drain(track: AudioCallback | HandlerVideoTrack) -> None:
@@ -344,154 +631,9 @@ class ConnectionManager:
         task.add_done_callback(self.tasks.discard)
         return task
 
-    async def _watch(self, webrtc_id: str, session: Session) -> None:
-        """
-        Keeps the stream's queue event and its peer connection in step for the
-        life of the stream: ends the stream at the time limit or when it does
-        not connect in time, keeps the event awake while the stream runs, and
-        closes the connection once the event is over, however it ended.
-        """
-        keepalive = KEEPALIVE_INTERVAL
-        if self.time_limit is not None:
-            keepalive = min(keepalive, self.time_limit / 2)
-        try:
-            while True:
-                await asyncio.sleep(WATCH_INTERVAL)
-                if not session.event.live:
-                    return
-                if session.ended:
-                    # The event still has to make its last call
-                    continue
-                try:
-                    now = time.monotonic()
-                    timed_out = session.remaining_time(self.time_limit) == 0
-                    never_connected = (
-                        not session.connected
-                        and now - session.admitted_at > CONNECT_TIMEOUT
-                    )
-                    if timed_out or never_connected:
-                        self.end(webrtc_id)
-                    elif now - session.last_signal >= keepalive:
-                        session.wake()
-                except Exception:
-                    # Watching goes on until the event is over: no re-admission
-                    logger.exception("Error while watching stream %s", webrtc_id)
-                    self.end(webrtc_id)
-        finally:
-            try:
-                connection = self.connection(webrtc_id)
-                if connection is not None:
-                    await connection.pc.close()
-            finally:
-                self.clean_up(webrtc_id)
-                if self.sessions.get(webrtc_id) is session:
-                    del self.sessions[webrtc_id]
-                    if _streams.get(webrtc_id) is self:
-                        del _streams[webrtc_id]
-                if _admitted.get(session.event.id) == webrtc_id:
-                    del _admitted[session.event.id]
-                _admissions.pop(webrtc_id, None)
-
-    def end(self, webrtc_id: str) -> None:
-        """
-        Ends a stream. The media stops at once: closing the peer connection
-        does not wait for the queue. The queue event then delivers the outputs
-        still pending and finishes (see `take_outputs`), which needs a worker
-        slot, so the stream's place in the concurrency limit is released only
-        once one is free.
-        """
-        connection = self.connection(webrtc_id)
-        if connection is not None:
-            self._close_pc(connection.pc)
-        session = self.sessions.get(webrtc_id)
-        if session is None or session.ended:
-            return
-        session.ended = True
-        if session.notifier is not None:
-            session.notifier.close()
-        session.wake()
-
     def _close_pc(self, pc: RTCPeerConnection) -> None:
         if pc.connectionState != "closed":
             self._spawn(pc.close())
-
-    def take_outputs(self, webrtc_id: str) -> AdditionalOutputs | None:
-        session = self.sessions.get(webrtc_id)
-        if session is None or not session.outputs:
-            return None
-        outputs = session.outputs.popleft()
-        if session.outputs:
-            # One call delivers one set of outputs; come back for the rest
-            session.wake()
-        return outputs
-
-    def finish_if_drained(
-        self, webrtc_id: str, delivered: bool
-    ) -> dict[str, Any] | None:
-        """
-        Lets the queue event of an ended stream finish once its outputs are
-        delivered. Called at the end of each of the event's calls, `delivered`
-        saying whether the call delivers outputs. Returns the handler's error
-        (see `StreamNotifier.fail`) for the call that finishes the event of a
-        stream whose handler failed, which delivers nothing.
-        """
-        session = self.sessions.get(webrtc_id)
-        if session is None or not session.ended or session.outputs:
-            return None
-        notifier = session.notifier
-        failure = notifier.failure if notifier else None
-        if failure is not None and delivered:
-            # The next call reports the error
-            session.wake()
-            return None
-        session.event.finish()
-        if failure is not None and notifier is not None and notifier.failure_shown:
-            failure = {**failure, "visible": False}
-        return failure
-
-    def clean_up(self, webrtc_id: str, connection: Connection | None = None) -> None:
-        """
-        Releases everything a connection holds: stops its tracks, shuts its
-        handler down and ends the stream. Whichever path notices the end first
-        does the work; later calls only release tracks added since.
-        `connection` is the one to release when the caller holds it (the
-        connection's own callbacks), as the session that lists it may be gone
-        already; otherwise the stream's current one.
-        """
-        if connection is None:
-            session = self.sessions.get(webrtc_id)
-            connection = session.connection if session is not None else None
-        tracks: list[Track] = []
-        if connection is not None:
-            if not connection.released:
-                connection.released = True
-                # Close before letting go: a track that ended (a receive-mode
-                # generator ran out) leaves the connection open otherwise
-                self._close_pc(connection.pc)
-            tracks, connection.tracks = connection.tracks, []
-            connection.channel = None
-        _pending_candidates.pop(webrtc_id, None)
-        try:
-            for conn in tracks:
-                # Stopping a track ends its loops; its "ended" event calls
-                # this again, which then finds the connection already released
-                conn.stop()
-                if isinstance(conn, ServerToClientAudio | ServerToClientVideo):
-                    self._add_shutdown(conn.close_generator())
-            # Handler classes, once each: both tracks of an audio-video
-            # connection share one handler
-            handlers = {
-                id(conn.event_handler): conn.event_handler
-                for conn in tracks
-                if isinstance(conn, AudioCallback | HandlerVideoTrack)
-                and isinstance(conn.event_handler, StreamHandlerBase)
-            }
-            for handler in handlers.values():
-                # A handler blocked in wait_for_args() would wait forever
-                handler.args_set.set()
-                self._add_shutdown(self._shut_down(handler))
-        finally:
-            self.end(webrtc_id)
 
     def _add_shutdown(self, coroutine: Any) -> None:
         # The next stream waits for it (see `_wait_for_shutdowns`)
@@ -514,43 +656,22 @@ class ConnectionManager:
             logger.exception("Stream handler shutdown() failed")
         # No reset(): each connection has its own handler, and clearing
         # args_set would block a last call of the handler that still waits
-        # for its inputs (clean_up set args_set to release it)
+        # for its inputs (close() set args_set to release it)
 
-    def owns(self, webrtc_id: str, session_hash: str | None) -> bool:
-        """
-        Whether the stream was admitted for this browser session. A stream id
-        travels in signalling and input messages, so only the session whose
-        queue event admitted it may connect to it or feed it. Any value may
-        come in from a client; only a string can name a stream.
-        """
-        if not isinstance(webrtc_id, str):
-            return False
-        session = self.sessions.get(webrtc_id)
-        return (
-            session is not None
-            and session_hash is not None
-            and session.event.session_hash == session_hash
-        )
-
-    def set_input(self, webrtc_id: str, session_hash: str | None, *args: Any) -> None:
-        """Pushes the current values of the extra inputs into a live connection."""
-        # owns() first: it refuses an id that is not a string
-        if not self.owns(webrtc_id, session_hash):
+    async def _wait_for_shutdowns(self) -> None:
+        pending = [task for task in self.shutdowns if not task.done()]
+        if not pending:
             return
-        connection = self.connection(webrtc_id)
-        if connection is None:
-            return
-        for conn in connection.tracks:
-            conn.set_args(list(args))
-
-    def _output_setter(self, webrtc_id: str) -> Callable[[AdditionalOutputs], None]:
-        def set_outputs(outputs: AdditionalOutputs) -> None:
-            session = self.sessions.get(webrtc_id)
-            if session is not None:
-                session.outputs.append(outputs)
-                session.wake()
-
-        return set_outputs
+        _, still_running = await asyncio.wait(pending, timeout=SHUTDOWN_WAIT)
+        if still_running:
+            # Waited for once: one that never ends must not delay every later
+            # stream. `self.tasks` still holds them.
+            self.shutdowns.difference_update(still_running)
+            logger.warning(
+                "A stream handler's shutdown() is still running after %s s; "
+                "starting the next stream anyway",
+                SHUTDOWN_WAIT,
+            )
 
     async def _resolve_rtc_configuration(self, request: Any = None) -> dict[str, Any]:
         config = self.rtc_configuration
@@ -587,7 +708,7 @@ class ConnectionManager:
             return {"error": payload["error"] or "An error occurred."}
 
     async def handle_offer(
-        self, webrtc_id: str, body: dict[str, Any], request: Any = None
+        self, stream: Stream, body: dict[str, Any], request: Any = None
     ) -> dict[str, Any]:
         """
         Creates the peer connection of an admitted stream from the client's SDP
@@ -600,15 +721,13 @@ class ConnectionManager:
         # The queue frees an ended stream's place before its handler has shut
         # down. With concurrency_limit=1, a model that each handler loads must
         # not be in memory twice, so the next handler waits.
-        session = self.sessions.get(webrtc_id)
-        if session is not None and session.event.concurrency_limit == 1:
+        if stream.event.concurrency_limit == 1:
             await self._wait_for_shutdowns()
-        session = self.sessions.get(webrtc_id)
-        if session is None or session.ended or not self.owns(webrtc_id, session_hash):
+        if stream.ended or not stream.owned_by(session_hash):
             return _failed("not_admitted")
         # Another offer for the same id may have waited for the admission too.
-        # Nothing awaits between this check and claiming the session below.
-        if self.connection(webrtc_id) is not None:
+        # Nothing awaits between this check and claiming the stream below.
+        if stream.pc is not None:
             return _failed("connection_already_exists")
 
         # The handler's tasks and threads are all started from here, so they
@@ -617,62 +736,43 @@ class ConnectionManager:
         show_error = bool(blocks and blocks.show_error)
         notifier = StreamNotifier(
             asyncio.get_running_loop(),
-            end_stream=lambda: self.end(webrtc_id),
+            end_stream=stream.close,
             show_error=show_error,
         )
         LocalContext.stream_notifier.set(notifier)
-        session.notifier = notifier
-        connection = Connection(
-            pc=RTCPeerConnection(configuration=self.server_rtc_configuration)
-        )
-        session.connection = connection
+        stream.notifier = notifier
+        pc = RTCPeerConnection(configuration=self.server_rtc_configuration)
+        stream.pc = pc
+        stream.state = StreamState.CONNECTING
         try:
-            return await self._connect(
-                webrtc_id, session, connection, body, request, notifier
-            )
+            return await self._connect(stream, pc, body, request, notifier)
         except Exception as e:
             if not isinstance(e, Error):
                 logger.exception("Could not set up the stream")
-            await connection.pc.close()
+            await pc.close()
             payload = error_payload(e, show_error)
             # The page shows the error from the answer; the event fails too
             notifier.failure = payload
             notifier.failure_shown = True
-            self.clean_up(webrtc_id, connection)
+            stream.close()
             return _failed(
                 "setup_failed", message=payload["error"] or "An error occurred."
             )
 
-    async def _wait_for_shutdowns(self) -> None:
-        pending = [task for task in self.shutdowns if not task.done()]
-        if not pending:
-            return
-        _, still_running = await asyncio.wait(pending, timeout=SHUTDOWN_WAIT)
-        if still_running:
-            # Waited for once: one that never ends must not delay every later
-            # stream. `self.tasks` still holds them.
-            self.shutdowns.difference_update(still_running)
-            logger.warning(
-                "A stream handler's shutdown() is still running after %s s; "
-                "starting the next stream anyway",
-                SHUTDOWN_WAIT,
-            )
-
     async def _connect(
         self,
-        webrtc_id: str,
-        session: Session,
-        connection: Connection,
+        stream: Stream,
+        pc: RTCPeerConnection,
         body: dict[str, Any],
         request: Any,
         notifier: StreamNotifier,
     ) -> dict[str, Any]:
-        pc = connection.pc
         session_hash = getattr(request, "session_hash", None)
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
         handler = instantiate_handler(self.handler, request)
-        set_outputs = self._output_setter(webrtc_id)
-        context = Context(webrtc_id=webrtc_id)
+        set_outputs = stream.add_output
+        context = stream.context
+        inputs = stream.inputs
         # Whether the webcam preview is mirrored on the client
         mirror = body.get("mirror") is True
         rejected: list[str] = []
@@ -682,18 +782,16 @@ class ConnectionManager:
             logger.debug("ICE connection state change %s", pc.iceConnectionState)
             if pc.iceConnectionState == "failed":
                 await pc.close()
-                self.clean_up(webrtc_id, connection)
+                stream.close()
 
         @pc.on("connectionstatechange")
         async def on_connectionstatechange():
             logger.debug("pc.connectionState %s", pc.connectionState)
             if pc.connectionState in ["failed", "closed"]:
                 await pc.close()
-                self.clean_up(webrtc_id, connection)
-            if pc.connectionState == "connected" and self.sessions.get(webrtc_id) is (
-                session
-            ):
-                session.connected = True
+                stream.close()
+            if pc.connectionState == "connected":
+                stream.mark_connected(pc)
 
         @pc.on("track")
         def on_track(track):
@@ -711,6 +809,7 @@ class ConnectionManager:
                     set_additional_outputs=set_outputs,
                     fps=handler.fps,
                     context=context,
+                    inputs=inputs,
                     mirror=mirror,
                 )
             elif self.modality == "video" and track.kind == "video":
@@ -725,6 +824,7 @@ class ConnectionManager:
                     set_additional_outputs=set_outputs,
                     mode=cast(Literal["send", "send-receive"], self.mode),
                     context=context,
+                    inputs=inputs,
                     mirror=mirror,
                     **extra,
                 )
@@ -736,6 +836,7 @@ class ConnectionManager:
                     set_additional_outputs=set_outputs,
                     fps=av_handler.fps,
                     context=context,
+                    inputs=inputs,
                     mirror=mirror,
                 )
             elif self.modality in ["audio", "audio-video"] and track.kind == "audio":
@@ -746,6 +847,7 @@ class ConnectionManager:
                     event_handler=audio_handler,
                     set_additional_outputs=set_outputs,
                     context=context,
+                    inputs=inputs,
                 )
             else:
                 if self.allow_extra_tracks:
@@ -755,13 +857,14 @@ class ConnectionManager:
                 )
                 return
 
-            connection.tracks.append(cb)
+            if not stream.add_track(cb):
+                return
             # A handler that returns CloseStream stops its track: end the
             # stream here, whether or not the browser reacts to "end_stream"
-            cb.on("ended", lambda: self.clean_up(webrtc_id, connection))
-            if connection.channel is not None:
-                for conn in connection.tracks:
-                    conn.set_channel(connection.channel)
+            cb.on("ended", stream.close)
+            if stream.channel is not None:
+                for conn in stream.tracks:
+                    conn.set_channel(stream.channel)
             if self.mode == "send-receive":
                 pc.addTrack(cb)
             elif self.mode == "send" and (
@@ -788,27 +891,30 @@ class ConnectionManager:
                         set_additional_outputs=set_outputs,
                         fps=handler.fps,
                         context=context,
+                        inputs=inputs,
                     )
                 else:
                     cb = ServerToClientVideo(
                         cast(Callable, handler),
                         set_additional_outputs=set_outputs,
                         context=context,
+                        inputs=inputs,
                     )
             else:
                 cb = ServerToClientAudio(
                     cast(Callable, handler),
                     set_additional_outputs=set_outputs,
                     context=context,
+                    inputs=inputs,
                 )
             pc.addTrack(cb)
-            connection.tracks.append(cb)
-            cb.on("ended", lambda: self.clean_up(webrtc_id, connection))
+            stream.add_track(cb)
+            cb.on("ended", stream.close)
 
         @pc.on("datachannel")
         def on_datachannel(channel):
             logger.debug("Data channel established: %s", channel.label)
-            connection.channel = channel
+            stream.channel = channel
             notifier.set_channel(channel)
             if self.inputs_over_channel:
 
@@ -823,15 +929,14 @@ class ConnectionManager:
                         and data.get("type") == "input"
                         and isinstance(data.get("data"), list)
                     ):
-                        for conn in connection.tracks:
-                            conn.set_args(list(data["data"]))
+                        stream.set_inputs(list(data["data"]))
 
             async def set_channel():
-                while not connection.tracks:
-                    if connection.released:
+                while not stream.tracks:
+                    if stream.ended:
                         return
                     await asyncio.sleep(0.05)
-                for conn in connection.tracks:
+                for conn in stream.tracks:
                     conn.set_channel(channel)
 
             self._spawn(set_channel())
@@ -842,9 +947,9 @@ class ConnectionManager:
             # As for a handler that cannot start
             notifier.failure = {"error": rejected[0]}
             notifier.failure_shown = True
-            self.clean_up(webrtc_id, connection)
+            stream.close()
             return _failed("unsupported_track", message=rejected[0])
-        for sender, candidate in _pending_candidates.pop(webrtc_id, []):
+        for sender, candidate in stream.registry.pending_candidates.pop(stream.id, []):
             if sender != session_hash:
                 continue
             try:
@@ -863,7 +968,7 @@ class ConnectionManager:
             "type": pc.localDescription.type,
             # Counted from the stream's admission, so the browser can show
             # what is left of it
-            "time_limit": session.remaining_time(self.time_limit),
+            "time_limit": stream.lease.remaining_time(),
         }
 
 
@@ -871,38 +976,23 @@ async def handle_signal(body: dict[str, Any], request: Any = None) -> dict[str, 
     """
     Handles one signalling message from the client: an SDP offer, which
     creates the peer connection and returns the answer, or a trickled ICE
-    candidate. Both go to the manager that admitted the stream.
+    candidate. Both go to the stream with that id.
     """
     if body.get("type") == "ice-candidate" and "candidate" in body:
         return await _add_ice_candidate(body, getattr(request, "session_hash", None))
     webrtc_id = body.get("webrtc_id")
     if not webrtc_id or "sdp" not in body:
         return _failed("invalid_offer")
-    manager = _streams.get(webrtc_id)
-    if manager is not None and manager.connection(webrtc_id) is not None:
-        return _failed("connection_already_exists")
-    manager = await _wait_for_admission(webrtc_id)
-    if manager is None:
+    registry = current_registry()
+    if registry is None:
         return _failed("not_admitted")
-    return await manager.handle_offer(webrtc_id, body, request)
-
-
-async def _wait_for_admission(webrtc_id: str) -> ConnectionManager | None:
-    if webrtc_id not in _streams:
-        _admission_waiters[webrtc_id] += 1
-        try:
-            await asyncio.wait_for(_admissions[webrtc_id].wait(), ADMISSION_WAIT)
-        except TimeoutError:
-            pass
-        finally:
-            _admission_waiters[webrtc_id] -= 1
-            # The others waiting for the same stream share its event
-            if not _admission_waiters[webrtc_id]:
-                del _admission_waiters[webrtc_id]
-                if webrtc_id not in _streams:
-                    _admissions.pop(webrtc_id, None)
-                    _pending_candidates.pop(webrtc_id, None)
-    return _streams.get(webrtc_id)
+    stream = registry.get(webrtc_id)
+    if stream is not None and stream.pc is not None:
+        return _failed("connection_already_exists")
+    stream = await registry.wait_for_admission(webrtc_id)
+    if stream is None:
+        return _failed("not_admitted")
+    return await stream.manager.handle_offer(stream, body, request)
 
 
 async def _add_ice_candidate(
@@ -911,13 +1001,13 @@ async def _add_ice_candidate(
     webrtc_id = body.get("webrtc_id")
     if not webrtc_id:
         return _failed("unknown_connection")
-    manager = _streams.get(webrtc_id)
+    registry = current_registry()
+    stream = registry.get(webrtc_id) if registry is not None else None
     # The page makes its connection only after the stream's turn, so a
     # candidate for a stream not admitted for this session is not kept
-    if manager is None or not manager.owns(webrtc_id, session_hash):
+    if registry is None or stream is None or not stream.owned_by(session_hash):
         return _failed("unknown_connection")
-    connection = manager.connection(webrtc_id)
-    pc = connection.pc if connection is not None else None
+    pc = stream.pc
     if pc is not None and pc.connectionState == "closed":
         return _failed("connection_closed")
     try:
@@ -926,30 +1016,13 @@ async def _add_ice_candidate(
             logger.error("Invalid candidate format: %s", body["candidate"])
             return _failed("invalid_candidate_format")
         if pc is None:
-            # Kept until the offer creates the connection, within bounds
-            pending = _pending_candidates.setdefault(webrtc_id, [])
-            if len(pending) < MAX_PENDING_CANDIDATES:
-                pending.append((session_hash, candidate))
-            else:
-                logger.warning(
-                    "Dropped an ICE candidate of stream %s: %s are already "
-                    "waiting for its offer",
-                    webrtc_id,
-                    MAX_PENDING_CANDIDATES,
-                )
-            while len(_pending_candidates) > MAX_PENDING_CANDIDATE_IDS:
-                _pending_candidates.popitem(last=False)
+            registry.keep_candidate(stream.id, session_hash, candidate)
             return {"status": "success"}
         await pc.addIceCandidate(candidate)
         return {"status": "success"}
     except Exception as e:
         logger.error("Error adding ICE candidate: %s", e, exc_info=True)
         return _failed(str(e))
-
-
-def stream_manager(webrtc_id: str) -> ConnectionManager | None:
-    """The manager that admitted the stream, if it is still running."""
-    return _streams.get(webrtc_id)
 
 
 def stream_call(
@@ -971,15 +1044,17 @@ def stream_call(
     )
     if event is None:
         return None
+    registry = registry_for(queue)
     # A later call carries whatever id a chunk sent, so it only serves the
-    # stream that the first call admitted
-    stream_id = admitted_id(event.id)
-    if stream_id is None:
+    # stream that the first call admitted. After a hot reload, the event's
+    # function is a new one, but the stream keeps the manager that admitted it.
+    stream = registry.by_event.get(event.id)
+    if stream is None:
         if (
             not isinstance(webrtc_id, str)
             or not webrtc_id
             or not event.live
-            or not manager.admit(webrtc_id, event)
+            or not manager.admit(webrtc_id, event, registry)
         ):
             # No id (or not a string, which signalling could never match), an
             # event that is over (its admission may have been let go already),
@@ -988,11 +1063,8 @@ def stream_call(
             # Nothing would wake it before its time limit.
             event.finish()
         return None
-    # The manager that admitted it: after a hot reload, the event's function
-    # is a new one whose manager never saw the stream
-    manager = stream_manager(stream_id) or manager
-    outputs = manager.take_outputs(stream_id)
-    failure = manager.finish_if_drained(stream_id, outputs is not None)
+    outputs = stream.take_output()
+    failure = stream.finish_if_drained(outputs is not None)
     if failure is not None:
         # Hidden when the page has shown it already; the server has logged it
         raise Error(
@@ -1008,23 +1080,19 @@ def end_admitted_stream(event_id: str) -> bool:
     """
     Ends the stream that the queue event `event_id` admitted, for a page that
     closes it: the event then delivers the outputs still pending and fails if
-    the handler did (see `finish_if_drained`). False if the event has no
-    running stream.
+    the handler did (see `Stream.finish_if_drained`). False if the event has
+    no running stream.
     """
-    webrtc_id = admitted_id(event_id)
-    if webrtc_id is None:
+    stream = stream_of_event(event_id)
+    if stream is None or stream.registry.streams.get(stream.id) is not stream:
         return False
-    manager = stream_manager(webrtc_id)
-    session = manager.sessions.get(webrtc_id) if manager is not None else None
-    if manager is None or session is None or session.event.id != event_id:
-        return False
-    manager.end(webrtc_id)
+    stream.close()
     return True
 
 
 async def stream_admitted(
     webrtc_id: str | None, session_hash: str | None
-) -> tuple[ConnectionManager, Session] | None:
+) -> tuple[ConnectionManager, Stream] | None:
     """
     The stream and its manager, if its turn has come, it has not ended, and it
     belongs to this browser session. Waits a little for an admission that is
@@ -1032,13 +1100,13 @@ async def stream_admitted(
     """
     if not webrtc_id:
         return None
-    manager = await _wait_for_admission(webrtc_id)
-    if manager is None or not manager.owns(webrtc_id, session_hash):
+    registry = current_registry()
+    if registry is None:
         return None
-    session = manager.sessions[webrtc_id]
-    if session.ended:
+    stream = await registry.wait_for_admission(webrtc_id)
+    if stream is None or not stream.owned_by(session_hash) or stream.ended:
         return None
-    return manager, session
+    return stream.manager, stream
 
 
 async def get_rtc_configuration(
@@ -1057,26 +1125,28 @@ async def get_rtc_configuration(
             "error": "The stream's turn in the queue ended before it "
             "connected. Please try again."
         }
-    manager, session = admitted
+    manager, stream = admitted
     # Once per stream, however often the page asks: each call of the author's
     # function may issue credentials on their account
-    if session.rtc_configuration is None:
-        session.rtc_configuration = asyncio.ensure_future(
+    if stream.rtc_configuration is None:
+        stream.rtc_configuration = asyncio.ensure_future(
             manager.rtc_configuration_for(request)
         )
-    return await asyncio.shield(session.rtc_configuration)
+    return await asyncio.shield(stream.rtc_configuration)
 
 
-def set_input(webrtc_id: str, session_hash: str | None, *args: Any) -> None:
-    """Pushes the current values of the extra inputs into a live stream."""
-    manager = _streams.get(webrtc_id)
-    if manager is not None:
-        manager.set_input(webrtc_id, session_hash, *args)
+def set_input(webrtc_id: Any, session_hash: str | None, *args: Any) -> None:
+    """Pushes the current values of the extra inputs into a live stream of
+    this browser session."""
+    registry = current_registry()
+    stream = registry.get(webrtc_id) if registry is not None else None
+    if stream is not None and stream.owned_by(session_hash):
+        stream.set_inputs(list(args))
 
 
 # The manager registered for each component id, which the component's config
 # reads (its time limit, whether it has a stream). Streams themselves go by
-# `_streams`. Weak, so that a manager goes away with the event that streams
+# their registry. Weak, so that a manager goes away with the event that streams
 # through it: the event's function holds it (see `WebRTC.stream()`). A
 # component created by @gr.render or replaced by a reload thus does not keep
 # its handler alive.

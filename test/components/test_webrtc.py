@@ -865,13 +865,12 @@ class TestWebRTC:
         manager = get_manager(webrtc._id)
         assert manager is not None
         event = FakeEvent()
-        queue = SimpleNamespace(
-            event_ids_to_events={"event": event}, event_queue_per_concurrency_id={}
-        )
-        queue.event_handle = lambda event_id: Queue.event_handle(  # type: ignore
-            cast(Any, queue), event_id
-        )
-        demo._queue = queue  # type: ignore
+        # Keys the app's stream registry, so not a SimpleNamespace
+        queue = cast(Any, UnitQueue())
+        queue.event_ids_to_events = {"event": event}
+        queue.event_queue_per_concurrency_id = {}
+        queue.event_handle = lambda event_id: Queue.event_handle(queue, event_id)
+        demo._queue = queue
         blocks_token = LocalContext.blocks.set(demo)
         event_token = LocalContext.event_id.set("event")
         try:
@@ -998,9 +997,12 @@ class Harness:
         token = LocalContext.request.set(
             cast(gr.Request, SimpleNamespace(session_hash=session_hash))
         )
+        # As in the app's events, which find the app's streams through it
+        blocks_token = LocalContext.blocks.set(self.demo)
         try:
             await self.webrtc._push_inputs(webrtc_id, *args)
         finally:
+            LocalContext.blocks.reset(blocks_token)
             LocalContext.request.reset(token)
 
     async def wait_until(self, condition, timeout=5.0):
@@ -1076,65 +1078,104 @@ def completed(messages):
 
 
 def forget_earlier_streams() -> None:
-    # Tests reuse stream ids, and a stream an earlier test left open stays
-    # registered after its app is closed
-    webrtc_connection._streams.clear()
-    webrtc_connection._admitted.clear()
-    webrtc_connection._admissions.clear()
-    webrtc_connection._admission_waiters.clear()
-    webrtc_connection._pending_candidates.clear()
+    # Tests reuse stream ids, and a stream an earlier test left open stays in
+    # its app's registry after the app is closed
+    webrtc_connection._registries.clear()
+
+
+class UnitQueue:
+    """Stands in for an app's queue, which keys its stream registry."""
+
+
+# The queue of streams that tests admit without an app (see `unit_registry`)
+_unit_queue = UnitQueue()
+
+
+def unit_registry():
+    """The stream registry for tests that admit streams without an app."""
+    return webrtc_connection.registry_for(_unit_queue)
+
+
+def _all_streams():
+    for registry in list(webrtc_connection._registries.values()):
+        yield from list(registry.streams.values())
 
 
 # Tests read and set a stream and its connection only through these, not
 # through the manager's attributes, so that how streams are kept can change
 def stream_of(manager, webrtc_id):
     """The admitted stream `webrtc_id` of `manager`, until its watcher ends."""
-    return manager.sessions[webrtc_id]
+    for stream in _all_streams():
+        if stream.id == webrtc_id and stream.manager is manager:
+            return stream
+    raise KeyError(webrtc_id)
 
 
 def has_stream(manager, webrtc_id):
     """Whether `manager` has the stream `webrtc_id`, until its watcher ends."""
-    return webrtc_id in manager.sessions
+    return any(
+        stream.id == webrtc_id and stream.manager is manager
+        for stream in _all_streams()
+    )
 
 
 def streams_of(manager):
     """The streams `manager` has admitted and whose watcher has not ended."""
-    return list(manager.sessions.values())
+    return [stream for stream in _all_streams() if stream.manager is manager]
 
 
 def pending_candidates(webrtc_id):
     """The ICE candidates kept for a stream until its offer, or None."""
-    return webrtc_connection._pending_candidates.get(webrtc_id)
+    for registry in list(webrtc_connection._registries.values()):
+        if webrtc_id in registry.pending_candidates:
+            return registry.pending_candidates[webrtc_id]
+    return None
 
 
 def end_stream(manager, webrtc_id):
     """Ends the stream as the page's close or its time limit does."""
-    manager.end(webrtc_id)
+    stream_of(manager, webrtc_id).close()
 
 
 def release_stream(manager, webrtc_id):
     """Ends the stream as its closed peer connection or ended track does,
     releasing its tracks and handler."""
-    manager.clean_up(webrtc_id)
+    stream_of(manager, webrtc_id).close()
 
 
 def add_outputs(manager, webrtc_id, *outputs):
     """Hands the stream AdditionalOutputs as its handler does."""
-    set_outputs = manager._output_setter(webrtc_id)
+    stream = stream_of(manager, webrtc_id)
     for output in outputs:
-        set_outputs(output)
+        stream.add_output(output)
 
 
 def live_pc(manager, webrtc_id):
     """The stream's peer connection, until the stream's clean-up releases it."""
-    connection = manager.connection(webrtc_id)
-    return connection.pc if connection is not None else None
+    if not has_stream(manager, webrtc_id):
+        return None
+    return stream_of(manager, webrtc_id).pc
 
 
 def tracks_of(manager, webrtc_id):
     """The tracks of the stream's connection, until its clean-up releases them."""
-    connection = manager.connection(webrtc_id)
-    return connection.tracks if connection is not None else []
+    if not has_stream(manager, webrtc_id):
+        return []
+    return stream_of(manager, webrtc_id).tracks
+
+
+def unit_stream(manager, webrtc_id, event=None, **attributes):
+    """
+    A stream of `manager` in `unit_registry()`, as an admission makes it but
+    without its watcher, for tests of what a stream does by itself.
+    """
+    stream = webrtc_connection.Stream(
+        webrtc_id, manager, event or queue_event()[1], unit_registry()
+    )
+    for name, value in attributes.items():
+        setattr(stream, name, value)
+    unit_registry().add(stream)
+    return stream
 
 
 def attach(manager, webrtc_id, *, pc=None, tracks=()):
@@ -1142,17 +1183,17 @@ def attach(manager, webrtc_id, *, pc=None, tracks=()):
     Gives a stream a connection with these tracks without signalling, for
     tests of its clean-up. Admits the stream first if nothing did.
     """
-    if webrtc_id not in manager.sessions:
-        manager.sessions[webrtc_id] = webrtc_connection.Session(event=queue_event()[1])
-    session = manager.sessions[webrtc_id]
-    if session.connection is None:
-        session.connection = webrtc_connection.Connection(
-            # A stand-in that needs no closing
-            pc=pc
+    if not has_stream(manager, webrtc_id):
+        unit_stream(manager, webrtc_id)
+    stream = stream_of(manager, webrtc_id)
+    if stream.pc is None:
+        # A stand-in that needs no closing
+        stream.pc = (
+            pc
             if pc is not None
             else cast(Any, SimpleNamespace(connectionState="closed"))
         )
-    session.connection.tracks.extend(tracks)
+    stream.tracks.extend(tracks)
 
 
 class TestStreams:
@@ -1260,26 +1301,25 @@ class TestStreams:
 
         manager = launched.manager
         event, handle = queue_event()
-        session = webrtc_connection.Session(
-            event=handle,
-            ended=True,
+        stream = unit_stream(
+            manager,
+            "failed",
+            handle,
+            state=webrtc_connection.StreamState.ENDING,
             notifier=cast(
                 Any,
                 SimpleNamespace(failure={"error": "Bad frame"}, failure_shown=False),
             ),
         )
-        session.outputs.append(AdditionalOutputs(1))
-        manager.sessions["failed"] = session
+        stream.outputs.append(AdditionalOutputs(1))
         try:
-            assert manager.take_outputs("failed") is not None
-            assert manager.finish_if_drained("failed", delivered=True) is None
+            assert stream.take_output() is not None
+            assert stream.finish_if_drained(delivered=True) is None
             assert not event.closed and event.signal.is_set()
-            assert manager.finish_if_drained("failed", delivered=False) == {
-                "error": "Bad frame"
-            }
+            assert stream.finish_if_drained(delivered=False) == {"error": "Bad frame"}
             assert event.closed
         finally:
-            del manager.sessions["failed"]
+            unit_registry().remove(stream)
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("show_error", [False, True])
@@ -1870,15 +1910,17 @@ class TestStreams:
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
         manager = get_manager(webrtc._id)
         assert manager is not None
-        wait = webrtc_connection._wait_for_admission
+        registry = unit_registry()
+        wait = registry.wait_for_admission
         # Both the offer and get_rtc_configuration may wait for the turn
         first = asyncio.create_task(wait("late"))
         await asyncio.sleep(0.2)
         second = asyncio.create_task(wait("late"))
         assert await first is None
-        manager.admit("late", queue_event("late")[1])
+        manager.admit("late", queue_event("late")[1], registry)
         try:
-            assert await second is manager
+            admitted = await second
+            assert admitted is not None and admitted.manager is manager
         finally:
             for task in list(manager.tasks):
                 task.cancel()
@@ -2494,11 +2536,9 @@ class TestStreams:
             assert response.status_code == 400
 
     @pytest.mark.asyncio
-    async def test_signalling_in_an_app_without_streams_is_answered_at_once(
-        self, monkeypatch
-    ):
-        # Other tests in this process attached handlers; this app has none
-        monkeypatch.setattr(webrtc_connection.ConnectionManager, "created", False)
+    async def test_signalling_in_an_app_without_streams_is_answered_at_once(self):
+        # Other tests in this process attached handlers to their apps; this
+        # one has none
         with gr.Blocks() as demo:
             gr.Textbox()
         with closing(demo):
@@ -4367,7 +4407,9 @@ class TestCleanUp:
         forget_earlier_streams()
         manager = self.manager()
         handle = self.Handle()
-        assert manager.admit("one", cast(Any, handle))
+        registry = unit_registry()
+        assert manager.admit("one", cast(Any, handle), registry)
+        stream = stream_of(manager, "one")
         attach(
             manager,
             "one",
@@ -4375,14 +4417,14 @@ class TestCleanUp:
             tracks=[TestVideoTracks.callback(flip)],
         )
         handle.live = False
-        watcher = stream_of(manager, "one").watcher
+        watcher = stream.watcher
         assert watcher is not None
         with pytest.raises(RuntimeError, match="close failed"):
             await asyncio.wait_for(watcher, 2)
-        assert not tracks_of(manager, "one")
+        assert not stream.tracks
         assert not has_stream(manager, "one")
-        assert "one" not in webrtc_connection._streams
-        assert "event" not in webrtc_connection._admitted
+        assert "one" not in registry.streams
+        assert "event" not in registry.by_event
 
     @pytest.mark.asyncio
     async def test_an_error_while_watching_ends_the_stream_not_its_admission(
@@ -4392,24 +4434,25 @@ class TestCleanUp:
         forget_earlier_streams()
         manager = self.manager()
         handle = self.Handle()
-        assert manager.admit("one", cast(Any, handle))
-        session = stream_of(manager, "one")
+        registry = unit_registry()
+        assert manager.admit("one", cast(Any, handle), registry)
+        stream = stream_of(manager, "one")
 
-        def broken(time_limit):
+        def broken():
             raise RuntimeError("watch failed")
 
-        monkeypatch.setattr(session, "remaining_time", broken)
+        monkeypatch.setattr(stream.lease, "remaining_time", broken)
         deadline = time.monotonic() + 2
-        while not session.ended and time.monotonic() < deadline:
+        while not stream.ended and time.monotonic() < deadline:
             await asyncio.sleep(0.01)
         # The stream ends; the event, still live, keeps it as its admitted one,
         # so its next call finishes it instead of admitting the id again
-        assert session.ended
-        assert webrtc_connection._admitted.get("event") == "one"
+        assert stream.ended
+        assert registry.by_event.get("event") is stream
         handle.live = False
-        assert session.watcher is not None
-        await asyncio.wait_for(session.watcher, 2)
-        assert "event" not in webrtc_connection._admitted
+        assert stream.watcher is not None
+        await asyncio.wait_for(stream.watcher, 2)
+        assert "event" not in registry.by_event
 
     @pytest.mark.asyncio
     async def test_an_event_that_is_over_admits_no_stream(self):
@@ -4421,7 +4464,10 @@ class TestCleanUp:
         handle.live = False
         finished = []
         handle.finish = lambda: finished.append(True)  # type: ignore[method-assign]
-        blocks = SimpleNamespace(_queue=SimpleNamespace(event_handle=lambda _: handle))
+        # Keys the app's stream registry, so not a SimpleNamespace
+        queue = cast(Any, UnitQueue())
+        queue.event_handle = lambda _: handle
+        blocks = SimpleNamespace(_queue=queue)
         LocalContext.blocks.set(cast(Any, blocks))
         LocalContext.event_id.set("event")
         assert webrtc_connection.stream_call(manager, "one") is None
@@ -4435,7 +4481,10 @@ class TestCleanUp:
         handle = self.Handle()
         finished = []
         handle.finish = lambda: finished.append(True)  # type: ignore[method-assign]
-        blocks = SimpleNamespace(_queue=SimpleNamespace(event_handle=lambda _: handle))
+        # Keys the app's stream registry, so not a SimpleNamespace
+        queue = cast(Any, UnitQueue())
+        queue.event_handle = lambda _: handle
+        blocks = SimpleNamespace(_queue=queue)
         LocalContext.blocks.set(cast(Any, blocks))
         LocalContext.event_id.set("event")
         # Signalling only takes string ids, so it could never reach this stream
@@ -4444,10 +4493,14 @@ class TestCleanUp:
         assert finished == [True]
 
     def test_input_for_a_stream_id_that_is_not_a_string_is_ignored(self):
-        manager = self.manager()
-        # E.g. the extra inputs' event, called with a crafted id
-        manager.set_input(cast(Any, [1]), "s", 0.5)
-        assert not manager.owns(cast(Any, {}), "s")
+        registry = unit_registry()
+        token = LocalContext.blocks.set(cast(Any, SimpleNamespace(_queue=_unit_queue)))
+        try:
+            # E.g. the extra inputs' event, called with a crafted id
+            webrtc_connection.set_input(cast(Any, [1]), "s", 0.5)
+        finally:
+            LocalContext.blocks.reset(token)
+        assert registry.get(cast(Any, {})) is None
 
     @pytest.mark.asyncio
     async def test_closing_a_stream_of_a_forgotten_session_keeps_no_state(self):
@@ -4507,10 +4560,7 @@ class TestCleanUp:
         if channel is not None:
             notifier.channel = SimpleNamespace(readyState=channel, send=lambda m: None)
         manager = self.manager()
-        manager.sessions["one"] = webrtc_connection.Session(
-            event=queue_event()[1],
-            notifier=notifier,
-        )
+        unit_stream(manager, "one", notifier=notifier)
         notifier.send("info", "before the end")
         await asyncio.sleep(0)
         assert len(notifier.pending) == (1 if channel in (None, "connecting") else 0)

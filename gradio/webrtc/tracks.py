@@ -47,6 +47,7 @@ from gradio.webrtc.utils import (
     Context,
     DataChannel,
     HandlerFailedError,
+    StreamInputs,
     create_message,
     current_channel,
     current_context,
@@ -176,12 +177,14 @@ class VideoCallback(VideoStreamTrack):
         fps: int = 30,
         skip_frames: bool = True,
         mirror: bool = False,
+        inputs: StreamInputs | None = None,
     ) -> None:
         super().__init__()
         self.track = track
         self.mirror = mirror
         self.event_handler = event_handler
-        self.latest_args: list[Any] | None = None
+        # The stream's extra inputs, shared with its other tracks
+        self.inputs = inputs if inputs is not None else StreamInputs()
         self.channel = channel
         self.set_additional_outputs = set_additional_outputs
         self.thread_quit = asyncio.Event()
@@ -210,8 +213,17 @@ class VideoCallback(VideoStreamTrack):
         current_context.set(self.context)
         self.channel_set.set()
 
+    @property
+    def latest_args(self) -> list[Any] | None:
+        """The values of the extra inputs, None until they arrive."""
+        return self.inputs.values
+
+    @latest_args.setter
+    def latest_args(self, values: list[Any] | None) -> None:
+        self.inputs.values = None if values is None else list(values)
+
     def set_args(self, args: list[Any]):
-        self.latest_args = list(args)
+        self.inputs.set(args)
 
     # Frames are RGB arrays, like the numpy values of gr.Image and gr.Video
     def array_to_frame(self, array: Any) -> VideoFrame:
@@ -361,6 +373,18 @@ class HandlerVideoTrack(VideoCallback):
     handler's `video_receive()`; outgoing frames come from `video_emit()`.
     """
 
+    def __init__(
+        self, *args: Any, inputs: StreamInputs | None = None, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **{**kwargs, "inputs": inputs})
+        handler = cast(StreamHandlerBase, self.event_handler)
+        if inputs is None:
+            # A track made on its own reads the inputs its handler has
+            self.inputs = handler._inputs
+        else:
+            # The handler reads the stream's inputs too (latest_args)
+            handler._use_inputs(inputs)
+
     @property
     def handler(self) -> VideoTrackHandler:
         return cast(VideoTrackHandler, self.event_handler)
@@ -369,10 +393,6 @@ class HandlerVideoTrack(VideoCallback):
         super().set_channel(channel)
         # Without an audio track, nothing else gives the handler its channel
         self.handler.set_channel(channel)
-
-    def set_args(self, args: list[Any]):
-        super().set_args(args)
-        self.handler.set_args(args)
 
     async def process_frames(self):
         # Frames that arrive while video_receive() runs wait in frame_queue,
@@ -487,10 +507,18 @@ class AudioCallback(AudioStreamTrack):
         context: Context,
         channel: DataChannel | None = None,
         set_additional_outputs: Callable | None = None,
+        inputs: StreamInputs | None = None,
     ) -> None:
         super().__init__()
         self.track = track
         self.event_handler = cast(StreamHandlerImpl, event_handler)
+        if inputs is None:
+            # A track made on its own reads the inputs its handler has
+            inputs = self.event_handler._inputs
+        else:
+            # The handler reads the stream's inputs too (latest_args)
+            self.event_handler._use_inputs(inputs)
+        self.inputs = inputs
         self.event_handler._clear_queue = self.clear_queue
         self.current_timestamp = 0
         self.queue: asyncio.Queue = asyncio.Queue()
@@ -520,7 +548,7 @@ class AudioCallback(AudioStreamTrack):
         self.event_handler.set_channel(channel)
 
     def set_args(self, args: list[Any]):
-        self.event_handler.set_args(list(args))
+        self.inputs.set(args)
 
     def event_handler_receive(self, frame: tuple[int, np.ndarray]) -> None:
         current_channel.set(self.event_handler.channel)
@@ -693,11 +721,12 @@ class ServerToClientVideo(VideoStreamTrack):
         channel: DataChannel | None = None,
         set_additional_outputs: Callable | None = None,
         fps: int = 30,
+        inputs: StreamInputs | None = None,
     ) -> None:
         super().__init__()
         self.event_handler = event_handler
-        self.args_set = asyncio.Event()
-        self.latest_args: list[Any] = []
+        # The stream's extra inputs: the generator starts once they arrive
+        self.inputs = inputs if inputs is not None else StreamInputs()
         self.generator = HandlerGenerator()
         self.channel = channel
         self.set_additional_outputs = set_additional_outputs
@@ -713,9 +742,20 @@ class ServerToClientVideo(VideoStreamTrack):
     def set_channel(self, channel: DataChannel):
         self.channel = channel
 
+    @property
+    def latest_args(self) -> list[Any]:
+        return self.inputs.latest
+
+    @latest_args.setter
+    def latest_args(self, values: list[Any]) -> None:
+        self.inputs.values = list(values)
+
+    @property
+    def args_set(self) -> asyncio.Event:
+        return self.inputs.arrived
+
     def set_args(self, args: list[Any]):
-        self.latest_args = list(args)
-        self.args_set.set()
+        self.inputs.set(args)
 
     async def next_timestamp(self) -> tuple[int, fractions.Fraction]:
         if self.readyState != "live":
@@ -797,12 +837,13 @@ class ServerToClientAudio(AudioStreamTrack):
         context: Context,
         channel: DataChannel | None = None,
         set_additional_outputs: Callable | None = None,
+        inputs: StreamInputs | None = None,
     ) -> None:
         self.generator = HandlerGenerator()
         self.event_handler = event_handler
         self.current_timestamp = 0
-        self.latest_args: list[Any] = []
-        self.args_set = asyncio.Event()
+        # The stream's extra inputs: the generator starts once they arrive
+        self.inputs = inputs if inputs is not None else StreamInputs()
         # The generator waits for playback instead of running far ahead of it
         self.queue: asyncio.Queue = asyncio.Queue(maxsize=RECEIVE_AUDIO_BUFFER)
         self.thread_quit = asyncio.Event()
@@ -824,9 +865,20 @@ class ServerToClientAudio(AudioStreamTrack):
     def set_channel(self, channel: DataChannel):
         self.channel = channel
 
+    @property
+    def latest_args(self) -> list[Any]:
+        return self.inputs.latest
+
+    @latest_args.setter
+    def latest_args(self, values: list[Any]) -> None:
+        self.inputs.values = list(values)
+
+    @property
+    def args_set(self) -> asyncio.Event:
+        return self.inputs.arrived
+
     def set_args(self, args: list[Any]):
-        self.latest_args = list(args)
-        self.args_set.set()
+        self.inputs.set(args)
 
     async def next_in_thread(self) -> Any:
         # The inputs are awaited here rather than in the thread: a wait that

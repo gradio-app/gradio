@@ -100,6 +100,42 @@ class Context:
     webrtc_id: str
 
 
+class StreamInputs:
+    """
+    The latest values of the extra inputs of a stream, which all its tracks
+    and its handler read. `values` is None until they first arrive.
+    """
+
+    def __init__(self) -> None:
+        self.values: list[Any] | None = None
+        self.arrived = asyncio.Event()
+
+    @property
+    def latest(self) -> list[Any]:
+        return self.values if self.values is not None else []
+
+    def set(self, values: list[Any]) -> None:
+        self.values = list(values)
+        self.arrived.set()
+
+
+# Set on an app's Blocks when a WebRTC stream handler is attached to it
+_HAS_STREAMS = "_has_webrtc_streams"
+
+
+def mark_streaming(blocks: Any) -> None:
+    """Records that the app of `blocks` (a Blocks, or a BlocksConfig) has a
+    WebRTC stream handler, so that its signalling routes wait for streams."""
+    setattr(getattr(blocks, "root_block", blocks), _HAS_STREAMS, True)
+
+
+def has_streams(blocks: Any) -> bool:
+    """Whether `mark_streaming` was called for the app of `blocks`. Signalling
+    for an app without a stream handler is answered at once: no stream can be
+    admitted."""
+    return bool(getattr(blocks, _HAS_STREAMS, False))
+
+
 current_channel: ContextVar[DataChannel | None] = ContextVar(
     "current_channel", default=None
 )

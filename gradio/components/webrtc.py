@@ -30,7 +30,12 @@ from gradio.webrtc.handlers import (
     VideoOptions,
     VideoStreamHandler,
 )
-from gradio.webrtc.utils import WEBRTC_EXTRA_HINT, is_async, is_async_generator
+from gradio.webrtc.utils import (
+    WEBRTC_EXTRA_HINT,
+    is_async,
+    is_async_generator,
+    mark_streaming,
+)
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -517,6 +522,8 @@ class WebRTC(Component):
         self.time_limit = time_limit
         self._num_extra_outputs = len(extra_outputs)
         self._has_stream = True
+        # Signalling waits for streams only in an app that has a handler
+        mark_streaming(root_block)
         manager = webrtc_connection.register_manager(
             self._id,
             handler=fn,
@@ -685,6 +692,7 @@ def server_stream(
             f"An endpoint named {name!r} already exists. Pass a different "
             "name to server.webrtc(name=...)."
         )
+    mark_streaming(root_block)
     manager = connection.ConnectionManager(
         handler=fn,
         mode=mode,
