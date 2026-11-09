@@ -302,6 +302,24 @@ class App(FastAPI):
             raise ValueError("No Blocks has been configured for this app.")
         return self.blocks
 
+    async def get_current_user(self, request: fastapi.Request) -> str | None:
+        """Returns the logged-in user for a request, or None if there is no logged-in user."""
+        if self.auth_dependency is not None:
+            user = self.auth_dependency(request)
+            if inspect.isawaitable(user):
+                user = await user
+            return user
+        token = request.cookies.get(
+            f"access-token-{self.cookie_id}"
+        ) or request.cookies.get(f"access-token-unsecure-{self.cookie_id}")
+        return self.tokens.get(token)
+
+    async def is_authenticated(self, request: fastapi.Request) -> bool:
+        """Returns True if the app has no authentication or the request comes from a logged-in user."""
+        if self.auth is None and self.auth_dependency is None:
+            return True
+        return await self.get_current_user(request) is not None
+
     def build_proxy_request(self, url_path):
         url = httpx.URL(route_utils.requote_proxied_url(url_path))
         assert self.blocks  # noqa: S101
@@ -425,15 +443,7 @@ class App(FastAPI):
         @router.get("/user")
         @router.get("/user/")
         async def get_current_user(request: fastapi.Request) -> str | None:
-            if app.auth_dependency is not None:
-                user = app.auth_dependency(request)
-                if inspect.isawaitable(user):
-                    user = await user
-                return user
-            token = request.cookies.get(
-                f"access-token-{app.cookie_id}"
-            ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
-            return app.tokens.get(token)
+            return await app.get_current_user(request)
 
         @router.get("/login_check")
         @router.get("/login_check/")
