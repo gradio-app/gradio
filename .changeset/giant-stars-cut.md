@@ -1,6 +1,7 @@
 ---
 "@gradio/client": minor
 "@gradio/core": minor
+"@gradio/workflowcanvas": minor
 "@self/spa": minor
 "gradio": minor
 ---
