@@ -1142,24 +1142,3 @@ def set_input(webrtc_id: Any, session_hash: str | None, *args: Any) -> None:
     stream = registry.get(webrtc_id) if registry is not None else None
     if stream is not None and stream.owned_by(session_hash):
         stream.set_inputs(list(args))
-
-
-# The manager registered for each component id, which the component's config
-# reads (its time limit, whether it has a stream). Streams themselves go by
-# their registry. Weak, so that a manager goes away with the event that streams
-# through it: the event's function holds it (see `WebRTC.stream()`). A
-# component created by @gr.render or replaced by a reload thus does not keep
-# its handler alive.
-_managers: weakref.WeakValueDictionary[int, ConnectionManager] = (
-    weakref.WeakValueDictionary()
-)
-
-
-def register_manager(component_id: int, **kwargs: Any) -> ConnectionManager:
-    manager = ConnectionManager(**kwargs)
-    _managers[component_id] = manager
-    return manager
-
-
-def get_manager(component_id: int) -> ConnectionManager | None:
-    return _managers.get(component_id)

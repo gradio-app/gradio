@@ -266,12 +266,9 @@ class WebRTC(Component):
     def get_config(self, cls: type[Block] | None = None) -> dict[str, Any]:
         config = super().get_config(cls)
         config.pop("video_bitrate", None)
-        manager = self._manager()
-        config["time_limit"] = manager.time_limit if manager else self.time_limit
+        config["has_stream"], config["time_limit"] = self._stream_settings()
         config["track_constraints"] = self._track_constraints()
         config["mirror_webcam"] = self.webcam_options.mirror
-        # The registry can hold another render's manager for this id, or none
-        config["has_stream"] = manager is not None or self._has_stream
         options = self.stream_options
         config["stream_options"] = {
             # gr.I18n translations become markers that the frontend translates
@@ -384,8 +381,7 @@ class WebRTC(Component):
         self.time_limit = time_limit
         self._num_extra_outputs = len(extra_outputs)
         self._has_stream = True
-        manager = webrtc_connection.register_manager(
-            self._id,
+        manager = webrtc_connection.ConnectionManager(
             handler=fn,
             mode=self.mode,
             modality=self.modality,
@@ -396,9 +392,8 @@ class WebRTC(Component):
             rtc_configuration=self._rtc_configuration,
         )
 
-        # The event holds this stream()'s own manager, and keeps it alive for as
-        # long as the app (or the render that created it) has the event, since
-        # the registry holds managers weakly
+        # Only the event holds this stream()'s manager, so the manager goes
+        # away with it (e.g. when a @gr.render replaces its events)
         async def run_stream(webrtc_id: str | None) -> Any:
             return await self._run_stream(manager, webrtc_id)
 
@@ -459,26 +454,29 @@ class WebRTC(Component):
             )
         return Dependency(self, stream_fn.get_config(), stream_index, fn)
 
-    def _stream_id(self) -> int:
+    def _stream_settings(self) -> tuple[bool, float | None]:
         """
-        The id this component was registered under in `stream()`, for its
-        config. When an event updates the component (`gr.update(...)`), Gradio
-        gives the session a new instance with its own id, stored under the
-        original id in the session's blocks.
+        Whether the component has a stream, and the stream's time limit, for
+        its config: from the stream event that targets it in the blocks being
+        served, else from what its own `stream()` call set. When an event
+        updates the component (`gr.update(...)`), Gradio gives the session a
+        new instance with its own id, stored under the original id in the
+        session's blocks, which the stream event targets.
         """
         blocks_config = LocalContext.blocks_config.get(None)
-        if blocks_config is not None:
-            for block_id, block in blocks_config.blocks.items():
-                if block is self:
-                    return block_id
-        return self._id
-
-    def _manager(self) -> ConnectionManager | None:
-        try:
-            from gradio.webrtc.connection import get_manager
-        except ImportError:
-            return None
-        return get_manager(self._stream_id())
+        if blocks_config is None:
+            return self._has_stream, self.time_limit
+        stream_id = next(
+            (block_id for block_id, b in blocks_config.blocks.items() if b is self),
+            self._id,
+        )
+        stream_fn = None
+        for fn in blocks_config.fns.values():
+            if (stream_id, "stream") in [tuple(target) for target in fn.targets]:
+                stream_fn = fn
+        if stream_fn is None:
+            return False, None
+        return True, stream_fn.time_limit
 
     async def _push_inputs(self, webrtc_id: str | None, *args: Any) -> None:
         try:

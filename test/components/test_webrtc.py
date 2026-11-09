@@ -32,7 +32,19 @@ from gradio.webrtc import (
     VideoStreamHandler,
 )
 from gradio.webrtc import connection as webrtc_connection
-from gradio.webrtc.connection import get_manager
+
+
+def manager_of(blocks, webrtc):
+    """The ConnectionManager that `webrtc.stream()` created, which the function
+    of its stream event holds."""
+    import inspect
+
+    stream_fn = next(
+        fn
+        for fn in blocks.fns.values()
+        if (webrtc._id, "stream") in [tuple(t) for t in fn.targets]
+    )
+    return inspect.getclosurevars(stream_fn.fn).nonlocals["manager"]
 
 
 def queue_event(event_id="event", session_hash=None):
@@ -759,32 +771,46 @@ class TestWebRTC:
         assert start.queue is False
 
         assert webrtc.get_config()["time_limit"] == 30
-        manager = get_manager(webrtc._id)
-        assert manager is not None
+        manager = manager_of(demo, webrtc)
         assert manager.time_limit == 30
-        assert get_manager(receive._id).mode == "receive"
+        assert manager_of(demo, receive).mode == "receive"
 
-    def test_config_has_stream_when_its_id_is_registered_by_another_render(self):
+    def test_config_has_stream_only_for_a_component_with_one(self):
         with gr.Blocks():
             webrtc = gr.WebRTC()
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc], time_limit=30)
-        # As when a keyed @gr.render component of another session registers
-        # under the same id, and that render is gone
-        other = webrtc_connection.register_manager(
-            webrtc._id,
-            handler=flip,
-            mode="send-receive",
-            modality="video",
-            time_limit=None,
-            allow_extra_tracks=False,
-            server_rtc_configuration=None,
-        )
-        del other
-        gc.collect()
-        assert get_manager(webrtc._id) is None
+            # As when a keyed @gr.render component gets the same id in another
+            # session, whose render does not call stream()
+            other = gr.WebRTC()
+        other._id = webrtc._id
         config = webrtc.get_config()
         assert config["has_stream"]
         assert config["time_limit"] == 30
+        config = other.get_config()
+        assert not config["has_stream"]
+        assert config["time_limit"] is None
+
+    def test_config_of_an_updated_copy_comes_from_the_stream_event(self):
+        import copy
+
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC()
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc], time_limit=30)
+        # gr.update() gives the session a new instance, with its own id, stored
+        # under the original id in the session's blocks
+        updated = gr.WebRTC(**{**webrtc.constructor_args, "render": False})
+        assert updated._id != webrtc._id
+        session_config = copy.copy(demo.default_config)
+        session_config.blocks = {**session_config.blocks, webrtc._id: updated}
+        token = LocalContext.blocks_config.set(session_config)
+        try:
+            config = updated.get_config()
+        finally:
+            LocalContext.blocks_config.reset(token)
+        assert config["has_stream"]
+        assert config["time_limit"] == 30
+        # Without the session's blocks, the copy knows of no stream
+        assert not updated.get_config()["has_stream"]
 
     def test_stream_in_a_render(self):
         import copy
@@ -862,8 +888,7 @@ class TestWebRTC:
             number = gr.Number()
             text = gr.Textbox()
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc, number, text])
-        manager = get_manager(webrtc._id)
-        assert manager is not None
+        manager = manager_of(demo, webrtc)
         event = FakeEvent()
         # Keys the app's stream registry, so not a SimpleNamespace
         queue = cast(Any, UnitQueue())
@@ -958,9 +983,7 @@ class Harness:
         self.demo = demo
         self.api = f"{local_url.rstrip('/')}{API_PREFIX}"
         self.webrtc = webrtc
-        manager = get_manager(webrtc._id)
-        assert manager is not None
-        self.manager = manager
+        self.manager = manager_of(demo, webrtc)
         self.stream_fn = next(
             fn
             for fn in demo.fns.values()
@@ -1806,33 +1829,6 @@ class TestStreams:
             await connection.close()
 
     @pytest.mark.asyncio
-    async def test_a_stream_stays_with_its_manager_when_its_component_id_is_reused(
-        self, launched
-    ):
-        h = launched
-        await h.start("one")
-        # As when @gr.render creates a keyed component again, in another
-        # session or a later render: the same id gets another manager
-        other = webrtc_connection.register_manager(
-            h.webrtc._id,
-            handler=flip,
-            mode="send-receive",
-            modality="video",
-            time_limit=None,
-            allow_extra_tracks=False,
-            server_rtc_configuration=None,
-        )
-        # ...and that other session's render may then be gone
-        del other
-        gc.collect()
-        assert get_manager(h.webrtc._id) is None
-        pc = await make_offer(video=True)
-        await h.connect(pc, "one")
-        await h.push_inputs("one", 0.2)
-        assert tracks_of(h.manager, "one")[0].latest_args == [0.2]
-        await pc.close()
-
-    @pytest.mark.asyncio
     async def test_only_a_stream_with_its_turn_gets_the_rtc_configuration(
         self, launched
     ):
@@ -1905,11 +1901,10 @@ class TestStreams:
         self, monkeypatch
     ):
         monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.3)
-        with gr.Blocks():
+        with gr.Blocks() as demo:
             webrtc = gr.WebRTC()
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
-        manager = get_manager(webrtc._id)
-        assert manager is not None
+        manager = manager_of(demo, webrtc)
         registry = unit_registry()
         wait = registry.wait_for_admission
         # Both the offer and get_rtc_configuration may wait for the turn
@@ -2435,8 +2430,8 @@ class TestStreams:
                 flip, inputs=[signed_in_webrtc], outputs=[signed_in_webrtc]
             )
         managers = {
-            "broken": get_manager(broken_webrtc._id),
-            "signed_in": get_manager(signed_in_webrtc._id),
+            "broken": manager_of(demo, broken_webrtc),
+            "signed_in": manager_of(demo, signed_in_webrtc),
         }
         monkeypatch.setattr(
             webrtc_connection, "stream_admitted", admitted_anyway(managers)
@@ -2477,7 +2472,7 @@ class TestStreams:
         monkeypatch.setattr(
             webrtc_connection,
             "stream_admitted",
-            admitted_anyway({"one": get_manager(webrtc._id)}),
+            admitted_anyway({"one": manager_of(demo, webrtc)}),
         )
         with closing(demo):
             _, local_url, _ = demo.launch(
@@ -4752,12 +4747,12 @@ class TestCleanUp:
         await asyncio.gather(pending, return_exceptions=True)
 
     def test_a_manager_goes_away_with_its_stream_event(self):
-        import gc
+        import weakref
 
         with gr.Blocks() as demo:
             webrtc = gr.WebRTC()
             webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
-        assert get_manager(webrtc._id) is not None
+        manager = weakref.ref(manager_of(demo, webrtc))
         # As when @gr.render replaces the components and events it created
         stream_fn_id = next(
             fn_id
@@ -4766,7 +4761,7 @@ class TestCleanUp:
         )
         del demo.fns[stream_fn_id]
         gc.collect()
-        assert get_manager(webrtc._id) is None
+        assert manager() is None
 
 
 @pytest.mark.asyncio
@@ -4949,8 +4944,8 @@ def test_server_webrtc_checks_the_handler_when_it_is_declared():
 
 @pytest.mark.parametrize("other", ["api", "webrtc"])
 def test_a_server_webrtc_endpoint_needs_a_name_of_its_own(other):
-    from gradio.webrtc.endpoint import server_stream
     from gradio.events import api as gr_api
+    from gradio.webrtc.endpoint import server_stream
 
     def flip_text(text: str) -> str:  # an endpoint that is not a stream
         return text[::-1]
