@@ -107,7 +107,7 @@ def test_mounted_app_uses_default_middleware_and_gradio_function_context(monkeyp
     from fastapi.testclient import TestClient
     from spaces.zero import context, middleware
 
-    from gradio.zerogpu import exception_mapper
+    from gradio.context import MultiprocessWorkerContextualizer
 
     startups = []
     monkeypatch.setenv("SPACES_ZERO_GPU", "true")
@@ -119,12 +119,12 @@ def test_mounted_app_uses_default_middleware_and_gradio_function_context(monkeyp
     @app.get("/custom")
     def custom():
         ctx = context.get()
-        assert ctx.exception_mapper is context.exception_mapper_default
+        assert ctx.worker_contextualizer is context.WorkerContextualizerDefault
         return [ctx.headers["x-test-context"], sorted(ctx.server_ports)]
 
     def predict():
         ctx = context.get()
-        assert ctx.exception_mapper is exception_mapper
+        assert ctx.worker_contextualizer is MultiprocessWorkerContextualizer
         return [ctx.headers["x-test-context"], sorted(ctx.server_ports)]
 
     with gr.Blocks() as demo:

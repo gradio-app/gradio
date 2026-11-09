@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
 import fastapi
+from gradio_client.exceptions import AppError
 
 from gradio import utils
 from gradio.context import LocalContext, MultiprocessWorkerContextualizer
@@ -19,9 +20,14 @@ if TYPE_CHECKING:
 
 
 def exception_mapper(err: ZeroGPUErrorResponse, exc: Exception | None):
-    if isinstance(exc, Error):
-        exc.print_exception = False
-        return exc
+    if isinstance(exc, AppError):
+        return Error(
+            message=exc.message,
+            title=exc.title,
+            duration=exc.duration,
+            visible=exc.visible,
+            print_exception=False,
+        )
     detail = err["detail"]
     return Error(
         title=detail["title"],
@@ -76,14 +82,13 @@ def maybe_setup_zerogpu_context(
         return
 
     try:
-        from spaces.zero import context
+        from spaces.zero import ZeroGPUException, ZeroGPUTaskException, context
     except ImportError:
         yield
         return
 
     with context.set_context_var(
         context.ZeroGPUContext(
-            exception_mapper=exception_mapper,
             log_emitter=log_emitter,
             worker_contextualizer=MultiprocessWorkerContextualizer,
             disconnect_detector=disconnect_detector,
@@ -91,7 +96,12 @@ def maybe_setup_zerogpu_context(
             headers=dict(request.headers) if request is not None else {},
         )
     ):
-        yield
+        try:
+            yield
+        except ZeroGPUTaskException as error:
+            raise exception_mapper(error.error, error.worker_exception) from error
+        except ZeroGPUException as error:
+            raise exception_mapper(error.error, None) from error
 
 
 def _get_server_ports(blocks: Blocks, req: Request | fastapi.Request | None):
