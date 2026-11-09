@@ -855,6 +855,48 @@ describe("WebRTC queue turn", () => {
 		expect(getByRole("button", { name: "start stream" })).toBeVisible();
 	});
 
+	test.each([
+		["webcam", { modality: "video", mode: "send-receive" }],
+		["microphone", { modality: "audio", mode: "send-receive" }],
+		["video player", { modality: "video", mode: "receive" }],
+		["audio player", { modality: "audio", mode: "receive" }]
+	] as const)(
+		"a stopped connection that fails says nothing (%s)",
+		async (_, props) => {
+			const server = make_server();
+			const { getByRole, getByText, listen, set_data } = await render(WebRTC, {
+				...base_props,
+				...props,
+				client: server
+			});
+			const error = listen("error");
+			if (props.mode === "receive") {
+				await set_data({ value: START_STREAM });
+			} else {
+				await fireEvent.click(
+					getByText(
+						props.modality === "video"
+							? "Click to Access Webcam"
+							: "Click to Access Microphone"
+					)
+				);
+				await waitFor(() =>
+					expect(getByRole("button", { name: "start stream" })).toBeVisible()
+				);
+				await fireEvent.click(getByRole("button", { name: "start stream" }));
+			}
+			await admit(set_data);
+			await waitFor(() => expect(server.offer).toHaveBeenCalledTimes(1));
+			const pc = FakePeerConnection.instances[0];
+			await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
+			// stop() closes the connection 500 ms later, so it can still fail
+			pc.set_state("failed");
+			await tick();
+			await tick();
+			expect(error).not.toHaveBeenCalled();
+		}
+	);
+
 	test("an ended receive connection cannot stop its replacement", async () => {
 		const server = make_server();
 		const { set_data, getByTestId } = await render(WebRTC, {

@@ -115,8 +115,9 @@
 				if (pc === connection) close_stream();
 			},
 			failed: () => {
+				if (pc !== connection) return;
 				onerror?.("Connection failed!");
-				if (pc === connection) close_stream();
+				close_stream();
 			},
 			slow: () => onmessage?.({ type: "connection_timeout" })
 		});
