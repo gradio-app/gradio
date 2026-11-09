@@ -1069,7 +1069,7 @@ class Harness:
 
     def handler(self, webrtc_id):
         """The handler instance of a stream, which all its tracks share."""
-        return self.manager.connections[webrtc_id][0].event_handler
+        return tracks_of(self.manager, webrtc_id)[0].event_handler
 
 
 def completed(messages):
@@ -1082,6 +1082,30 @@ def forget_earlier_streams() -> None:
     webrtc_connection._streams.clear()
     webrtc_connection._admissions.clear()
     webrtc_connection._pending_candidates.clear()
+
+
+# Tests read and set a stream's connection only through these, not through the
+# manager's attributes, so that how the manager keeps it can change
+def live_pc(manager, webrtc_id):
+    """The stream's peer connection, until the stream's clean-up releases it."""
+    return manager.pcs.get(webrtc_id)
+
+
+def tracks_of(manager, webrtc_id):
+    """The tracks of the stream's connection, until its clean-up releases them."""
+    return manager.connections.get(webrtc_id, [])
+
+
+def attach(manager, webrtc_id, *, pc=None, tracks=()):
+    """
+    Gives a stream a connection with these tracks without signalling, for
+    tests of its clean-up. Admits the stream first if nothing did.
+    """
+    if webrtc_id not in manager.sessions:
+        manager.sessions[webrtc_id] = webrtc_connection.Session(event=queue_event()[1])
+    if pc is not None:
+        manager.pcs[webrtc_id] = pc
+    manager.connections[webrtc_id].extend(tracks)
 
 
 class TestStreams:
@@ -1151,7 +1175,7 @@ class TestStreams:
         assert "m=video" in answer["sdp"]
         assert "webrtc-datachannel" in answer["sdp"]
         assert answer["time_limit"] is None
-        assert "one" in h.manager.pcs
+        assert live_pc(h.manager, "one") is not None
         await pc.close()
 
     async def stream_until_message(self, h, pc, type_):
@@ -1173,7 +1197,7 @@ class TestStreams:
         message = await self.stream_until_message(h, pc, "error")
         assert message["message"] == "Bad frame"
         assert message["title"] == "Oops"
-        await h.wait_until(lambda: "one" not in h.manager.pcs)
+        await h.wait_until(lambda: live_pc(h.manager, "one") is None)
         # The event fails too, for .failure() and a page that resumes it,
         # without showing the error a second time
         messages = await h.messages("one", completed)
@@ -1239,7 +1263,7 @@ class TestStreams:
         message = await self.stream_until_message(h, pc, "error")
         assert message["message"] == ("internal detail" if show_error else "")
         assert message["title"] == "Error"
-        await h.wait_until(lambda: "one" not in h.manager.pcs)
+        await h.wait_until(lambda: live_pc(h.manager, "one") is None)
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1249,7 +1273,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         message = await self.stream_until_message(h, pc, "warning")
         assert message["message"] == "Careful"
-        assert "one" in h.manager.pcs
+        assert live_pc(h.manager, "one") is not None
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1292,7 +1316,7 @@ class TestStreams:
         pc = await make_offer(**offer)
         message = await self.stream_until_message(h, pc, "error")
         assert message["message"] == "Bad audio"
-        await h.wait_until(lambda: "one" not in h.manager.pcs)
+        await h.wait_until(lambda: live_pc(h.manager, "one") is None)
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1343,7 +1367,7 @@ class TestStreams:
             "x-google-max-bitrate=4000" in answer["sdp"]
         )
         # The video the server sends back
-        (sender,) = [s for s in h.manager.pcs["one"].getSenders() if s.track]
+        (sender,) = [s for s in live_pc(h.manager, "one").getSenders() if s.track]
         encoder = sender._RTCRtpSender__encoder
         assert encoder.target_bitrate == 1_500_000
         encoder.target_bitrate = 10_000_000
@@ -1362,7 +1386,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         answer = await h.offer(pc, "one", mirror=mirror)
         assert answer["type"] == "answer"
-        assert h.manager.connections["one"][0].mirror is mirror
+        assert tracks_of(h.manager, "one")[0].mirror is mirror
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1371,7 +1395,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         response = await h.offer(pc, "stranger")
         assert response["meta"]["error"] == "not_admitted"
-        assert "stranger" not in h.manager.pcs
+        assert live_pc(h.manager, "stranger") is None
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1404,7 +1428,7 @@ class TestStreams:
         await h.http.post(f"{h.api}/stream/{event_id}/close")
         messages = await h.messages("one", completed)
         assert completed(messages)
-        await h.wait_until(lambda: "one" not in h.manager.pcs)
+        await h.wait_until(lambda: live_pc(h.manager, "one") is None)
         await h.wait_until(lambda: "one" not in h.manager.sessions)
         await pc.close()
 
@@ -1480,7 +1504,7 @@ class TestStreams:
         started = time.monotonic()
         await h.wait_until(lambda: not h.event_running(event_id), timeout=5)
         assert time.monotonic() - started < 2
-        await h.wait_until(lambda: "one" not in h.manager.pcs)
+        await h.wait_until(lambda: live_pc(h.manager, "one") is None)
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1535,7 +1559,7 @@ class TestStreams:
         await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        track = h.manager.connections["one"][0]
+        track = tracks_of(h.manager, "one")[0]
         # Nothing from the time the user clicked: the handler asks the page
         assert track.latest_args is None
         await h.push_inputs("one", 0.2)
@@ -1616,7 +1640,7 @@ class TestStreams:
         response = await h.offer(pc, "one")
         assert response["status"] == "failed"
         assert response["meta"]["error"] == "unsupported_track"
-        assert "one" not in h.manager.pcs
+        assert live_pc(h.manager, "one") is None
         messages = await h.messages("one", completed)
         completion = next(m for m in messages if m["msg"] == "process_completed")
         assert completion["success"] is False
@@ -1690,7 +1714,7 @@ class TestStreams:
         # ...nor feed its handler
         await h.push_inputs("one", 0.2)
         await h.push_inputs("one", 0.9, session_hash="intruder")
-        assert h.manager.connections["one"][0].latest_args == [0.2]
+        assert tracks_of(h.manager, "one")[0].latest_args == [0.2]
         for connection in (intruder, pc):
             await connection.close()
 
@@ -1718,7 +1742,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         await h.push_inputs("one", 0.2)
-        assert h.manager.connections["one"][0].latest_args == [0.2]
+        assert tracks_of(h.manager, "one")[0].latest_args == [0.2]
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1912,7 +1936,7 @@ class TestStreams:
             "error": "setup_failed",
             "message": "Model not found",
         }
-        assert "one" not in h.manager.pcs
+        assert live_pc(h.manager, "one") is None
         messages = await h.messages("one", completed)
         completion = next(m for m in messages if m["msg"] == "process_completed")
         assert completion["success"] is False
@@ -1951,7 +1975,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         await h.push_inputs("one", 0.5)
-        track = h.manager.connections["one"][0]
+        track = tracks_of(h.manager, "one")[0]
         assert track.latest_args == [0.5]
         await pc.close()
 
@@ -1993,7 +2017,7 @@ class TestStreams:
         answer = await h.offer(pc, "one")
         assert answer["type"] == "answer"
         assert "a=sendonly" in answer["sdp"]
-        track = h.manager.connections["one"][0]
+        track = tracks_of(h.manager, "one")[0]
         assert track.fps == 5
         # The generator starts with the values the page sends when asked
         assert not track.args_set.is_set()
@@ -2012,7 +2036,7 @@ class TestStreams:
         event_id = await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        server_pc = h.manager.pcs["one"]
+        server_pc = live_pc(h.manager, "one")
         await h.push_inputs("one", 0)
         # The handler ends the stream: the server closes its side and the
         # event, whether or not the browser reacts to "end_stream"
@@ -2109,7 +2133,7 @@ class TestStreams:
         event_id = await h.start("one")
         pc = await make_offer(audio=True)
         await h.connect(pc, "one")
-        server_pc = h.manager.pcs["one"]
+        server_pc = live_pc(h.manager, "one")
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
         # Nothing plays back in "send", but CloseStream still ends the stream
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
@@ -2162,7 +2186,7 @@ class TestStreams:
         event_id = await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        server_pc = h.manager.pcs["one"]
+        server_pc = live_pc(h.manager, "one")
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
         await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=10)
         await h.wait_until(lambda: not h.event_running(event_id))
@@ -2174,7 +2198,7 @@ class TestStreams:
         event_id = await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        server_pc = h.manager.pcs["one"]
+        server_pc = live_pc(h.manager, "one")
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
         # What the page sends for `stop.click(None, cancels=[stream])`
         await h.http.post(
@@ -2264,7 +2288,7 @@ class TestStreams:
         await h.start("one")
         pc = await make_offer(receive="video")
         await h.connect(pc, "one")
-        server_pc = h.manager.pcs["one"]
+        server_pc = live_pc(h.manager, "one")
         await h.push_inputs("one", 0)
         # The generator runs out: the server closes its side of the connection
         # instead of leaving it to the client
@@ -2998,7 +3022,7 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         await h.start("one")
         started = time.monotonic()
         await h.connect(pc, "one")
-        server_pc = h.manager.pcs["one"]
+        server_pc = live_pc(h.manager, "one")
         await h.push_inputs("one")
         await h.wait_until(lambda: h.manager.sessions["one"].connected)
         # A long job takes the only worker slot while the stream waits
@@ -4260,14 +4284,18 @@ class TestCleanUp:
         manager = self.manager()
         handle = self.Handle()
         assert manager.admit("one", cast(Any, handle))
-        manager.pcs["one"] = cast(Any, self.FailingClose())
-        manager.connections["one"].append(TestVideoTracks.callback(flip))
+        attach(
+            manager,
+            "one",
+            pc=cast(Any, self.FailingClose()),
+            tracks=[TestVideoTracks.callback(flip)],
+        )
         handle.live = False
         watcher = manager.sessions["one"].watcher
         assert watcher is not None
         with pytest.raises(RuntimeError, match="close failed"):
             await asyncio.wait_for(watcher, 2)
-        assert "one" not in manager.connections
+        assert not tracks_of(manager, "one")
         assert "one" not in manager.sessions
         assert "one" not in webrtc_connection._streams
         assert "event" not in webrtc_connection._admitted
@@ -4379,10 +4407,10 @@ class TestCleanUp:
         # connection, an ended track) stops all tracks of the connection
         manager = self.manager()
         tracks = [TestVideoTracks.callback(flip) for _ in range(2)]
-        manager.connections["one"].extend(tracks)
+        attach(manager, "one", tracks=tracks)
         manager.clean_up("one")
         assert [track.readyState for track in tracks] == ["ended", "ended"]
-        assert "one" not in manager.connections
+        assert not tracks_of(manager, "one")
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("channel", [None, "connecting", "open", "closed"])
@@ -4432,10 +4460,14 @@ class TestCleanUp:
         handler = EchoHandler()
         handler._loop = asyncio.get_running_loop()
         manager = self.manager()
-        manager.connections["one"].append(
-            AudioCallback(
-                AudioStreamTrack(), event_handler=handler, context=Context("one")
-            )
+        attach(
+            manager,
+            "one",
+            tracks=[
+                AudioCallback(
+                    AudioStreamTrack(), event_handler=handler, context=Context("one")
+                )
+            ],
         )
         waiting = asyncio.create_task(handler.wait_for_args())
         await asyncio.sleep(0.05)
@@ -4545,7 +4577,7 @@ class TestCleanUp:
             track = ServerToClientVideo(generate, context=Context("one"))
         else:
             track = ServerToClientAudio(generate, context=Context("one"))
-        manager.connections["one"].append(track)
+        attach(manager, "one", tracks=[track])
         track.set_args([])
         await track.recv()
         pending = asyncio.create_task(track.recv())
