@@ -1088,12 +1088,14 @@ def forget_earlier_streams() -> None:
 # manager's attributes, so that how the manager keeps it can change
 def live_pc(manager, webrtc_id):
     """The stream's peer connection, until the stream's clean-up releases it."""
-    return manager.pcs.get(webrtc_id)
+    connection = manager.connection(webrtc_id)
+    return connection.pc if connection is not None else None
 
 
 def tracks_of(manager, webrtc_id):
     """The tracks of the stream's connection, until its clean-up releases them."""
-    return manager.connections.get(webrtc_id, [])
+    connection = manager.connection(webrtc_id)
+    return connection.tracks if connection is not None else []
 
 
 def attach(manager, webrtc_id, *, pc=None, tracks=()):
@@ -1103,9 +1105,15 @@ def attach(manager, webrtc_id, *, pc=None, tracks=()):
     """
     if webrtc_id not in manager.sessions:
         manager.sessions[webrtc_id] = webrtc_connection.Session(event=queue_event()[1])
-    if pc is not None:
-        manager.pcs[webrtc_id] = pc
-    manager.connections[webrtc_id].extend(tracks)
+    session = manager.sessions[webrtc_id]
+    if session.connection is None:
+        session.connection = webrtc_connection.Connection(
+            # A stand-in that needs no closing
+            pc=pc
+            if pc is not None
+            else cast(Any, SimpleNamespace(connectionState="closed"))
+        )
+    session.connection.tracks.extend(tracks)
 
 
 class TestStreams:

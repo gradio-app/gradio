@@ -131,6 +131,21 @@ _pending_candidates: OrderedDict[str, list[tuple[str | None, RTCIceCandidate]]] 
 
 
 @dataclass
+class Connection:
+    """
+    The peer connection of an admitted stream and what hangs off it, from the
+    stream's offer until its clean-up releases them.
+    """
+
+    pc: RTCPeerConnection
+    tracks: list[Track] = field(default_factory=list)
+    channel: Any = None
+    # Set by the clean-up. The stream has ended then, so it cannot connect
+    # again.
+    released: bool = False
+
+
+@dataclass
 class Session:
     """A stream that the queue has let in."""
 
@@ -148,6 +163,9 @@ class Session:
     notifier: StreamNotifier | None = None
     # The page's rtc_configuration, resolved once per stream
     rtc_configuration: asyncio.Future | None = None
+    # Set by the offer. The session outlives it: an ended stream still
+    # delivers its pending outputs through the queue.
+    connection: Connection | None = None
 
     def wake(self) -> None:
         self.last_signal = time.monotonic()
@@ -267,9 +285,6 @@ class ConnectionManager:
         self.server_rtc_configuration = to_rtc_configuration(server_rtc_configuration)
         self.video_bitrate = video_bitrate
         self.sessions: dict[str, Session] = {}
-        self.pcs: dict[str, RTCPeerConnection] = {}
-        self.connections: dict[str, list[Track]] = defaultdict(list)
-        self.data_channels: dict[str, Any] = {}
         self.tasks: set[asyncio.Task] = set()
         self.shutdowns: set[asyncio.Task] = set()
 
@@ -298,6 +313,14 @@ class ConnectionManager:
         session.watcher = self._spawn(self._watch(webrtc_id, session))
         _admissions[webrtc_id].set()
         return True
+
+    def connection(self, webrtc_id: str) -> Connection | None:
+        """The stream's connection, until its clean-up releases it."""
+        session = self.sessions.get(webrtc_id)
+        connection = session.connection if session is not None else None
+        if connection is None or connection.released:
+            return None
+        return connection
 
     @staticmethod
     async def _drain(track: AudioCallback | HandlerVideoTrack) -> None:
@@ -356,9 +379,9 @@ class ConnectionManager:
                     self.end(webrtc_id)
         finally:
             try:
-                pc = self.pcs.get(webrtc_id)
-                if pc is not None:
-                    await pc.close()
+                connection = self.connection(webrtc_id)
+                if connection is not None:
+                    await connection.pc.close()
             finally:
                 self.clean_up(webrtc_id)
                 if self.sessions.get(webrtc_id) is session:
@@ -377,7 +400,9 @@ class ConnectionManager:
         slot, so the stream's place in the concurrency limit is released only
         once one is free.
         """
-        self._close_connection(webrtc_id)
+        connection = self.connection(webrtc_id)
+        if connection is not None:
+            self._close_pc(connection.pc)
         session = self.sessions.get(webrtc_id)
         if session is None or session.ended:
             return
@@ -386,9 +411,8 @@ class ConnectionManager:
             session.notifier.close()
         session.wake()
 
-    def _close_connection(self, webrtc_id: str) -> None:
-        pc = self.pcs.get(webrtc_id)
-        if pc is not None and pc.connectionState != "closed":
+    def _close_pc(self, pc: RTCPeerConnection) -> None:
+        if pc.connectionState != "closed":
             self._spawn(pc.close())
 
     def take_outputs(self, webrtc_id: str) -> AdditionalOutputs | None:
@@ -425,23 +449,32 @@ class ConnectionManager:
             failure = {**failure, "visible": False}
         return failure
 
-    def clean_up(self, webrtc_id: str) -> None:
+    def clean_up(self, webrtc_id: str, connection: Connection | None = None) -> None:
         """
         Releases everything a connection holds: stops its tracks, shuts its
         handler down and ends the stream. Whichever path notices the end first
-        does the work; later calls find nothing left.
+        does the work; later calls only release tracks added since.
+        `connection` is the one to release when the caller holds it (the
+        connection's own callbacks), as the session that lists it may be gone
+        already; otherwise the stream's current one.
         """
-        # Close before letting go: a track that ended (a receive-mode
-        # generator ran out) leaves the connection open otherwise
-        self._close_connection(webrtc_id)
-        self.pcs.pop(webrtc_id, None)
-        connection = self.connections.pop(webrtc_id, [])
-        self.data_channels.pop(webrtc_id, None)
+        if connection is None:
+            session = self.sessions.get(webrtc_id)
+            connection = session.connection if session is not None else None
+        tracks: list[Track] = []
+        if connection is not None:
+            if not connection.released:
+                connection.released = True
+                # Close before letting go: a track that ended (a receive-mode
+                # generator ran out) leaves the connection open otherwise
+                self._close_pc(connection.pc)
+            tracks, connection.tracks = connection.tracks, []
+            connection.channel = None
         _pending_candidates.pop(webrtc_id, None)
         try:
-            for conn in connection:
+            for conn in tracks:
                 # Stopping a track ends its loops; its "ended" event calls
-                # this again, which then finds the id already released
+                # this again, which then finds the connection already released
                 conn.stop()
                 if isinstance(conn, ServerToClientAudio | ServerToClientVideo):
                     self._add_shutdown(conn.close_generator())
@@ -449,7 +482,7 @@ class ConnectionManager:
             # connection share one handler
             handlers = {
                 id(conn.event_handler): conn.event_handler
-                for conn in connection
+                for conn in tracks
                 if isinstance(conn, AudioCallback | HandlerVideoTrack)
                 and isinstance(conn.event_handler, StreamHandlerBase)
             }
@@ -499,9 +532,13 @@ class ConnectionManager:
 
     def set_input(self, webrtc_id: str, session_hash: str | None, *args: Any) -> None:
         """Pushes the current values of the extra inputs into a live connection."""
+        # owns() first: it refuses an id that is not a string
         if not self.owns(webrtc_id, session_hash):
             return
-        for conn in self.connections.get(webrtc_id, []):
+        connection = self.connection(webrtc_id)
+        if connection is None:
+            return
+        for conn in connection.tracks:
             conn.set_args(list(args))
 
     def _output_setter(self, webrtc_id: str) -> Callable[[AdditionalOutputs], None]:
@@ -568,8 +605,8 @@ class ConnectionManager:
         if session is None or session.ended or not self.owns(webrtc_id, session_hash):
             return _failed("not_admitted")
         # Another offer for the same id may have waited for the admission too.
-        # Nothing awaits between this check and claiming the id below.
-        if webrtc_id in self.pcs:
+        # Nothing awaits between this check and claiming the session below.
+        if self.connection(webrtc_id) is not None:
             return _failed("connection_already_exists")
 
         # The handler's tasks and threads are all started from here, so they
@@ -583,19 +620,23 @@ class ConnectionManager:
         )
         LocalContext.stream_notifier.set(notifier)
         session.notifier = notifier
-        pc = RTCPeerConnection(configuration=self.server_rtc_configuration)
-        self.pcs[webrtc_id] = pc
+        connection = Connection(
+            pc=RTCPeerConnection(configuration=self.server_rtc_configuration)
+        )
+        session.connection = connection
         try:
-            return await self._connect(webrtc_id, session, pc, body, request, notifier)
+            return await self._connect(
+                webrtc_id, session, connection, body, request, notifier
+            )
         except Exception as e:
             if not isinstance(e, Error):
                 logger.exception("Could not set up the stream")
-            await pc.close()
+            await connection.pc.close()
             payload = error_payload(e, show_error)
             # The page shows the error from the answer; the event fails too
             notifier.failure = payload
             notifier.failure_shown = True
-            self.clean_up(webrtc_id)
+            self.clean_up(webrtc_id, connection)
             return _failed(
                 "setup_failed", message=payload["error"] or "An error occurred."
             )
@@ -619,11 +660,12 @@ class ConnectionManager:
         self,
         webrtc_id: str,
         session: Session,
-        pc: RTCPeerConnection,
+        connection: Connection,
         body: dict[str, Any],
         request: Any,
         notifier: StreamNotifier,
     ) -> dict[str, Any]:
+        pc = connection.pc
         session_hash = getattr(request, "session_hash", None)
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
         handler = instantiate_handler(self.handler, request)
@@ -638,14 +680,14 @@ class ConnectionManager:
             logger.debug("ICE connection state change %s", pc.iceConnectionState)
             if pc.iceConnectionState == "failed":
                 await pc.close()
-                self.clean_up(webrtc_id)
+                self.clean_up(webrtc_id, connection)
 
         @pc.on("connectionstatechange")
         async def on_connectionstatechange():
             logger.debug("pc.connectionState %s", pc.connectionState)
             if pc.connectionState in ["failed", "closed"]:
                 await pc.close()
-                self.clean_up(webrtc_id)
+                self.clean_up(webrtc_id, connection)
             if pc.connectionState == "connected" and self.sessions.get(webrtc_id) is (
                 session
             ):
@@ -711,13 +753,13 @@ class ConnectionManager:
                 )
                 return
 
-            self.connections[webrtc_id].append(cb)
+            connection.tracks.append(cb)
             # A handler that returns CloseStream stops its track: end the
             # stream here, whether or not the browser reacts to "end_stream"
-            cb.on("ended", lambda: self.clean_up(webrtc_id))
-            if webrtc_id in self.data_channels:
-                for conn in self.connections[webrtc_id]:
-                    conn.set_channel(self.data_channels[webrtc_id])
+            cb.on("ended", lambda: self.clean_up(webrtc_id, connection))
+            if connection.channel is not None:
+                for conn in connection.tracks:
+                    conn.set_channel(connection.channel)
             if self.mode == "send-receive":
                 pc.addTrack(cb)
             elif self.mode == "send" and (
@@ -758,13 +800,13 @@ class ConnectionManager:
                     context=context,
                 )
             pc.addTrack(cb)
-            self.connections[webrtc_id].append(cb)
-            cb.on("ended", lambda: self.clean_up(webrtc_id))
+            connection.tracks.append(cb)
+            cb.on("ended", lambda: self.clean_up(webrtc_id, connection))
 
         @pc.on("datachannel")
         def on_datachannel(channel):
             logger.debug("Data channel established: %s", channel.label)
-            self.data_channels[webrtc_id] = channel
+            connection.channel = channel
             notifier.set_channel(channel)
             if self.inputs_over_channel:
 
@@ -779,15 +821,15 @@ class ConnectionManager:
                         and data.get("type") == "input"
                         and isinstance(data.get("data"), list)
                     ):
-                        for conn in self.connections.get(webrtc_id, []):
+                        for conn in connection.tracks:
                             conn.set_args(list(data["data"]))
 
             async def set_channel():
-                while not self.connections.get(webrtc_id):
-                    if webrtc_id not in self.pcs:
+                while not connection.tracks:
+                    if connection.released:
                         return
                     await asyncio.sleep(0.05)
-                for conn in self.connections[webrtc_id]:
+                for conn in connection.tracks:
                     conn.set_channel(channel)
 
             self._spawn(set_channel())
@@ -798,7 +840,7 @@ class ConnectionManager:
             # As for a handler that cannot start
             notifier.failure = {"error": rejected[0]}
             notifier.failure_shown = True
-            self.clean_up(webrtc_id)
+            self.clean_up(webrtc_id, connection)
             return _failed("unsupported_track", message=rejected[0])
         for sender, candidate in _pending_candidates.pop(webrtc_id, []):
             if sender != session_hash:
@@ -835,7 +877,7 @@ async def handle_signal(body: dict[str, Any], request: Any = None) -> dict[str, 
     if not webrtc_id or "sdp" not in body:
         return _failed("invalid_offer")
     manager = _streams.get(webrtc_id)
-    if manager is not None and webrtc_id in manager.pcs:
+    if manager is not None and manager.connection(webrtc_id) is not None:
         return _failed("connection_already_exists")
     manager = await _wait_for_admission(webrtc_id)
     if manager is None:
@@ -872,7 +914,8 @@ async def _add_ice_candidate(
     # candidate for a stream not admitted for this session is not kept
     if manager is None or not manager.owns(webrtc_id, session_hash):
         return _failed("unknown_connection")
-    pc = manager.pcs.get(webrtc_id)
+    connection = manager.connection(webrtc_id)
+    pc = connection.pc if connection is not None else None
     if pc is not None and pc.connectionState == "closed":
         return _failed("connection_closed")
     try:
