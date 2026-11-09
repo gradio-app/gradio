@@ -512,7 +512,9 @@ class ConnectionManager:
         except Exception:
             # The handler's own clean-up must not keep the stream going
             logger.exception("Stream handler shutdown() failed")
-        handler.reset()
+        # No reset(): each connection has its own handler, and clearing
+        # args_set would block a last call of the handler that still waits
+        # for its inputs (clean_up set args_set to release it)
 
     def owns(self, webrtc_id: str, session_hash: str | None) -> bool:
         """

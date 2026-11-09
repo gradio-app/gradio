@@ -4484,6 +4484,32 @@ class TestCleanUp:
         await asyncio.wait_for(waiting, 1)
 
     @pytest.mark.asyncio
+    async def test_a_handler_call_still_running_after_shutdown_does_not_wait_forever(
+        self,
+    ):
+        from gradio.webrtc.tracks import AudioCallback
+        from gradio.webrtc.utils import Context
+
+        handler = EchoHandler()
+        handler._loop = asyncio.get_running_loop()
+        manager = self.manager()
+        attach(
+            manager,
+            "one",
+            tracks=[
+                AudioCallback(
+                    AudioStreamTrack(), event_handler=handler, context=Context("one")
+                )
+            ],
+        )
+        manager.clean_up("one")
+        await manager._wait_for_shutdowns()
+        # A last call of the handler (e.g. a sync emit() in its thread) may
+        # reach wait_for_args() only now, after shutdown(). Nothing will send
+        # inputs any more, so it must not block for good.
+        await asyncio.wait_for(handler.wait_for_args(), 1)
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("kind", ["audio", "video", "video handler"])
     async def test_a_send_mode_reader_ends_with_its_track(self, kind):
         from gradio.webrtc.tracks import AudioCallback, HandlerVideoTrack
