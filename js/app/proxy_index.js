@@ -39,8 +39,13 @@ proxy.on("error", (err, req, res) => {
 });
 
 // Pass the client's address on to Python, which otherwise sees every request
-// as coming from this process on 127.0.0.1.
+// as coming from this process on 127.0.0.1. On Spaces, the only way in is
+// Hugging Face's proxy, which already appends the visitor's address, so its
+// header is passed through as is and Python sees the visitor, not that proxy.
+const appendClientAddress = !process.env.SPACE_ID;
+
 proxy.on("proxyReq", (proxyReq, req) => {
+	if (!appendClientAddress) return;
 	proxyReq.setHeader(
 		"x-forwarded-for",
 		appendForwardedFor(req.headers["x-forwarded-for"], req.socket.remoteAddress)

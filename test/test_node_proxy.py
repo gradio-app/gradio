@@ -411,6 +411,55 @@ class TestNodeProxyClientAddress:
         finally:
             TestNodeProxyStartupOrdering._cleanup(None, demo)
 
+    def test_spaces_proxy_header_is_passed_through(self, monkeypatch):
+        """On Spaces, Hugging Face's proxy appends the visitor's address and is
+        the only way in, so Node must not append that proxy's own address."""
+        import os
+
+        import gradio as gr
+        import gradio.blocks as blocks_mod
+
+        original_start_node = blocks_mod.start_node_server
+
+        def start_node_on_spaces(*args, **kwargs):
+            # Only Node sees SPACE_ID, so Python keeps its local behavior.
+            os.environ["SPACE_ID"] = "user/space"
+            try:
+                return original_start_node(*args, **kwargs)
+            finally:
+                del os.environ["SPACE_ID"]
+
+        monkeypatch.setattr(blocks_mod, "start_node_server", start_node_on_spaces)
+        demo = gr.Interface(lambda x: x, "text", "text")
+        try:
+            demo.launch(
+                ssr_mode=True,
+                server_port=18872,
+                prevent_thread_lock=True,
+                quiet=True,
+            )
+            if not getattr(demo, "_node_is_proxy", False):
+                pytest.skip("Node proxy mode did not engage in this environment")
+
+            @demo.app.get("/gradio_api/test_client_address")
+            def client_address(request: fastapi.Request):
+                return {
+                    "forwarded_for": request.headers.get("x-forwarded-for"),
+                    "host": request.client.host,
+                }
+
+            url = f"http://127.0.0.1:{demo.node_port}/gradio_api/test_client_address"
+            # What the Spaces proxy sends: anything the visitor sent, then the
+            # visitor's real address.
+            assert httpx.get(
+                url, headers={"X-Forwarded-For": "6.6.6.6, 203.0.113.7"}
+            ).json() == {
+                "forwarded_for": "6.6.6.6, 203.0.113.7",
+                "host": "203.0.113.7",
+            }
+        finally:
+            TestNodeProxyStartupOrdering._cleanup(None, demo)
+
 
 class _FakeNodeProcess:
     """Stands in for the Node subprocess, recording how it was stopped."""
