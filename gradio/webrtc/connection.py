@@ -46,7 +46,7 @@ from aiortc import (
     RTCSessionDescription,
 )
 from aiortc.contrib.media import MediaRelay
-from aiortc.mediastreams import MediaStreamError
+from aiortc.mediastreams import MediaStreamError, MediaStreamTrack
 from aiortc.sdp import candidate_from_sdp
 
 from gradio.context import LocalContext
@@ -607,6 +607,16 @@ class ConnectionManager:
                 # A failed handler has already ended the stream
                 return
 
+    @staticmethod
+    async def _discard(track: MediaStreamTrack) -> None:
+        """Reads a track the stream does not use until it ends with the
+        peer connection."""
+        while track.readyState != "ended":
+            try:
+                await track.recv()
+            except MediaStreamError:
+                return
+
     def _spawn(self, coroutine: Any) -> asyncio.Task:
         # The event loop keeps only weak references to tasks
         task = asyncio.create_task(coroutine)
@@ -777,10 +787,22 @@ class ConnectionManager:
             if pc.connectionState == "connected":
                 stream.mark_connected(pc)
 
+        def extra_track(track: MediaStreamTrack, reason: str) -> None:
+            if not self.allow_extra_tracks:
+                rejected.append(reason)
+                return
+            # aiortc queues every frame it decodes until the track is read,
+            # without a bound, so a track nobody uses is read and dropped
+            self._spawn(self._discard(track))
+
         @pc.on("track")
         def on_track(track):
             relay = MediaRelay()
             cb: Track
+            if self.mode == "receive":
+                # The server only sends: a track from the client is extra
+                extra_track(track, f"mode 'receive' takes no {track.kind} track")
+                return
             if (
                 self.modality == "video"
                 and track.kind == "video"
@@ -834,10 +856,10 @@ class ConnectionManager:
                     inputs=inputs,
                 )
             else:
-                if self.allow_extra_tracks:
-                    return
-                rejected.append(
-                    f"Unsupported track kind '{track.kind}' for modality '{self.modality}'"
+                extra_track(
+                    track,
+                    f"Unsupported track kind '{track.kind}' for modality "
+                    f"'{self.modality}'",
                 )
                 return
 

@@ -1799,6 +1799,29 @@ class TestStreams:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
+        "launched, offer",
+        [
+            ({"mode": "receive", "handler": VideoOptions(flip, fps=5)}, "video"),
+            (
+                {"mode": "receive", "modality": "audio", "handler": info_then_audio},
+                "audio",
+            ),
+        ],
+        indirect=["launched"],
+    )
+    async def test_receive_mode_refuses_a_track_from_the_client(self, launched, offer):
+        h = launched
+        await h.start("one")
+        # E.g. client.webrtc() given media for a receive-only endpoint: nothing
+        # would read the track, and its decoded frames would pile up
+        pc = await make_offer(**{offer: True})
+        response = await h.offer(pc, "one")
+        assert response["meta"]["error"] == "unsupported_track"
+        assert live_pc(h.manager, "one") is None
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
         "launched", [{"modality": "audio", "handler": EchoHandler}], indirect=True
     )
     async def test_unsupported_track_is_rejected(self, launched):
@@ -1826,9 +1849,18 @@ class TestStreams:
         h = launched
         await h.start("one")
         pc = await make_offer(audio=True, video=True)
-        answer = await h.offer(pc, "one")
+        answer = await h.connect(pc, "one")
         assert answer["type"] == "answer"
         assert "m=audio" in answer["sdp"]
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        server_pc = live_pc(h.manager, "one")
+        extra = next(
+            r.track for r in server_pc.getReceivers() if r.track.kind == "video"
+        )
+        await asyncio.sleep(1)
+        # The extra track is read and dropped: aiortc queues every frame it
+        # decodes until the track is read, without a bound
+        assert extra._queue.qsize() <= 2
         await pc.close()
 
     @pytest.mark.asyncio
