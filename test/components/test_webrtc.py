@@ -1845,6 +1845,19 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    async def test_the_chunk_route_refuses_a_webrtc_stream(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        # Media comes over the peer connection and inputs by their own
+        # events: a chunk would only wake a step that ignores it
+        response = await h.http.post(
+            f"{h.api}/stream/{event_id}",
+            json={"data": [None], "fn_index": h.stream_fn._id, "session_hash": "one"},
+        )
+        assert response.status_code == 404
+        assert h.event_running(event_id)
+
+    @pytest.mark.asyncio
     async def test_a_stream_stopped_while_it_connects_ends_as_stopped(
         self, launched, caplog
     ):
@@ -2829,6 +2842,10 @@ class TestStreamsWithProcesses:
     # The concurrency limit per process comes from the gateway
     test_the_next_handler_waits_for_the_last_one_to_shut_down = (
         TestStreams.test_the_next_handler_waits_for_the_last_one_to_shut_down
+    )
+    # The gateway's chunk route knows the event is a lease
+    test_the_chunk_route_refuses_a_webrtc_stream = (
+        TestStreams.test_the_chunk_route_refuses_a_webrtc_stream
     )
     # The page's close reaches the setup here through the gateway
     test_a_stream_stopped_while_it_connects_ends_as_stopped = (
