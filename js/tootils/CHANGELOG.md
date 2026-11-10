@@ -1,5 +1,11 @@
 # @self/tootils
 
+## 0.17.0-dev.0
+
+### Features
+
+- [#14014](https://github.com/gradio-app/gradio/pull/14014) [`121688c`](https://github.com/gradio-app/gradio/commit/121688c156b391c742460af42b51ac36bae2a812) - Process executor: serve the app's config and an event table from the gateway.  Thanks @abidlabs!
+
 ## 0.16.2
 
 ### Dependency updates

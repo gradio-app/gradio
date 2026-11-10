@@ -8,7 +8,7 @@ cd /d "%~dp0.."
 call scripts\helpers.bat pip_required
 
 echo Creating test requirements...
-echo To match the CI environment, this script should be run from a Unix-like system in Python 3.9.
+echo To match the CI environment, this script should be run from a Unix-like system in Python 3.11.
 
 :: Change to test directory
 cd test

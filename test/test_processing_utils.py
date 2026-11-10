@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 import numpy as np
 import pytest
 from gradio_client.client import Endpoint
@@ -193,8 +193,8 @@ class TestTempFileManagement:
             upload_response = MagicMock()
             upload_response.json.return_value = ["/tmp/gradio/uploaded/cat.png"]
             with (
-                patch("httpx.stream", return_value=download_response) as stream,
-                patch("httpx.post", return_value=upload_response),
+                patch("httpx2.stream", return_value=download_response) as stream,
+                patch("httpx2.post", return_value=upload_response),
             ):
                 processed_input = endpoint.process_input_files(round_trip)[0]
 
@@ -330,17 +330,6 @@ class TestImagePreprocessing:
         )
         output_img = Image.open(file_obj)
         assert output_img.n_frames == input_img.n_frames == 3  # type: ignore
-
-    def test_save_pil_to_file_32_bit_integer_png(self, gradio_temp_dir):
-        arr = np.array([[-5, 0, 1000, 65535, 70000]], dtype=np.int32)
-        input_img = Image.fromarray(arr)
-        assert input_img.mode == "I"
-        file_obj = processing_utils.save_pil_to_cache(
-            input_img, cache_dir=gradio_temp_dir, format="png"
-        )
-        output_img = Image.open(file_obj)
-        assert output_img.mode == "I;16"
-        assert np.array(output_img).tolist() == [[0, 0, 1000, 65535, 65535]]
 
     def test_np_pil_encode_to_the_same(self, gradio_temp_dir):
         arr = np.random.randint(0, 255, size=(100, 100, 3), dtype=np.uint8)
@@ -1165,8 +1154,8 @@ async def test_async_get_private_request_fail():
 
 @pytest.mark.asyncio
 async def test_async_get_redirect_without_location_returns_response(monkeypatch):
-    expected = httpx.Response(
-        302, request=httpx.Request("GET", "https://example.com/image.png")
+    expected = httpx2.Response(
+        302, request=httpx2.Request("GET", "https://example.com/image.png")
     )
 
     async def mock_get(*args, **kwargs):

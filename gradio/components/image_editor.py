@@ -138,11 +138,11 @@ class WebcamOptions:
     """
     A dataclass for specifying options for the webcam tool in the ImageEditor component. An instance of this class can be passed to the `webcam_options` parameter of `gr.ImageEditor`.
     Parameters:
-        mirror: If True, the webcam will be mirrored.
+        mirror: If True, the webcam will be mirrored. If "auto", the webcam is mirrored unless the browser reports it as a rear-facing camera (e.g. the back camera of a phone). If False, the webcam will not be mirrored.
         constraints: A dictionary of constraints for the webcam.
     """
 
-    mirror: bool = True
+    mirror: bool | Literal["auto"] = "auto"
     constraints: dict[str, Any] | None = None
 
 

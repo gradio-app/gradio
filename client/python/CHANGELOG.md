@@ -1,5 +1,14 @@
 # gradio_client
 
+## 2.8.0-dev.0
+
+### Features
+
+- [#13585](https://github.com/gradio-app/gradio/pull/13585) [`8888208`](https://github.com/gradio-app/gradio/commit/88882080b380a00273e8d14e409c477cb07e9976) - Keep sessions (outputs, gr.State, running jobs) across refreshes, restarts and replicas.  Thanks @dawoodkhan82!
+- [#13925](https://github.com/gradio-app/gradio/pull/13925) [`466b764`](https://github.com/gradio-app/gradio/commit/466b7644608406b60a3fe5df614e2ea11a1f1446) - Stream each queued event on its own request (sse_v4).  Thanks @abidlabs!
+- [#13920](https://github.com/gradio-app/gradio/pull/13920) [`eb54503`](https://github.com/gradio-app/gradio/commit/eb54503e293a4287078d5a201114cbb5a5a87451) - Migrate from httpx to httpx2.  Thanks @abidlabs!
+- [#14005](https://github.com/gradio-app/gradio/pull/14005) [`d6972ed`](https://github.com/gradio-app/gradio/commit/d6972ed9d1185634cea083e0263839543d5ceb8d) - Require Python 3.11 for Gradio 7, remove compatibility code, and allow Pillow 13.  Thanks @abidlabs!
+
 ## 2.7.2
 
 ### Fixes

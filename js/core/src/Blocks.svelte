@@ -73,7 +73,6 @@
 		max_file_size,
 		initial_layout,
 		css,
-		vibe_mode,
 		search_params,
 		render_complete = $bindable(false),
 		ready = $bindable(false),
@@ -102,7 +101,6 @@
 		max_file_size: number | undefined;
 		initial_layout: ComponentMeta | undefined;
 		css: string | null | undefined;
-		vibe_mode: boolean;
 		search_params: URLSearchParams;
 		render_complete: boolean;
 		ready: boolean;
@@ -288,8 +286,6 @@
 		});
 	});
 
-	let vibe_editor_width = 350;
-
 	// export let
 	let api_docs_visible = $derived(
 		search_params.get("view") === "api" && footer_links.includes("api")
@@ -305,7 +301,6 @@
 	let ApiDocs: Component<any> | null = null;
 	let ApiRecorder: Component<any> | null = null;
 	let Settings: Component<any> | null = null;
-	let VibeEditor: any = $state(null);
 
 	async function loadApiDocs(): Promise<void> {
 		if (!ApiDocs || !ApiRecorder) {
@@ -327,13 +322,6 @@
 		if (!Settings) {
 			const settings_module = await import("./api_docs/Settings.svelte");
 			Settings = settings_module.default;
-		}
-	}
-
-	async function loadVibeEditor(): Promise<void> {
-		if (!VibeEditor) {
-			const vibe_editor_module = await import("@gradio/vibeeditor");
-			VibeEditor = vibe_editor_module.default;
 		}
 	}
 
@@ -396,9 +384,6 @@
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 	const DUPLICATE_MESSAGE = $reactive_formatter("blocks.long_requests_queue");
-	const MOBILE_QUEUE_WARNING = $reactive_formatter(
-		"blocks.connection_can_break"
-	);
 	const LOST_CONNECTION_MESSAGE =
 		"Connection to the server was lost. Attempting reconnection...";
 	const CHANGED_CONNECTION_MESSAGE =
@@ -410,10 +395,7 @@
 		"blocks.waiting_for_inputs"
 	);
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
-	const SHOW_MOBILE_QUEUE_WARNING_ON_ETA = 10;
-	let is_mobile_device = false;
 	let showed_duplicate_message = false;
-	let showed_mobile_warning = false;
 	let inputs_waiting: number[] = [];
 
 	// as state updates are not synchronous, we need to ensure updates are flushed before triggering any requests
@@ -494,10 +476,9 @@
 	}
 
 	onMount(() => {
-		is_mobile_device =
-			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-				navigator.userAgent
-			);
+		if ("parentIFrame" in window) {
+			window.parentIFrame?.autoResize(false);
+		}
 
 		refresh_run_count();
 		const unsubscribe_run_history = on_run_history_change(refresh_run_count);
@@ -530,12 +511,29 @@
 			ready = true;
 			reset_resize_growth(resize_state);
 			void settled().then(handle_resize);
-			dep_manager.dispatch_load_events();
+			const resumable_events = dep_manager.get_resumable_events();
+			const skipped_loads = new Set(
+				resumable_events.map(({ fn_index }) => fn_index)
+			);
+			if (app.session_restored) {
+				// These already ran for this session, whose outputs and state have
+				// been restored. Render functions and client-side functions run
+				// again, as what they build only exists in the page.
+				for (const dep of dep_manager.dependencies_by_fn.values()) {
+					if (
+						dep.functions.backend &&
+						!dep.functions.backend_js &&
+						dep.render_id === null
+					) {
+						skipped_loads.add(dep.id);
+					}
+				}
+			}
+			dep_manager.dispatch_load_events(undefined, skipped_loads);
+			if (resumable_events.length > 0) {
+				void dep_manager.resume(resumable_events);
+			}
 		});
-
-		if (vibe_mode) {
-			void loadVibeEditor();
-		}
 
 		return () => {
 			disconnect_iframe_resizer();
@@ -567,7 +565,6 @@
 		class="contain"
 		style:flex-grow={app_mode ? "1" : "auto"}
 		bind:this={root_container}
-		style:margin-right={vibe_mode ? `${vibe_editor_width}px` : "0"}
 	>
 		<MountComponents node={app_tree.root} />
 	</main>
@@ -735,15 +732,20 @@
 					{root}
 					run_history_scope={app.config}
 					run_history_enabled={run_history}
+					clear_session={app.options.resume_sessions
+						? async () => {
+								await app.clear_session();
+								// Back to the app itself, rather than to these settings
+								const url = new URL(window.location.href);
+								url.searchParams.delete("view");
+								window.location.replace(url.toString());
+							}
+						: null}
 					{space_id}
 					i18n={$reactive_formatter}
 				/>
 			</div>
 		</div>
-	{/if}
-
-	{#if vibe_mode && VibeEditor}
-		<VibeEditor {app} {root} />
 	{/if}
 </div>
 

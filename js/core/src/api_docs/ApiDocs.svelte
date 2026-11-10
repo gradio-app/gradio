@@ -202,7 +202,13 @@
 	let mcp_json_stdio: any = $state();
 	let file_data_present = $state(false);
 	let selected_tools: Set<string> = $state(new Set());
-	let tool_prefix = space_id ? space_id.split("/").pop() + "_" : "";
+	// Matches the server's prefix, which sanitizes the Space name (e.g. my-space -> my_space_)
+	let tool_prefix = space_id
+		? space_id
+				.split("/")
+				.pop()!
+				.replace(/[^a-zA-Z0-9]/g, "_") + "_"
+		: "";
 
 	function remove_tool_prefix(toolName: string): string {
 		if (tool_prefix && toolName.startsWith(tool_prefix)) {
@@ -550,16 +556,11 @@
 								<p class="self-baseline">API Recorder</p>
 							</Button>
 							to automatically generate your API requests.
-							{#if current_language == "bash"}<br />&nbsp;<br />Making a
-								prediction and getting a result requires
-								<strong>2 requests</strong>: a
-								<code>POST</code>
-								and a <code>GET</code> request. The <code>POST</code> request
-								returns an <code>EVENT_ID</code>, which is used in the second
-								<code>GET</code> request to fetch the results. In these
-								snippets, we've used <code>awk</code> and <code>read</code> to
-								parse the results, combining these two requests into one command
-								for ease of use.
+							{#if current_language == "bash"}<br />&nbsp;<br />Each snippet
+								makes a single <code>POST</code> request with
+								<code>Accept: text/event-stream</code>, and the result streams
+								back on the same response as server-sent events, ending with
+								<code>event: complete</code>.
 								<br />&nbsp;<br />
 								If your endpoint accepts files, you must first upload them via a
 								<code>POST</code> to <code>/upload</code>, then reference the

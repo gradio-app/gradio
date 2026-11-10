@@ -1,5 +1,34 @@
 # @gradio/core
 
+## 1.14.0-dev.0
+
+### Features
+
+- [#13585](https://github.com/gradio-app/gradio/pull/13585) [`8888208`](https://github.com/gradio-app/gradio/commit/88882080b380a00273e8d14e409c477cb07e9976) - Keep sessions (outputs, gr.State, running jobs) across refreshes, restarts and replicas.  Thanks @dawoodkhan82!
+- [#14002](https://github.com/gradio-app/gradio/pull/14002) [`dd82f43`](https://github.com/gradio-app/gradio/commit/dd82f435ee94c05ab9cdf946861a95ab77e72a47) - Remove `gradio sketch` and the vibe editor.  Thanks @dawoodkhan82!
+- [#13925](https://github.com/gradio-app/gradio/pull/13925) [`466b764`](https://github.com/gradio-app/gradio/commit/466b7644608406b60a3fe5df614e2ea11a1f1446) - Stream each queued event on its own request (sse_v4).  Thanks @abidlabs!
+- [#14044](https://github.com/gradio-app/gradio/pull/14044) [`7907372`](https://github.com/gradio-app/gradio/commit/7907372037706cc3c9a5be4554cf5052147f98b1) - Fix MCP prompts/get running the wrong endpoint and ignoring listed prompt names.  Thanks @abidlabs!
+- [#14011](https://github.com/gradio-app/gradio/pull/14011) [`1cb9ae3`](https://github.com/gradio-app/gradio/commit/1cb9ae34bdc2661795aa9f3cc0c3c4cb6ba826cf) - Remove `gr.Column` and `gr.Row` variants.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#13991](https://github.com/gradio-app/gradio/pull/13991) [`fa3f296`](https://github.com/gradio-app/gradio/commit/fa3f29607c4b2ded9973970053af6c6b7971d9ba) - Run a deferred always_last event with its own event data.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/button@0.8.5-dev.0
+- @gradio/html@0.14.2-dev.0
+- @gradio/tabitem@0.10.2-dev.0
+- @gradio/code@0.20.2-dev.0
+- @gradio/upload@0.19.2-dev.0
+- @gradio/client@2.8.0-dev.0
+- @gradio/audio@0.25.0-dev.0
+- @gradio/image@0.29.0-dev.0
+- @gradio/video@0.24.0-dev.0
+- @gradio/file@0.16.4-dev.0
+- @gradio/gallery@0.20.0-dev.0
+- @gradio/column@0.5.0-dev.0
+
 ## 1.13.0
 
 ### Features

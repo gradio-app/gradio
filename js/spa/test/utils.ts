@@ -54,7 +54,12 @@ export const launch_app_background = async (
 		const portRegExp = /:(\d+)/;
 		const match = portRegExp.exec(_data);
 
-		if (match && match[1] && _data.includes("Running on local URL:")) {
+		if (
+			match &&
+			match[1] &&
+			(_data.includes("* Running on: ") ||
+				_data.includes("Running on local URL:"))
+		) {
 			port = parseInt(match[1], 10);
 		}
 	}

@@ -9,6 +9,7 @@
 			upload_fn: Client["upload"];
 			onchange: (value: FileData) => void;
 			onstoprecording: () => void;
+			constraints?: MediaTrackConstraints;
 		};
 	} = $props();
 </script>
@@ -20,4 +21,5 @@
 	root="https://example.com"
 	onchange={props.onchange}
 	onstoprecording={props.onstoprecording}
+	constraints={props.constraints}
 />

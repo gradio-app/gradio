@@ -8,7 +8,7 @@ export interface Base64File {
 }
 
 export interface WebcamOptions {
-	mirror: boolean;
+	mirror: boolean | "auto";
 	constraints: MediaStreamConstraints;
 }
 

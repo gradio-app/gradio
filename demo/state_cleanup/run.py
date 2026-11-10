@@ -41,7 +41,7 @@ with gr.Blocks(delete_cache=(60, 3600)) as demo:
                 gen = gr.Button(value="Generate")
             with gr.Row():
                 history = gr.Gallery(label="Previous Generations", height=500, columns=10)
-                state = gr.State(value=[], delete_callback=lambda v: print("STATE DELETED"))
+                state = gr.State(value=[], storage="server", delete_callback=lambda v: print("STATE DELETED"))
 
     demo.load(generate_random_img, [state], [img, state, history])
     gen.click(generate_random_img, [state], [img, state, history])

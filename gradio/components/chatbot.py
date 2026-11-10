@@ -10,13 +10,14 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
+    NotRequired,
     Union,
     cast,
 )
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import TypedDict
 
 from gradio import utils
 from gradio.component_meta import ComponentMeta

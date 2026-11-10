@@ -156,7 +156,7 @@ def create_static_app(config: StaticServerConfig) -> fastapi.FastAPI:
             await asyncio.wait_for(
                 file_upload_statuses.is_tracked(upload_id), timeout=3
             )
-        except (asyncio.TimeoutError, TimeoutError):
+        except TimeoutError:
             return PlainTextResponse("Upload not found", status_code=404)
 
         return StreamingResponse(
@@ -219,12 +219,12 @@ class StaticWorkerPool:
             self.workers.append(process)
 
         # Wait for workers to be ready
-        import httpx
+        import httpx2
 
         for port in self.ports:
             for _ in range(50):
                 try:
-                    r = httpx.get(f"http://127.0.0.1:{port}/health", timeout=1)
+                    r = httpx2.get(f"http://127.0.0.1:{port}/health", timeout=1)
                     if r.status_code == 200:
                         break
                 except Exception:
