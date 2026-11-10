@@ -750,9 +750,9 @@ class Queue:
                         fn=fn,
                         root_path=root_path,
                         record_history=fn.connection != "stream",
-                        run=route_utils.RunStep.alone()
-                        if fn.connection == "stream"
-                        else route_utils.RunStep.start(),
+                        # A cache hit replays the whole cached run, for a
+                        # stream too, so its generator is stepped to the end
+                        run=route_utils.RunStep.start(),
                     )
                     while response and response.get("is_generating", False):
                         self.send_message(
@@ -769,9 +769,7 @@ class Queue:
                             fn=fn,
                             root_path=root_path,
                             record_history=fn.connection != "stream",
-                            run=route_utils.RunStep.alone(first=False)
-                            if fn.connection == "stream"
-                            else route_utils.RunStep.next(),
+                            run=route_utils.RunStep.next(),
                         )
                 cache_duration = time.time() - cache_start
                 avg_time = (

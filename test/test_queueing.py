@@ -1413,6 +1413,35 @@ def test_each_chunk_calls_a_generator_stream_function_afresh():
         demo.close()
 
 
+def test_a_cached_generator_stream_function_replays_its_cache_to_the_end():
+    @gr.cache
+    def respond(x):
+        yield "first"
+        yield "second"
+
+    # A cache hit for a stream event is answered from the cache at its join
+    assert list(respond(None)) == ["first", "second"]
+    demo, api, group = _launch_audio_stream(respond)
+    try:
+        with httpx2.Client(timeout=5) as http:
+            # The join returns once the whole cached run is replayed
+            _join(http, api, "s")
+            outputs = []
+            with http.stream(
+                "GET", f"{api}/queue/data", params={"session_hash": "s"}
+            ) as messages:
+                for line in messages.iter_lines():
+                    if line.startswith("data:"):
+                        message = json.loads(line[5:])
+                        if message.get("msg") == "process_generating":
+                            outputs.append(message["output"]["data"])
+                        if message.get("msg") == "process_completed":
+                            break
+            assert outputs == [["first"], ["second"]]
+    finally:
+        demo.close()
+
+
 def test_leaving_the_line_completes_the_event_for_the_client():
     demo, api, group = _launch_audio_stream(lambda x: "chunk")
     try:
