@@ -1845,6 +1845,31 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    async def test_a_stream_stopped_while_it_connects_ends_as_stopped(
+        self, launched, caplog
+    ):
+        h = launched
+        event_id = await h.start("one")
+        original = RTCPeerConnection.setRemoteDescription
+
+        async def stopped_meanwhile(pc, description):
+            await original(pc, description)
+            # The page's Stop (or the time limit, or cancels=) lands while
+            # the server awaits inside the setup
+            await h.http.post(f"{h.api}/stream/{event_id}/close")
+
+        with patch.object(RTCPeerConnection, "setRemoteDescription", stopped_meanwhile):
+            pc = await make_offer(video=True)
+            response = await h.offer(pc, "one")
+        assert response["meta"]["error"] == "not_admitted"
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m.get("msg") == "process_completed")
+        # A stream that had its turn and was stopped ends as a success
+        assert completion["success"] is True
+        assert "Could not set up the stream" not in caplog.text
+        await pc.close()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched", [{"modality": "audio", "handler": EchoHandler}], indirect=True
     )
@@ -2804,6 +2829,10 @@ class TestStreamsWithProcesses:
     # The concurrency limit per process comes from the gateway
     test_the_next_handler_waits_for_the_last_one_to_shut_down = (
         TestStreams.test_the_next_handler_waits_for_the_last_one_to_shut_down
+    )
+    # The page's close reaches the setup here through the gateway
+    test_a_stream_stopped_while_it_connects_ends_as_stopped = (
+        TestStreams.test_a_stream_stopped_while_it_connects_ends_as_stopped
     )
     # The gateway closes the run in this process
     test_after_a_cancel_the_next_handler_waits_for_the_last_one_to_shut_down = TestStreams.test_after_a_cancel_the_next_handler_waits_for_the_last_one_to_shut_down

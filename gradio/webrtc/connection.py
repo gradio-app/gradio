@@ -742,6 +742,12 @@ class ConnectionManager:
         try:
             return await self._connect(stream, pc, body, request)
         except Exception as e:
+            if stream.ended and errors.failure is None:
+                # Stopped while the setup awaited (the page's Stop, the time
+                # limit, cancels=), which closed the connection under it: no
+                # failure of the stream, which ends as stopped
+                await pc.close()
+                return _failed("not_admitted")
             if not isinstance(e, Error):
                 logger.exception("Could not set up the stream")
             await pc.close()
