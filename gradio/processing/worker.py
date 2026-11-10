@@ -533,15 +533,7 @@ class Worker:
             else self.blocks.fns
         )
         fn = fns.get(p["fn_index"])
-        if fn is None:
-            # A @gr.render that ran again since gave its event listeners new
-            # ids. The gateway asks only for a stream that works here, and a
-            # WebRTC stream is found by its event id alone.
-            connection = sys.modules.get("gradio.webrtc.connection")
-            return connection is not None and connection.end_admitted_stream(
-                p["event_id"]
-            )
-        if fn.close_stream is None:
+        if fn is None or fn.close_stream is None:
             return False
         closed = fn.close_stream(p["event_id"])
         return bool(await closed if inspect.isawaitable(closed) else closed)
