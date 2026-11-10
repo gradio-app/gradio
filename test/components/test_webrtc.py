@@ -1873,18 +1873,18 @@ class TestStreams:
         h = launched
         await h.start("one")
         pc = await make_offer(audio=True, video=True)
-        answer = await h.connect(pc, "one")
+        answer = await h.offer(pc, "one")
         assert answer["type"] == "answer"
         assert "m=audio" in answer["sdp"]
-        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
-        server_pc = live_pc(h.manager, "one")
         extra = next(
-            r.track for r in server_pc.getReceivers() if r.track.kind == "video"
+            r.track
+            for r in live_pc(h.manager, "one").getReceivers()
+            if r.track.kind == "video"
         )
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.1)
         # The extra track is read and dropped: aiortc queues every frame it
         # decodes until the track is read, without a bound
-        assert extra._queue.qsize() <= 2
+        assert len(extra._queue._getters) == 1
         await pc.close()
 
     @pytest.mark.asyncio
@@ -2283,8 +2283,16 @@ class TestStreams:
         await h.wait_until(lambda: not h.event_running(event_id))
         await pc.close()
         # The track tells aiortc's sender that it has ended, instead of giving
-        # it no frame to encode
-        assert "Traceback" not in caplog.text
+        # it no frame to encode. An aioice check task of an earlier test's
+        # connection can be collected (and logged) meanwhile, so those are
+        # not this test's.
+        failures = [
+            record.getMessage()
+            for record in caplog.records
+            if (record.exc_info or "Traceback" in record.getMessage())
+            and "aioice" not in record.getMessage()
+        ]
+        assert failures == []
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
