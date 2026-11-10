@@ -220,7 +220,7 @@ export class DependencyManager {
 	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
 		new Map();
 	client: Client;
-	queue: Set<number> = new Set();
+	deferred_events: Map<number, DispatchFunction | DispatchEvent> = new Map();
 	add_to_api_calls: (payload: Payload) => void;
 
 	update_state_cb: UpdateStateCallback;
@@ -319,6 +319,9 @@ export class DependencyManager {
 		}
 		this.dependencies_by_event = by_event;
 		this.dependencies_by_fn = by_id;
+		// Deferred events are keyed by the old fn ids, which may now belong to
+		// other functions.
+		this.deferred_events.clear();
 		this.client = client;
 		this.update_state_cb = update_state;
 		this.get_state_cb = get_state;
@@ -393,6 +396,19 @@ export class DependencyManager {
 		}
 	}
 
+	/** Runs the always_last event that was deferred while the dependency was running, if any */
+	dispatch_deferred(dep_id: number): void {
+		const deferred = this.deferred_events.get(dep_id);
+		if (!deferred) return;
+		this.deferred_events.delete(dep_id);
+		this.dispatch({
+			type: "fn",
+			fn_index: dep_id,
+			event_data: deferred.event_data,
+			target_id: deferred.target_id
+		});
+	}
+
 	/** Dispatches an event to the appropriate dependency
 	 * @param event_name the name of the event
 	 * @param target_id the id of the component that triggered the event
@@ -418,13 +434,6 @@ export class DependencyManager {
 			);
 		}
 		if (!deps?.length) observer?.on_end?.("not_started");
-		// A later dispatch of the same event (a deferred run) is not this one
-		const redispatch = (): Promise<void> =>
-			this.dispatch(
-				event_meta.type === "event"
-					? { ...event_meta, observer: undefined }
-					: event_meta
-			);
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
 			if (!dep) continue;
@@ -442,9 +451,12 @@ export class DependencyManager {
 				if (dispatch_status === "skip") {
 					continue;
 				} else if (dispatch_status === "defer") {
-					this.queue.add(dep.id);
+					this.deferred_events.set(dep.id, event_meta);
 					continue;
 				}
+				// Anything deferred before this run is older than it, so drop it
+				// rather than replay it after this run finishes.
+				this.deferred_events.delete(dep.id);
 
 				// No loading status for js-only deps
 				if (dep.functions.backend) {
@@ -704,10 +716,7 @@ export class DependencyManager {
 										unset_args.forEach((fn) => fn());
 										await dep_submission.data.acknowledge();
 										this.clear_submission(dep.id, dep_submission.data);
-										if (this.queue.has(dep.id)) {
-											this.queue.delete(dep.id);
-											redispatch();
-										}
+										this.dispatch_deferred(dep.id);
 										return;
 									}
 
@@ -767,11 +776,7 @@ export class DependencyManager {
 						}
 						unset_args.forEach((fn) => fn());
 						this.clear_submission(dep.id, dep_submission.data);
-
-						if (this.queue.has(dep.id)) {
-							this.queue.delete(dep.id);
-							redispatch();
-						}
+						this.dispatch_deferred(dep.id);
 					}
 				} catch (error) {
 					outcome = "error";
@@ -797,6 +802,7 @@ export class DependencyManager {
 							target_id: target_id as number | undefined
 						});
 					});
+					this.dispatch_deferred(dep.id);
 				}
 			} finally {
 				dep_observer?.on_end?.(outcome);
@@ -1164,6 +1170,9 @@ export class DependencyManager {
 	async cancel(ids: number[] | undefined): Promise<void> {
 		if (!ids) return;
 
+		// Drop the deferred events before awaiting anything: a cancelled run can
+		// finish, and would replay its event, before submission.cancel() returns.
+		ids.forEach((id) => this.deferred_events.delete(id));
 		for (const id of ids) {
 			const submission = this.submissions.get(id);
 			if (submission) {
@@ -1178,7 +1187,7 @@ export class DependencyManager {
 				});
 				this.update_loading_stati_state();
 				const target_id = this.submission_trigger_ids.get(id) ?? undefined;
-				this.clear_submission(id);
+				this.clear_submission(id, submission);
 				// Need to trigger any dependencies that are waiting for this one to complete
 				const { failure, all } = this.dependencies_by_fn
 					.get(id)
