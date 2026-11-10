@@ -216,7 +216,11 @@ export class DependencyManager {
 	deferred_events: Map<number, DispatchFunction | DispatchEvent> = new Map();
 	event_args_holds = new Map<
 		number,
-		{ count: number; original: Record<string, unknown> }
+		{
+			count: number;
+			original: Record<string, unknown>;
+			applied: Record<string, unknown>;
+		}
 	>();
 	add_to_api_calls: (payload: Payload) => void;
 
@@ -473,21 +477,28 @@ export class DependencyManager {
 					this.update_loading_stati_state();
 				}
 
-				const data_payload = await this.gather_state(
-					dep.inputs,
-					dep.component_prop_inputs
-				);
-				const unset_args = await Promise.all(
-					dep.targets.map(([output_id]) =>
-						this.set_event_args(output_id, dep.event_args)
-					)
-				);
-
 				const { success, failure, all } = dep.get_triggers();
 				let active_submission: ReturnType<Client["submit"]> | undefined;
 				const target_id = event_meta.target_id ?? null;
+				// Released on every way out of this run
+				const unset_args: (() => void)[] = [];
 
 				try {
+					const data_payload = await this.gather_state(
+						dep.inputs,
+						dep.component_prop_inputs
+					);
+					const holds = await Promise.allSettled(
+						dep.targets.map(([output_id]) =>
+							this.set_event_args(output_id, dep.event_args)
+						)
+					);
+					for (const hold of holds) {
+						if (hold.status === "fulfilled") unset_args.push(hold.value);
+					}
+					const failed_hold = holds.find((hold) => hold.status === "rejected");
+					if (failed_hold) throw failed_hold.reason;
+
 					if (
 						dep.connection_type === "stream" &&
 						this.submissions.has(dep.id)
@@ -499,7 +510,6 @@ export class DependencyManager {
 							event_data: event_meta.event_data
 						};
 						submission!.send_chunk(payload as any);
-						unset_args.forEach((fn) => fn());
 						return;
 					}
 
@@ -529,7 +539,6 @@ export class DependencyManager {
 							});
 							this.update_loading_stati_state();
 						}
-						unset_args.forEach((fn) => fn());
 						[...success, ...all].forEach((dep_id) => {
 							this.dispatch({
 								type: "fn",
@@ -658,17 +667,20 @@ export class DependencyManager {
 										// For example, if the input component is an output component (chatinterface)
 										dep.progress_targets.forEach((output_id) => {
 											if (dep.inputs.includes(output_id)) return;
+											// An output another listener is still writing shows that
+											// listener's status instead
+											const handed_over =
+												this.loading_stati.running_fns.has(output_id);
 											this.update_state_cb(
 												output_id,
 												{
-													loading_status: {
-														status: null
-													}
+													loading_status: handed_over
+														? this.loading_stati.current[output_id]
+														: { status: null }
 												},
 												false
 											);
 										});
-										unset_args.forEach((fn) => fn());
 										await dep_submission.data.acknowledge();
 										this.clear_submission(dep.id, dep_submission.data);
 										this.dispatch_deferred(dep.id);
@@ -725,12 +737,10 @@ export class DependencyManager {
 								target_id: target_id as number | undefined
 							});
 						});
-						unset_args.forEach((fn) => fn());
 						this.clear_submission(dep.id, dep_submission.data);
 						this.dispatch_deferred(dep.id);
 					}
 				} catch (error) {
-					unset_args.forEach((fn) => fn());
 					await this.submissions.get(dep.id)?.acknowledge();
 					this.update_loading_status({
 						status: "error",
@@ -752,6 +762,8 @@ export class DependencyManager {
 						});
 					});
 					this.dispatch_deferred(dep.id);
+				} finally {
+					unset_args.forEach((fn) => fn());
 				}
 			})
 		);
@@ -1044,7 +1056,11 @@ export class DependencyManager {
 		if (Object.keys(args).length === 0) return () => {};
 		// Count the hold before awaiting, so a listener finishing meanwhile does
 		// not restore the original values under this one.
-		const hold = this.event_args_holds.get(id) ?? { count: 0, original: {} };
+		const hold = this.event_args_holds.get(id) ?? {
+			count: 0,
+			original: {},
+			applied: {}
+		};
 		this.event_args_holds.set(id, hold);
 		hold.count++;
 		let released = false;
@@ -1052,12 +1068,27 @@ export class DependencyManager {
 			if (released) return;
 			released = true;
 			hold.count--;
-			if (hold.count === 0) {
-				this.event_args_holds.delete(id);
-				if (Object.keys(hold.original).length > 0) {
-					this.update_state_cb(id, hold.original, false);
+			if (hold.count > 0) return;
+			// Keep the hold until the original values are back, so a listener
+			// starting meanwhile joins it rather than reading this one's values
+			// as the originals
+			const forget = (): void => {
+				if (this.event_args_holds.get(id) !== hold) return;
+				if (hold.count === 0) {
+					this.event_args_holds.delete(id);
+				} else {
+					// A listener joined while restoring: put its values back
+					this.update_state_cb(id, hold.applied, false);
 				}
+			};
+			if (Object.keys(hold.original).length === 0) {
+				forget();
+				return;
 			}
+			Promise.resolve(this.update_state_cb(id, hold.original, false)).then(
+				forget,
+				forget
+			);
 		};
 
 		try {
@@ -1071,6 +1102,7 @@ export class DependencyManager {
 					hold.original[key] = current_state[key] ?? null;
 				}
 			}
+			hold.applied = { ...hold.applied, ...args };
 			await this.update_state_cb(id, args, false);
 		} catch (error) {
 			release();

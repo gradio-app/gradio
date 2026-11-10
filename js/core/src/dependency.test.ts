@@ -604,7 +604,8 @@ describe("DependencyManager.dispatch", () => {
 		expect(dependency_manager.loading_stati.current[10]).toMatchObject({
 			fn_index: 0,
 			status: "pending",
-			show_progress: "hidden"
+			show_progress: "hidden",
+			time_start: null
 		});
 		finish_background();
 		await background_run;
@@ -691,10 +692,144 @@ describe("DependencyManager.dispatch", () => {
 		expect(dependency_manager.event_args_holds.size).toBe(0);
 	});
 
+	test("does not take a component's own event args as the originals while restoring them", async () => {
+		const stream = Object.assign(dependency(0, "stream", []), {
+			targets: [[1, "stream"]],
+			event_specific_args: ["stream_every"],
+			stream_every: 0.5
+		}) as DependencyConfig;
+		const state: Record<string, unknown> = {};
+		let hold_restore = false;
+		let apply_restore!: () => void;
+		const update_state = vi.fn(
+			async (id: number, update: Record<string, unknown>) => {
+				if (id !== 1) return;
+				if (hold_restore && update.stream_every === 1) {
+					hold_restore = false;
+					await new Promise<void>((resolve) => {
+						apply_restore = resolve;
+					});
+				}
+				Object.assign(state, update);
+			}
+		);
+		const get_state = vi.fn(async (id: number) =>
+			id === 1 ? { ...state } : null
+		);
+		let finish_second!: () => void;
+		const second_done = new Promise<void>((resolve) => {
+			finish_second = resolve;
+		});
+		let runs = 0;
+		const client = {
+			submit: () => {
+				const is_second = ++runs === 2;
+				return submission(
+					(async function* () {
+						if (is_second) await second_done;
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				);
+			}
+		} as unknown as Client;
+		const dependency_manager = manager(
+			[stream],
+			client,
+			update_state,
+			undefined,
+			get_state
+		);
+		await vi.waitFor(() => expect(update_state).toHaveBeenCalledTimes(1));
+		state.stream_every = 1;
+		hold_restore = true;
+		const run = (): Promise<void> =>
+			dependency_manager.dispatch({
+				type: "fn",
+				fn_index: 0,
+				event_data: null
+			});
+
+		const writes_of = (value: number): number =>
+			update_state.mock.calls.filter(
+				([id, update]) => id === 1 && update.stream_every === value
+			).length;
+		// The second run reads and applies its args while the first run's
+		// restore is still being applied
+		await run();
+		const second = run();
+		await vi.waitFor(() => expect(writes_of(0.5)).toBe(3));
+		apply_restore();
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		// The second run gets its own value back while it runs
+		expect(state.stream_every).toBe(0.5);
+		finish_second();
+		await second;
+
+		await vi.waitFor(() => expect(state.stream_every).toBe(1));
+		await vi.waitFor(() =>
+			expect(dependency_manager.event_args_holds.size).toBe(0)
+		);
+	});
+
+	test("keeps the status of a listener still writing an output when a validator rejects another", async () => {
+		const validated = dependency(0, "validated", [10]);
+		validated.targets = [[1, "click"]];
+		validated.inputs = [20];
+		const other = dependency(1, "other", [10]);
+		other.targets = [[1, "click"]];
+		let finish_other!: () => void;
+		const other_done = new Promise<void>((resolve) => {
+			finish_other = resolve;
+		});
+		const client = {
+			submit: (fn_index: number) =>
+				submission(
+					(async function* () {
+						if (fn_index === 1) await other_done;
+						yield fn_index === 0
+							? {
+									type: "status",
+									stage: "error",
+									queue: true,
+									message: [{ is_valid: false, message: "bad" }]
+								}
+							: { type: "status", stage: "complete", queue: true };
+					})()
+				)
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager(
+			[validated, other],
+			client,
+			update_state
+		);
+		const output_statuses = () =>
+			update_state.mock.calls
+				.filter(([id, state]) => id === 10 && state.loading_status)
+				.map(([, state]) => state.loading_status.status);
+
+		const click = dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+		await vi.waitFor(() =>
+			expect(
+				update_state.mock.calls.some(
+					([id, state]) =>
+						id === 20 && state.loading_status?.validation_error === "bad"
+				)
+			).toBe(true)
+		);
+		expect(output_statuses().at(-1)).toBe("pending");
+		finish_other();
+		await click;
+	});
+
 	test("waits for every listener before reporting one that failed", async () => {
 		const failing = dependency(0, "failing", []);
 		failing.targets = [[1, "click"]];
-		failing.inputs = [20];
 		const other = dependency(1, "other", []);
 		other.targets = [[1, "click"]];
 		let finish_other!: () => void;
@@ -713,16 +848,15 @@ describe("DependencyManager.dispatch", () => {
 				);
 			}
 		} as unknown as Client;
-		const get_state = vi.fn(async (id: number) => {
-			if (id === 20) throw new Error("no state");
-			return null;
+		// Fails the first listener before its run starts
+		const on_loading_status_change = vi.fn((status: { fn_index: number }) => {
+			if (status.fn_index === 0) throw new Error("status listener failed");
 		});
 		const dependency_manager = manager(
 			[failing, other],
 			client,
 			undefined,
-			undefined,
-			get_state
+			on_loading_status_change
 		);
 
 		let settled = false;
@@ -741,7 +875,61 @@ describe("DependencyManager.dispatch", () => {
 		expect(settled).toBe(false);
 		finish_other();
 
-		await expect(click).rejects.toThrow("no state");
+		await expect(click).rejects.toThrow("status listener failed");
+	});
+
+	test("settles a listener whose inputs or event args cannot be read", async () => {
+		const failing = Object.assign(dependency(0, "failing", [10]), {
+			targets: [
+				[1, "click"],
+				[2, "click"]
+			],
+			inputs: [20],
+			event_specific_args: ["stream_every"],
+			stream_every: 0.5
+		}) as DependencyConfig;
+		const failure_step = dependency(1, "failure_step", []);
+		failure_step.trigger_after = 0;
+		failure_step.trigger_only_on_failure = true;
+		const submitted: number[] = [];
+		const client = {
+			submit: (fn_index: number) => {
+				submitted.push(fn_index);
+				return submission(
+					(async function* () {
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				);
+			}
+		} as unknown as Client;
+		const reads = new Map<number, number>();
+		const get_state = vi.fn(async (id: number) => {
+			reads.set(id, (reads.get(id) ?? 0) + 1);
+			// The second target fails only once the run is under way
+			if (id === 2 && reads.get(id)! > 1) throw new Error("no state");
+			return { stream_every: 1, value: null };
+		});
+		const dependency_manager = manager(
+			[failing, failure_step],
+			client,
+			undefined,
+			undefined,
+			get_state
+		);
+
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+
+		expect(dependency_manager.loading_stati.current[10]?.status).toBe("error");
+		expect(dependency_manager.loading_stati.running_fns.size).toBe(0);
+		await vi.waitFor(() =>
+			expect(dependency_manager.event_args_holds.size).toBe(0)
+		);
+		await vi.waitFor(() => expect(submitted).toEqual([1]));
 	});
 
 	test("leaves the input's loading status alone when sending a chunk to an open stream", async () => {

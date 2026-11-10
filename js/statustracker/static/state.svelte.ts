@@ -160,7 +160,7 @@ export class LoadingStatus {
 		const running =
 			status === "pending" || status === "generating" || status === "streaming";
 
-		const all_ids = outputs.concat(inputs);
+		const all_ids = [...new Set(outputs.concat(inputs))];
 
 		return all_ids
 			.map((id) => {
@@ -190,11 +190,21 @@ export class LoadingStatus {
 							fn_index: other,
 							status: other_status,
 							show_progress: this.show_progress[other],
+							// Clear what belonged to the finished run
+							queue: false,
 							queue_position: null,
+							queue_size: undefined,
 							eta: null,
 							eta_total: null,
+							time_start: null,
+							time_limit: null,
+							stream_state: null,
 							message: null,
-							progress: undefined
+							progress: undefined,
+							used_cache: null,
+							cache_duration: null,
+							avg_time: null,
+							cache_event_id: null
 						};
 					}
 				}
