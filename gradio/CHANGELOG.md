@@ -1,5 +1,39 @@
 # gradio
 
+## 7.0.0-dev.0
+
+### Features
+
+- [#13585](https://github.com/gradio-app/gradio/pull/13585) [`8888208`](https://github.com/gradio-app/gradio/commit/88882080b380a00273e8d14e409c477cb07e9976) - Keep sessions (outputs, gr.State, running jobs) across refreshes, restarts and replicas.  Thanks @dawoodkhan82!
+- [#14029](https://github.com/gradio-app/gradio/pull/14029) [`85357b1`](https://github.com/gradio-app/gradio/commit/85357b1c5ae47c0eddcc129493604ff3e1a45f23) - Wait until a prerendered page is shown before resuming its session.  Thanks @hysts!
+- [#14002](https://github.com/gradio-app/gradio/pull/14002) [`dd82f43`](https://github.com/gradio-app/gradio/commit/dd82f435ee94c05ab9cdf946861a95ab77e72a47) - Remove `gradio sketch` and the vibe editor.  Thanks @dawoodkhan82!
+- [#13925](https://github.com/gradio-app/gradio/pull/13925) [`466b764`](https://github.com/gradio-app/gradio/commit/466b7644608406b60a3fe5df614e2ea11a1f1446) - Stream each queued event on its own request (sse_v4).  Thanks @abidlabs!
+- [#13926](https://github.com/gradio-app/gradio/pull/13926) [`db0658d`](https://github.com/gradio-app/gradio/commit/db0658d31036c9c4acba07d8153aa1ff6671420a) - Mirror the webcam only for front-facing cameras by default.  Thanks @hysts!
+- [#14044](https://github.com/gradio-app/gradio/pull/14044) [`7907372`](https://github.com/gradio-app/gradio/commit/7907372037706cc3c9a5be4554cf5052147f98b1) - Fix MCP prompts/get running the wrong endpoint and ignoring listed prompt names.  Thanks @abidlabs!
+- [#14011](https://github.com/gradio-app/gradio/pull/14011) [`1cb9ae3`](https://github.com/gradio-app/gradio/commit/1cb9ae34bdc2661795aa9f3cc0c3c4cb6ba826cf) - Remove `gr.Column` and `gr.Row` variants.  Thanks @dawoodkhan82!
+- [#14045](https://github.com/gradio-app/gradio/pull/14045) [`2d1a0bd`](https://github.com/gradio-app/gradio/commit/2d1a0bdc73c1dca850d95e27e2d285aed2c0666b) - Fix randomized Slider going below minimum and skipping the last decimal step.  Thanks @abidlabs!
+- [#13931](https://github.com/gradio-app/gradio/pull/13931) [`2c2b564`](https://github.com/gradio-app/gradio/commit/2c2b5642c3ed873bb53d1663fc2d36a6d53c00c9) - Let gr.Audio and gr.MultimodalTextbox pass media track constraints to the microphone.  Thanks @hysts!
+- [#13959](https://github.com/gradio-app/gradio/pull/13959) [`39847ed`](https://github.com/gradio-app/gradio/commit/39847ed41b6e9fb2a089c8047cd43d5c8ec436a3) - Request an uncompressed body when /file= streams a remote URL.  Thanks @abidlabs!
+- [#14042](https://github.com/gradio-app/gradio/pull/14042) [`2f8693a`](https://github.com/gradio-app/gradio/commit/2f8693aa4a07d1ad300be5e6c28e9bf15c600f4e) - Add GitHub-installed CLI extensions.  Thanks @abidlabs!
+- [#13918](https://github.com/gradio-app/gradio/pull/13918) [`c2cdf0a`](https://github.com/gradio-app/gradio/commit/c2cdf0a9aaa37a8a566f8d59a7c95b7d3f698bc2) - Gradio 7.0 dev pre-release.  Thanks @dawoodkhan82!
+- [#14014](https://github.com/gradio-app/gradio/pull/14014) [`121688c`](https://github.com/gradio-app/gradio/commit/121688c156b391c742460af42b51ac36bae2a812) - Process executor: serve the app's config and an event table from the gateway.  Thanks @abidlabs!
+- [#13920](https://github.com/gradio-app/gradio/pull/13920) [`eb54503`](https://github.com/gradio-app/gradio/commit/eb54503e293a4287078d5a201114cbb5a5a87451) - Migrate from httpx to httpx2.  Thanks @abidlabs!
+- [#14017](https://github.com/gradio-app/gradio/pull/14017) [`ebccfcf`](https://github.com/gradio-app/gradio/commit/ebccfcf3194dd3cd132491a6bc35968f1321611a) - workflows: handle depth estimation.  Thanks @hannahblair!
+- [#14038](https://github.com/gradio-app/gradio/pull/14038) [`e6f0dd4`](https://github.com/gradio-app/gradio/commit/e6f0dd47471bb459dac110d38f5e61f62c64f498) - Print a HuggingChat link for MCP servers launched with share=True.  Thanks @abidlabs!
+- [#14005](https://github.com/gradio-app/gradio/pull/14005) [`d6972ed`](https://github.com/gradio-app/gradio/commit/d6972ed9d1185634cea083e0263839543d5ceb8d) - Require Python 3.11 for Gradio 7, remove compatibility code, and allow Pillow 13.  Thanks @abidlabs!
+- [#13972](https://github.com/gradio-app/gradio/pull/13972) [`d702b19`](https://github.com/gradio-app/gradio/commit/d702b19b8a6d7f2e8af6d7cd260c6e44af3e9433) - workflow: add masked setting on textboxes.  Thanks @hannahblair!
+- [#13921](https://github.com/gradio-app/gradio/pull/13921) [`ee4d8a8`](https://github.com/gradio-app/gradio/commit/ee4d8a8d35532f958c45b32b6cbd346c262859d8) - Migrate the MCP integration to mcp v2.  Thanks @abidlabs!
+- [#13998](https://github.com/gradio-app/gradio/pull/13998) [`ef4d9bd`](https://github.com/gradio-app/gradio/commit/ef4d9bdf930595fcba312e22c6bdb24a6ab1511e) - Autoscale the process executor's app processes with `replicas="auto"`.  Thanks @abidlabs!
+- [#13874](https://github.com/gradio-app/gradio/pull/13874) [`342c525`](https://github.com/gradio-app/gradio/commit/342c5257133ac6a4192d4953552bff70549c2d58) - Preserve the alpha channel of images loaded into `gr.ImageEditor`.  Thanks @hysts!
+- [#14053](https://github.com/gradio-app/gradio/pull/14053) [`29ba706`](https://github.com/gradio-app/gradio/commit/29ba706b42dd2a86079568c141e557c8b888e0c8) - Require login for the MCP server when the app uses auth, and make queued MCP calls work with auth.  Thanks @abidlabs!
+
+### Fixes
+
+- [#14024](https://github.com/gradio-app/gradio/pull/14024) [`4ff7477`](https://github.com/gradio-app/gradio/commit/4ff7477233ee90b6efe81b2b5d21365ecf91ae84) - Don't restore a streaming webcam's frame after a reload.  Thanks @hysts!
+- [#13991](https://github.com/gradio-app/gradio/pull/13991) [`fa3f296`](https://github.com/gradio-app/gradio/commit/fa3f29607c4b2ded9973970053af6c6b7971d9ba) - Run a deferred always_last event with its own event data.  Thanks @hysts!
+- [#14022](https://github.com/gradio-app/gradio/pull/14022) [`61a9165`](https://github.com/gradio-app/gradio/commit/61a916560d5b520ae5a5eca2ef3967322cb9b972) - Keep a running stream's process slot between chunks.  Thanks @hysts!
+- [#14027](https://github.com/gradio-app/gradio/pull/14027) [`f3bab14`](https://github.com/gradio-app/gradio/commit/f3bab14e9d5a46bb22866a3a9db498c02f4e7ad0) - Show an error when camera permission is denied for the webcam.  Thanks @hysts!
+
 ## 6.31.0
 
 ### Features

@@ -1,5 +1,20 @@
 # @gradio/image
 
+## 0.29.0-dev.0
+
+### Features
+
+- [#13926](https://github.com/gradio-app/gradio/pull/13926) [`db0658d`](https://github.com/gradio-app/gradio/commit/db0658d31036c9c4acba07d8153aa1ff6671420a) - Mirror the webcam only for front-facing cameras by default.  Thanks @hysts!
+
+### Fixes
+
+- [#14027](https://github.com/gradio-app/gradio/pull/14027) [`f3bab14`](https://github.com/gradio-app/gradio/commit/f3bab14e9d5a46bb22866a3a9db498c02f4e7ad0) - Show an error when camera permission is denied for the webcam.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/upload@0.19.2-dev.0
+- @gradio/client@2.8.0-dev.0
+
 ## 0.28.5
 
 ### Dependency updates
