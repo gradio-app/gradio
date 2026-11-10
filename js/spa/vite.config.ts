@@ -89,7 +89,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 				? JSON.stringify("")
 				: JSON.stringify("http://localhost:7860/"),
 			GRADIO_VERSION: JSON.stringify(version),
-			// the dotted version, e.g. for the gradio-console ack
+			// the dotted version for the gradio-console ack
 			GRADIO_VERSION_RAW: JSON.stringify(version_raw)
 		},
 		css: {

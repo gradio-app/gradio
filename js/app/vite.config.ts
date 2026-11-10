@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => {
 				? JSON.stringify("")
 				: JSON.stringify("http://127.0.0.1:7860/"),
 			GRADIO_VERSION: JSON.stringify(version),
-			// the dotted version, e.g. for the gradio-console ack
+			// the dotted version for the gradio-console ack
 			GRADIO_VERSION_RAW: JSON.stringify(version_raw)
 		},
 		css: {

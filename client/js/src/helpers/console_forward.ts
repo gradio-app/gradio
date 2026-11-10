@@ -1,35 +1,20 @@
-/**
- * Console forwarding for embedded Gradio apps: the frame side of the
- * `gradio-console` postMessage protocol, version 1.
- *
- * When a Gradio app runs inside an iframe, it captures console output, window
- * errors and unhandled rejections into a small ring buffer. Nothing is posted
- * until the parent page asks for it with an `init` message from an allowlisted
- * origin. The frame then acks, sends what it has buffered and streams new
- * entries in batches. A frame that never gets `init` posts nothing.
- *
- * Everything here is defensive: the wrapped console methods always call the
- * original first, and capturing, serializing and posting never throw into
- * the app.
- */
+// frame side of the gradio-console postMessage protocol v1
 import { get_zerogpu_origin } from "./zerogpu";
 
 export const CONSOLE_FORWARD_PROTOCOL = "gradio-console";
 export const CONSOLE_FORWARD_VERSION = 1;
 
-/** Entries kept while waiting to be sent. Older ones are evicted and counted as `dropped`. */
+/** entries kept until sent, older ones are evicted and counted as dropped */
 export const CONSOLE_FORWARD_BUFFER_SIZE = 100;
-/** Most entries in one `entries` message. */
 export const CONSOLE_FORWARD_BATCH_SIZE = 50;
-/** Longest wait before a partial batch is sent. */
 export const CONSOLE_FORWARD_BATCH_MS = 250;
-/** Longest `text` or `stack`, including the truncation marker. */
+/** includes the truncation marker */
 export const CONSOLE_FORWARD_MAX_TEXT = 4096;
 
 const TRUNCATED_SUFFIX = "…[truncated]";
 const UNSERIALIZABLE = "[Unserializable]";
 const MAX_DEPTH = 4;
-// Bounds the work done for one huge value. The text is cut to 4096 chars anyway.
+// bounds work on huge values since the text is cut to 4096 chars anyway
 const MAX_ITEMS_PER_CONTAINER = 100;
 const MAX_CONTAINERS = 1000;
 
@@ -49,11 +34,7 @@ export interface ConsoleForwardEntry {
 const HUB_ORIGIN = "https://huggingface.co";
 const LOCAL_DEV_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
 
-/**
- * The v1 allowlist of parent origins that may send `init`: the Hub, the dev
- * Hub that `get_zerogpu_origin` maps `.dev.` hosts to, and local dev servers
- * on localhost or 127.0.0.1 (any port).
- */
+/** the v1 allowlist of parent origins that may send init */
 export function is_console_forward_origin_allowed(
 	origin: string,
 	frame_hostname: string
@@ -68,7 +49,7 @@ export function is_console_forward_origin_allowed(
 
 type Listener = (event: any) => void;
 
-/** The parts of `window` the forwarder uses, so tests can pass a fake. */
+/** the parts of window the forwarder uses, so tests can pass a fake */
 export interface ConsoleForwardHost {
 	parent: { postMessage(message: any, target_origin: string): void } | null;
 	location: { hostname: string };
@@ -78,15 +59,14 @@ export interface ConsoleForwardHost {
 }
 
 export interface ConsoleForwardOptions {
-	/** Reported in the ack. Defaults to "". */
+	/** reported in the ack, defaults to an empty string */
 	gradio_version?: string;
 }
 
 export interface ConsoleForwarder {
 	readonly session_id: string;
-	/** Sets the version reported in later acks, if none is set yet. */
+	/** sets the version for later acks if none is set yet */
 	set_gradio_version(version: string): void;
-	/** Restores the console and removes the listeners. For tests. */
 	uninstall(): void;
 }
 
@@ -97,10 +77,7 @@ interface PendingCapture {
 	serialize: () => { text: string; stack?: string };
 }
 
-/**
- * Installs console forwarding on `host` if it is embedded in another window.
- * Returns null, and installs nothing, when it isn't.
- */
+/** returns null and installs nothing when host is not embedded */
 export function install_console_forwarding(
 	host: ConsoleForwardHost,
 	options: ConsoleForwardOptions = {}
@@ -117,19 +94,15 @@ export function install_console_forwarding(
 		typeof options.gradio_version === "string" ? options.gradio_version : "";
 
 	let active = true;
-	// True while the forwarder itself is running. Console calls, errors and
-	// messages that happen meanwhile are not captured, so nothing recurses.
+	// true while the forwarder runs, so console calls it triggers are not captured
 	let busy = false;
 	let seq = 0;
 	let dropped = 0;
 	let target_origin: string | null = null;
 	let flush_timer: ReturnType<typeof setTimeout> | null = null;
 	let drain_scheduled = false;
-	// Captured but not yet serialized. Serializing happens in a microtask so
-	// that reading a logged object can't register reactive dependencies (e.g.
-	// Svelte or Vue) in whatever effect made the console call.
+	// serialized in a microtask so reading a logged object cannot add reactive dependencies to the effect that logged it
 	const pending: PendingCapture[] = [];
-	// Serialized but not yet posted, oldest first.
 	const unsent: ConsoleForwardEntry[] = [];
 
 	function guarded(fn: () => void): void {
@@ -226,8 +199,7 @@ export function install_console_forwarding(
 	): void {
 		guarded(() => {
 			pending.push({ seq: ++seq, ts: Date.now(), level, serialize });
-			// A burst of console calls in one task can't grow past what the
-			// ring buffer would keep anyway.
+			// a burst in one task cannot grow past what the ring buffer keeps
 			if (pending.length > CONSOLE_FORWARD_BUFFER_SIZE) {
 				const evicted = pending.length - CONSOLE_FORWARD_BUFFER_SIZE;
 				pending.splice(0, evicted);
@@ -357,12 +329,7 @@ export function install_console_forwarding(
 
 const GLOBAL_KEY = Symbol.for("gradio.console_forward");
 
-/**
- * Installs console forwarding on this page's `window`, at most once per page,
- * even if several copies of this code are loaded. Later calls only fill in
- * the Gradio version if it wasn't known yet. Does nothing outside a browser
- * or when the page isn't embedded.
- */
+/** installs on window at most once per page even across bundled copies, later calls only fill in a missing gradio version */
 export function initialize_console_forwarding(
 	options: ConsoleForwardOptions = {}
 ): ConsoleForwarder | null {
@@ -395,22 +362,18 @@ export function initialize_console_forwarding(
 	}
 }
 
-/**
- * Calls `initialize_console_forwarding` if `app_url` is an absolute URL on this
- * page's origin, meaning the page is the app's own frontend (for example a
- * `gr.Server` custom page) rather than another site that uses the client.
- */
+/** initializes only when app_url is an absolute url on this page origin, so other sites that use the client are untouched */
 export function initialize_console_forwarding_for_app(
 	app_url: string | null | undefined,
 	gradio_version?: string
 ): void {
 	try {
 		if (typeof window === "undefined" || typeof app_url !== "string") return;
-		// no base URL: space ids like "user/space" must not count as same-origin
+		// no base url so space ids like user/space never resolve to this origin
 		if (new URL(app_url).origin !== window.location.origin) return;
 		initialize_console_forwarding({ gradio_version });
 	} catch {
-		// not a URL, or not a browser
+		// not a url or not a browser
 	}
 }
 
@@ -439,11 +402,7 @@ function truncate(text: string): string {
 	);
 }
 
-/**
- * Turns console arguments into one line of text, per the v1 contract. Each
- * argument is converted on its own and the results are joined with a space.
- * The first Error argument's stack is returned as `stack`. Never throws.
- */
+/** joins the arguments as text per the v1 contract and returns the first error stack, never throws */
 export function serialize_console_args(args: readonly unknown[]): {
 	text: string;
 	stack?: string;
@@ -599,7 +558,7 @@ function format_function(value: unknown): string {
 function is_dom_node(value: unknown): boolean {
 	if (typeof value !== "object" || value === null) return false;
 	if (typeof Node !== "undefined" && value instanceof Node) return true;
-	// Nodes from another realm (e.g. a child iframe) fail instanceof.
+	// nodes from another realm fail instanceof
 	const node = value as { nodeType?: unknown; nodeName?: unknown };
 	return (
 		typeof node.nodeType === "number" &&

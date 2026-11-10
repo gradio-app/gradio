@@ -284,7 +284,6 @@ describe("console forwarding: init, ack and entries", () => {
 			]
 		});
 
-		// a single new entry waits for the 250 ms batch window
 		env.host.console.error("third");
 		await settle();
 		expect(env.posted).toHaveLength(2);
@@ -296,7 +295,6 @@ describe("console forwarding: init, ack and entries", () => {
 			{ seq: 3, ts: 3_000, level: "error", text: "third" }
 		]);
 
-		// 50 pending entries go out at once, without waiting for the timer
 		for (let i = 0; i < 50; i++) env.host.console.debug(i);
 		await settle();
 		expect(env.posted).toHaveLength(4);
@@ -320,7 +318,6 @@ describe("console forwarding: init, ack and entries", () => {
 
 		env.host.console.log("b");
 		await settle();
-		// the re-init sends "b" right away instead of waiting for the timer
 		env.init();
 		expect(env.messages("ack")).toHaveLength(3);
 		expect(env.entries().map((e) => e.text)).toEqual(["a", "b"]);
@@ -813,7 +810,6 @@ describe("existing message listeners ignore a gradio-console init", () => {
 			);
 			expect(window.supports_zerogpu_headers).toBeUndefined();
 
-			// control: the listener is installed and still reacts to its own message
 			window.dispatchEvent(
 				new MessageEvent("message", { data: "supports-zerogpu-headers" })
 			);

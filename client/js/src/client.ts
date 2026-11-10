@@ -265,7 +265,7 @@ export class Client {
 	async _resolve_heartbeat(_config: Config): Promise<void> {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
-		// covers apps referenced by space id, whose URL is only known now
+		// covers apps referenced by space id whose url is only known now
 		initialize_console_forwarding_for_app(_config.root, _config.version);
 
 		if (_config.space_id && this.options.token) {
