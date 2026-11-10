@@ -2917,6 +2917,18 @@ class TestGatewayPlacements:
         replica.sessions.clear()
         assert pool.for_session("visitor") is primary
 
+    def test_a_new_session_goes_to_the_process_with_fewer_streams(self):
+        events = [self.event(f"e{i}", f"s{i}") for i in range(2)]
+        pool = self.pool(*events)
+        streaming, other = FakeLink(), FakeLink()
+        pool.links = cast(Any, [streaming, other])
+        # Streams with concurrency_limit=None hold no slot, and between their
+        # calls nothing runs, but their handlers work in that process
+        for event in events:
+            pool.place(event._id, cast(Any, streaming), True, event.session_hash)
+        other.sessions["idle visitor"] = True
+        assert pool.for_session("new visitor") is other
+
     def test_a_stream_whose_process_exited_is_over(self):
         from gradio.exceptions import Error
 

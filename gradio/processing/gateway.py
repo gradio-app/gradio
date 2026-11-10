@@ -383,7 +383,9 @@ class Pool:
                 link = min(
                     candidates or serving,
                     key=lambda link: (
-                        link.running + len(link.held),
+                        # A stream working there counts once, whether or not
+                        # it holds a slot (concurrency_limit=None holds none)
+                        link.running + len(set(link.held) | link.serving_events),
                         len(link.sessions),
                     ),
                 )
