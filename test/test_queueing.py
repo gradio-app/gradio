@@ -1023,6 +1023,45 @@ def test_history_of_a_stream_keeps_no_logs_or_progress():
         demo.close()
 
 
+def test_a_reconnecting_page_gets_the_logs_a_stream_sent_meanwhile():
+    from gradio.server_messages import (
+        LogMessage,
+        ProcessGeneratingMessage,
+        ServerMessage,
+    )
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue, resumable, event = _history_session(demo)
+        stream = event("stream", False, connection="stream")
+        other = event("other", True)
+        # Sent while the page's /queue/data connection was down
+        queue.send_message(
+            stream,
+            ProcessGeneratingMessage(
+                msg=ServerMessage.process_streaming,
+                output={"data": ["value"]},
+                success=True,
+            ),
+        )
+        queue.send_message(stream, LogMessage(log="careful", level="warning", title=""))
+        queue.send_message(other, LogMessage(log="hello", level="info", title=""))
+        # The page reconnects and resumes its running events
+        queue.resume_session("s", ["stream", "other"])
+        waiting = queue.pending_messages_per_session["s"]._queue  # type: ignore
+        # A stream's logs are not in the history (they would pile up), so
+        # the ones waiting for the page are still delivered: each is a toast
+        assert [(m.event_id, m.msg) for m in waiting] == [
+            ("stream", ServerMessage.process_streaming),
+            ("other", ServerMessage.log),
+            ("stream", ServerMessage.log),
+        ]
+    finally:
+        demo.close()
+
+
 def _replay(messages):
     """What a page holds after applying the outputs of the messages in order."""
     data, state, changed = {}, {}, []

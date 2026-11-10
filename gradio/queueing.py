@@ -364,13 +364,18 @@ class Queue:
         if messages is None:
             messages = AsyncQueue()
             self.pending_messages_per_session[session_hash] = messages
+        resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
+        history = resumable.history
         waiting: list[EventMessage] = []
         while not messages.empty():
             message = messages.get_nowait()
-            if message.event_id not in requested_ids:
+            if message.event_id not in requested_ids or (
+                # A stream's logs are not in its history (see `send_message`),
+                # but a page that reconnects while the stream runs shows them
+                message.msg == ServerMessage.log
+                and not any(kept is message for kept in history)
+            ):
                 waiting.append(message)
-        resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
-        history = resumable.history
         known_ids = {
             message.event_id for message in history if message.event_id is not None
         }
