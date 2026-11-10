@@ -329,7 +329,8 @@ class VideoCallback(VideoStreamTrack):
                 raise MediaStreamError
             if isinstance(outputs, AdditionalOutputs) and self.set_additional_outputs:
                 self.set_additional_outputs(outputs)
-            if array is None and self.mode == "send":
+            if self.mode == "send":
+                # Nothing plays the output: only the AdditionalOutputs count
                 return
             if array is None:
                 # Only AdditionalOutputs (or nothing): the frame goes back as it

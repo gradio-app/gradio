@@ -3289,6 +3289,18 @@ class TestVideoTracks:
         cb.channel_set.set()
         return cb
 
+    @pytest.mark.asyncio
+    async def test_send_mode_makes_no_frame_of_what_the_handler_returns(
+        self, monkeypatch
+    ):
+        cb = self.callback(flip, mode="send")
+        made = []
+        monkeypatch.setattr(cb, "array_to_frame", lambda array: made.append(array))
+        cb.frame_queue.put_nowait(video_frame(0))
+        # Nothing plays the output of mode="send"
+        assert await cb.recv() is None
+        assert made == []
+
     def test_skip_frames_is_the_default(self):
         assert VideoOptions(flip).skip_frames
         assert self.callback(flip).skip_frames
