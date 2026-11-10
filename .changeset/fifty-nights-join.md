@@ -1,5 +1,6 @@
 ---
 "@gradio/core": patch
+"@gradio/statustracker": patch
 "gradio": patch
 ---
 
