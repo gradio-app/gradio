@@ -10,6 +10,10 @@ export const CONSOLE_FORWARD_BATCH_SIZE = 50;
 export const CONSOLE_FORWARD_BATCH_MS = 250;
 /** includes the truncation marker */
 export const CONSOLE_FORWARD_MAX_TEXT = 4096;
+/** the console is given back if no valid init arrives this long after page load */
+export const CONSOLE_FORWARD_IDLE_MS = 10_000;
+/** overflow stays in the ring buffer, where eviction counts it as dropped */
+export const CONSOLE_FORWARD_MAX_MESSAGES_PER_SECOND = 20;
 
 const TRUNCATED_SUFFIX = "…[truncated]";
 const UNSERIALIZABLE = "[Unserializable]";
@@ -54,6 +58,7 @@ export interface ConsoleForwardHost {
 	parent: { postMessage(message: any, target_origin: string): void } | null;
 	location: { hostname: string };
 	console: Console;
+	document?: { readyState: string };
 	addEventListener(type: string, listener: Listener): void;
 	removeEventListener(type: string, listener: Listener): void;
 }
@@ -100,6 +105,9 @@ export function install_console_forwarding(
 	let dropped = 0;
 	let target_origin: string | null = null;
 	let flush_timer: ReturnType<typeof setTimeout> | null = null;
+	let idle_timer: ReturnType<typeof setTimeout> | null = null;
+	let rate_window_start = 0;
+	let rate_window_count = 0;
 	let drain_scheduled = false;
 	// serialized in a microtask so reading a logged object cannot add reactive dependencies to the effect that logged it
 	const pending: PendingCapture[] = [];
@@ -137,8 +145,24 @@ export function install_console_forwarding(
 		}
 		if (target_origin === null) return;
 		while (unsent.length > 0) {
+			const now = Date.now();
+			if (now - rate_window_start >= 1000) {
+				rate_window_start = now;
+				rate_window_count = 0;
+			}
+			if (rate_window_count >= CONSOLE_FORWARD_MAX_MESSAGES_PER_SECOND) {
+				flush_timer = setTimeout(
+					() => {
+						flush_timer = null;
+						guarded(flush);
+					},
+					rate_window_start + 1000 - now
+				);
+				return;
+			}
 			const entries = unsent.slice(0, CONSOLE_FORWARD_BATCH_SIZE);
 			post({ type: "entries", session_id, entries, dropped });
+			rate_window_count++;
 			unsent.splice(0, entries.length);
 			dropped = 0;
 		}
@@ -221,6 +245,11 @@ export function install_console_forwarding(
 				return;
 			}
 			target_origin = origin;
+			if (idle_timer !== null) {
+				clearTimeout(idle_timer);
+				idle_timer = null;
+			}
+			wrap_console();
 			post({ type: "ack", session_id, gradio_version, dropped });
 			dropped = 0;
 			drain();
@@ -263,38 +292,67 @@ export function install_console_forwarding(
 		capture("rejection", () => serialize_console_args([reason]));
 	}
 
-	const restore: (() => void)[] = [];
+	const console_restore: (() => void)[] = [];
+	let console_wrapped = false;
 
-	for (const level of CONSOLE_LEVELS) {
-		try {
-			const target = host.console;
-			const original = target[level];
-			if (typeof original !== "function") continue;
-			const wrapped = function (this: unknown, ...args: unknown[]): unknown {
-				try {
-					return original.apply(this, args);
-				} finally {
-					capture(level, () => serialize_console_args(args));
-				}
-			};
+	function wrap_console(): void {
+		if (console_wrapped) return;
+		console_wrapped = true;
+		for (const level of CONSOLE_LEVELS) {
 			try {
-				Object.defineProperty(wrapped, "name", { value: original.name });
+				const target = host.console;
+				const original = target[level];
+				if (typeof original !== "function") continue;
+				const wrapped = function (this: unknown, ...args: unknown[]): unknown {
+					try {
+						return original.apply(this, args);
+					} finally {
+						capture(level, () => serialize_console_args(args));
+					}
+				};
+				try {
+					Object.defineProperty(wrapped, "name", { value: original.name });
+				} catch {
+					// cosmetic only
+				}
+				target[level] = wrapped as Console[ConsoleLevel];
+				console_restore.push(() => {
+					if (target[level] === wrapped) target[level] = original;
+				});
 			} catch {
-				// cosmetic only
+				// leave this method alone
 			}
-			target[level] = wrapped as Console[ConsoleLevel];
-			restore.push(() => {
-				if (target[level] === wrapped) target[level] = original;
-			});
-		} catch {
-			// leave this method alone
 		}
 	}
 
+	// gives devtools its call sites back on pages no parent asks about
+	function unwrap_console(): void {
+		console_wrapped = false;
+		for (const undo of console_restore.splice(0)) {
+			try {
+				undo();
+			} catch {
+				// ignore
+			}
+		}
+	}
+
+	function start_idle_timer(): void {
+		if (idle_timer !== null || target_origin !== null || !active) return;
+		idle_timer = setTimeout(() => {
+			idle_timer = null;
+			if (target_origin === null) unwrap_console();
+		}, CONSOLE_FORWARD_IDLE_MS);
+	}
+
+	wrap_console();
+
+	const restore: (() => void)[] = [];
 	const listeners: [string, Listener][] = [
 		["message", on_message],
 		["error", on_error],
-		["unhandledrejection", on_rejection]
+		["unhandledrejection", on_rejection],
+		["load", start_idle_timer]
 	];
 	for (const [type, listener] of listeners) {
 		try {
@@ -303,6 +361,11 @@ export function install_console_forwarding(
 		} catch {
 			// skip this source
 		}
+	}
+	try {
+		if (host.document?.readyState === "complete") start_idle_timer();
+	} catch {
+		// wait for load
 	}
 
 	return {
@@ -315,7 +378,10 @@ export function install_console_forwarding(
 		uninstall(): void {
 			active = false;
 			if (flush_timer !== null) clearTimeout(flush_timer);
+			if (idle_timer !== null) clearTimeout(idle_timer);
 			flush_timer = null;
+			idle_timer = null;
+			unwrap_console();
 			for (const undo of restore) {
 				try {
 					undo();

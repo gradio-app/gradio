@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
+	CONSOLE_FORWARD_IDLE_MS,
+	CONSOLE_FORWARD_MAX_MESSAGES_PER_SECOND,
 	CONSOLE_FORWARD_PROTOCOL,
 	initialize_console_forwarding,
 	initialize_console_forwarding_for_app,
@@ -25,8 +27,9 @@ interface Posted {
 
 function make_host({
 	embedded = true,
-	hostname = "user-space.hf.space"
-}: { embedded?: boolean; hostname?: string } = {}) {
+	hostname = "user-space.hf.space",
+	ready_state = "loading"
+}: { embedded?: boolean; hostname?: string; ready_state?: string } = {}) {
 	const listeners = new Map<string, Set<Listener>>();
 	const posted: Posted[] = [];
 	const parent = {
@@ -49,6 +52,7 @@ function make_host({
 		parent: parent as ConsoleForwardHost["parent"],
 		location: { hostname },
 		console: console_impl as unknown as Console,
+		document: { readyState: ready_state },
 		onerror,
 		addEventListener: vi.fn((type: string, listener: Listener) => {
 			if (!listeners.has(type)) listeners.set(type, new Set());
@@ -142,6 +146,7 @@ describe("console forwarding: install", () => {
 		install(env.host);
 		expect([...env.listeners.keys()].sort()).toEqual([
 			"error",
+			"load",
 			"message",
 			"unhandledrejection"
 		]);
@@ -373,6 +378,101 @@ describe("console forwarding: init, ack and entries", () => {
 		forwarder.set_gradio_version("ignored");
 		env.init();
 		expect(env.messages("ack")[1].gradio_version).toBe("6.1.0");
+	});
+});
+
+describe("console forwarding: no init after load", () => {
+	it("gives the console back once the idle time passes, and a late init takes it again", async () => {
+		vi.useFakeTimers();
+		const env = make_host();
+		install(env.host);
+		expect(env.host.console.log).not.toBe(env.original.log);
+		env.host.console.log("before");
+		env.dispatch("load", {});
+
+		vi.advanceTimersByTime(CONSOLE_FORWARD_IDLE_MS - 1);
+		expect(env.host.console.log).not.toBe(env.original.log);
+		vi.advanceTimersByTime(1);
+		for (const level of LEVELS) {
+			expect(env.host.console[level]).toBe(env.original[level]);
+		}
+
+		env.host.console.log("not captured");
+		env.dispatch("error", {
+			error: new Error("late"),
+			preventDefault: vi.fn()
+		});
+		await settle();
+		env.init();
+		expect(env.host.console.log).not.toBe(env.original.log);
+		env.host.console.log("again");
+		await settle();
+		env.init();
+		expect(env.entries().map((e) => e.text)).toEqual([
+			"before",
+			"Error: late",
+			"again"
+		]);
+		expect(env.parent.postMessage).toHaveBeenCalled();
+	});
+
+	it("starts the idle timer at install when the page has already loaded", () => {
+		vi.useFakeTimers();
+		const env = make_host({ ready_state: "complete" });
+		install(env.host);
+		vi.advanceTimersByTime(CONSOLE_FORWARD_IDLE_MS);
+		expect(env.host.console.log).toBe(env.original.log);
+	});
+
+	it("keeps the console after a valid init", () => {
+		vi.useFakeTimers();
+		const env = make_host();
+		install(env.host);
+		env.dispatch("load", {});
+		vi.advanceTimersByTime(3_000);
+		env.init();
+		vi.advanceTimersByTime(CONSOLE_FORWARD_IDLE_MS * 3);
+		expect(env.host.console.log).not.toBe(env.original.log);
+	});
+
+	it("leaves alone a console method that something else replaced", () => {
+		vi.useFakeTimers();
+		const env = make_host();
+		install(env.host);
+		const theirs = vi.fn();
+		env.host.console.warn = theirs;
+		env.dispatch("load", {});
+		vi.advanceTimersByTime(CONSOLE_FORWARD_IDLE_MS);
+		expect(env.host.console.warn).toBe(theirs);
+		expect(env.host.console.log).toBe(env.original.log);
+	});
+});
+
+describe("console forwarding: rate cap", () => {
+	it("posts at most the per-second cap of entries messages and counts the overflow as dropped", async () => {
+		vi.useFakeTimers();
+		const env = make_host();
+		install(env.host);
+		env.init();
+		const total = 2_000;
+		for (let i = 0; i < total; i += 50) {
+			for (let j = 0; j < 50; j++) env.host.console.log(i + j);
+			await settle();
+		}
+		expect(env.messages("entries")).toHaveLength(
+			CONSOLE_FORWARD_MAX_MESSAGES_PER_SECOND
+		);
+
+		vi.advanceTimersByTime(1_000);
+		const messages = env.messages("entries");
+		expect(messages.length).toBeGreaterThan(
+			CONSOLE_FORWARD_MAX_MESSAGES_PER_SECOND
+		);
+		const seqs = env.entries().map((e) => e.seq);
+		const dropped = messages.reduce((sum, m) => sum + m.dropped, 0);
+		expect(seqs.length + dropped).toBe(total);
+		expect(seqs).toEqual([...seqs].sort((a, b) => a - b));
+		expect(seqs.at(-1)).toBe(total);
 	});
 });
 
