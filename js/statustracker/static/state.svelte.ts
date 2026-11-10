@@ -4,8 +4,8 @@ export class LoadingStatus {
 	current: Record<string, ILoadingStatus> = {};
 	fn_outputs: Record<number, number[]> = {};
 	fn_inputs: Record<number, number[]> = {};
-	/** The fns still running for each output, so one finishing does not end the others' status. */
-	running_fns = new Map<number, Set<number>>();
+	/** The fns still running for each output, with their latest status */
+	running_fns = new Map<number, Map<number, ILoadingStatus["status"]>>();
 	show_progress: Record<number, "full" | "minimal" | "hidden"> = {};
 	cache_event_id = 0;
 
@@ -166,9 +166,11 @@ export class LoadingStatus {
 			.map((id) => {
 				let finished_before_others = false;
 				if (outputs.includes(id)) {
-					const fns = this.running_fns.get(id) ?? new Set<number>();
+					const fns =
+						this.running_fns.get(id) ??
+						new Map<number, ILoadingStatus["status"]>();
 					if (running) {
-						fns.add(fn_index);
+						fns.set(fn_index, status);
 					} else {
 						fns.delete(fn_index);
 					}
@@ -178,6 +180,23 @@ export class LoadingStatus {
 						this.running_fns.delete(id);
 					}
 					finished_before_others = !running && fns.size > 0;
+					// Hand the output over to an fn still writing it, so it shows that
+					// fn's status and show_progress rather than this finished run's
+					const entry = this.current[id];
+					if (finished_before_others && entry?.fn_index === fn_index) {
+						const [other, other_status] = [...fns].at(-1)!;
+						this.current[id] = {
+							...entry,
+							fn_index: other,
+							status: other_status,
+							show_progress: this.show_progress[other],
+							queue_position: null,
+							eta: null,
+							eta_total: null,
+							message: null,
+							progress: undefined
+						};
+					}
 				}
 
 				// We update the status tracker only for input components of streaming events

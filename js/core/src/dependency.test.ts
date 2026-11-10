@@ -570,6 +570,49 @@ describe("DependencyManager.dispatch", () => {
 		expect(dependency_manager.loading_stati.running_fns.size).toBe(0);
 	});
 
+	test("shows the progress setting of the listener still writing a shared output", async () => {
+		const background = dependency(0, "background", [10]);
+		background.targets = [[1, "click"]];
+		background.show_progress = "hidden";
+		const quick = dependency(1, "quick", [10]);
+		quick.targets = [[2, "click"]];
+		let finish_background!: () => void;
+		const background_done = new Promise<void>((resolve) => {
+			finish_background = resolve;
+		});
+		const client = {
+			submit: (fn_index: number) =>
+				submission(
+					(async function* () {
+						if (fn_index === 0) await background_done;
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				)
+		} as unknown as Client;
+		const dependency_manager = manager([background, quick], client);
+		const click = (target_id: number): Promise<void> =>
+			dependency_manager.dispatch({
+				type: "event",
+				event_name: "click",
+				target_id,
+				event_data: null
+			});
+
+		const background_run = click(1);
+		await click(2);
+
+		expect(dependency_manager.loading_stati.current[10]).toMatchObject({
+			fn_index: 0,
+			status: "pending",
+			show_progress: "hidden"
+		});
+		finish_background();
+		await background_run;
+		expect(dependency_manager.loading_stati.current[10]?.status).toBe(
+			"complete"
+		);
+	});
+
 	test("ends the pending status of a transpiled js=True listener", async () => {
 		const transpiled = dependency(0, "transpiled", [10]);
 		transpiled.targets = [[1, "click"]];
