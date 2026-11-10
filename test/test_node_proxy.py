@@ -366,13 +366,23 @@ class TestNodeProxyStartupOrdering:
 def _ssr_app_reporting_client_address():
     """Launches an SSR app on free ports with a route that reports what Python
     sees about its caller, and yields that route's URL through Node."""
+    import socket
+
     import gradio as gr
     from gradio.history import _is_direct_local_request
+
+    # A port the OS picks, rather than the next free one after 7860: parallel
+    # test workers search that range too, and could take the port before Node
+    # binds it, leaving this test talking to another worker's app.
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
 
     demo = gr.Interface(lambda x: x, "text", "text")
     try:
         demo.launch(
             ssr_mode=True,
+            server_port=port,
             executor="thread",
             prevent_thread_lock=True,
             quiet=True,
