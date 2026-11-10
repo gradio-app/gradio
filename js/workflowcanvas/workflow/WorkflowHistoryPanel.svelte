@@ -28,7 +28,8 @@
 		onsignin,
 		onload,
 		onclose,
-		onchange
+		onchange,
+		ondisconnect
 	}: {
 		root: string;
 		bucketId: string;
@@ -45,6 +46,7 @@
 		}) => void;
 		onclose: () => void;
 		onchange: () => void;
+		ondisconnect?: () => void;
 	} = $props();
 
 	let records = $state<HistoryRecord[]>([]);
@@ -229,6 +231,15 @@
 						>
 							Change
 						</button>
+						{#if ondisconnect}
+							<button
+								class="history-change-btn"
+								onclick={ondisconnect}
+								title="Stop saving history and forget any access token this browser gave"
+							>
+								Disconnect
+							</button>
+						{/if}
 					</div>
 				{/if}
 			</div>
