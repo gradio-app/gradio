@@ -443,10 +443,12 @@ describe("DependencyManager.dispatch", () => {
 		const client = {
 			submit: (fn_index: number) => {
 				submitted.push(fn_index);
-				return (async function* () {
-					if (fn_index === 0) await slow_done;
-					yield { type: "status", stage: "complete", queue: true };
-				})();
+				return submission(
+					(async function* () {
+						if (fn_index === 0) await slow_done;
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				);
 			}
 		} as unknown as Client;
 		const dependency_manager = manager([slow, quick], client);
@@ -477,17 +479,19 @@ describe("DependencyManager.dispatch", () => {
 		const client = {
 			submit: (fn_index: number) => {
 				submitted.push(fn_index);
-				return (async function* () {
-					if (fn_index === 1) await other_released;
-					yield fn_index === 0
-						? {
-								type: "status",
-								stage: "error",
-								queue: true,
-								message: [{ is_valid: false, message: "bad" }]
-							}
-						: { type: "status", stage: "complete", queue: true };
-				})();
+				return submission(
+					(async function* () {
+						if (fn_index === 1) await other_released;
+						yield fn_index === 0
+							? {
+									type: "status",
+									stage: "error",
+									queue: true,
+									message: [{ is_valid: false, message: "bad" }]
+								}
+							: { type: "status", stage: "complete", queue: true };
+					})()
+				);
 			}
 		} as unknown as Client;
 		const update_state = vi.fn().mockResolvedValue(undefined);
