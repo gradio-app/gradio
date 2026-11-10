@@ -4,8 +4,8 @@ export class LoadingStatus {
 	current: Record<string, ILoadingStatus> = {};
 	fn_outputs: Record<number, number[]> = {};
 	fn_inputs: Record<number, number[]> = {};
-	/** The fns still running for each output, with their latest status */
-	running_fns = new Map<number, Map<number, ILoadingStatus["status"]>>();
+	/** The latest status of each fn still running, per output, oldest first */
+	running_fns = new Map<number, Map<number, ILoadingStatus>>();
 	show_progress: Record<number, "full" | "minimal" | "hidden"> = {};
 	cache_event_id = 0;
 
@@ -44,8 +44,12 @@ export class LoadingStatus {
 					};
 					delete this.current[old_id];
 				}
-				if (this.running_fns.has(old_id)) {
-					this.running_fns.set(new_id, this.running_fns.get(old_id)!);
+				const running = this.running_fns.get(old_id);
+				if (running) {
+					for (const [fn, entry] of running) {
+						running.set(fn, { ...entry, component_id: new_id });
+					}
+					this.running_fns.set(new_id, running);
 					this.running_fns.delete(old_id);
 				}
 			}
@@ -99,7 +103,14 @@ export class LoadingStatus {
 				cache_duration,
 				avg_time
 			}) => {
-				const prev = this.current[id];
+				// This fn's own last status here, so another fn writing the same
+				// output does not lend it its timer
+				const own = this.running_fns.get(id)?.get(args.fn_index);
+				const prev =
+					own ??
+					(this.current[id]?.fn_index === args.fn_index
+						? this.current[id]
+						: undefined);
 				const time_start =
 					status === "pending" ? (prev?.time_start ?? performance.now()) : null;
 				let eta_total: number | null = null;
@@ -110,7 +121,7 @@ export class LoadingStatus {
 						eta_total = prev?.eta_total ?? null;
 					}
 				}
-				this.current[id] = {
+				const entry: ILoadingStatus = {
 					queue: args.queue || false,
 					queue_size: queue_size,
 					queue_position: queue_position,
@@ -131,7 +142,48 @@ export class LoadingStatus {
 					avg_time,
 					cache_event_id
 				};
+				// Track every output of the fn, also one that is an input of a
+				// streaming event here, but give such an input its own entry so
+				// its stream_state is kept
+				const shown = this.fn_outputs[args.fn_index].includes(Number(id))
+					? this.track_output(id, entry)
+					: entry;
+				this.current[id] = type === "input" ? entry : shown;
 			}
+		);
+	}
+
+	/** Whether the fn is still running for any of its outputs */
+	is_running(fn_index: number): boolean {
+		for (const running of this.running_fns.values()) {
+			if (running.has(fn_index)) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Record an fn's status for an output and return what the output shows:
+	 * while any fn writing it is still running, the newest status of those
+	 * that show progress (or the newest one if none do), otherwise this one.
+	 */
+	track_output(id: number, entry: ILoadingStatus): ILoadingStatus {
+		const running = this.running_fns.get(id) ?? new Map();
+		running.delete(entry.fn_index);
+		if (
+			entry.status === "pending" ||
+			entry.status === "generating" ||
+			entry.status === "streaming"
+		) {
+			running.set(entry.fn_index, entry);
+		}
+		if (running.size === 0) {
+			this.running_fns.delete(id);
+			return entry;
+		}
+		this.running_fns.set(id, running);
+		const newest_first = [...running.values()].reverse();
+		return (
+			newest_first.find((e) => e.show_progress !== "hidden") ?? newest_first[0]
 		);
 	}
 
@@ -157,65 +209,17 @@ export class LoadingStatus {
 
 		const outputs = this.fn_outputs[fn_index];
 		const inputs = this.fn_inputs[fn_index];
-		const running =
-			status === "pending" || status === "generating" || status === "streaming";
 
 		const all_ids = [...new Set(outputs.concat(inputs))];
 
 		return all_ids
 			.map((id) => {
-				let finished_before_others = false;
-				if (outputs.includes(id)) {
-					const fns =
-						this.running_fns.get(id) ??
-						new Map<number, ILoadingStatus["status"]>();
-					if (running) {
-						fns.set(fn_index, status);
-					} else {
-						fns.delete(fn_index);
-					}
-					if (fns.size > 0) {
-						this.running_fns.set(id, fns);
-					} else {
-						this.running_fns.delete(id);
-					}
-					finished_before_others = !running && fns.size > 0;
-					// Hand the output over to an fn still writing it, so it shows that
-					// fn's status and show_progress rather than this finished run's
-					const entry = this.current[id];
-					if (finished_before_others && entry?.fn_index === fn_index) {
-						const [other, other_status] = [...fns].at(-1)!;
-						this.current[id] = {
-							...entry,
-							fn_index: other,
-							status: other_status,
-							show_progress: this.show_progress[other],
-							// Clear what belonged to the finished run
-							queue: false,
-							queue_position: null,
-							queue_size: undefined,
-							eta: null,
-							eta_total: null,
-							time_start: null,
-							time_limit: null,
-							stream_state: null,
-							message: null,
-							progress: undefined,
-							used_cache: null,
-							cache_duration: null,
-							avg_time: null,
-							cache_event_id: null
-						};
-					}
-				}
-
 				// We update the status tracker only for input components of streaming events
-				// or for outputs of the dependency, and leave an output alone while
-				// another fn writing it is still running
+				// or for outputs of the dependency
 				const type = (
 					inputs.includes(id) && stream_state
 						? "input"
-						: outputs.includes(id) && !finished_before_others
+						: outputs.includes(id)
 							? "output"
 							: "skip"
 				) as "input" | "output" | "skip";

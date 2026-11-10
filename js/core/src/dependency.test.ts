@@ -599,19 +599,167 @@ describe("DependencyManager.dispatch", () => {
 			});
 
 		const background_run = click(1);
+		const background_start =
+			dependency_manager.loading_stati.current[10]?.time_start;
+		expect(background_start).not.toBeNull();
 		await click(2);
 
+		// The background listener's own status, timer included
 		expect(dependency_manager.loading_stati.current[10]).toMatchObject({
 			fn_index: 0,
 			status: "pending",
 			show_progress: "hidden",
-			time_start: null
+			time_start: background_start
 		});
 		finish_background();
 		await background_run;
 		expect(dependency_manager.loading_stati.current[10]?.status).toBe(
 			"complete"
 		);
+	});
+
+	test("keeps showing a running listener's progress while a hidden one updates the same output", async () => {
+		const shown = dependency(0, "shown", [10]);
+		shown.targets = [[1, "click"]];
+		const hidden = dependency(1, "hidden", [10]);
+		hidden.targets = [[2, "click"]];
+		hidden.show_progress = "hidden";
+		let finish!: () => void;
+		const done = new Promise<void>((resolve) => {
+			finish = resolve;
+		});
+		const client = {
+			submit: () =>
+				submission(
+					(async function* () {
+						await done;
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				)
+		} as unknown as Client;
+		const dependency_manager = manager([shown, hidden], client);
+		const click = (target_id: number): Promise<void> =>
+			dependency_manager.dispatch({
+				type: "event",
+				event_name: "click",
+				target_id,
+				event_data: null
+			});
+
+		const runs = [click(1), click(2)];
+
+		expect(dependency_manager.loading_stati.current[10]).toMatchObject({
+			fn_index: 0,
+			status: "pending",
+			show_progress: "full"
+		});
+		finish();
+		await Promise.all(runs);
+	});
+
+	test("does not end an open stream when a chunk cannot be read", async () => {
+		const stream = dependency(0, "stream", [10]);
+		stream.targets = [[1, "stream"]];
+		stream.inputs = [20];
+		stream.connection = "stream";
+		stream.trigger_mode = "multiple";
+		const get_state = vi.fn(async (id: number) => {
+			if (id === 20) throw new Error("no state");
+			return null;
+		});
+		const dependency_manager = manager(
+			[stream],
+			{} as Client,
+			undefined,
+			undefined,
+			get_state
+		);
+		const open_stream = {
+			send_chunk: vi.fn(),
+			acknowledge: vi.fn().mockResolvedValue(undefined)
+		};
+		dependency_manager.submissions.set(
+			0,
+			open_stream as unknown as ReturnType<Client["submit"]>
+		);
+		dependency_manager.loading_stati.update({
+			status: "streaming",
+			fn_index: 0,
+			stream_state: "open"
+		});
+
+		await expect(
+			dependency_manager.dispatch({
+				type: "event",
+				event_name: "stream",
+				target_id: 1,
+				event_data: null
+			})
+		).rejects.toThrow("no state");
+
+		expect(open_stream.acknowledge).not.toHaveBeenCalled();
+		expect(dependency_manager.submissions.get(0)).toBe(open_stream);
+		expect(dependency_manager.loading_stati.current[10]?.status).not.toBe(
+			"error"
+		);
+		expect(dependency_manager.loading_stati.is_running(0)).toBe(true);
+	});
+
+	test("does not mark a finished stream pending for a late chunk", async () => {
+		const stream = dependency(0, "stream", [10]);
+		stream.targets = [[1, "stream"]];
+		stream.connection = "stream";
+		stream.trigger_mode = "multiple";
+		const dependency_manager = manager([stream]);
+		// The stream has sent its final status and is waiting to be acknowledged
+		dependency_manager.submissions.set(0, {
+			send_chunk: vi.fn()
+		} as unknown as ReturnType<Client["submit"]>);
+		dependency_manager.loading_stati.update({
+			status: "complete",
+			fn_index: 0,
+			stream_state: "closed"
+		});
+
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "stream",
+			target_id: 1,
+			event_data: null
+		});
+
+		expect(dependency_manager.loading_stati.current[10]?.status).toBe(
+			"complete"
+		);
+		expect(dependency_manager.loading_stati.running_fns.size).toBe(0);
+	});
+
+	test("ends the status of a listener whose output is also its input", async () => {
+		// Like ChatInterface clearing its textbox on submit
+		const clear = dependency(0, "clear", [10, 11]);
+		clear.targets = [[10, "submit"]];
+		clear.inputs = [10];
+		const client = {
+			submit: () =>
+				submission(
+					(async function* () {
+						yield { type: "status", stage: "complete", queue: false };
+					})()
+				)
+		} as unknown as Client;
+		const dependency_manager = manager([clear], client);
+
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "submit",
+			target_id: 10,
+			event_data: null
+		});
+
+		expect(dependency_manager.loading_stati.current[10]?.status).toBe(
+			"complete"
+		);
+		expect(dependency_manager.loading_stati.running_fns.size).toBe(0);
 	});
 
 	test("ends the pending status of a transpiled js=True listener", async () => {
@@ -1156,6 +1304,25 @@ describe("DependencyManager.resume", () => {
 
 	test("runs only the failure handlers when a resumed run fails", async () => {
 		expect(await resume_with("error")).toEqual([3]);
+	});
+
+	test("settles the status of a resumed run that throws", async () => {
+		async function* events(): AsyncGenerator<unknown> {
+			yield { type: "status", stage: "pending", fn_index: 0, queue: true };
+			throw new Error("connection lost");
+		}
+		const client = {
+			resume_jobs: vi.fn(() => [submission(events())])
+		} as unknown as Client;
+		const run = dependency(0, "run", [10]);
+		const dependency_manager = manager([run], client);
+
+		await expect(
+			dependency_manager.resume([{ event_id: "e", fn_index: 0 }])
+		).rejects.toThrow("connection lost");
+
+		expect(dependency_manager.loading_stati.current[10]?.status).toBe("error");
+		expect(dependency_manager.loading_stati.is_running(0)).toBe(false);
 	});
 
 	test("settles a resumed run the server no longer has, without failure handlers", async () => {

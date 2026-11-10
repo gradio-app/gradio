@@ -446,17 +446,17 @@ export class DependencyManager {
 				// Anything deferred before this run is older than it, so drop it
 				// rather than replay it after this run finishes.
 				this.deferred_events.delete(dep.id);
+				// A chunk for a stream that is already open starts no new run
+				const sends_chunk =
+					dep.connection_type === "stream" && this.submissions.has(dep.id);
 
 				// No loading status or validation errors for js-only deps
 				if (dep.functions.backend) {
 					// Clear previously set validation errors before any listener of
 					// this event awaits, so a sibling cannot clear a rejection that
-					// arrived ahead of its own first message. Skip chunks sent to an
-					// open stream: they start no new run, and replacing loading_status
-					// would drop the input's stream_state.
-					if (
-						!(dep.connection_type === "stream" && this.submissions.has(dep.id))
-					) {
+					// arrived ahead of its own first message. Skip chunks: replacing
+					// loading_status would drop the input's stream_state.
+					if (!sends_chunk) {
 						dep.inputs.forEach((input_id) => {
 							this.update_state_cb(
 								input_id,
@@ -469,12 +469,16 @@ export class DependencyManager {
 							);
 						});
 					}
-					this.update_loading_status({
-						status: "pending",
-						fn_index: dep.id,
-						stream_state: null
-					});
-					this.update_loading_stati_state();
+					// A chunk that arrives after its stream has finished would
+					// otherwise leave a pending status that nothing ends
+					if (!sends_chunk || this.loading_stati.is_running(dep.id)) {
+						this.update_loading_status({
+							status: "pending",
+							fn_index: dep.id,
+							stream_state: null
+						});
+						this.update_loading_stati_state();
+					}
 				}
 
 				const { success, failure, all } = dep.get_triggers();
@@ -741,7 +745,9 @@ export class DependencyManager {
 						this.dispatch_deferred(dep.id);
 					}
 				} catch (error) {
-					await this.submissions.get(dep.id)?.acknowledge();
+					// A chunk that could not be sent does not end the open stream
+					if (sends_chunk && !active_submission) throw error;
+					await active_submission?.acknowledge();
 					this.update_loading_status({
 						status: "error",
 						fn_index: dep.id,
@@ -884,6 +890,15 @@ export class DependencyManager {
 							}
 						}
 					}
+				} catch (error) {
+					// Settle the restored status, or it stays pending for good
+					this.loading_stati.update({
+						status: "error",
+						fn_index,
+						stream_state: null
+					});
+					await this.update_loading_stati_state();
+					throw error;
 				} finally {
 					await submission.acknowledge();
 					this.clear_submission(fn_index, submission);
@@ -1102,7 +1117,7 @@ export class DependencyManager {
 					hold.original[key] = current_state[key] ?? null;
 				}
 			}
-			hold.applied = { ...hold.applied, ...args };
+			hold.applied = args;
 			await this.update_state_cb(id, args, false);
 		} catch (error) {
 			release();
