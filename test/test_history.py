@@ -1103,3 +1103,126 @@ def test_oauth_is_available_only_on_a_space_with_a_login_button():
     with_login.space_id = without_login.space_id = "user/space"
     assert with_login.get_config_file()["oauth_available"] is True
     assert without_login.get_config_file()["oauth_available"] is False
+
+
+def _app_with_history():
+    from gradio.routes import App
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    return App.create_app(demo)
+
+
+def test_a_read_only_token_is_not_kept():
+    """create_bucket(exist_ok=True) succeeds for an existing bucket even when the
+    token can only read it, so connect has to try a write."""
+    error = RuntimeError("forbidden")
+    error.response = MagicMock(status_code=403)  # type: ignore[attr-defined]
+    hub = FakeHub()
+    hub.batch_bucket_files = MagicMock(side_effect=error)  # type: ignore[method-assign]
+    history_mod._ensured.clear()
+    app = _app_with_history()
+
+    with patch("gradio.history.HfApi", return_value=hub):
+        r = TestClient(app).post(
+            "/gradio_api/run-history/connect",
+            json={"bucket_id": "alice/hist", "token": "hf_read_only"},
+        )
+    assert r.status_code == 403
+    assert "set-cookie" not in r.headers
+    close_all()
+
+
+def test_the_write_check_leaves_nothing_behind():
+    hub = FakeHub()
+    history_mod._ensured.clear()
+    app = _app_with_history()
+
+    with patch("gradio.history.HfApi", return_value=hub):
+        r = TestClient(app).post(
+            "/gradio_api/run-history/connect",
+            json={"bucket_id": "alice/hist", "token": "hf_alice"},
+        )
+    assert r.status_code == 200
+    assert hub.files == {}
+    close_all()
+
+
+def test_another_site_cannot_set_or_clear_the_token():
+    """Gradio's CORS lets other origins call the API with the visitor's
+    cookies, so a cross-site request could otherwise plant its own token."""
+    hub = FakeHub()
+    history_mod._ensured.clear()
+    app = _app_with_history()
+    client = TestClient(app, base_url="https://app.hf.space")
+    body = {"bucket_id": "attacker/b", "token": "hf_attacker"}
+
+    with patch("gradio.history.HfApi", return_value=hub):
+        for path in ("connect", "disconnect"):
+            r = client.post(
+                f"/gradio_api/run-history/{path}",
+                json=body,
+                headers={"Origin": "https://attacker.example"},
+            )
+            assert r.status_code == 403, path
+            assert "set-cookie" not in r.headers
+        # A no-cors request can only send a "simple" content type, or none,
+        # which FastAPI still parses as JSON.
+        for content_type in (None, "text/plain"):
+            headers = {"Origin": "https://app.hf.space"}
+            if content_type:
+                headers["Content-Type"] = content_type
+            r = client.post(
+                "/gradio_api/run-history/connect",
+                content=json.dumps(body),
+                headers=headers,
+            )
+            assert r.status_code in (415, 422), content_type
+            assert "set-cookie" not in r.headers
+        r = client.post(
+            "/gradio_api/run-history/connect",
+            json=body,
+            headers={"Origin": "https://app.hf.space"},
+        )
+        assert r.status_code == 200
+    close_all()
+
+
+@pytest.mark.parametrize("route", ["disconnect", "logout"])
+def test_disconnecting_or_signing_out_forgets_the_token(route):
+    app = _app_with_history()
+    secure_name, unsecure_name = history_mod.token_cookie_names(app)
+    client = TestClient(app, follow_redirects=False)
+
+    if route == "disconnect":
+        r = client.post("/gradio_api/run-history/disconnect", json={})
+    else:
+        r = client.get("/logout")
+    cleared = [c for c in r.headers.get_list("set-cookie") if "Max-Age=0" in c]
+    assert any(c.startswith(f"{secure_name}=") for c in cleared)
+    assert any(c.startswith(f"{unsecure_name}=") for c in cleared)
+    close_all()
+
+
+def test_signing_in_wins_over_a_pasted_token():
+    """A revoked or expired pasted token must not block a visitor who signs in."""
+    hub = FakeHub()
+    app = _app_with_history()
+    secure_name, _ = history_mod.token_cookie_names(app)
+    tokens, hf_api = _hub_tokens(hub)
+
+    with (
+        hf_api,
+        patch("gradio.history.get_space", return_value="user/space"),
+        patch("starlette.requests.Request.session", new_callable=PropertyMock),
+        patch(
+            "gradio.oauth._get_valid_oauth_info_from_session",
+            return_value={"access_token": "oauth-token"},
+        ),
+    ):
+        r = TestClient(app, cookies={secure_name: "hf_revoked"}).get(
+            "/gradio_api/run-history/records?bucket=alice/hist"
+        )
+    assert r.status_code == 200
+    assert set(tokens) == {"oauth-token"}
+    close_all()

@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import {
 		connect_bucket,
+		disconnect_bucket,
 		list_user_buckets,
 		read_run_history_storage,
 		set_run_history_storage,
@@ -58,6 +59,9 @@
 		storage = { type: "browser", ...(bucket_id ? { bucket_id } : {}) };
 		set_run_history_storage(scope, storage);
 		menu_open = false;
+		// Forget any pasted token too, so the next person on this browser can't
+		// use it. Picking the bucket again asks for one.
+		void disconnect_bucket(root);
 	}
 
 	async function use_bucket(id: string): Promise<void> {

@@ -12,7 +12,7 @@
 	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
 	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
 	import HfAuthControl from "./HfAuthControl.svelte";
-	import { asset_url } from "@gradio/client";
+	import { asset_url, disconnect_bucket } from "@gradio/client";
 	import type { WorkflowTemplate } from "./workflow-templates";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
@@ -3696,6 +3696,11 @@
 			onchange={() => {
 				showHistoryPanel = false;
 				showHistoryConnect = true;
+			}}
+			ondisconnect={() => {
+				setBucketId("");
+				showHistoryPanel = false;
+				void disconnect_bucket(historyRoot);
 			}}
 			onload={({
 				record_id,

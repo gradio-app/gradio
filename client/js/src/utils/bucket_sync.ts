@@ -125,6 +125,25 @@ export async function connect_bucket(
 	);
 }
 
+/**
+ * Forget the token this browser gave for run history. The server clears its
+ * HttpOnly cookie, which page code can't.
+ */
+export async function disconnect_bucket(
+	root: string
+): Promise<HistoryResult<null>> {
+	return request(
+		url(root, "disconnect"),
+		{
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: "{}"
+		},
+		null,
+		() => null
+	);
+}
+
 export async function list_user_buckets(
 	root: string
 ): Promise<HistoryResult<string[]>> {

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import {
 	asset_url,
 	connect_bucket,
+	disconnect_bucket,
 	is_valid_bucket_id,
 	list_bucket_records,
 	list_user_buckets
@@ -119,6 +120,21 @@ describe("bucket setup", () => {
 			bucket_id: "alice/history"
 		});
 		expect(spy.mock.calls[0][1].credentials).toBe("include");
+	});
+
+	it("disconnects with a JSON POST, so the server can refuse other sites", async () => {
+		const spy = vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({ ok: true })
+		});
+		globalThis.fetch = spy as any;
+		await disconnect_bucket("http://x");
+		const [called, init] = spy.mock.calls[0];
+		expect(String(called)).toContain("/gradio_api/run-history/disconnect");
+		expect(init.method).toBe("POST");
+		expect(init.headers["Content-Type"]).toBe("application/json");
+		expect(init.credentials).toBe("include");
 	});
 
 	it("returns bucket ids as strings", async () => {

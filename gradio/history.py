@@ -247,6 +247,30 @@ def ensure_bucket(target: HistoryTarget) -> None:
         _ensured.add(key)
 
 
+def verify_writable(target: HistoryTarget) -> None:
+    """Confirm the token can write to the bucket, by writing and deleting a file.
+
+    `create_bucket(exist_ok=True)` succeeds for an existing bucket even when the
+    token can only read it, so it can't tell a read-only token from one that can
+    save runs.
+    """
+    path = f".gradio/write-check-{secrets.token_hex(8)}"
+    api = _api(target)
+    try:
+        api.batch_bucket_files(bucket_id=target.bucket, add=[(b"", path)])
+    except Exception as e:
+        status = getattr(getattr(e, "response", None), "status_code", None)
+        if status == 401:
+            raise HistoryError("invalid token", 401) from e
+        if status == 403:
+            raise HistoryError(f"token cannot write to {target.bucket}", 403) from e
+        raise HistoryError(f"write check failed: {e}", 502) from e
+    try:
+        api.batch_bucket_files(bucket_id=target.bucket, delete=[path])
+    except Exception:
+        logger.debug("history: write check cleanup failed", exc_info=True)
+
+
 def save_record(
     target: HistoryTarget,
     record: HistoryRecord,
@@ -533,6 +557,35 @@ def set_token_cookies(response: fastapi.Response, app, token: str) -> None:
     response.set_cookie(key=unsecure_name, value=token, httponly=True)
 
 
+def delete_token_cookies(response: fastapi.Response, app) -> None:
+    """Forget this browser's token, on disconnect or sign-out."""
+    secure_name, unsecure_name = token_cookie_names(app)
+    response.delete_cookie(
+        key=secure_name, path="/", httponly=True, samesite="none", secure=True
+    )
+    response.delete_cookie(key=unsecure_name, path="/", httponly=True)
+
+
+def check_same_origin(request: Request) -> None:
+    """Refuse a cross-site request to a route that sets or clears the token.
+
+    Gradio's CORS lets other origins call its API with the visitor's cookies, so
+    without this another site could plant its own token in a visitor's browser
+    and have their runs saved to its bucket. Browsers always send Origin on these
+    POSTs; clients that aren't browsers send none and carry no visitor cookies.
+    """
+    origin = request.headers.get("origin")
+    if origin is None:
+        return
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host")
+    host = (host or "").split(",")[0].strip().lower()
+    if not host or urlparse(origin).netloc.lower() != host:
+        raise fastapi.HTTPException(403, "cross-origin request")
+    content_type = request.headers.get("content-type", "")
+    if content_type.split(";")[0].strip().lower() != "application/json":
+        raise fastapi.HTTPException(415, "expected application/json")
+
+
 def _token_from_cookies(raw, app) -> str | None:
     if app is None or not getattr(app, "cookie_id", None):
         return None
@@ -549,8 +602,9 @@ def _token_from_cookies(raw, app) -> str | None:
 def resolve_token(request, app=None) -> str | None:
     """The caller's own HF token, for reading and writing their bucket.
 
-    The token they gave the app for run history, else their OAuth token on a
-    Space (elsewhere OAuth is mocked, with a token the Hub rejects). The host's
+    Their OAuth token on a Space (elsewhere OAuth is mocked, with a token the
+    Hub rejects), else the token they gave the app for run history. Signing in
+    wins, so a revoked or expired pasted token can't block it. The host's
     locally saved token is only for Workflow's write-token holder; a request's
     origin never grants it. Imported lazily because `gradio.workflow`
     imports this module.
@@ -560,9 +614,6 @@ def resolve_token(request, app=None) -> str | None:
     raw = _fastapi_request(request)
     if raw is None:
         return None
-    token = _token_from_cookies(raw, app or getattr(raw, "app", None))
-    if token:
-        return token
     if get_space() is not None:
         try:
             info = oauth._get_valid_oauth_info_from_session(raw.session)
@@ -571,6 +622,9 @@ def resolve_token(request, app=None) -> str | None:
         token = (info or {}).get("access_token")
         if isinstance(token, str) and token:
             return token
+    token = _token_from_cookies(raw, app or getattr(raw, "app", None))
+    if token:
+        return token
     if _request_has_write_token(raw):
         return _get_locally_saved_hf_token()
     return None
