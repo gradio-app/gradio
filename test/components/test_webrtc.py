@@ -4614,6 +4614,49 @@ class TestCleanUp:
         assert closed is False
         assert "gone" not in state_holder
 
+    @pytest.mark.asyncio
+    async def test_closing_a_stream_of_an_earlier_render_ends_it_here(self):
+        from gradio.context import LocalContext
+        from gradio.processing.worker import Worker
+        from gradio.state_holder import StateHolder
+
+        with gr.Blocks() as demo:
+            count = gr.Number(0)
+
+            @gr.render(inputs=[count])
+            def _(n):
+                webrtc = gr.WebRTC()
+                webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+
+        state_holder = StateHolder()
+        state_holder.set_blocks(demo)
+        config = state_holder["s"].blocks_config
+
+        def render(n):
+            token = LocalContext.blocks_config.set(config)
+            try:
+                demo.renderables[0].apply(n)
+            finally:
+                LocalContext.blocks_config.reset(token)
+            return next(f for f in config.fns.values() if f.connection == "stream")
+
+        streaming_fn = render(0)
+        # The render runs again while the stream runs (e.g. `count` changed):
+        # its event listeners get new ids, and the earlier ones are gone
+        assert render(1)._id != streaming_fn._id
+        stream = unit_stream(TestCleanUp.manager(), "w", event=queue_event("e")[1])
+        worker = SimpleNamespace(
+            app=SimpleNamespace(state_holder=state_holder), blocks=demo
+        )
+        closed = await Worker.run_close_stream(
+            cast(Any, worker),
+            {"session_hash": "s", "fn_index": streaming_fn._id, "event_id": "e"},
+        )
+        # Ended here, so that it delivers what is pending, as in thread mode,
+        # instead of the queue ending the event
+        assert closed is True
+        assert stream.ended
+
     def test_a_handle_for_a_closed_session_is_not_live(self):
         from gradio.processing.worker import RemoteEventHandle, RunningEvent
 
