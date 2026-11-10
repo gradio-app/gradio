@@ -14,8 +14,8 @@ peer connection, tracks, handler, inputs, pending outputs and errors) and has
 one way to end, `Stream.close()`, whichever path notices the end. The streams of
 an app are kept in its `StreamRegistry`, one per queue: a hot reload keeps the
 queue. Signalling and input updates find a stream there by its id, not by
-component id: a component that @gr.render keys keeps its id across sessions and
-renders, so the id alone could lead to another session's handler.
+component id: every session's copy of a component has the same id, so the id
+alone could lead to another session's handler.
 
 A `ConnectionManager` is what one `WebRTC.stream()` call or `Server.webrtc()`
 endpoint configures: the handler, mode, modality and limits. It admits the

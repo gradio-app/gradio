@@ -817,7 +817,8 @@ class TestWebRTC:
         # Without the session's blocks, the copy knows of no stream
         assert not updated.get_config()["has_stream"]
 
-    def test_stream_in_a_render(self):
+    @pytest.mark.parametrize("created", ["inside", "outside"])
+    def test_stream_is_refused_inside_a_render(self, created):
         import copy
 
         from gradio.context import LocalContext
@@ -828,40 +829,18 @@ class TestWebRTC:
 
             @gr.render(inputs=[count])
             def _(n):
-                if n < 0:
-                    outside.stream(flip, inputs=[outside], outputs=[outside])
-                    return
-                # A keyed component keeps its id from one render to the next
-                webrtc = gr.WebRTC(key="camera")
-                texts = [gr.Textbox() for _ in range(int(n))]
-                webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc, *texts])
-                if n == 9:
-                    webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+                webrtc = gr.WebRTC(key="camera") if created == "inside" else outside
+                webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
 
-        renderable = demo.renderables[0]
-
-        def render(config, n):
-            token = LocalContext.blocks_config.set(config)
-            try:
-                renderable.apply(n)
-            finally:
-                LocalContext.blocks_config.reset(token)
-            return next(fn for fn in config.fns.values() if fn.name == "run_stream")
-
-        # Every session renders into its own copy of the config
-        first = copy.copy(demo.default_config)
-        render(first, 0)
-        # A re-render in the same session, and another session's first render
-        first_stream = render(first, 1)
-        second_stream = render(copy.copy(demo.default_config), 2)
-        assert len(first_stream.outputs) == 2
-        assert len(second_stream.outputs) == 3
-        with pytest.raises(ValueError, match="once per WebRTC component"):
-            render(copy.copy(demo.default_config), 9)
-        # The page learns that a component has a stream from its own config,
-        # which a render sends only for the components it creates
-        with pytest.raises(ValueError, match="inside the render function"):
-            render(copy.copy(demo.default_config), -1)
+        token = LocalContext.blocks_config.set(copy.copy(demo.default_config))
+        try:
+            # A render runs again whenever its inputs change, which would
+            # replace a running stream's event; a page has no use for streams
+            # it makes and remakes, since each holds a camera or microphone
+            with pytest.raises(ValueError, match="inside a @gr.render"):
+                demo.renderables[0].apply(0)
+        finally:
+            LocalContext.blocks_config.reset(token)
 
     def test_default_concurrency_limit_comes_from_the_queue(self):
         with gr.Blocks() as demo:

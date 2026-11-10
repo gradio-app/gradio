@@ -318,7 +318,7 @@ class WebRTC(Component):
         trigger: Callable | None = None,
     ) -> Dependency:
         """
-        Attaches the function or handler that processes the media of this component. For video streams, `fn` is called with each frame as an RGB numpy array of shape (height, width, 3), like the numpy value of `gr.Image`, followed by the values of the other inputs, and returns the frame to show in the same format. For audio streams, `fn` is a `StreamHandler` or `AsyncStreamHandler` subclass (or instance) from `gradio.webrtc`. A video stream that needs state or resources for its whole duration, for example one GPU allocation per stream on ZeroGPU, can instead use a `VideoStreamHandler` or `AsyncVideoStreamHandler` subclass, in mode="send-receive" or in mode="send" (where only the `AdditionalOutputs` of its `video_emit()` are used). In mode="receive", `fn` is a generator that yields frames and takes the values of `inputs` as arguments; it is closed when the stream ends, so its `finally` blocks and `with` statements run then. A handler can return `(frame, AdditionalOutputs(...))` or yield `AdditionalOutputs(...)` to update the other components in `outputs`, and `CloseStream()` to end the connection.
+        Attaches the function or handler that processes the media of this component. For video streams, `fn` is called with each frame as an RGB numpy array of shape (height, width, 3), like the numpy value of `gr.Image`, followed by the values of the other inputs, and returns the frame to show in the same format. For audio streams, `fn` is a `StreamHandler` or `AsyncStreamHandler` subclass (or instance) from `gradio.webrtc`. A video stream that needs state or resources for its whole duration, for example one GPU allocation per stream on ZeroGPU, can instead use a `VideoStreamHandler` or `AsyncVideoStreamHandler` subclass, in mode="send-receive" or in mode="send" (where only the `AdditionalOutputs` of its `video_emit()` are used). In mode="receive", `fn` is a generator that yields frames and takes the values of `inputs` as arguments; it is closed when the stream ends, so its `finally` blocks and `with` statements run then. A handler can return `(frame, AdditionalOutputs(...))` or yield `AdditionalOutputs(...)` to update the other components in `outputs`, and `CloseStream()` to end the connection. It cannot be called inside a `@gr.render` function.
         Parameters:
             fn: the function or handler that processes the stream. One handler serves one connection: pass a handler class to create a new instance per connection, or an instance that implements `copy()`. Like an event listener, a function (and the `start_up` method of a handler class) can take `gr.Request`, `gr.OAuthProfile` or `gr.OAuthToken` parameters, which receive the values of the visitor who started the stream.
             inputs: the components whose values are passed to the handler. In mode="send" and mode="send-receive", the first element must be this component. The values of the other inputs are passed to video functions after the frame, to receive-mode generators as arguments, and to stream handlers through `latest_args` after `wait_for_args()`.
@@ -339,14 +339,16 @@ class WebRTC(Component):
             raise AttributeError(
                 "Cannot call stream() outside of a gradio.Blocks context."
             )
-        renderable = LocalContext.renderable.get(None)
-        if renderable is not None and self.rendered_in is not renderable:
-            # The page learns that the component has a stream from its config,
-            # which a render sends only for the components it creates
+        if LocalContext.renderable.get(None) is not None:
+            # A render runs again whenever its inputs change, and replaces the
+            # events it made, including a stream that is running (with
+            # executor="process", its next call then fails). A page needs no
+            # streams that come and go: each holds a camera or microphone.
             raise ValueError(
-                "stream() was called inside a @gr.render function on a WebRTC "
-                "component created outside it. Create the gr.WebRTC component "
-                "inside the render function too, or call stream() outside it."
+                "stream() cannot be called inside a @gr.render function. Create "
+                "the gr.WebRTC component and call stream() outside the render "
+                "function; to switch between streams, use several components "
+                "and change their visibility."
             )
         if self._has_stream:
             raise ValueError(
@@ -394,7 +396,7 @@ class WebRTC(Component):
         )
 
         # Only the event holds this stream()'s manager, so the manager goes
-        # away with it (e.g. when a @gr.render replaces its events)
+        # away with it (e.g. when a hot reload replaces the app's events)
         async def run_stream(webrtc_id: str | None) -> AsyncIterator[Any]:
             # Closed with the queue's run, so that the stream ends at once
             async with aclosing(self._run_stream(manager, webrtc_id)) as values:
