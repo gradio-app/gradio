@@ -1294,12 +1294,12 @@ def test_streams_waiting_for_chunks_do_not_block_other_events():
         demo.close()
 
 
-def _launch_audio_stream(fn, concurrency_limit=1):
+def _launch_audio_stream(fn, concurrency_limit=1, executor="thread"):
     with gr.Blocks() as demo:
         audio = gr.Audio(sources=["microphone"], streaming=True)
         heard = gr.Textbox()
         audio.stream(fn, audio, heard, concurrency_limit=concurrency_limit)
-    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
 
     def group():
         return demo._queue.event_queue_per_concurrency_id[demo.fns[0].concurrency_id]
@@ -1477,6 +1477,39 @@ def test_a_cached_generator_stream_function_replays_its_cache_to_the_end():
                         if message.get("msg") == "process_completed":
                             break
             assert outputs == [["first"], ["second"]]
+    finally:
+        demo.close()
+
+
+@pytest.mark.parametrize("executor", ["thread", "process"])
+def test_progress_of_a_chunk_reaches_the_page_before_the_next_chunk(executor):
+    def respond(x, progress=gr.Progress()):
+        progress(0.5, desc="half way")
+        return "chunk"
+
+    demo, api, group = _launch_audio_stream(respond, executor=executor)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            _join(http, api, "s")
+            progress = []
+            # No second chunk comes: the event waits for it without a worker
+            # slot, which must not hold back what the first chunk reported
+            try:
+                with http.stream(
+                    "GET",
+                    f"{api}/queue/data",
+                    params={"session_hash": "s"},
+                    timeout=5,
+                ) as messages:
+                    for line in messages.iter_lines():
+                        if line.startswith("data:"):
+                            message = json.loads(line[5:])
+                            if message.get("msg") == "progress":
+                                progress = message["progress_data"]
+                                break
+            except httpx2.ReadTimeout:
+                pass
+            assert [unit["desc"] for unit in progress] == ["half way"]
     finally:
         demo.close()
 

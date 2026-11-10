@@ -957,11 +957,14 @@ class Queue:
                 continue
 
             for event in events:
-                if event.progress_pending and event.progress:
-                    event.progress_pending = False
-                    self.send_message(event, event.progress)
+                self.send_pending_progress(event)
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
+
+    def send_pending_progress(self, event: Event) -> None:
+        if event.progress_pending and event.progress:
+            event.progress_pending = False
+            self.send_message(event, event.progress)
 
     def set_progress(
         self,
@@ -1403,7 +1406,11 @@ class Queue:
                             # A stream computes nothing while it waits for its
                             # next chunk, so it gives its worker slot back
                             # meanwhile. It keeps its place in the concurrency
-                            # limit of its function.
+                            # limit of its function. The progress loop sends
+                            # only for events in a slot, so what the last call
+                            # reported goes out now.
+                            for event in awake_events:
+                                self.send_pending_progress(event)
                             self.active_jobs[self.active_jobs.index(job)] = None
                             awake_events, closed_events = await Queue.wait_for_batch(
                                 awake_events,
