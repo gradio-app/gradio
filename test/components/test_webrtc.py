@@ -1431,9 +1431,30 @@ class TestStreams:
     async def test_gr_warning_in_the_handler_is_shown(self, launched):
         h = launched
         pc = await make_offer(video=True)
-        message = await self.stream_until_message(h, pc, "warning")
-        assert message["message"] == "Careful"
-        assert live_pc(h.manager, "one") is not None
+        live_at_warning = []
+
+        def warned(messages):
+            toasts = [self.toast(m) for m in messages]
+            # The handler warns with every frame: a second warning shows that
+            # the stream went on after the first
+            if sum(1 for t in toasts if t and t["type"] == "warning") < 2:
+                return False
+            # Read while the page is still there: once it stops reading its
+            # messages, the queue drops its events, which ends the stream
+            live_at_warning.append(live_pc(h.manager, "one") is not None)
+            return True
+
+        await h.start("one")
+        await h.connect(pc, "one")
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        await h.push_inputs("one", 0.2)
+        messages = await h.messages("one", warned)
+        warning = next(
+            t for m in messages if (t := self.toast(m)) and t["type"] == "warning"
+        )
+        assert warning["message"] == "Careful"
+        # A warning does not end the stream
+        assert live_at_warning == [True]
         await pc.close()
 
     @pytest.mark.asyncio
