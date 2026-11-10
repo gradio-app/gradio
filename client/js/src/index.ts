@@ -6,6 +6,10 @@ export { upload_files } from "./utils/upload_files";
 export { FileData, upload, prepare_files } from "./upload";
 export { handle_file } from "./helpers/data";
 export {
+	initialize_console_forwarding,
+	is_console_forward_origin_allowed
+} from "./helpers/console_forward";
+export {
 	apply_run_history_replay,
 	clear_run_history,
 	consume_run_history_replay,

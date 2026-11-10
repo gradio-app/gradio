@@ -5,12 +5,20 @@ import "@gradio/theme/typography.css";
 import "@gradio/theme/gradio-style.scss";
 //@ts-ignore
 // import * as svelte from "./svelte/svelte.js";
-import { Client } from "@gradio/client";
+import { Client, initialize_console_forwarding } from "@gradio/client";
 import type Index from "./Index.svelte";
 import type { ThemeMode } from "@gradio/core";
 import { mount, unmount } from "svelte";
 declare let BUILD_MODE: string;
 declare let GRADIO_VERSION: string;
+declare let GRADIO_VERSION_RAW: string;
+
+// Start capturing console output before the app mounts, so an embedding page
+// that asks for it (the gradio-console protocol) also gets startup errors.
+// Only on pages Gradio serves, not on sites that embed <gradio-app>.
+if (typeof window !== "undefined" && window.__gradio_mode__ === "app") {
+	initialize_console_forwarding({ gradio_version: GRADIO_VERSION_RAW });
+}
 
 declare global {
 	var __MODE__: "_NORMAL_" | "_CC_" | undefined;
