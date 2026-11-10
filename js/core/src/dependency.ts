@@ -484,7 +484,6 @@ export class DependencyManager {
 				const { success, failure, all } = dep.get_triggers();
 				let active_submission: ReturnType<Client["submit"]> | undefined;
 				const target_id = event_meta.target_id ?? null;
-				// Released on every way out of this run
 				const unset_args: (() => void)[] = [];
 
 				try {
@@ -745,7 +744,7 @@ export class DependencyManager {
 						this.dispatch_deferred(dep.id);
 					}
 				} catch (error) {
-					// A chunk that could not be sent does not end the open stream
+					// A chunk whose inputs could not be read does not end the open stream
 					if (sends_chunk && !active_submission) throw error;
 					await active_submission?.acknowledge();
 					this.update_loading_status({
@@ -1057,8 +1056,9 @@ export class DependencyManager {
 
 	/** Sets the event arguments for a specific component
 	 *
-	 * Listeners running at the same time share one hold on the component, so it
-	 * gets its original values back only when the last of them finishes.
+	 * Listeners running at the same time share one hold, counted before any
+	 * await. The last to finish restores the original values, and the hold stays
+	 * until they are back, so a listener starting meanwhile joins it.
 	 *
 	 * @param id the id of the component to set the event arguments for
 	 * @param args the event arguments to set
@@ -1069,8 +1069,6 @@ export class DependencyManager {
 		args: Record<string, unknown>
 	): Promise<() => void> {
 		if (Object.keys(args).length === 0) return () => {};
-		// Count the hold before awaiting, so a listener finishing meanwhile does
-		// not restore the original values under this one.
 		const hold = this.event_args_holds.get(id) ?? {
 			count: 0,
 			original: {},
@@ -1084,9 +1082,6 @@ export class DependencyManager {
 			released = true;
 			hold.count--;
 			if (hold.count > 0) return;
-			// Keep the hold until the original values are back, so a listener
-			// starting meanwhile joins it rather than reading this one's values
-			// as the originals
 			const forget = (): void => {
 				if (this.event_args_holds.get(id) !== hold) return;
 				if (hold.count === 0) {

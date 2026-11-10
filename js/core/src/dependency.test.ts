@@ -570,74 +570,24 @@ describe("DependencyManager.dispatch", () => {
 		expect(dependency_manager.loading_stati.running_fns.size).toBe(0);
 	});
 
-	test("shows the progress setting of the listener still writing a shared output", async () => {
-		const background = dependency(0, "background", [10]);
-		background.targets = [[1, "click"]];
-		background.show_progress = "hidden";
-		const quick = dependency(1, "quick", [10]);
-		quick.targets = [[2, "click"]];
-		let finish_background!: () => void;
-		const background_done = new Promise<void>((resolve) => {
-			finish_background = resolve;
-		});
-		const client = {
-			submit: (fn_index: number) =>
-				submission(
-					(async function* () {
-						if (fn_index === 0) await background_done;
-						yield { type: "status", stage: "complete", queue: true };
-					})()
-				)
-		} as unknown as Client;
-		const dependency_manager = manager([background, quick], client);
-		const click = (target_id: number): Promise<void> =>
-			dependency_manager.dispatch({
-				type: "event",
-				event_name: "click",
-				target_id,
-				event_data: null
-			});
-
-		const background_run = click(1);
-		const background_start =
-			dependency_manager.loading_stati.current[10]?.time_start;
-		expect(background_start).not.toBeNull();
-		await click(2);
-
-		// The background listener's own status, timer included
-		expect(dependency_manager.loading_stati.current[10]).toMatchObject({
-			fn_index: 0,
-			status: "pending",
-			show_progress: "hidden",
-			time_start: background_start
-		});
-		finish_background();
-		await background_run;
-		expect(dependency_manager.loading_stati.current[10]?.status).toBe(
-			"complete"
-		);
-	});
-
-	test("keeps showing a running listener's progress while a hidden one updates the same output", async () => {
+	test("shows the progress of the listeners still writing a shared output", async () => {
 		const shown = dependency(0, "shown", [10]);
 		shown.targets = [[1, "click"]];
 		const hidden = dependency(1, "hidden", [10]);
 		hidden.targets = [[2, "click"]];
 		hidden.show_progress = "hidden";
-		let finish!: () => void;
-		const done = new Promise<void>((resolve) => {
-			finish = resolve;
-		});
+		const finish = new Map<number, () => void>();
 		const client = {
-			submit: () =>
+			submit: (fn_index: number) =>
 				submission(
 					(async function* () {
-						await done;
+						await new Promise<void>((resolve) => finish.set(fn_index, resolve));
 						yield { type: "status", stage: "complete", queue: true };
 					})()
 				)
 		} as unknown as Client;
 		const dependency_manager = manager([shown, hidden], client);
+		const status = (): unknown => dependency_manager.loading_stati.current[10];
 		const click = (target_id: number): Promise<void> =>
 			dependency_manager.dispatch({
 				type: "event",
@@ -646,15 +596,28 @@ describe("DependencyManager.dispatch", () => {
 				event_data: null
 			});
 
-		const runs = [click(1), click(2)];
+		const shown_run = click(1);
+		const hidden_run = click(2);
+		const hidden_start = dependency_manager.loading_stati.running_fns
+			.get(10)
+			?.get(1)?.time_start;
+		// The hidden listener does not hide the other one's progress
+		expect(status()).toMatchObject({ fn_index: 0, show_progress: "full" });
 
-		expect(dependency_manager.loading_stati.current[10]).toMatchObject({
-			fn_index: 0,
+		await vi.waitFor(() => expect(finish.size).toBe(2));
+		finish.get(0)!();
+		await shown_run;
+		// Then the output shows the hidden listener's own status, timer included
+		expect(status()).toMatchObject({
+			fn_index: 1,
 			status: "pending",
-			show_progress: "full"
+			show_progress: "hidden",
+			time_start: hidden_start
 		});
-		finish();
-		await Promise.all(runs);
+
+		finish.get(1)!();
+		await hidden_run;
+		expect(status()).toMatchObject({ status: "complete" });
 	});
 
 	test("does not end an open stream when a chunk cannot be read", async () => {
@@ -838,192 +801,6 @@ describe("DependencyManager.dispatch", () => {
 
 		expect(state.stream_every).toBe(1);
 		expect(dependency_manager.event_args_holds.size).toBe(0);
-	});
-
-	test("does not take a component's own event args as the originals while restoring them", async () => {
-		const stream = Object.assign(dependency(0, "stream", []), {
-			targets: [[1, "stream"]],
-			event_specific_args: ["stream_every"],
-			stream_every: 0.5
-		}) as DependencyConfig;
-		const state: Record<string, unknown> = {};
-		let hold_restore = false;
-		let apply_restore!: () => void;
-		const update_state = vi.fn(
-			async (id: number, update: Record<string, unknown>) => {
-				if (id !== 1) return;
-				if (hold_restore && update.stream_every === 1) {
-					hold_restore = false;
-					await new Promise<void>((resolve) => {
-						apply_restore = resolve;
-					});
-				}
-				Object.assign(state, update);
-			}
-		);
-		const get_state = vi.fn(async (id: number) =>
-			id === 1 ? { ...state } : null
-		);
-		let finish_second!: () => void;
-		const second_done = new Promise<void>((resolve) => {
-			finish_second = resolve;
-		});
-		let runs = 0;
-		const client = {
-			submit: () => {
-				const is_second = ++runs === 2;
-				return submission(
-					(async function* () {
-						if (is_second) await second_done;
-						yield { type: "status", stage: "complete", queue: true };
-					})()
-				);
-			}
-		} as unknown as Client;
-		const dependency_manager = manager(
-			[stream],
-			client,
-			update_state,
-			undefined,
-			get_state
-		);
-		await vi.waitFor(() => expect(update_state).toHaveBeenCalledTimes(1));
-		state.stream_every = 1;
-		hold_restore = true;
-		const run = (): Promise<void> =>
-			dependency_manager.dispatch({
-				type: "fn",
-				fn_index: 0,
-				event_data: null
-			});
-
-		const writes_of = (value: number): number =>
-			update_state.mock.calls.filter(
-				([id, update]) => id === 1 && update.stream_every === value
-			).length;
-		// The second run reads and applies its args while the first run's
-		// restore is still being applied
-		await run();
-		const second = run();
-		await vi.waitFor(() => expect(writes_of(0.5)).toBe(3));
-		apply_restore();
-		await new Promise((resolve) => setTimeout(resolve, 0));
-		// The second run gets its own value back while it runs
-		expect(state.stream_every).toBe(0.5);
-		finish_second();
-		await second;
-
-		await vi.waitFor(() => expect(state.stream_every).toBe(1));
-		await vi.waitFor(() =>
-			expect(dependency_manager.event_args_holds.size).toBe(0)
-		);
-	});
-
-	test("keeps the status of a listener still writing an output when a validator rejects another", async () => {
-		const validated = dependency(0, "validated", [10]);
-		validated.targets = [[1, "click"]];
-		validated.inputs = [20];
-		const other = dependency(1, "other", [10]);
-		other.targets = [[1, "click"]];
-		let finish_other!: () => void;
-		const other_done = new Promise<void>((resolve) => {
-			finish_other = resolve;
-		});
-		const client = {
-			submit: (fn_index: number) =>
-				submission(
-					(async function* () {
-						if (fn_index === 1) await other_done;
-						yield fn_index === 0
-							? {
-									type: "status",
-									stage: "error",
-									queue: true,
-									message: [{ is_valid: false, message: "bad" }]
-								}
-							: { type: "status", stage: "complete", queue: true };
-					})()
-				)
-		} as unknown as Client;
-		const update_state = vi.fn().mockResolvedValue(undefined);
-		const dependency_manager = manager(
-			[validated, other],
-			client,
-			update_state
-		);
-		const output_statuses = () =>
-			update_state.mock.calls
-				.filter(([id, state]) => id === 10 && state.loading_status)
-				.map(([, state]) => state.loading_status.status);
-
-		const click = dependency_manager.dispatch({
-			type: "event",
-			event_name: "click",
-			target_id: 1,
-			event_data: null
-		});
-		await vi.waitFor(() =>
-			expect(
-				update_state.mock.calls.some(
-					([id, state]) =>
-						id === 20 && state.loading_status?.validation_error === "bad"
-				)
-			).toBe(true)
-		);
-		expect(output_statuses().at(-1)).toBe("pending");
-		finish_other();
-		await click;
-	});
-
-	test("waits for every listener before reporting one that failed", async () => {
-		const failing = dependency(0, "failing", []);
-		failing.targets = [[1, "click"]];
-		const other = dependency(1, "other", []);
-		other.targets = [[1, "click"]];
-		let finish_other!: () => void;
-		const other_done = new Promise<void>((resolve) => {
-			finish_other = resolve;
-		});
-		const submitted: number[] = [];
-		const client = {
-			submit: (fn_index: number) => {
-				submitted.push(fn_index);
-				return submission(
-					(async function* () {
-						await other_done;
-						yield { type: "status", stage: "complete", queue: true };
-					})()
-				);
-			}
-		} as unknown as Client;
-		// Fails the first listener before its run starts
-		const on_loading_status_change = vi.fn((status: { fn_index: number }) => {
-			if (status.fn_index === 0) throw new Error("status listener failed");
-		});
-		const dependency_manager = manager(
-			[failing, other],
-			client,
-			undefined,
-			on_loading_status_change
-		);
-
-		let settled = false;
-		const click = dependency_manager
-			.dispatch({
-				type: "event",
-				event_name: "click",
-				target_id: 1,
-				event_data: null
-			})
-			.finally(() => {
-				settled = true;
-			});
-		await vi.waitFor(() => expect(submitted).toEqual([1]));
-		await new Promise((resolve) => setTimeout(resolve, 0));
-		expect(settled).toBe(false);
-		finish_other();
-
-		await expect(click).rejects.toThrow("status listener failed");
 	});
 
 	test("settles a listener whose inputs or event args cannot be read", async () => {

@@ -103,8 +103,7 @@ export class LoadingStatus {
 				cache_duration,
 				avg_time
 			}) => {
-				// This fn's own last status here, so another fn writing the same
-				// output does not lend it its timer
+				// Time from this fn's own last status, not another fn's on the output
 				const own = this.running_fns.get(id)?.get(args.fn_index);
 				const prev =
 					own ??
@@ -142,9 +141,8 @@ export class LoadingStatus {
 					avg_time,
 					cache_event_id
 				};
-				// Track every output of the fn, also one that is an input of a
-				// streaming event here, but give such an input its own entry so
-				// its stream_state is kept
+				// Track every output, also one typed as an input here because the
+				// update has a stream_state; that input still gets its own entry
 				const shown = this.fn_outputs[args.fn_index].includes(Number(id))
 					? this.track_output(id, entry)
 					: entry;
@@ -153,7 +151,6 @@ export class LoadingStatus {
 		);
 	}
 
-	/** Whether the fn is still running for any of its outputs */
 	is_running(fn_index: number): boolean {
 		for (const running of this.running_fns.values()) {
 			if (running.has(fn_index)) return true;
