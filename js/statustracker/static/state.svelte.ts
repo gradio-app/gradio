@@ -178,6 +178,8 @@ export class LoadingStatus {
 			return entry;
 		}
 		this.running_fns.set(id, running);
+		// Show a failure until a running fn's next status replaces it
+		if (entry.status === "error") return entry;
 		const newest_first = [...running.values()].reverse();
 		return (
 			newest_first.find((e) => e.show_progress !== "hidden") ?? newest_first[0]

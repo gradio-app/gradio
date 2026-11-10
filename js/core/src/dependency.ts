@@ -502,17 +502,15 @@ export class DependencyManager {
 					const failed_hold = holds.find((hold) => hold.status === "rejected");
 					if (failed_hold) throw failed_hold.reason;
 
-					if (
-						dep.connection_type === "stream" &&
-						this.submissions.has(dep.id)
-					) {
-						const submission = this.submissions.get(dep.id);
+					if (sends_chunk) {
+						// Dropped if its stream ended meanwhile; the next chunk starts a
+						// new run
 						let payload: Payload = {
 							fn_index: dep.id,
 							data: data_payload,
 							event_data: event_meta.event_data
 						};
-						submission!.send_chunk(payload as any);
+						this.submissions.get(dep.id)?.send_chunk(payload as any);
 						return;
 					}
 
@@ -901,6 +899,15 @@ export class DependencyManager {
 				} finally {
 					await submission.acknowledge();
 					this.clear_submission(fn_index, submission);
+				}
+				// A stream that ended without a final status
+				if (outcome === null && this.loading_stati.is_running(fn_index)) {
+					this.loading_stati.update({
+						status: "complete",
+						fn_index,
+						stream_state: null
+					});
+					await this.update_loading_stati_state();
 				}
 				if (outcome !== null) {
 					// As for a run that was not interrupted: `.then()` and

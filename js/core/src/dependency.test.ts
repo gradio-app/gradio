@@ -523,52 +523,63 @@ describe("DependencyManager.dispatch", () => {
 		expect(submitted).toContain(1);
 	});
 
-	test("keeps a shared output pending until every listener writing it has finished", async () => {
-		const slow = dependency(0, "slow", [10]);
-		slow.targets = [[1, "click"]];
-		const quick = dependency(1, "quick", [10]);
-		quick.targets = [[1, "click"]];
-		let finish_slow!: () => void;
-		const slow_done = new Promise<void>((resolve) => {
-			finish_slow = resolve;
-		});
-		const client = {
-			submit: (fn_index: number) =>
-				submission(
-					(async function* () {
-						if (fn_index === 0) await slow_done;
-						yield { type: "status", stage: "complete", queue: true };
-					})()
+	test.each([
+		["completes", "complete", "pending"],
+		["fails", "error", "error"]
+	])(
+		"shows a shared output's status while another listener writing it is still running, when one %s",
+		async (_, stage, shown) => {
+			const slow = dependency(0, "slow", [10]);
+			slow.targets = [[1, "click"]];
+			const quick = dependency(1, "quick", [10]);
+			quick.targets = [[1, "click"]];
+			let finish_slow!: () => void;
+			const slow_done = new Promise<void>((resolve) => {
+				finish_slow = resolve;
+			});
+			const client = {
+				submit: (fn_index: number) =>
+					submission(
+						(async function* () {
+							if (fn_index === 0) await slow_done;
+							yield {
+								type: "status",
+								stage: fn_index === 1 ? stage : "complete",
+								queue: true
+							};
+						})()
+					)
+			} as unknown as Client;
+			const on_loading_status_change = vi.fn();
+			const dependency_manager = manager(
+				[slow, quick],
+				client,
+				undefined,
+				on_loading_status_change
+			);
+			const output_status = (): string | undefined =>
+				dependency_manager.loading_stati.current[10]?.status;
+
+			const click = dependency_manager.dispatch({
+				type: "event",
+				event_name: "click",
+				target_id: 1,
+				event_data: null
+			});
+			await vi.waitFor(() =>
+				expect(on_loading_status_change).toHaveBeenCalledWith(
+					expect.objectContaining({ fn_index: 1, status: stage })
 				)
-		} as unknown as Client;
-		const on_loading_status_change = vi.fn();
-		const dependency_manager = manager(
-			[slow, quick],
-			client,
-			undefined,
-			on_loading_status_change
-		);
-		const output_status = (): string | undefined =>
-			dependency_manager.loading_stati.current[10]?.status;
+			);
+			// Pending while the other one runs, but a failure shows right away
+			expect(output_status()).toBe(shown);
+			finish_slow();
+			await click;
 
-		const click = dependency_manager.dispatch({
-			type: "event",
-			event_name: "click",
-			target_id: 1,
-			event_data: null
-		});
-		await vi.waitFor(() =>
-			expect(on_loading_status_change).toHaveBeenCalledWith(
-				expect.objectContaining({ fn_index: 1, status: "complete" })
-			)
-		);
-		expect(output_status()).toBe("pending");
-		finish_slow();
-		await click;
-
-		expect(output_status()).toBe("complete");
-		expect(dependency_manager.loading_stati.running_fns.size).toBe(0);
-	});
+			expect(output_status()).toBe("complete");
+			expect(dependency_manager.loading_stati.running_fns.size).toBe(0);
+		}
+	);
 
 	test("shows the progress of the listeners still writing a shared output", async () => {
 		const shown = dependency(0, "shown", [10]);
@@ -668,29 +679,35 @@ describe("DependencyManager.dispatch", () => {
 		expect(dependency_manager.loading_stati.is_running(0)).toBe(true);
 	});
 
-	test("does not mark a finished stream pending for a late chunk", async () => {
+	test("does not mark a finished stream pending for a late chunk, or start a new run with it", async () => {
 		const stream = dependency(0, "stream", [10]);
 		stream.targets = [[1, "stream"]];
 		stream.connection = "stream";
 		stream.trigger_mode = "multiple";
 		const dependency_manager = manager([stream]);
 		// The stream has sent its final status and is waiting to be acknowledged
-		dependency_manager.submissions.set(0, {
-			send_chunk: vi.fn()
-		} as unknown as ReturnType<Client["submit"]>);
+		const finishing = { send_chunk: vi.fn() };
+		dependency_manager.submissions.set(
+			0,
+			finishing as unknown as ReturnType<Client["submit"]>
+		);
 		dependency_manager.loading_stati.update({
 			status: "complete",
 			fn_index: 0,
 			stream_state: "closed"
 		});
 
-		await dependency_manager.dispatch({
+		const chunk = dependency_manager.dispatch({
 			type: "event",
 			event_name: "stream",
 			target_id: 1,
 			event_data: null
 		});
+		// The stream is cleared while the chunk's inputs are read
+		dependency_manager.submissions.delete(0);
+		await chunk;
 
+		expect(finishing.send_chunk).not.toHaveBeenCalled();
 		expect(dependency_manager.loading_stati.current[10]?.status).toBe(
 			"complete"
 		);
@@ -1083,7 +1100,7 @@ describe("DependencyManager.resume", () => {
 		expect(await resume_with("error")).toEqual([3]);
 	});
 
-	test("settles the status of a resumed run that throws", async () => {
+	test("settles the status of a resumed run that throws or ends without one", async () => {
 		async function* events(): AsyncGenerator<unknown> {
 			yield { type: "status", stage: "pending", fn_index: 0, queue: true };
 			throw new Error("connection lost");
@@ -1099,6 +1116,17 @@ describe("DependencyManager.resume", () => {
 		).rejects.toThrow("connection lost");
 
 		expect(dependency_manager.loading_stati.current[10]?.status).toBe("error");
+		expect(dependency_manager.loading_stati.is_running(0)).toBe(false);
+
+		async function* ends(): AsyncGenerator<unknown> {
+			yield { type: "status", stage: "pending", fn_index: 0, queue: true };
+		}
+		vi.mocked(client.resume_jobs).mockReturnValue([submission(ends())]);
+		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
+
+		expect(dependency_manager.loading_stati.current[10]?.status).toBe(
+			"complete"
+		);
 		expect(dependency_manager.loading_stati.is_running(0)).toBe(false);
 	});
 
