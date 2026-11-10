@@ -215,7 +215,7 @@
 		image: "image/*",
 		audio: "audio/*",
 		video: "video/*",
-		model3d: ".glb,.gltf,.obj,.stl"
+		model3d: ".glb,.gltf,.obj,.stl,.ply,.splat"
 	};
 
 	function clearFile() {
