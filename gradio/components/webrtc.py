@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import logging
-from collections.abc import AsyncIterator, Callable, Sequence
+from collections.abc import AsyncGenerator, AsyncIterator, Callable, Sequence
 from contextlib import aclosing
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -493,7 +493,7 @@ class WebRTC(Component):
 
     async def _run_stream(
         self, manager: ConnectionManager, webrtc_id: str | None
-    ) -> AsyncIterator[Any]:
+    ) -> AsyncGenerator[Any, None]:
         """
         The run of one stream's queue event (see `connection.stream_run`): its
         first step admits the stream, and each later one delivers the next

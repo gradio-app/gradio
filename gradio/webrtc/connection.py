@@ -34,7 +34,7 @@ import logging
 import time
 import weakref
 from collections import Counter, OrderedDict, deque
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncGenerator, Callable
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import anyio
@@ -1009,7 +1009,7 @@ async def _add_ice_candidate(
 
 async def stream_run(
     manager: ConnectionManager, webrtc_id: str | None
-) -> AsyncIterator[AdditionalOutputs | None]:
+) -> AsyncGenerator[AdditionalOutputs | None, None]:
     """
     The run of a stream's queue event, a lease (`BlockFunction.lease`) that
     the queue steps each time the stream wakes it. Its first step admits the
