@@ -1475,7 +1475,8 @@ def test_each_chunk_calls_a_generator_stream_function_afresh():
         demo.close()
 
 
-def test_a_cached_generator_stream_function_replays_its_cache_to_the_end():
+@pytest.mark.parametrize("executor", ["thread", "process"])
+def test_a_cached_generator_stream_function_replays_its_cache_to_the_end(executor):
     @gr.cache
     def respond(x):
         yield "first"
@@ -1483,7 +1484,7 @@ def test_a_cached_generator_stream_function_replays_its_cache_to_the_end():
 
     # A cache hit for a stream event is answered from the cache at its join
     assert list(respond(None)) == ["first", "second"]
-    demo, api, group = _launch_audio_stream(respond)
+    demo, api, group = _launch_audio_stream(respond, executor=executor)
     try:
         with httpx2.Client(timeout=5) as http:
             # The join returns once the whole cached run is replayed
