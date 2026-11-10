@@ -5,6 +5,7 @@ from __future__ import annotations
 import dataclasses
 import logging
 from collections.abc import AsyncIterator, Callable, Sequence
+from contextlib import aclosing
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from gradio_client.documentation import document
@@ -395,8 +396,10 @@ class WebRTC(Component):
         # Only the event holds this stream()'s manager, so the manager goes
         # away with it (e.g. when a @gr.render replaces its events)
         async def run_stream(webrtc_id: str | None) -> AsyncIterator[Any]:
-            async for value in self._run_stream(manager, webrtc_id):
-                yield value
+            # Closed with the queue's run, so that the stream ends at once
+            async with aclosing(self._run_stream(manager, webrtc_id)) as values:
+                async for value in values:
+                    yield value
 
         # Each stream is one queue event: the frontend fires "stream" when the
         # user starts it, waits for its turn, and only then connects. The event
@@ -499,14 +502,15 @@ class WebRTC(Component):
         """
         from gradio.webrtc.connection import stream_run
 
-        async for outputs in stream_run(manager, webrtc_id):
-            values = [skip()] * (1 + self._num_extra_outputs)
-            if outputs is not None:
-                if len(outputs.args) != self._num_extra_outputs:
-                    raise ValueError(
-                        f"AdditionalOutputs has {len(outputs.args)} values, "
-                        f"but stream() has {self._num_extra_outputs} outputs "
-                        "besides the WebRTC component."
-                    )
-                values = [skip(), *outputs.args]
-            yield values[0] if len(values) == 1 else tuple(values)
+        async with aclosing(stream_run(manager, webrtc_id)) as steps:
+            async for outputs in steps:
+                values = [skip()] * (1 + self._num_extra_outputs)
+                if outputs is not None:
+                    if len(outputs.args) != self._num_extra_outputs:
+                        raise ValueError(
+                            f"AdditionalOutputs has {len(outputs.args)} values, "
+                            f"but stream() has {self._num_extra_outputs} outputs "
+                            "besides the WebRTC component."
+                        )
+                    values = [skip(), *outputs.args]
+                yield values[0] if len(values) == 1 else tuple(values)

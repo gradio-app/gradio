@@ -449,11 +449,14 @@ class Stream:
         try:
             await self.lease.keep(self)
         finally:
+            pc = self.pc
             try:
-                if self.pc is not None:
-                    await self.pc.close()
-            finally:
+                # Before awaiting anything: the handler's shutdown is then
+                # registered for the next stream to wait for
                 self.close()
+                if pc is not None:
+                    await pc.close()
+            finally:
                 self.state = StreamState.ENDED
                 self.registry.remove(self)
 
@@ -1041,27 +1044,34 @@ async def stream_run(
         yield None
         return
     stream = registry.by_event[event.id]
-    # The turn: the page may now connect
-    yield None
-    while True:
-        outputs = stream.take_output()
-        if outputs is not None:
-            yield outputs
-        elif stream.ended:
-            failure = stream.failure
-            if failure is not None:
-                # The server has logged it
-                raise Error(
-                    cast(str, failure["error"] or ""),
-                    title=cast(str, failure.get("title") or "Error"),
-                    visible=bool(failure.get("visible", True)),
-                    print_exception=False,
-                )
-            stream.lease.finish()
-            yield None
-            return
-        else:
-            yield None
+    try:
+        # The turn: the page may now connect
+        yield None
+        while True:
+            outputs = stream.take_output()
+            if outputs is not None:
+                yield outputs
+            elif stream.ended:
+                failure = stream.failure
+                if failure is not None:
+                    # The server has logged it
+                    raise Error(
+                        cast(str, failure["error"] or ""),
+                        title=cast(str, failure.get("title") or "Error"),
+                        visible=bool(failure.get("visible", True)),
+                        print_exception=False,
+                    )
+                stream.lease.finish()
+                yield None
+                return
+            else:
+                yield None
+    finally:
+        # A run closed by the queue (`cancels=`, /cancel) ends its stream at
+        # once: the queue has already freed the stream's place, and with
+        # concurrency_limit=1 the next stream must find this handler's
+        # shutdown to wait for (see `_wait_for_shutdowns`)
+        stream.close()
 
 
 def end_admitted_stream(event_id: str) -> bool:

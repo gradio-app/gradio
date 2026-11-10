@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import AsyncIterator, Callable
+from contextlib import aclosing
 from typing import TYPE_CHECKING, Any, Literal
 
 from gradio import utils
@@ -253,8 +254,10 @@ def server_stream(
     )
 
     async def run_stream(webrtc_id: str | None) -> AsyncIterator[Any]:
-        async for outputs in connection.stream_run(manager, webrtc_id):
-            yield skip() if outputs is None else list(outputs.args)
+        # Closed with the queue's run, so that the stream ends at once
+        async with aclosing(connection.stream_run(manager, webrtc_id)) as steps:
+            async for outputs in steps:
+                yield skip() if outputs is None else list(outputs.args)
 
     add_stream_event(
         root_block,

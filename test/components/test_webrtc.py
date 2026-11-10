@@ -2009,6 +2009,47 @@ class TestStreams:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
+        "launched", [{"modality": "audio", "handler": SlowShutdown()}], indirect=True
+    )
+    async def test_after_a_cancel_the_next_handler_waits_for_the_last_one_to_shut_down(
+        self, launched, monkeypatch
+    ):
+        h = launched
+        SlowShutdown.log.clear()
+        # Whatever notices the end of a cancelled stream must not be a poll
+        # that comes after the next stream's offer
+        monkeypatch.setattr(webrtc_connection, "WATCH_INTERVAL", 5)
+        event_id = await h.start("one")
+        first = await make_offer(audio=True)
+        await h.connect(first, "one")
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        await h.join("two")
+        # What the page sends for `stop.click(None, cancels=[stream])`: the
+        # queue frees the slot at once
+        await h.http.post(
+            f"{h.api}/cancel",
+            json={
+                "event_id": event_id,
+                "session_hash": "one",
+                "fn_index": h.stream_fn._id,
+            },
+        )
+        await h.wait_until(lambda: has_stream(h.manager, "two"), timeout=10)
+        second = await make_offer(audio=True)
+        await h.connect(second, "two")
+        assert SlowShutdown.log[:4] == [
+            "created",
+            "shutdown begins",
+            "shutdown ends",
+            "created",
+        ]
+        await first.close()
+        await h.wait_until(lambda: stream_of(h.manager, "two").connected)
+        await second.close()
+        await h.wait_until(lambda: SlowShutdown.log.count("shutdown ends") == 2)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
         "launched",
         [
             {
@@ -2698,6 +2739,8 @@ class TestStreamsWithProcesses:
     test_the_next_handler_waits_for_the_last_one_to_shut_down = (
         TestStreams.test_the_next_handler_waits_for_the_last_one_to_shut_down
     )
+    # The gateway closes the run in this process
+    test_after_a_cancel_the_next_handler_waits_for_the_last_one_to_shut_down = TestStreams.test_after_a_cancel_the_next_handler_waits_for_the_last_one_to_shut_down
 
     @pytest.mark.asyncio
     async def test_a_stream_is_one_finished_event_for_its_process(self, launched):
