@@ -4,8 +4,8 @@ export class LoadingStatus {
 	current: Record<string, ILoadingStatus> = {};
 	fn_outputs: Record<number, number[]> = {};
 	fn_inputs: Record<number, number[]> = {};
-	pending_outputs = new Map<number, number>();
-	fn_status: Record<number, ILoadingStatus["status"]> = {};
+	/** The fns still running for each output, so one finishing does not end the others' status. */
+	running_fns = new Map<number, Set<number>>();
 	show_progress: Record<number, "full" | "minimal" | "hidden"> = {};
 	cache_event_id = 0;
 
@@ -44,17 +44,14 @@ export class LoadingStatus {
 					};
 					delete this.current[old_id];
 				}
-				if (this.pending_outputs.has(old_id)) {
-					this.pending_outputs.set(
-						new_id,
-						this.pending_outputs.get(old_id) as number
-					);
-					this.pending_outputs.delete(old_id);
+				if (this.running_fns.has(old_id)) {
+					this.running_fns.set(new_id, this.running_fns.get(old_id)!);
+					this.running_fns.delete(old_id);
 				}
 			}
 			for (let i = new_ids.length; i < old_ids.length; i++) {
 				delete this.current[old_ids[i]];
-				this.pending_outputs.delete(old_ids[i]);
+				this.running_fns.delete(old_ids[i]);
 			}
 		};
 		remap(old_outputs, new_outputs);
@@ -159,44 +156,37 @@ export class LoadingStatus {
 		} = args;
 
 		const outputs = this.fn_outputs[fn_index];
-		const last_status = this.fn_status[fn_index];
 		const inputs = this.fn_inputs[fn_index];
+		const running =
+			status === "pending" || status === "generating" || status === "streaming";
 
 		const all_ids = outputs.concat(inputs);
 
-		// from (pending -> error) | complete - decrement pending count
 		return all_ids
 			.map((id) => {
-				let new_status: ILoadingStatus["status"];
-
-				const pending_count = this.pending_outputs.get(id) || 0;
-
-				// from (pending -> error) | complete - decrement pending count
-				if (last_status === "pending" && status !== "pending") {
-					let new_count = pending_count - 1;
-
-					this.pending_outputs.set(id, new_count < 0 ? 0 : new_count);
-
-					new_status = new_count > 0 ? "pending" : status;
-
-					// from pending -> pending - do nothing
-				} else if (last_status === "pending" && status === "pending") {
-					new_status = "pending";
-
-					// (error | complete) -> pending - - increment pending count
-				} else if (last_status !== "pending" && status === "pending") {
-					new_status = "pending";
-					this.pending_outputs.set(id, pending_count + 1);
-				} else {
-					new_status = status;
+				let finished_before_others = false;
+				if (outputs.includes(id)) {
+					const fns = this.running_fns.get(id) ?? new Set<number>();
+					if (running) {
+						fns.add(fn_index);
+					} else {
+						fns.delete(fn_index);
+					}
+					if (fns.size > 0) {
+						this.running_fns.set(id, fns);
+					} else {
+						this.running_fns.delete(id);
+					}
+					finished_before_others = !running && fns.size > 0;
 				}
 
 				// We update the status tracker only for input components of streaming events
-				// or for outputs of the dependency
+				// or for outputs of the dependency, and leave an output alone while
+				// another fn writing it is still running
 				const type = (
 					inputs.includes(id) && stream_state
 						? "input"
-						: outputs.includes(id)
+						: outputs.includes(id) && !finished_before_others
 							? "output"
 							: "skip"
 				) as "input" | "output" | "skip";
@@ -206,7 +196,7 @@ export class LoadingStatus {
 					queue_position: position,
 					queue_size: size,
 					eta: eta,
-					status: new_status,
+					status,
 					message: message,
 					progress: progress_data,
 					stream_state: stream_state,

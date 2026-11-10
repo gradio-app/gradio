@@ -214,6 +214,10 @@ export class DependencyManager {
 		new Map();
 	client: Client;
 	deferred_events: Map<number, DispatchFunction | DispatchEvent> = new Map();
+	event_args_holds = new Map<
+		number,
+		{ count: number; original: Record<string, unknown> }
+	>();
 	add_to_api_calls: (payload: Payload) => void;
 
 	update_state_cb: UpdateStateCallback;
@@ -321,7 +325,7 @@ export class DependencyManager {
 		this.rerender_cb = rerender;
 		for (const [dep_id, dep] of this.dependencies_by_fn) {
 			for (const [output_id] of dep.targets) {
-				this.set_event_args(output_id, dep.event_args);
+				this.write_event_args(output_id, dep.event_args);
 			}
 		}
 		// Wait for remounted components to register before pushing status, so
@@ -420,7 +424,7 @@ export class DependencyManager {
 			);
 		}
 		// The listeners of an event are independent, so start them all at once
-		await Promise.all(
+		const results = await Promise.allSettled(
 			(deps ?? []).map(async (dep) => {
 				this.cancel(dep.cancels);
 
@@ -515,6 +519,15 @@ export class DependencyManager {
 					if (dep_submission.type !== "submit") {
 						if (dep_submission.type === "data") {
 							await this.handle_data(dep.outputs, dep_submission.data);
+						}
+						if (dep.functions.backend) {
+							// A transpiled js=True fn runs here, but was marked pending above
+							this.update_loading_status({
+								status: "complete",
+								fn_index: dep.id,
+								stream_state: null
+							});
+							this.update_loading_stati_state();
 						}
 						unset_args.forEach((fn) => fn());
 						[...success, ...all].forEach((dep_id) => {
@@ -717,6 +730,7 @@ export class DependencyManager {
 						this.dispatch_deferred(dep.id);
 					}
 				} catch (error) {
+					unset_args.forEach((fn) => fn());
 					await this.submissions.get(dep.id)?.acknowledge();
 					this.update_loading_status({
 						status: "error",
@@ -741,6 +755,8 @@ export class DependencyManager {
 				}
 			})
 		);
+		const failed = results.find((result) => result.status === "rejected");
+		if (failed) throw failed.reason;
 	}
 
 	/** Builds the block a `gr.render` function returned, with its events. */
@@ -1002,7 +1018,20 @@ export class DependencyManager {
 		);
 	}
 
+	/** Writes a listener's event args to a component without restoring them */
+	async write_event_args(
+		id: number,
+		args: Record<string, unknown>
+	): Promise<void> {
+		if (Object.keys(args).length === 0) return;
+		if (!(await this.get_state_cb?.(id))) return;
+		await this.update_state_cb(id, args, false);
+	}
+
 	/** Sets the event arguments for a specific component
+	 *
+	 * Listeners running at the same time share one hold on the component, so it
+	 * gets its original values back only when the last of them finishes.
 	 *
 	 * @param id the id of the component to set the event arguments for
 	 * @param args the event arguments to set
@@ -1012,24 +1041,42 @@ export class DependencyManager {
 		id: number,
 		args: Record<string, unknown>
 	): Promise<() => void> {
-		let current_args: Record<string, unknown> = {};
-		const current_state = await this.get_state_cb?.(id);
-		if (!current_state) return () => {};
-		for (const [key] of Object.entries(args)) {
-			current_args[key] = current_state?.[key] ?? null;
-		}
-
-		if (Object.keys(args).length === 0) {
-			return () => {
-				// do nothing
-			};
-		}
-
-		await this.update_state_cb(id, args, false);
-
-		return () => {
-			this.update_state_cb(id, current_args, false);
+		if (Object.keys(args).length === 0) return () => {};
+		// Count the hold before awaiting, so a listener finishing meanwhile does
+		// not restore the original values under this one.
+		const hold = this.event_args_holds.get(id) ?? { count: 0, original: {} };
+		this.event_args_holds.set(id, hold);
+		hold.count++;
+		let released = false;
+		const release = (): void => {
+			if (released) return;
+			released = true;
+			hold.count--;
+			if (hold.count === 0) {
+				this.event_args_holds.delete(id);
+				if (Object.keys(hold.original).length > 0) {
+					this.update_state_cb(id, hold.original, false);
+				}
+			}
 		};
+
+		try {
+			const current_state = await this.get_state_cb?.(id);
+			if (!current_state) {
+				release();
+				return () => {};
+			}
+			for (const key of Object.keys(args)) {
+				if (!(key in hold.original)) {
+					hold.original[key] = current_state[key] ?? null;
+				}
+			}
+			await this.update_state_cb(id, args, false);
+		} catch (error) {
+			release();
+			throw error;
+		}
+		return release;
 	}
 
 	async cancel(ids: number[] | undefined): Promise<void> {

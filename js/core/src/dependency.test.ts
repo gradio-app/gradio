@@ -51,13 +51,14 @@ function manager(
 	dependencies: DependencyConfig[],
 	client: Client = {} as Client,
 	update_state = vi.fn().mockResolvedValue(undefined),
-	on_loading_status_change = vi.fn()
+	on_loading_status_change = vi.fn(),
+	get_state = vi.fn().mockResolvedValue(null)
 ): DependencyManager {
 	return new DependencyManager(
 		dependencies,
 		client,
 		update_state,
-		vi.fn().mockResolvedValue(null),
+		get_state,
 		vi.fn(),
 		vi.fn(),
 		vi.fn(),
@@ -520,6 +521,184 @@ describe("DependencyManager.dispatch", () => {
 
 		expect(validation_errors().at(-1)).toBe("bad");
 		expect(submitted).toContain(1);
+	});
+
+	test("keeps a shared output pending until every listener writing it has finished", async () => {
+		const slow = dependency(0, "slow", [10]);
+		slow.targets = [[1, "click"]];
+		const quick = dependency(1, "quick", [10]);
+		quick.targets = [[1, "click"]];
+		let finish_slow!: () => void;
+		const slow_done = new Promise<void>((resolve) => {
+			finish_slow = resolve;
+		});
+		const client = {
+			submit: (fn_index: number) =>
+				submission(
+					(async function* () {
+						if (fn_index === 0) await slow_done;
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				)
+		} as unknown as Client;
+		const on_loading_status_change = vi.fn();
+		const dependency_manager = manager(
+			[slow, quick],
+			client,
+			undefined,
+			on_loading_status_change
+		);
+		const output_status = (): string | undefined =>
+			dependency_manager.loading_stati.current[10]?.status;
+
+		const click = dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+		await vi.waitFor(() =>
+			expect(on_loading_status_change).toHaveBeenCalledWith(
+				expect.objectContaining({ fn_index: 1, status: "complete" })
+			)
+		);
+		expect(output_status()).toBe("pending");
+		finish_slow();
+		await click;
+
+		expect(output_status()).toBe("complete");
+		expect(dependency_manager.loading_stati.running_fns.size).toBe(0);
+	});
+
+	test("ends the pending status of a transpiled js=True listener", async () => {
+		const transpiled = dependency(0, "transpiled", [10]);
+		transpiled.targets = [[1, "click"]];
+		transpiled.js = true;
+		transpiled.js_implementation = "() => 'client result'";
+		const dependency_manager = manager([transpiled]);
+
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "click",
+			target_id: 1,
+			event_data: null
+		});
+
+		expect(dependency_manager.loading_stati.current[10]?.status).toBe(
+			"complete"
+		);
+		expect(dependency_manager.loading_stati.running_fns.size).toBe(0);
+	});
+
+	test("restores a component's event args only after the last listener using them finishes", async () => {
+		const [first, second] = [0.5, 2].map((stream_every, id) =>
+			Object.assign(dependency(id, `stream_${id}`, []), {
+				targets: [[1, "stream"]],
+				event_specific_args: ["stream_every"],
+				stream_every
+			})
+		) as DependencyConfig[];
+		const state: Record<string, unknown> = {};
+		const update_state = vi.fn(
+			async (id: number, update: Record<string, unknown>) => {
+				if (id === 1) Object.assign(state, update);
+			}
+		);
+		const get_state = vi.fn(async (id: number) =>
+			id === 1 ? { ...state } : null
+		);
+		const gates = new Map<number, () => void>();
+		const submitted: number[] = [];
+		const client = {
+			submit: (fn_index: number) => {
+				submitted.push(fn_index);
+				return submission(
+					(async function* () {
+						await new Promise<void>((resolve) => gates.set(fn_index, resolve));
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				);
+			}
+		} as unknown as Client;
+		const dependency_manager = manager(
+			[first, second],
+			client,
+			update_state,
+			undefined,
+			get_state
+		);
+		// Startup writes each listener's args once, without restoring them
+		await vi.waitFor(() => expect(update_state).toHaveBeenCalledTimes(2));
+		state.stream_every = 1;
+
+		const run = (fn_index: number): Promise<void> =>
+			dependency_manager.dispatch({ type: "fn", fn_index, event_data: null });
+		// The second listener starts while the first one's value is applied
+		const runs = [run(0)];
+		await vi.waitFor(() => expect(submitted).toEqual([0]));
+		runs.push(run(1));
+		await vi.waitFor(() => expect(submitted).toEqual([0, 1]));
+		gates.get(0)!();
+		await runs[0];
+		expect(state.stream_every).toBe(2);
+		gates.get(1)!();
+		await runs[1];
+
+		expect(state.stream_every).toBe(1);
+		expect(dependency_manager.event_args_holds.size).toBe(0);
+	});
+
+	test("waits for every listener before reporting one that failed", async () => {
+		const failing = dependency(0, "failing", []);
+		failing.targets = [[1, "click"]];
+		failing.inputs = [20];
+		const other = dependency(1, "other", []);
+		other.targets = [[1, "click"]];
+		let finish_other!: () => void;
+		const other_done = new Promise<void>((resolve) => {
+			finish_other = resolve;
+		});
+		const submitted: number[] = [];
+		const client = {
+			submit: (fn_index: number) => {
+				submitted.push(fn_index);
+				return submission(
+					(async function* () {
+						await other_done;
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				);
+			}
+		} as unknown as Client;
+		const get_state = vi.fn(async (id: number) => {
+			if (id === 20) throw new Error("no state");
+			return null;
+		});
+		const dependency_manager = manager(
+			[failing, other],
+			client,
+			undefined,
+			undefined,
+			get_state
+		);
+
+		let settled = false;
+		const click = dependency_manager
+			.dispatch({
+				type: "event",
+				event_name: "click",
+				target_id: 1,
+				event_data: null
+			})
+			.finally(() => {
+				settled = true;
+			});
+		await vi.waitFor(() => expect(submitted).toEqual([1]));
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		expect(settled).toBe(false);
+		finish_other();
+
+		await expect(click).rejects.toThrow("no state");
 	});
 
 	test("leaves the input's loading status alone when sending a chunk to an open stream", async () => {
