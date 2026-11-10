@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:workflow: add 3d model node
+feat:workflow: add 3d model node support
