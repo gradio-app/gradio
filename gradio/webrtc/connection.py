@@ -1056,7 +1056,9 @@ async def stream_run(
                 if failure is not None:
                     # The server has logged it
                     raise Error(
-                        cast(str, failure["error"] or ""),
+                        # None when show_error hides it: no message, so the
+                        # page shows its generic text, as for any event
+                        cast(str, failure["error"]),
                         title=cast(str, failure.get("title") or "Error"),
                         visible=bool(failure.get("visible", True)),
                         print_exception=False,

@@ -1400,7 +1400,9 @@ class TestStreams:
         h.demo.show_error = show_error
         pc = await make_offer(**offer)
         message = await self.stream_until_message(h, pc, "error")
-        assert message["message"] == ("internal detail" if show_error else "")
+        # Without show_error, no message, as for any event: the page then
+        # shows its generic text ("" would show an empty toast)
+        assert message["message"] == ("internal detail" if show_error else None)
         assert message["title"] == "Error"
         await h.wait_until(lambda: live_pc(h.manager, "one") is None)
         await pc.close()
