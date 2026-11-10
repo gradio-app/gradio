@@ -421,6 +421,11 @@ class WebRTC(Component):
             show_progress="hidden",
             show_progress_on=self,
             api_visibility="private",
+            # The id is the value as sent. The page connects once the event
+            # starts, and its offer waits only ADMISSION_WAIT for the first
+            # call, which a preprocess would delay until a worker thread is
+            # free
+            preprocess=False,
         )
         # The frontend fires "tick" when the handler asks for the inputs, and
         # every extra input pushes its new value as soon as it changes.

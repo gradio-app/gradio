@@ -7,7 +7,9 @@ from collections.abc import Callable
 from contextlib import asynccontextmanager, closing
 from types import SimpleNamespace
 from typing import Any, cast
+from unittest.mock import patch
 
+import anyio
 import httpx2
 import pytest
 import pytest_asyncio
@@ -1284,6 +1286,28 @@ class TestStreams:
         assert "webrtc-datachannel" in answer["sdp"]
         assert answer["time_limit"] is None
         assert live_pc(h.manager, "one") is not None
+        await pc.close()
+
+    @pytest.mark.asyncio
+    async def test_a_turn_needs_no_worker_thread(self, launched):
+        h = launched
+        # The page connects as soon as the stream's event starts, and the
+        # offer waits only a few seconds for the admission in its first call.
+        # A preprocess would wait for a worker thread first, which the app's
+        # other handlers may all hold.
+        thread_calls = []
+        original = anyio.to_thread.run_sync
+
+        async def counting(fn, *args, **kwargs):
+            if isinstance(getattr(fn, "__self__", None), gr.WebRTC):
+                thread_calls.append(fn.__name__)
+            return await original(fn, *args, **kwargs)
+
+        with patch.object(anyio.to_thread, "run_sync", counting):
+            await h.start("one")
+            pc = await make_offer(video=True)
+            await h.connect(pc, "one")
+        assert thread_calls == []
         await pc.close()
 
     @staticmethod
