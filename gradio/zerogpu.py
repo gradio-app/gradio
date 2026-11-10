@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from gradio.blocks import Blocks
 
 
-def exception_mapper(detail: ZeroGPUError, exc: Exception | None):
+def exception_mapper(detail: ZeroGPUError, exc: Exception | None, show_error: bool):
     if isinstance(exc, AppError):
         return Error(
             message=exc.message,
@@ -28,9 +28,10 @@ def exception_mapper(detail: ZeroGPUError, exc: Exception | None):
             visible=exc.visible,
             print_exception=False,
         )
+    message = str(exc) if exc is not None and show_error else detail["message"]
     return Error(
         title=detail["title"],
-        message=detail["message"],
+        message=message,
         print_exception=False,
     )
 
@@ -98,9 +99,17 @@ def maybe_setup_zerogpu_context(
         try:
             yield
         except ZeroGPUTaskException as error:
-            raise exception_mapper(error.detail, error.exception) from error
+            raise exception_mapper(
+                detail=error.detail,
+                exc=error.exception,
+                show_error=blocks.show_error,
+            ) from error
         except ZeroGPUException as error:
-            raise exception_mapper(error.detail, None) from error
+            raise exception_mapper(
+                detail=error.detail,
+                exc=None,
+                show_error=blocks.show_error,
+            ) from error
 
 
 def _get_server_ports(blocks: Blocks, req: Request | fastapi.Request | None):
