@@ -1062,6 +1062,29 @@ def test_a_reconnecting_page_gets_the_logs_a_stream_sent_meanwhile():
         demo.close()
 
 
+def test_a_stream_with_its_own_message_stream_keeps_waiting_logs_when_it_moves():
+    from gradio.server_messages import LogMessage, ServerMessage
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.launch(prevent_thread_lock=True)
+    try:
+        queue, resumable, event = _history_session(demo)
+        stream = event("stream", False, connection="stream")
+        stream.own_stream = True
+        queue.event_ids_to_events["stream"] = stream
+        queue.pending_messages_per_event["stream"] = asyncio.Queue()
+        # Waiting in the event's own (sse_v4) stream when its request broke
+        queue.send_message(stream, LogMessage(log="careful", level="warning", title=""))
+        queue.move_to_session_stream("stream", "s")
+        queue.resume_session("s", ["stream"])
+        waiting = queue.pending_messages_per_session["s"]._queue  # type: ignore
+        assert [(m.event_id, m.msg) for m in waiting] == [("stream", ServerMessage.log)]
+    finally:
+        queue.event_ids_to_events.pop("stream", None)
+        demo.close()
+
+
 def _replay(messages):
     """What a page holds after applying the outputs of the messages in order."""
     data, state, changed = {}, {}, []

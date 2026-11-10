@@ -458,10 +458,20 @@ class Queue:
     def move_to_session_stream(self, event_id: str, session_hash: str) -> None:
         """Hands an sse_v4 event whose request closed early over to its session's
         `queue/data` stream, where a page resuming it after a refresh reads the
-        rest. Everything it sent so far is already in the session's history."""
-        self.pending_messages_per_event.pop(event_id, None)
+        rest. Everything it sent so far is already in the session's history,
+        except a stream's logs (see `send_message`), so the ones still waiting
+        move with it."""
+        own_messages = self.pending_messages_per_event.pop(event_id, None)
         if session_hash not in self.pending_messages_per_session:
             self.pending_messages_per_session[session_hash] = AsyncQueue()
+        resumable = self.resumable_sessions.get(session_hash)
+        if own_messages is not None and resumable is not None:
+            # asyncio.Queue keeps its items in _queue, which has no public view
+            for message in list(own_messages._queue):  # type: ignore[attr-defined]
+                if message.msg == ServerMessage.log and not any(
+                    kept is message for kept in resumable.history
+                ):
+                    self.pending_messages_per_session[session_hash].put_nowait(message)
         event = self.event_ids_to_events.get(event_id)
         if event is not None:
             event.own_stream = False
