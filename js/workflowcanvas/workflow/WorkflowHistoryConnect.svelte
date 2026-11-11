@@ -11,6 +11,7 @@
 		workflowName = "",
 		username = "",
 		signedIn = true,
+		oauthAvailable = false,
 		onsignin,
 		onconnected,
 		onclose
@@ -19,6 +20,7 @@
 		workflowName?: string;
 		username?: string;
 		signedIn?: boolean;
+		oauthAvailable?: boolean;
 		onsignin?: () => void;
 		onconnected: (bucketId: string) => void;
 		onclose: () => void;
@@ -39,6 +41,12 @@
 	let repoInput = $state(username ? `${username}/${suggestedName}` : "");
 	let connecting = $state(false);
 	let error = $state<string | null>(null);
+	let tokenInput = $state("");
+	/** No token reaches the server yet: no OAuth session, write token or token
+	 * cookie. Guessed from `signedIn` until the server answers, which it does by
+	 * refusing to list buckets. A pasted PAT signs the canvas in without
+	 * reaching the server, so the server's answer wins. */
+	let needsToken = $state(!signedIn);
 	let existingBuckets = $state<string[]>([]);
 	const MAX_LISTED = 50;
 	const listedBuckets = $derived(existingBuckets.slice(0, MAX_LISTED));
@@ -52,12 +60,18 @@
 			error = "Invalid bucket ID — expected `username/bucket-name`.";
 			return;
 		}
+		const token = needsToken ? tokenInput.trim() : "";
 		connecting = true;
-		const result = await connect_bucket(root, bucketId);
+		const result = await connect_bucket(root, bucketId, token || undefined);
 		connecting = false;
 		if (!result.ok) {
 			if (result.status === 401) {
-				error = "Sign in with 🤗 first to connect a bucket.";
+				needsToken = true;
+				error = token
+					? "Hugging Face did not accept this token."
+					: "Add a Hugging Face access token to connect a bucket.";
+			} else if (result.status === 403 && token) {
+				error = `This token cannot create or write to "${bucketId}".`;
 			} else if (result.status === 403) {
 				error = `Cannot access or create "${bucketId}". Either create it at https://huggingface.co/new-bucket, or add \`hf_oauth_scopes: [manage-repos]\` to the Space README.`;
 			} else if (result.status === 422) {
@@ -67,13 +81,18 @@
 			}
 			return;
 		}
+		tokenInput = "";
 		onconnected(bucketId);
 	}
 
 	onMount(async () => {
-		if (!signedIn) return;
 		const result = await list_user_buckets(root);
-		if (result.ok) existingBuckets = result.data;
+		if (result.ok) {
+			existingBuckets = result.data;
+			needsToken = false;
+		} else if (result.status === 401) {
+			needsToken = true;
+		}
 	});
 </script>
 
@@ -98,66 +117,100 @@
 			from the History panel.
 		</p>
 
-		{#if !signedIn}
-			<div class="connect-signin">
-				<p class="connect-hint">
-					Sign in with your Hugging Face account to save history to a bucket
-					under your name.
-				</p>
-				<button class="connect-btn" onclick={() => onsignin?.()}>
-					Sign in with 🤗
-				</button>
-			</div>
-		{:else}
-			{#if existingBuckets.length > 0}
-				<div class="bucket-list">
-					{#each listedBuckets as bucket}
-						<button
-							class="bucket-item"
-							disabled={connecting}
-							onclick={() => connect(bucket)}
-						>
-							<span class="bucket-id">{bucket}</span>
-						</button>
-					{/each}
-				</div>
-				{#if hiddenBucketCount > 0}
+		{#if needsToken}
+			{#if oauthAvailable && !signedIn}
+				<div class="connect-signin">
 					<p class="connect-hint">
-						{hiddenBucketCount} more not shown — type its full id below.
+						Sign in with your Hugging Face account to save history to a bucket
+						under your name, or add an access token below.
 					</p>
-				{/if}
-				<div class="connect-divider"><span>or use a new bucket</span></div>
+					<button class="connect-btn" onclick={() => onsignin?.()}>
+						Sign in with 🤗
+					</button>
+				</div>
 			{/if}
-
+			<label class="connect-label" for="workflow-history-token"
+				>Hugging Face access token</label
+			>
+			<input
+				id="workflow-history-token"
+				class="connect-input connect-token"
+				type="password"
+				autocomplete="off"
+				spellcheck="false"
+				placeholder="hf_…"
+				bind:value={tokenInput}
+				disabled={connecting}
+			/>
 			<p class="connect-hint">
-				Suggested: <code>{suggestedId}</code>. A new bucket is auto-created on
-				first use.
+				Create a <a
+					href="https://huggingface.co/settings/tokens/new?tokenType=fineGrained"
+					target="_blank"
+					rel="noopener noreferrer">fine-grained token</a
+				> with write access to this bucket, or to its namespace if the bucket doesn't
+				exist yet. This browser keeps it for this app until you close it or the app
+				restarts. The app's server uses it, so only add a token to apps you trust.
 			</p>
+			<p class="connect-hint">
+				This token is only used to save history. The token field at the top
+				right is separate: it runs nodes on your inference quota.
+			</p>
+		{/if}
 
-			<div class="connect-manual">
-				<input
-					class="connect-input"
-					type="text"
-					placeholder={suggestedId}
-					bind:value={repoInput}
-					disabled={connecting}
-					onkeydown={(e) => {
-						if (e.key === "Enter" && repoInput.trim())
-							connect(repoInput.trim());
-					}}
-				/>
-				<button
-					class="connect-btn"
-					disabled={connecting || !repoInput.trim()}
-					onclick={() => connect(repoInput.trim())}
-				>
-					{connecting ? "..." : "Connect"}
-				</button>
+		{#if existingBuckets.length > 0}
+			<div class="bucket-list">
+				{#each listedBuckets as bucket}
+					<button
+						class="bucket-item"
+						disabled={connecting}
+						onclick={() => connect(bucket)}
+					>
+						<span class="bucket-id">{bucket}</span>
+					</button>
+				{/each}
 			</div>
-
-			{#if error}
-				<div class="connect-error">{error}</div>
+			{#if hiddenBucketCount > 0}
+				<p class="connect-hint">
+					{hiddenBucketCount} more not shown — type its full id below.
+				</p>
 			{/if}
+			<div class="connect-divider"><span>or use a new bucket</span></div>
+		{/if}
+
+		<p class="connect-hint">
+			Suggested: <code>{suggestedId}</code>. A new bucket is auto-created on
+			first use.
+		</p>
+
+		<div class="connect-manual">
+			<input
+				class="connect-input"
+				type="text"
+				placeholder={suggestedId}
+				bind:value={repoInput}
+				disabled={connecting}
+				onkeydown={(e) => {
+					if (
+						e.key === "Enter" &&
+						repoInput.trim() &&
+						!(needsToken && !tokenInput.trim())
+					)
+						connect(repoInput.trim());
+				}}
+			/>
+			<button
+				class="connect-btn"
+				disabled={connecting ||
+					!repoInput.trim() ||
+					(needsToken && !tokenInput.trim())}
+				onclick={() => connect(repoInput.trim())}
+			>
+				{connecting ? "..." : "Connect"}
+			</button>
+		</div>
+
+		{#if error}
+			<div class="connect-error">{error}</div>
 		{/if}
 	</div>
 </div>
@@ -352,6 +405,29 @@
 
 	:global(body:not(.dark)) .connect-divider {
 		color: #9ca3af;
+	}
+
+	.connect-label {
+		display: block;
+		margin: 0 0 6px;
+		font-size: 12px;
+		font-weight: 600;
+		color: #c8cad8;
+	}
+
+	:global(body:not(.dark)) .connect-label {
+		color: #1a1b25;
+	}
+
+	.connect-token {
+		display: block;
+		box-sizing: border-box;
+		width: 100%;
+		margin-bottom: 6px;
+	}
+
+	.connect-hint a {
+		color: #ff7a38;
 	}
 
 	.connect-manual {

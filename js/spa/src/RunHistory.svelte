@@ -23,6 +23,7 @@
 
 	interface HistoryConfig extends RunHistoryScope {
 		title?: string;
+		oauth_available?: boolean;
 		components: {
 			id: number;
 			type: string;
@@ -54,14 +55,7 @@
 
 	const bucket_id = $derived(storage.bucket_id ?? "");
 	const using_bucket = $derived(storage.type === "bucket");
-	const oauth_available = $derived(
-		scope.components.some((component) => component.type === "loginbutton")
-	);
-	const running_locally = $derived(
-		["localhost", "127.0.0.1", "::1", "[::1]"].includes(
-			window.location.hostname
-		)
-	);
+	const oauth_available = $derived(scope.oauth_available ?? false);
 
 	let groups = $derived.by(() => {
 		const grouped = new Map<string, StoredRun[]>();
@@ -154,13 +148,9 @@
 	}
 
 	function authentication_error(): string {
-		if (running_locally) {
-			return "Log in locally with `hf auth login`, then try again.";
-		}
-		if (oauth_available) {
-			return "Sign in with Hugging Face to connect a bucket.";
-		}
-		return "This app must enable Hugging Face OAuth before visitors can connect buckets.";
+		return oauth_available
+			? "Sign in with Hugging Face, or connect this bucket again with an access token, to see its runs."
+			: "Connect this bucket again with a Hugging Face access token to see its runs.";
 	}
 
 	async function refresh(): Promise<void> {
