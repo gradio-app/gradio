@@ -292,13 +292,17 @@ export function install_console_forwarding(
 		capture("rejection", () => serialize_console_args([reason]));
 	}
 
-	const console_restore: (() => void)[] = [];
-	let console_wrapped = false;
+	// a wrapper stays in the chain when another wrapper sits on top of it
+	const wrappers = new Map<
+		ConsoleLevel,
+		{ wrapped: unknown; original: Console[ConsoleLevel] }
+	>();
+	let console_capturing = false;
 
 	function wrap_console(): void {
-		if (console_wrapped) return;
-		console_wrapped = true;
+		console_capturing = true;
 		for (const level of CONSOLE_LEVELS) {
+			if (wrappers.has(level)) continue;
 			try {
 				const target = host.console;
 				const original = target[level];
@@ -307,7 +311,9 @@ export function install_console_forwarding(
 					try {
 						return original.apply(this, args);
 					} finally {
-						capture(level, () => serialize_console_args(args));
+						if (console_capturing) {
+							capture(level, () => serialize_console_args(args));
+						}
 					}
 				};
 				try {
@@ -316,9 +322,7 @@ export function install_console_forwarding(
 					// cosmetic only
 				}
 				target[level] = wrapped as Console[ConsoleLevel];
-				console_restore.push(() => {
-					if (target[level] === wrapped) target[level] = original;
-				});
+				wrappers.set(level, { wrapped, original });
 			} catch {
 				// leave this method alone
 			}
@@ -327,10 +331,13 @@ export function install_console_forwarding(
 
 	// gives devtools its call sites back on pages no parent asks about
 	function unwrap_console(): void {
-		console_wrapped = false;
-		for (const undo of console_restore.splice(0)) {
+		console_capturing = false;
+		for (const [level, { wrapped, original }] of wrappers) {
 			try {
-				undo();
+				if (host.console[level] === wrapped) {
+					host.console[level] = original;
+					wrappers.delete(level);
+				}
 			} catch {
 				// ignore
 			}

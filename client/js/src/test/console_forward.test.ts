@@ -448,6 +448,33 @@ describe("console forwarding: no init after load", () => {
 	});
 });
 
+describe("console forwarding: another wrapper chained on top", () => {
+	it("stops capturing after the idle restore and does not capture twice after a late init", async () => {
+		vi.useFakeTimers();
+		const env = make_host();
+		install(env.host);
+		const ours = env.host.console.log;
+		const theirs = function (this: unknown, ...args: unknown[]) {
+			return ours.apply(this, args);
+		};
+		env.host.console.log = theirs;
+		env.dispatch("load", {});
+		vi.advanceTimersByTime(CONSOLE_FORWARD_IDLE_MS);
+		expect(env.host.console.log).toBe(theirs);
+
+		env.host.console.log("idle");
+		await settle();
+		env.init();
+		expect(env.host.console.log).toBe(theirs);
+		env.host.console.log("after init");
+		await settle();
+		env.init();
+
+		expect(env.entries().map((e) => e.text)).toEqual(["after init"]);
+		expect(env.calls.map((c) => c.args[0])).toEqual(["idle", "after init"]);
+	});
+});
+
 describe("console forwarding: rate cap", () => {
 	it("posts at most the per-second cap of entries messages and counts the overflow as dropped", async () => {
 		vi.useFakeTimers();
