@@ -1883,6 +1883,35 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    async def test_a_handler_that_fails_while_the_stream_connects_keeps_its_error(
+        self, launched, caplog
+    ):
+        h = launched
+        await h.start("one")
+        original = RTCPeerConnection.setRemoteDescription
+
+        async def handler_fails_meanwhile(pc, description):
+            await original(pc, description)
+            # A handler started by on_track (send mode's start_up) fails while
+            # the server is still setting up, which closes the connection
+            stream_of(h.manager, "one").errors.fail(gr.Error("No GPU left"))
+            await pc.close()
+
+        with patch.object(
+            RTCPeerConnection, "setRemoteDescription", handler_fails_meanwhile
+        ):
+            pc = await make_offer(video=True)
+            response = await h.offer(pc, "one")
+        assert response["meta"]["error"] == "setup_failed"
+        assert response["meta"]["message"] == "No GPU left"
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m.get("msg") == "process_completed")
+        assert completion["success"] is False
+        assert completion["output"]["error"] == "No GPU left"
+        assert "Could not set up the stream" not in caplog.text
+        await pc.close()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched", [{"modality": "audio", "handler": EchoHandler}], indirect=True
     )

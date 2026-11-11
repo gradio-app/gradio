@@ -748,13 +748,19 @@ class ConnectionManager:
                 # failure of the stream, which ends as stopped
                 await pc.close()
                 return _failed("not_admitted")
-            if not isinstance(e, Error):
-                logger.exception("Could not set up the stream")
             await pc.close()
-            payload = error_payload(e, show_error)
-            # The stream's event fails with it, which the page shows; a
-            # client also gets it from the answer
-            errors.failure = payload
+            if errors.failure is not None:
+                # A handler started meanwhile (send mode's start_up) failed and
+                # ended the stream, which broke the setup: its error is the one
+                # to show, and the server has logged it
+                payload = errors.failure
+            else:
+                if not isinstance(e, Error):
+                    logger.exception("Could not set up the stream")
+                payload = error_payload(e, show_error)
+                # The stream's event fails with it, which the page shows; a
+                # client also gets it from the answer
+                errors.failure = payload
             stream.close()
             return _failed(
                 "setup_failed", message=payload["error"] or "An error occurred."
