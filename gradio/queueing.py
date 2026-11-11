@@ -1168,6 +1168,7 @@ class Queue:
             for task in (t1, t2):
                 task.cancel()
         event.signal.clear()
+        # Both may be done: a wake wins
         return "signal" if t1 in done else "timeout"
 
     @staticmethod

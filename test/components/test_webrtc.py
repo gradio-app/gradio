@@ -858,10 +858,20 @@ class TestWebRTC:
             assert other.closed
             assert stream_of(manager, "abc").event.id == "event"
 
+            # The step with an ended stream's last outputs ends the run, so
+            # that they go out with the event's completion
+            add_outputs(manager, "abc", AdditionalOutputs(5, "e"))
+            add_outputs(manager, "abc", AdditionalOutputs(6, "f"))
+            end_stream(manager, "abc")
+            assert await anext(run) == (skip, 5, "e")
+            assert not event.closed
+            assert await anext(run) == (skip, 6, "f")
+            assert event.closed
+
             # Ended with nothing pending: the last step changes nothing (a run
             # that just ran out would complete with empty outputs, which the
             # page would apply)
-            end_stream(manager, "abc")
+            event.closed = False
             assert await anext(run) == (skip, skip, skip)
             assert event.closed
 
@@ -1512,8 +1522,9 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("duration", [3, None])
     async def test_a_handler_error_before_the_data_channel_opens_is_shown(
-        self, launched
+        self, launched, duration
     ):
         h = launched
         await h.start("one")
@@ -1522,13 +1533,13 @@ class TestStreams:
         assert (await h.offer(pc, "one"))["type"] == "answer"
         errors = stream_of(h.manager, "one").errors
         assert errors is not None
-        errors.fail(gr.Error("Sign in first", duration=3))
+        errors.fail(gr.Error("Sign in first", duration=duration))
         messages = await h.messages("one", completed)
         completion = next(m for m in messages if m["msg"] == "process_completed")
         assert completion["success"] is False
         assert completion["output"]["error"] == "Sign in first"
         assert completion["output"]["visible"] is True
-        assert completion["output"]["duration"] == 3
+        assert completion["output"]["duration"] == duration
         await pc.close()
 
     @pytest.mark.asyncio
@@ -2007,9 +2018,13 @@ class TestStreams:
     @pytest.mark.parametrize(
         "launched", [{"stream_kwargs": {"time_limit": 600}}], indirect=True
     )
-    async def test_a_stream_event_without_an_id_does_not_hold_the_slot(self, launched):
+    # 5: an id that is not a string, which signalling could never match
+    @pytest.mark.parametrize("webrtc_id", [None, 5])
+    async def test_a_stream_event_without_an_id_does_not_hold_the_slot(
+        self, launched, webrtc_id
+    ):
         h = launched
-        await h.join(None, session_hash="no-id")
+        await h.join(webrtc_id, session_hash="no-id")
         # Nothing would wake it before its time limit if it stayed
         await h.messages("no-id", completed, timeout=5)
         await h.start("one")
@@ -3200,6 +3215,10 @@ class TestVideoTracks:
         assert await cb.recv() is None
         assert made == []
 
+    def test_skip_frames_is_the_default(self):
+        assert VideoOptions(flip).skip_frames
+        assert self.callback(flip).skip_frames
+
     @pytest.mark.asyncio
     @pytest.mark.parametrize("skip_frames, expected_pts", [(True, 4), (False, 0)])
     async def test_skip_frames_processes_the_latest_frame(
@@ -4336,6 +4355,16 @@ class TestCleanUp:
             caplog.text
         )
 
+    def test_input_for_a_stream_id_that_is_not_a_string_is_ignored(self):
+        unit_registry()
+        token = LocalContext.blocks.set(cast(Any, SimpleNamespace(_queue=_unit_queue)))
+        try:
+            # E.g. the extra inputs' event, called with a crafted id that
+            # cannot even be a dict key
+            webrtc_connection.set_input(cast(Any, [1]), "s", 0.5)
+        finally:
+            LocalContext.blocks.reset(token)
+
     @pytest.mark.asyncio
     async def test_closing_a_stream_of_a_forgotten_session_keeps_no_state(self):
         from gradio.processing.worker import Worker
@@ -4661,6 +4690,26 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
     finally:
         await pc.close()
         gr.close_all()
+
+
+def test_a_server_webrtc_handler_that_takes_the_token_asks_for_sign_in():
+    from gradio.server import _takes_oauth
+
+    def with_token(frame, token: gr.OAuthToken | None):
+        return frame
+
+    class WithProfile(EchoHandler):
+        async def start_up(self, profile: gr.OAuthProfile | None):  # type: ignore[override]
+            pass
+
+    # A handler function, a handler class (in its start_up) and VideoOptions
+    assert _takes_oauth(with_token)
+    assert _takes_oauth(WithProfile)
+    assert _takes_oauth(VideoOptions(with_token))
+    assert not _takes_oauth(flip)
+    server = gr.Server()
+    server.webrtc(with_token, name="echo")
+    assert with_token in server._oauth_candidates()
 
 
 @pytest.mark.asyncio

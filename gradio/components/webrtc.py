@@ -490,6 +490,7 @@ class WebRTC(Component):
         """
         from gradio.webrtc.connection import stream_run
 
+        # The queue's close has to reach stream_run's finally now, not at GC
         async with aclosing(stream_run(manager, webrtc_id)) as steps:
             async for outputs in steps:
                 values = [skip()] * (1 + self._num_extra_outputs)

@@ -493,8 +493,9 @@ class Server(App):
 
     def _oauth_candidates(self) -> list[Any]:
         """The `webrtc()` functions, whose OAuth hints add the login routes. An
-        `api()` hint does not: its callers pass their own token, so the app must
-        start without `gradio[oauth]` or an HF login."""
+        `api()` hint does not: its callers pass their own token, so such an app
+        must be able to start without `gradio[oauth]`, `hf_oauth`, or an HF
+        login."""
         candidates: list[Any] = []
         for webrtc_kwargs in self._deferred_webrtc:
             candidates += [webrtc_kwargs["fn"], webrtc_kwargs["rtc_configuration"]]

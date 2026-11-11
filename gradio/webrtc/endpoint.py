@@ -242,6 +242,7 @@ def server_stream(
     )
 
     async def run_stream(webrtc_id: str | None) -> AsyncIterator[Any]:
+        # The queue's close has to reach stream_run's finally now, not at GC
         async with aclosing(connection.stream_run(manager, webrtc_id)) as steps:
             async for outputs in steps:
                 yield skip() if outputs is None else list(outputs.args)

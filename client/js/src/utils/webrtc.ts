@@ -249,7 +249,7 @@ export interface WebRTCStreamOptions {
 	on_output?: (values: unknown[]) => void;
 	/** Messages from the handler: gr.Info, gr.Warning, its errors. */
 	on_message?: (msg: WebRTCControlMessage) => void;
-	/** Queue statuses (place in line, ETA), if the client publishes them. */
+	/** Queue statuses (place in line, ETA). */
 	on_status?: (status: StatusMessage) => void;
 }
 
