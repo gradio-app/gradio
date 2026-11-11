@@ -170,7 +170,7 @@ class Queue:
         self.active_jobs: list[None | list[Event]] = []
         self.delete_lock = asyncio.Lock()
         self.server_app = None
-        self.server_pid = os.getpid()
+        self.server_pid: int | None = None
         self.rpc_queue: SharedMemoryQueue[tuple[str, EventMessage]] | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
@@ -798,6 +798,7 @@ class Queue:
         self._asyncio_tasks.clear()
 
     def set_server_app(self, app: routes.App):
+        self.server_pid = os.getpid()
         self.server_app = app
 
     def get_active_worker_count(self) -> int:
@@ -914,7 +915,7 @@ class Queue:
         event_id: str,
         message: EventMessage,
     ):
-        if os.getpid() != self.server_pid:
+        if self.server_pid is not None and self.server_pid != os.getpid():
             if self.rpc_queue is None:
                 warnings.warn(
                     "Queue event from forked process without GRADIO_QUEUE_MULTIPROCESSING_ENABLED"
