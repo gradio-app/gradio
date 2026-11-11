@@ -157,9 +157,10 @@ class RemoteEventHandle:
         self.actions: list[str] = []
         # Goes back with the call that admitted the stream
         self.admitted_stream: str | None = None
-        state = worker.app.state_holder.session_data.get(running.session_hash or "")
-        # A call can start after its page session closed
-        self.live = running.alive and not (state is not None and state.is_closed)
+        # Not whether the session is closed: a page whose heartbeat dropped
+        # (one in the background) is closed for the server but still sends
+        # events, and the queue no longer runs the events of a page that left
+        self.live = running.alive
 
     def _act(self, action: str) -> None:
         if not self.live:

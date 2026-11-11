@@ -2848,6 +2848,76 @@ class TestStreams:
             await h.http.aclose()
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("executor", ["thread", "process"])
+    async def test_a_page_whose_heartbeat_dropped_can_still_stream(
+        self, executor, monkeypatch
+    ):
+        monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+        # The grace period after a dropped heartbeat (and a detached session's
+        # time to live), in the gateway too, which reads it at launch
+        monkeypatch.setenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "0.2")
+        forget_earlier_streams()
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC()
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
+            h = Harness(demo, local_url, webrtc)
+            event_id = await h.start("one")
+            pc = await make_offer(video=True)
+            await h.connect(pc, "one")
+            await h.http.post(f"{h.api}/stream/{event_id}/close")
+            await h.messages("one", completed)
+            await pc.close()
+            # A phone puts the page in the background: its heartbeat drops and
+            # is not opened again, so the server takes the session as closed
+            async with h.http.stream("GET", f"{h.api}/heartbeat/one") as response:
+                await anext(response.aiter_lines())
+            worker = getattr(demo, "_process_worker", None)
+            app = worker.app if worker is not None else demo.server_app
+            await h.wait_until(
+                lambda: (
+                    "one" in app.state_holder.session_data
+                    and app.state_holder.session_data["one"].is_closed
+                )
+            )
+            # The page is still there and starts another stream
+            await h.join("two", session_hash="one")
+            await h.wait_until(lambda: has_stream(h.manager, "two"))
+            pc = await make_offer(video=True)
+            answer = await h.connect(pc, "two")
+            assert "m=video" in answer["sdp"]
+            await pc.close()
+            await h.http.aclose()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("executor", ["thread", "process"])
+    async def test_a_page_that_left_ends_its_stream(self, executor, monkeypatch):
+        monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+        monkeypatch.setenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "0.2")
+        forget_earlier_streams()
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC()
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
+            h = Harness(demo, local_url, webrtc)
+            await h.start("one")
+            pc = await make_offer(video=True)
+            await h.connect(pc, "one")
+            await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+            # The tab closes: its queue stream and heartbeat go, for good
+            async with h.http.stream(
+                "GET", f"{h.api}/queue/data", params={"session_hash": "one"}
+            ) as response:
+                await anext(response.aiter_lines())
+            async with h.http.stream("GET", f"{h.api}/heartbeat/one") as response:
+                await anext(response.aiter_lines())
+            await h.wait_until(lambda: not has_stream(h.manager, "one"), timeout=10)
+            await pc.close()
+            await h.http.aclose()
+
+    @pytest.mark.asyncio
     async def test_rtc_configuration_gets_the_visitor_oauth_token(self):
         from starlette.requests import Request
 
@@ -4801,7 +4871,7 @@ class TestCleanUp:
         assert "event" not in registry.by_event
 
     @pytest.mark.asyncio
-    async def test_an_event_that_is_over_admits_no_stream(self):
+    async def test_an_event_that_is_over_admits_no_stream(self, caplog):
         forget_earlier_streams()
         manager = self.manager()
         handle = self.Handle()
@@ -4819,6 +4889,11 @@ class TestCleanUp:
         assert [x async for x in webrtc_connection.stream_run(manager, "one")] == [None]
         assert handle.finished
         assert not has_stream(manager, "one")
+        # The page's offer is refused later without the reason, so the server
+        # logs it
+        assert "Did not admit stream 'one' of event event: its event is over" in (
+            caplog.text
+        )
 
     @pytest.mark.asyncio
     async def test_a_stream_id_that_is_not_a_string_is_not_admitted(self):
@@ -4868,21 +4943,6 @@ class TestCleanUp:
         )
         assert closed is False
         assert "gone" not in state_holder
-
-    def test_a_handle_for_a_closed_session_is_not_live(self):
-        from gradio.processing.worker import RemoteEventHandle, RunningEvent
-
-        closed = SimpleNamespace(is_closed=True)
-        worker = SimpleNamespace(
-            app=SimpleNamespace(
-                state_holder=SimpleNamespace(session_data={"s": closed})
-            )
-        )
-        # The call started after the session closed, so nothing marked it
-        running = RunningEvent("event", "s")
-        assert not RemoteEventHandle(cast(Any, worker), running).live
-        closed.is_closed = False
-        assert RemoteEventHandle(cast(Any, worker), running).live
 
     @pytest.mark.asyncio
     async def test_clean_up_stops_every_track(self):

@@ -1073,15 +1073,21 @@ async def stream_run(
     if event is None:
         return
     registry = registry_for(queue)
-    if (
-        not isinstance(webrtc_id, str)
-        or not webrtc_id
-        or not event.live
-        or not manager.admit(webrtc_id, event, registry)
-    ):
-        # No id (or not a string, which signalling could never match), an
-        # event that is over, or an id that belongs to another event's stream:
-        # end this event instead of letting it hold a place it cannot use
+    refusal = None
+    if not isinstance(webrtc_id, str) or not webrtc_id:
+        # Signalling could never match it
+        refusal = "it has no stream id"
+    elif not event.live:
+        refusal = "its event is over"
+    elif not manager.admit(webrtc_id, event, registry):
+        refusal = "another event holds its stream id"
+    if refusal is not None:
+        # The page still takes this as its turn and its offer is refused
+        # later, so the reason is only here
+        logger.warning(
+            "Did not admit stream %r of event %s: %s", webrtc_id, event.id, refusal
+        )
+        # End this event instead of letting it hold a place it cannot use
         event.finish()
         yield None
         return
