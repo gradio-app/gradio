@@ -218,6 +218,13 @@
 		model3d: ".glb,.gltf,.obj,.stl,.ply,.splat"
 	};
 
+	function model3dPath(f: FileValue): string | undefined {
+		const exts = ACCEPT.model3d!.split(",");
+		return [f.name, f.url].find((s) =>
+			exts.some((ext) => s?.toLowerCase().endsWith(ext))
+		);
+	}
+
 	function clearFile() {
 		revoke_old_blob();
 		ondatachange(node.id, widgetPortId, null);
@@ -474,10 +481,8 @@
 					</div>
 				{:else if effectiveWidgetType === "video"}
 					<video class="widget-video" controls src={fileVal.url}></video>
-				{:else if effectiveWidgetType === "model3d"}
-					<!-- Orbit and zoom belong to the viewer, not the canvas. Uploads
-					     are extensionless blob URLs, so `path` carries the filename
-					     the renderer reads the format from. -->
+				{:else if effectiveWidgetType === "model3d" && model3dPath(fileVal)}
+					<!-- Orbit and zoom belong to the viewer, not the canvas. -->
 					<div
 						class="widget-gradio-wrap widget-model3d nowheel"
 						role="presentation"
@@ -488,7 +493,7 @@
 							value={{
 								url: fileVal.url,
 								orig_name: fileVal.name,
-								path: fileVal.name || fileVal.url,
+								path: model3dPath(fileVal)!,
 								mime_type: fileVal.mime,
 								meta: { _type: "gradio.FileData" }
 							}}
