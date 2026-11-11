@@ -1,3 +1,5 @@
+import { get_zerogpu_origin } from "@gradio/client";
+
 interface WhoAmI {
 	name: string;
 	isPro: boolean;
@@ -51,9 +53,11 @@ type EmbedderToken = { token: string; expires: number };
 export function request_embedder_token(
 	probe = false
 ): Promise<EmbedderToken | null> {
-	if (typeof window === "undefined" || window.self === window.top) {
-		return Promise.resolve(null);
-	}
+	const origin =
+		typeof window === "undefined" || window.self === window.top
+			? null
+			: get_zerogpu_origin(window.location.hostname);
+	if (!origin) return Promise.resolve(null);
 	const handshake = (window as { supports_zerogpu_headers?: boolean })
 		.supports_zerogpu_headers;
 	if (!probe && !handshake) return Promise.resolve(null);
@@ -64,7 +68,7 @@ export function request_embedder_token(
 			resolve(value);
 		};
 		const on_message = (event: MessageEvent): void => {
-			if (event.source !== window.parent) return;
+			if (event.source !== window.parent || event.origin !== origin) return;
 			const data = event.data as {
 				type?: unknown;
 				token?: unknown;
@@ -88,7 +92,7 @@ export function request_embedder_token(
 		window.addEventListener("message", on_message);
 		window.parent.postMessage(
 			{ type: probe ? INFERENCE_JWT_PROBE : INFERENCE_JWT_REQUEST },
-			"*"
+			origin
 		);
 	});
 }
@@ -331,16 +335,20 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 
 	let embedder: EmbedderToken | null = null;
 	let embedder_pending: Promise<EmbedderToken | null> | null = null;
+	let embedder_declined = false;
 	async function inferenceToken(): Promise<string> {
 		if (token) return token;
 		if (embedder && embedder.expires - 30_000 > Date.now())
 			return embedder.token;
-		embedder_pending ??= request_embedder_token().finally(() => {
+		if (embedder_declined) return "";
+		embedder_pending ??= request_embedder_token().then((t) => {
+			embedder = t;
+			embedded = !!t;
+			embedder_declined = !t;
 			embedder_pending = null;
+			return t;
 		});
-		embedder = await embedder_pending;
-		embedded = !!embedder;
-		return embedder?.token ?? "";
+		return (await embedder_pending)?.token ?? "";
 	}
 
 	function signIn(): void {
