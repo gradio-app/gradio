@@ -118,9 +118,10 @@ _thread_limiters: weakref.WeakKeyDictionary[
 async def run_in_thread(fn: Callable, *args: Any) -> Any:
     """
     Runs a sync handler call in a worker thread, in the caller's context (the
-    visitor's request, the stream's queue event and errors). Its threads are counted apart
-    from the default limiter, whose `max_threads` tokens Gradio's sync event
-    listeners share, so that busy streams do not hold those up.
+    visitor's request, the stream's queue event and errors), so that it does
+    not stall the event loop. Its threads are counted apart from the default
+    limiter, whose `max_threads` tokens Gradio's sync event listeners share,
+    so that busy streams do not hold those up.
     """
     loop = asyncio.get_running_loop()
     limiter = _thread_limiters.get(loop)
@@ -183,7 +184,6 @@ class VideoCallback(VideoStreamTrack):
         self.track = track
         self.mirror = mirror
         self.event_handler = event_handler
-        # The stream's extra inputs, shared with its other tracks
         self.inputs = inputs if inputs is not None else StreamInputs()
         self.channel = channel
         self.set_additional_outputs = set_additional_outputs
@@ -225,7 +225,6 @@ class VideoCallback(VideoStreamTrack):
     def set_args(self, args: list[Any]):
         self.inputs.set(args)
 
-    # Frames are RGB arrays, like the numpy values of gr.Image and gr.Video
     def array_to_frame(self, array: Any) -> VideoFrame:
         return rgb_frame(array)
 
@@ -283,8 +282,6 @@ class VideoCallback(VideoStreamTrack):
                 self.stop()
                 return
             except Exception as e:
-                # As in AudioCallback.process_input_frames: the stream is broken
-                # for good, and the page hears it instead of waiting for frames
                 handler_failed(e)
                 self.stop()
                 return
@@ -317,9 +314,6 @@ class VideoCallback(VideoStreamTrack):
                 unprocessed.time_base = frame.time_base
                 return unprocessed
 
-            # Run the handler in a worker thread: it is usually a model call,
-            # and on the event loop it would stall every other connection and
-            # the app's HTTP routes for as long as it runs.
             array, outputs = split_output(
                 await run_in_thread(self.event_handler, frame_array, *self.latest_args)
             )
@@ -333,8 +327,7 @@ class VideoCallback(VideoStreamTrack):
                 # Nothing plays the output: only the AdditionalOutputs count
                 return
             if array is None:
-                # Only AdditionalOutputs (or nothing): the frame goes back as it
-                # came in, as before the extra inputs arrive
+                # Only AdditionalOutputs (or nothing): the frame goes back as is
                 array = frame_array
 
             new_frame = self.array_to_frame(array)
@@ -342,10 +335,9 @@ class VideoCallback(VideoStreamTrack):
             new_frame.time_base = frame.time_base
             return new_frame
         except MediaStreamError:
-            # MediaStreamError is how a track tells aiortc that it has ended
+            # MediaStreamError is how a track tells its reader that it has ended
             raise
         except Exception as e:
-            # e.g. what the handler returned is not a video frame
             raise track_ended_by(e) from e
 
     async def next_timestamp(self) -> tuple[int, fractions.Fraction]:
@@ -380,10 +372,8 @@ class HandlerVideoTrack(VideoCallback):
         super().__init__(*args, **{**kwargs, "inputs": inputs})
         handler = cast(StreamHandlerBase, self.event_handler)
         if inputs is None:
-            # A track made on its own reads the inputs its handler has
             self.inputs = handler._inputs
         else:
-            # The handler reads the stream's inputs too (latest_args)
             handler._use_inputs(inputs)
 
     @property
@@ -417,7 +407,6 @@ class HandlerVideoTrack(VideoCallback):
             except (MediaStreamError, HandlerFailedError):
                 self.stop()
             except Exception as e:
-                # E.g. a frame it cannot convert; the stream must not go quiet
                 handler_failed(e)
                 self.stop()
 
@@ -486,7 +475,6 @@ class HandlerVideoTrack(VideoCallback):
             new_frame.time_base = time_base
             return new_frame
         except MediaStreamError:
-            # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
             raise track_ended_by(e) from e
@@ -514,10 +502,8 @@ class AudioCallback(AudioStreamTrack):
         self.track = track
         self.event_handler = cast(StreamHandlerImpl, event_handler)
         if inputs is None:
-            # A track made on its own reads the inputs its handler has
             inputs = self.event_handler._inputs
         else:
-            # The handler reads the stream's inputs too (latest_args)
             self.event_handler._use_inputs(inputs)
         self.inputs = inputs
         self.event_handler._clear_queue = self.clear_queue
@@ -530,7 +516,6 @@ class AudioCallback(AudioStreamTrack):
         self.channel = channel
         self.set_additional_outputs = set_additional_outputs
         self.context = context
-        # Set again in each sync emit(), on the worker thread that runs it
         self.handler_context = HandlerContext.capture()
 
     def clear_queue(self):
@@ -592,7 +577,6 @@ class AudioCallback(AudioStreamTrack):
             await self.wait_for_channel()
             if isinstance(self.event_handler, AsyncHandler):
                 callable = self.event_handler.emit
-                # Checked before the call: a plain def would run on the loop
                 if not inspect.iscoroutinefunction(self.event_handler.start_up):
                     raise handler_failed(
                         TypeError(
@@ -642,7 +626,6 @@ class AudioCallback(AudioStreamTrack):
             ):
                 self._clock_start = None
 
-            # control playback rate
             if self._clock_start is None:
                 self._clock_start = time.time() - data_time
             else:
@@ -651,8 +634,6 @@ class AudioCallback(AudioStreamTrack):
             self.last_timestamp = time.time()
             return frame
         except MediaStreamError:
-            # MediaStreamError is how a track tells its reader (aiortc, or
-            # _drain) that it has ended
             raise
         except Exception as e:
             raise track_ended_by(e) from e
@@ -726,7 +707,6 @@ class ServerToClientVideo(VideoStreamTrack):
     ) -> None:
         super().__init__()
         self.event_handler = event_handler
-        # The stream's extra inputs: the generator starts once they arrive
         self.inputs = inputs if inputs is not None else StreamInputs()
         self.generator = HandlerGenerator()
         self.channel = channel
@@ -780,7 +760,6 @@ class ServerToClientVideo(VideoStreamTrack):
         return self.generator.next(lambda: self.event_handler(*self.latest_args))
 
     async def close_generator(self) -> None:
-        """Closes the handler's generator, once the track has stopped."""
         current_channel.set(self.channel)
         current_context.set(self.context)
         await run_in_thread(self.generator.close)
@@ -792,8 +771,6 @@ class ServerToClientVideo(VideoStreamTrack):
             current_channel.set(self.channel)
             current_context.set(self.context)
             while True:
-                # The generator does the handler's work, so advance it in a
-                # worker thread to keep the event loop free.
                 item = await run_in_thread(self._next_item)
                 if item is GENERATOR_DONE:
                     self.stop()
@@ -821,7 +798,6 @@ class ServerToClientVideo(VideoStreamTrack):
             next_frame.time_base = time_base
             return next_frame
         except MediaStreamError:
-            # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
             raise track_ended_by(e) from e
@@ -843,7 +819,6 @@ class ServerToClientAudio(AudioStreamTrack):
         self.generator = HandlerGenerator()
         self.event_handler = event_handler
         self.current_timestamp = 0
-        # The stream's extra inputs: the generator starts once they arrive
         self.inputs = inputs if inputs is not None else StreamInputs()
         # The generator waits for playback instead of running far ahead of it
         self.queue: asyncio.Queue = asyncio.Queue(maxsize=RECEIVE_AUDIO_BUFFER)
@@ -854,7 +829,6 @@ class ServerToClientAudio(AudioStreamTrack):
         self._clock_start: float | None = None
         self._last_sent = 0.0
         self.context = context
-        # Set again in each next(), on the worker thread that runs it
         self.handler_context = HandlerContext.capture()
         super().__init__()
 
@@ -895,7 +869,6 @@ class ServerToClientAudio(AudioStreamTrack):
         return self.generator.next(lambda: self.event_handler(*self.latest_args))
 
     async def close_generator(self) -> None:
-        """Closes the handler's generator, once the track has stopped."""
         current_context.set(self.context)
         self.handler_context.apply()
         current_channel.set(self.channel)
@@ -930,7 +903,6 @@ class ServerToClientAudio(AudioStreamTrack):
 
             data_time = data.time
 
-            # control playback rate
             if data_time is not None:
                 # After a pause of the generator, the clock starts again rather
                 # than sending what comes next at once to catch up with it
@@ -945,7 +917,6 @@ class ServerToClientAudio(AudioStreamTrack):
 
             return data
         except MediaStreamError:
-            # MediaStreamError is how a track tells aiortc that it has ended
             raise
         except Exception as e:
             raise track_ended_by(e) from e

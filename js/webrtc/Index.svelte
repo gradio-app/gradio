@@ -46,8 +46,7 @@
 			gradio.shared.client.webrtc_rtc_configuration(webrtc_id)
 	});
 	let options = $derived(gradio.props.stream_options);
-	// Labels given with gr.I18n arrive as markers; an empty label falls back
-	// to the translated default in the players
+	// gr.I18n labels arrive as markers; an empty one falls back to the default
 	const translate_label = (text: string | undefined): string =>
 		text ? gradio.live_i18n(text) : "";
 	let button_labels = $derived({
@@ -69,26 +68,20 @@
 		gradio.shared.label || (is_video ? "Video" : gradio.i18n("audio.audio"))
 	);
 
-	// The state of the stream's queue event: "waiting" in line, "open" once its
-	// turn has come, "closed" when it has ended
 	let queue_state = $state<StreamState | null>(null);
-	// The place in the queue and the expected wait from the queue's latest
-	// estimate, and when that estimate arrived
 	let queue_place = $state<{
 		position: string | null;
 		eta: number | null;
 		received_at: number;
 	} | null>(null);
-	// Ticks while waiting, so that the expected wait counts down between the
-	// queue's estimates
+	// Ticks while waiting so the expected wait counts down between estimates
 	let now = $state(Date.now());
 	$effect(() => {
 		if (!queue_place) return;
 		const timer = setInterval(() => (now = Date.now()), 1000);
 		return () => clearInterval(timer);
 	});
-	// e.g. "2/3 · ~25s", shown next to "Waiting". Once the estimate has run
-	// out, only the place is shown.
+	// e.g. "2/3 · ~25s" next to "Waiting"; only the place once the estimate runs out
 	let queue_detail = $derived.by(() => {
 		if (!queue_place) return null;
 		const parts: string[] = [];
@@ -101,9 +94,7 @@
 		}
 		return parts.length ? parts.join(" · ") : null;
 	});
-	// The stream the page asked for: its run of the stream event, once the
-	// queue has it, and the turn waiting on it. Only the current one updates
-	// the state shown; an earlier one is only ever ended.
+	// Only the current request updates the state shown; an earlier one is only ended
 	type StreamRequest = {
 		run: EventRun | null;
 		wanted: boolean;
@@ -152,8 +143,6 @@
 						if (state === "open") settle(request, true);
 					},
 					on_end: () => {
-						// A join that failed (a full queue, a lost connection), a
-						// stream that ended before its turn, or one that ran
 						settle(request, false);
 						if (current !== request) return;
 						current = null;
@@ -197,8 +186,7 @@
 	}
 
 	function handle_message(msg: ControlMessage): void {
-		// The handler's errors and its gr.Info / gr.Warning come through the
-		// stream's queue event, like an event's
+		// Handler errors and gr.Info / gr.Warning come through the queue event
 		const text = typeof msg.data === "string" ? msg.data : "";
 		switch (msg.type) {
 			case "end_stream":

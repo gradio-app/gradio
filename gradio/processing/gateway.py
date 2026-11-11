@@ -36,8 +36,7 @@ if TYPE_CHECKING:
     from gradio.data_classes import PredictBodyInternal
     from gradio.routes import App
 
-# Seconds the page's close of a stream waits for the app's process to end it,
-# before the queue ends the event itself
+# How long a close waits for the app's process before the queue ends the event
 CLOSE_STREAM_TIMEOUT = 5
 
 
@@ -65,8 +64,7 @@ class Link:
         self.running = 0
         self.slots: dict[str, asyncio.Semaphore] = {}
         self.held: dict[str, asyncio.Semaphore] = {}
-        # Events whose function keeps working here between its calls (a
-        # gr.WebRTC stream's media), until the queue ends them
+        # Events still working here between calls (gr.WebRTC media)
         self.serving_events: set[str] = set()
         self.started: dict[str, float] = {}
         self.completed = 0
@@ -226,7 +224,6 @@ class Placement:
     link: Link
     works_here: bool
     session_hash: str | None = None
-    # The WebRTC stream that its first call admitted, if any
     stream_id: str | None = None
 
 
@@ -246,12 +243,8 @@ class Pool:
         self.lock = threading.Lock()
         self.limits: dict[int, int | None] = {}
         self.reserved: dict[str, tuple[Link, str]] = {}
-        # Stream events from their first call until the queue ends them, and
-        # the same placements by the WebRTC stream they admitted
         self.placements: dict[str, Placement] = {}
         self.stream_placements: dict[str, Placement] = {}
-        # The streams that work in a process for each session: the session
-        # stays with that process while they run
         self.session_streams: dict[str, list[Placement]] = {}
         self.group_limits: dict[str, int] = {}
         self.expected = 1
@@ -383,8 +376,7 @@ class Pool:
                 link = min(
                     candidates or serving,
                     key=lambda link: (
-                        # A stream working there counts once, whether or not
-                        # it holds a slot (concurrency_limit=None holds none)
+                        # A working stream counts even without a slot
                         link.running + len(set(link.held) | link.serving_events),
                         len(link.sessions),
                     ),
@@ -450,8 +442,6 @@ class Pool:
                     candidates or serving,
                     key=lambda link: (
                         free(link),
-                        # As in for_session: a gr.WebRTC stream's handler works
-                        # in its process though it may hold no slot
                         -(link.running + len(set(link.held) | link.serving_events)),
                         -len(link.sessions),
                     ),
@@ -724,12 +714,9 @@ async def forward_event(
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
     streaming = fn.connection == "stream"
-    # An event is counted once: a continued run until its last call, and a
-    # stream (its chunks, or the lease of a gr.WebRTC stream) as one call at
-    # its first, since how long a visitor streams says nothing of the load
+    # A stream counts once, at its first call: its length says nothing of load
     counted_id = body.event_id if run.first or (run.keeps and not streaming) else None
-    # A stream goes back to its process, which fails it at once if it exited
-    # (`Pool.placed`), also a lease whose generator is there
+    # A stream goes back to its process (`Pool.placed` fails it if that exited)
     placed = pool.placed(queue_event_id if streaming else None, body.session_hash)
     link = (
         placed
@@ -1129,7 +1116,6 @@ FORWARDED_ROUTES = [
     ("/mcp/{rest:path}", None),
 ]
 
-# WebRTC signalling, forwarded to the process running the stream it names
 SIGNALLING_ROUTES = ["/webrtc/offer", "/webrtc/rtc_configuration"]
 
 

@@ -99,7 +99,6 @@ export async function open_stream(this: Client): Promise<void> {
 				fn(_data);
 			}
 		} else if (!that.acknowledged_events?.has(event_id)) {
-			// Kept for a callback that is about to be registered
 			if (!pending_stream_messages[event_id]) {
 				pending_stream_messages[event_id] = [];
 			}

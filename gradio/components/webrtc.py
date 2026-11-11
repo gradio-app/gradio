@@ -229,11 +229,8 @@ class WebRTC(Component):
             preserved_by_key=preserved_by_key,
             value=value,
         )
-        # Kept in the form the frontend takes, since gr.update(stream_options=...)
-        # sends this attribute as is: the icon as served file data, like
-        # gr.Button's icon, so that the app's root url is added to it, and no
-        # labels left as None (they keep the default). After super().__init__
-        # so that the proxy url is known.
+        # In the form the frontend takes, since gr.update() sends it as is. After
+        # super().__init__ so that serve_static_file() knows the proxy url.
         options = self.stream_options
         self.stream_options = dataclasses.replace(
             options,
@@ -246,9 +243,6 @@ class WebRTC(Component):
         )
 
     def _track_constraints(self) -> dict[str, Any]:
-        # User constraints are merged over the defaults rather than replacing
-        # them, so that e.g. turning off echo cancellation keeps the mono
-        # 24 kHz input that voice handlers expect.
         video = (self.webcam_options.constraints or {}).get("video")
         video = {
             **DEFAULT_VIDEO_CONSTRAINTS,
@@ -340,10 +334,7 @@ class WebRTC(Component):
                 "Cannot call stream() outside of a gradio.Blocks context."
             )
         if LocalContext.renderable.get(None) is not None:
-            # A render runs again whenever its inputs change, and replaces the
-            # events it made, including a stream that is running (with
-            # executor="process", its next call then fails). A page needs no
-            # streams that come and go: each holds a camera or microphone.
+            # A re-render replaces its events, including a running stream
             raise ValueError(
                 "stream() cannot be called inside a @gr.render function. Create "
                 "the gr.WebRTC component and call stream() outside the render "
@@ -398,16 +389,12 @@ class WebRTC(Component):
         # Only the event holds this stream()'s manager, so the manager goes
         # away with it (e.g. when a hot reload replaces the app's events)
         async def run_stream(webrtc_id: str | None) -> AsyncIterator[Any]:
-            # Closed with the queue's run, so that the stream ends at once
             async with aclosing(self._run_stream(manager, webrtc_id)) as values:
                 async for value in values:
                     yield value
 
-        # Each stream is one queue event: the frontend fires "stream" when the
-        # user starts it, waits for its turn, and only then connects. The event
-        # then delivers AdditionalOutputs until the stream ends. It takes only
-        # the stream's id: the other inputs reach the handler through the
-        # events below, so the event's wakes do not preprocess them again.
+        # The event takes only the stream's id; the other inputs go through the
+        # events below, so its wakes do not preprocess them again
         stream_fn, stream_index = add_stream_event(
             root_block,
             [EventListenerMethod(self, "stream")],
@@ -416,15 +403,11 @@ class WebRTC(Component):
             cast(list, [self, *extra_outputs]),
             time_limit=time_limit,
             concurrency_limit=concurrency_limit,
-            # The component shows the place in line and the wait itself,
-            # next to the button that cancels it
+            # The component shows the place in line itself
             show_progress="hidden",
             show_progress_on=self,
             api_visibility="private",
-            # The id is the value as sent. The page connects once the event
-            # starts, and its offer waits only ADMISSION_WAIT for the first
-            # call, which a preprocess would delay until a worker thread is
-            # free
+            # A preprocess could delay the first call past ADMISSION_WAIT
             preprocess=False,
         )
         # The frontend fires "tick" when the handler asks for the inputs, and
@@ -502,10 +485,8 @@ class WebRTC(Component):
         self, manager: ConnectionManager, webrtc_id: str | None
     ) -> AsyncGenerator[Any, None]:
         """
-        The run of one stream's queue event (see `connection.stream_run`): its
-        first step admits the stream, and each later one delivers the next
-        AdditionalOutputs. The value of this component itself is never
-        changed. `manager` is the one of the `stream()` call.
+        The run of one stream's queue event (see `connection.stream_run`). The
+        value of this component itself is never changed.
         """
         from gradio.webrtc.connection import stream_run
 

@@ -100,7 +100,6 @@
 	let is_muted = $state(false);
 	let is_mic_muted = $state(false);
 	let active_time_limit = $state<number | null>(null);
-	// The time limit the server reported in its answer, if any
 	let negotiated_time_limit: number | null = null;
 	const attempts = new StreamAttempts(() => turn);
 
@@ -111,7 +110,6 @@
 		}
 	});
 
-	// What the visualizer listens to: the reply in send-receive, the mic in send
 	const output_audio_source = (): MediaStream | null =>
 		mode === "send"
 			? stream
@@ -133,8 +131,7 @@
 		stream = null;
 	}
 
-	// The microphone is only held while a recording is running. Opening it
-	// takes far less time than negotiating the connection that follows.
+	// The microphone is only held while recording; opening it is fast next to negotiating
 	async function open_mic(
 		device_id?: string | null
 	): Promise<MediaStream | null> {
@@ -157,8 +154,7 @@
 		}
 	}
 
-	// Asks for permission and lists the devices, then lets go of the
-	// microphone again until a recording starts.
+	// Lists the devices, then releases the microphone until a recording starts
 	async function access_mic(): Promise<void> {
 		const local_stream = await open_mic(selected_device?.deviceId);
 		if (!local_stream) return;
@@ -231,7 +227,6 @@
 			open_mic(selected_device?.deviceId),
 			get_rtc_configuration(server, webrtc_id)
 		]);
-		// Stopped (or unmounted) while the microphone was being opened
 		if (!attempts.is_current(token)) {
 			stop_tracks(local_stream);
 			return;
@@ -340,8 +335,6 @@
 		<StreamingBar time_limit={active_time_limit} />
 		<div class="button-wrap">
 			{#if stream_state === "waiting"}
-				<!-- Waiting in line: the place and the expected wait, and a way out
-				that does not look like the start button -->
 				<div class="icon-with-text queue-status" role="status">
 					<div class="icon color-primary" title="spinner">
 						<Spinner />

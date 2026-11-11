@@ -114,16 +114,12 @@ class BlockFunction:
         self.time_limit = time_limit
         self.stream_every = stream_every
         self.connection = connection
-        # For a connection="stream" function that ends a running stream itself
-        # when the page closes it, given the queue event's id. Returns False
-        # to leave it to the queue. With executor="process", the gateway's
-        # copy asks the app's process.
+        # Ends a running stream when the page closes it, given the queue event's
+        # id; returns False to leave that to the queue
         self.close_stream: Callable[[str], bool | Awaitable[bool]] | None = None
-        # A connection="stream" function that holds its place in the queue
-        # for as long as its stream runs (gr.WebRTC): a generator that the
-        # queue steps each time the event is woken, which ends the stream
-        # itself. The queue does not time out its wait for a wake and leaves
-        # its time limit to it.
+        # A stream (gr.WebRTC) that keeps its place in the queue while it runs:
+        # its wake wait has no timeout, and the function enforces its own time
+        # limit and ends the run itself.
         self.lease = False
         self.event_specific_args = event_specific_args
         self.component_prop_inputs = component_prop_inputs or []

@@ -172,7 +172,6 @@ interface DispatchEvent {
 	event_name?: string;
 	target_id?: number;
 	event_data: unknown;
-	// Follows the run that this dispatch starts (see `Gradio.dispatch`)
 	observer?: DispatchObserver;
 }
 
@@ -212,9 +211,7 @@ export class DependencyManager {
 	render_id_deps = new Map<number, Set<number>>();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
-	// Streams that the page ended and that are read to their end
 	page_ended: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
-	// Runs cancelled through `cancels=`, whose chain `cancel()` runs
 	cancelled: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
 	submission_trigger_ids: Map<number, number | null> = new Map();
 	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
@@ -416,8 +413,7 @@ export class DependencyManager {
 	 * @returns a value if there is no backend fn, a 'submission' if there is a backend fn, or null if there is no dependency
 	 */
 	async dispatch(event_meta: DispatchFunction | DispatchEvent): Promise<void> {
-		// Follows the run of the first function this dispatch would start, and
-		// hears exactly once how it went
+		// Observes the first function's run and hears its outcome exactly once
 		let observer =
 			event_meta.type === "event" ? event_meta.observer : undefined;
 		if (this.connection_lost) {
@@ -487,7 +483,6 @@ export class DependencyManager {
 						return;
 					}
 					this.update_loading_status(status);
-					// In the field names of the loading status that components get
 					dep_observer?.on_status?.({
 						status: status.status,
 						stream_state: status.stream_state,
@@ -583,8 +578,7 @@ export class DependencyManager {
 								await this.handle_data(dep.outputs, result.data);
 							}
 							if (result.type === "status") {
-								// A stream the page ended while the queue was starting
-								// it stays stopped in line: the page saw it waiting
+								// A stream the page ended while it was starting counts as stopped in line
 								if (
 									result.original_msg === "process_starts" &&
 									dep.connection_type === "stream" &&
@@ -596,9 +590,8 @@ export class DependencyManager {
 
 								// handle status updates here
 								if (result.stage === "complete") {
-									// A stream that the page ended before its turn came never
-									// ran: as a cancelled event, it runs `.failure()` (and
-									// `.then()`) instead of `.success()`
+									// A stream the page ended while in line never ran, so like a
+									// cancelled event it runs `.failure()`, not `.success()`
 									const stopped_in_line =
 										this.page_ended.has(dep_submission.data) &&
 										stream_state !== "open";
@@ -607,9 +600,8 @@ export class DependencyManager {
 										: stopped_in_line
 											? failure
 											: success;
-									// Only a stream closes: for any other event, a "closed"
-									// stream_state would reach its input components and end
-									// a stream one of them is running
+									// Only a stream closes: on any other event, "closed" would
+									// reach its inputs and end a stream one of them is running
 									if (dep.connection_type === "stream") {
 										stream_state = "closed";
 									}
@@ -762,8 +754,7 @@ export class DependencyManager {
 							}
 						}
 						await dep_submission.data.acknowledge();
-						// Acknowledging a cancelled run ends its iterator, and
-						// `cancel()` runs its chain
+						// `cancel()` runs a cancelled run's chain
 						if (!this.cancelled.has(dep_submission.data)) {
 							all.forEach((dep_id) => {
 								this.dispatch({
@@ -846,20 +837,16 @@ export class DependencyManager {
 	}
 
 	/**
-	 * Ends a resumed stream event and reads what the server sends for it up to
-	 * its end, showing its outputs and running the `.change` listeners of the
-	 * gr.State values it changed. Returns how the event ended ("cancelled" when
-	 * it was still waiting for its turn), "gone" when the server no longer has
-	 * it, or null when the messages stopped without an end.
+	 * Ends a resumed stream event and applies its outputs up to the end. Returns
+	 * how it ended ("cancelled" if still in line), "gone" if the server no longer
+	 * has it, or null if the messages stopped without an end.
 	 */
 	async end_resumed_stream(
 		submission: ReturnType<Client["resume_jobs"]>[number],
 		outputs: number[]
 	): Promise<"complete" | "cancelled" | "error" | "gone" | null> {
-		// Whether the stream had already ended, is still waiting in line or is
-		// still running, the server replays what it sent and then reports the
-		// end, so nothing depends on how fast the connection opens or how long
-		// the last call waits for a worker
+		// In any state, the server replays what it sent and then reports the end,
+		// so nothing depends on connection or worker timing
 		submission.close_stream({ read_to_end: true });
 		let started = false;
 		for await (const result of submission) {
@@ -891,23 +878,15 @@ export class DependencyManager {
 
 				const submission = submissions[index];
 				if (dep.connection_type === "stream") {
-					// A stream does not outlive the page: its chunks (or, for
-					// gr.WebRTC, its peer connection) came from the page that was
-					// reloaded, so the event would only hold its place in the
-					// concurrency limit until it timed out. End it, and leave the
-					// component to start a new stream.
+					// A stream does not outlive the page: its input came from the page
+					// that was reloaded, so the event would only hold a concurrency
+					// slot until it timed out. End it; the component starts a new one.
 					const outcome = await this.end_resumed_stream(
 						submission,
 						dep.outputs
 					);
 					await submission.acknowledge();
-					// The server no longer has it, or how it ended is unknown:
-					// nothing to follow up
 					if (outcome === "gone" || outcome === null) return;
-					// A stream that failed runs `.failure()`; one that completed,
-					// or that is ended here as when the user stops it, runs
-					// `.success()` and `.then()`; one still waiting for its turn
-					// runs `.failure()` and `.then()`, as a cancelled event
 					const { success, failure, all } = dep.get_triggers();
 					const chained =
 						outcome === "error"
@@ -1270,10 +1249,8 @@ export class DependencyManager {
 	}
 
 	/**
-	 * Ends a stream run that the page closes. The server still delivers the
-	 * outputs pending for the stream and then reports how it ended, for its
-	 * `.success()` / `.failure()` listeners. A new stream is a new event
-	 * meanwhile.
+	 * Ends a stream run the page closes. The server still delivers its pending
+	 * outputs and then reports how it ended, for `.success()` / `.failure()`.
 	 */
 	end_stream_run(
 		fn_id: number,
@@ -1285,11 +1262,7 @@ export class DependencyManager {
 		this.clear_submission(fn_id, submission);
 	}
 
-	/**
-	 * Ends one run that a component started (see `EventRun.close`): a stream
-	 * as the page's close does, any other run as a cancel does. A newer run of
-	 * the same event is left alone.
-	 */
+	/** Ends one run a component started (see `EventRun.close`): a stream is closed, any other run cancelled. */
 	end_run(dep: Dependency, submission: ReturnType<Client["submit"]>): void {
 		const current = this.submissions.get(dep.id) === submission;
 		if (dep.connection_type !== "stream") {

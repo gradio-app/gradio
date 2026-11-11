@@ -20,17 +20,14 @@ export {
 };
 
 export interface StartOptions {
-	/** Local media to send, or null when only receiving. */
 	stream: MediaStream | null;
 	pc: RTCPeerConnection;
 	/** Element that plays the remote media, or null when only sending. */
 	node: HTMLMediaElement | null;
 	offer: WebRTCServer["offer"];
 	webrtc_id: string;
-	/** Track kind to receive when no local stream is sent. */
 	modality: "video" | "audio";
 	rtp_params?: Record<string, any>;
-	/** Whether the server should mirror the frames, as the webcam preview is. */
 	mirror?: boolean;
 	on_message?: (msg: ControlMessage) => void;
 	on_reject?: (response: Record<string, any>) => void;
@@ -60,12 +57,7 @@ export function attach_remote_media(
 	});
 }
 
-/**
- * Plays the remote media in `node` and negotiates the connection (see
- * `negotiate_webrtc` in @gradio/client). Resolves with the server's answer
- * once the remote description is set; the caller watches
- * `connectionstatechange` for the actual connection.
- */
+/** Plays the remote media in `node` and negotiates (see `negotiate_webrtc` in @gradio/client). */
 export async function start({
 	node,
 	...options
@@ -75,14 +67,11 @@ export async function start({
 }
 
 /**
- * Closes the connection when the page goes away (tab closed, navigation).
- * Otherwise the server only ends the stream after the queue's reconnection
- * grace period, and a handler holding a GPU keeps it that long. `stop()`
- * defers the close, which never runs on a page that is going away.
- * A page kept in the back/forward cache comes back with the connection
- * closed, which fires no connectionstatechange, so `on_restored` is called
- * then to end the stream on the page.
- * Returns a function that removes the listeners.
+ * Closes the connection at once on pagehide, so the server frees the stream
+ * (and any GPU) without waiting out the queue's grace period; `stop()` defers
+ * the close, which never runs on a page going away. A page restored from the
+ * back/forward cache fires no connectionstatechange, so `on_restored` ends the
+ * stream then. Returns a function that removes the listeners.
  */
 export function close_on_pagehide(
 	get_pc: () => RTCPeerConnection | null,
@@ -109,9 +98,8 @@ export function close_on_pagehide(
 }
 
 /**
- * The stream's RTC configuration, or `{ error }` to show. A request that
- * fails resolves to undefined, which must not pass for a configuration
- * without ICE servers: the stream would connect without TURN.
+ * The stream's RTC configuration, or `{ error }` to show. A failed request
+ * must not pass for a config without ICE servers (no TURN).
  */
 export async function get_rtc_configuration(
 	server: WebRTCServer,

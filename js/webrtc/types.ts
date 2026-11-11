@@ -4,20 +4,15 @@ export type Mode = "send-receive" | "send" | "receive";
 export type Modality = "video" | "audio" | "audio-video";
 export type StreamState = "open" | "waiting" | "closed";
 
-/** The stream's signalling, through the client's /webrtc routes. */
 export interface WebRTCServer {
 	offer: (body: Record<string, unknown>) => Promise<any>;
-	// Only for a stream whose turn has come, from the page that started it.
-	// Undefined when the request failed.
+	// Only once the stream's turn has come; undefined if the request failed
 	get_rtc_configuration: (body: {
 		webrtc_id: string;
 	}) => Promise<Record<string, any> | undefined>;
 }
 
-/**
- * The stream's place in the queue. Each stream is one queue event: it waits
- * in line, and only connects once its turn has come.
- */
+/** The stream's queue event: it connects only once its turn has come. */
 export interface QueueTurn {
 	/** Joins the queue with the stream; resolves with whether its turn came. */
 	request: () => Promise<boolean>;
@@ -25,7 +20,6 @@ export interface QueueTurn {
 	end: () => void;
 }
 
-/** A control message sent by the server over the data channel. */
 export interface ControlMessage {
 	type: string;
 	data?: unknown;

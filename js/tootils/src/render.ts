@@ -117,8 +117,7 @@ export async function render<
 		const listeners = event_listeners.get(event);
 		if (listeners) {
 			for (const listener of listeners) {
-				// A listener sees the dispatch's observer (see `Gradio.dispatch`)
-				// only when there is one, so `toHaveBeenCalledWith(data)` holds
+				// Pass the observer only if set, so `toHaveBeenCalledWith(data)` holds
 				if (observer === undefined) listener(data);
 				else listener(data, observer);
 			}

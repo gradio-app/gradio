@@ -1534,8 +1534,7 @@ class App(FastAPI):
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
             event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            # A lease (gr.WebRTC) takes no chunks: its media comes over its
-            # peer connection, and its steps do not read the event's data
+            # A lease (gr.WebRTC) gets its media over its peer connection
             if event is None or not event.streaming or event.fn.lease:
                 return Response(status_code=404)
             new_body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
@@ -1545,8 +1544,7 @@ class App(FastAPI):
             # updated by each chunk since) carry on from one chunk to the next.
             if event.data is not None:
                 new_body.client_state = event.data.client_state
-            # Whatever id a client sends, the calls a chunk triggers belong to
-            # this event (gr.Info, progress), unless they serve a batch
+            # gr.Info and progress from a chunk belong to this event, unless batched
             new_body.event_id = None if event.fn.batch else event_id
             event.data = new_body
             event.signal.set()
@@ -1568,11 +1566,8 @@ class App(FastAPI):
             event.run_time = math.inf
             event.closed = True
             event.signal.set()
-            # A stream still waiting in line leaves it, instead of being
-            # started later only to end, and the ones behind it move up. One
-            # that the queue started meanwhile ends through `closed` instead.
+            # A stream still in line leaves it; a started one ends via `closed`
             if await queue.remove_from_queue(event_id):
-                # As for /cancel: the client hears that the event is over
                 queue.send_message(
                     event, ProcessCompletedMessage(output={}, success=True)
                 )
@@ -2394,10 +2389,8 @@ class App(FastAPI):
         async def webrtc_signal(
             request: fastapi.Request, username: str | None, name: str
         ) -> Any:
-            # Signalling of a WebRTC stream, which finds the stream by its id.
-            # It runs as a server function does, with the visitor's request in
-            # the context: the handler's tasks start from the offer and inherit
-            # it (gr.Request, ZeroGPU headers).
+            # Runs like a server function, so tasks started from the offer
+            # inherit the visitor's request (gr.Request, ZeroGPU headers)
             try:
                 body = await request.json()
             except ValueError:
@@ -2412,9 +2405,7 @@ class App(FastAPI):
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="webrtc_id must be a string.",
                 )
-            # Imported by the first stream handler. In an app without one, no
-            # stream can be admitted: answer at once instead of waiting for an
-            # admission, and without importing aiortc
+            # Without a stream handler, answer at once and do not import aiortc
             from gradio.webrtc.utils import has_streams
 
             connection = sys.modules.get("gradio.webrtc.connection")

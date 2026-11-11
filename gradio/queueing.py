@@ -95,7 +95,6 @@ class Event:
             raise ValueError("Cannot access if_finished during a non-streaming event")
         if self.closed:
             return True
-        # A lease keeps its own time limit, and ends its run itself
         if self.fn.time_limit is None or self.fn.lease:
             return False
         return self.run_time >= self.fn.time_limit
@@ -113,7 +112,6 @@ class EventHandle:
         self.id = event._id
         self.session_hash: str | None = event.session_hash
         group = queue.event_queue_per_concurrency_id.get(event.concurrency_id)
-        # How many events of its concurrency group run at once
         self.concurrency_limit = group.concurrency_limit if group else None
 
     def wake(self) -> None:
@@ -200,7 +198,6 @@ class Queue:
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = []
-        # Streams that got their next chunk and wait for a worker slot again
         self.streams_waiting_for_worker = 0
         self.delete_lock = safe_get_lock()
         self.server_app = None
@@ -290,7 +287,6 @@ class Queue:
             run_coro_in_background(self.notify_clients)
 
     def event_handle(self, event_id: str | None) -> EventHandle | None:
-        """The running event `event_id`, for its function (see `EventHandle`)."""
         event = self.event_ids_to_events.get(event_id or "")
         return EventHandle(event, self) if event is not None else None
 
@@ -330,17 +326,14 @@ class Queue:
         # with such a client: the history would otherwise grow without bound
         resumable = self.resumable_sessions.get(event.session_hash)
         if resumable is not None and resumable.acknowledges:
-            # Each call of a stream event sends whole output values, so a
-            # single message can stand for all of them. A stream can run for
-            # hours.
+            # Stream outputs are whole values, so keep only the latest of each
             if event_message.msg == ServerMessage.process_streaming:
                 _merge_into_history(resumable.history, event_message)
             elif event.fn.connection == "stream" and event_message.msg in (
                 ServerMessage.log,
                 ServerMessage.progress,
             ):
-                # A resumed stream is only read to its end, so the logs and
-                # progress of every chunk would pile up for nothing
+                # Not kept for a stream: they would pile up per chunk
                 pass
             else:
                 resumable.history.append(event_message)
@@ -431,9 +424,6 @@ class Queue:
         if (
             not pending_ids
             and not has_unacknowledged_history
-            # An open message stream keeps reading this session's queue; the
-            # session is deleted when the stream closes instead. Deleting it
-            # now would leave the stream waiting on a queue nothing writes to.
             and not (resumable and resumable.active_streams)
         ):
             self.pending_event_ids_session.pop(session_hash, None)
@@ -765,8 +755,7 @@ class Queue:
                         fn=fn,
                         root_path=root_path,
                         record_history=fn.connection != "stream",
-                        # A cache hit replays the whole cached run, for a
-                        # stream too, so its generator is stepped to the end
+                        # A cache hit replays the whole run, even for a stream
                         run=route_utils.RunStep.start(),
                     )
                     while response and response.get("is_generating", False):
@@ -843,7 +832,6 @@ class Queue:
                     self.event_ids_to_events.pop(event_id, None)
                 except ValueError:
                     return False
-            # Everyone behind it moves up
             if self.live_updates:
                 self.broadcast_estimations(event.concurrency_id)
             return True
@@ -906,9 +894,7 @@ class Queue:
                     await asyncio.sleep(self.sleep_when_free)
                     continue
 
-                # A running stream that has its next chunk goes before new
-                # events, so that a busy queue delays new work instead of
-                # stalling streams that already started
+                # Streams waiting to resume take free slots before new events
                 if None not in self.active_jobs or self.streams_waiting_for_worker:
                     await asyncio.sleep(self.sleep_when_free)
                     continue
@@ -1010,8 +996,7 @@ class Queue:
         duration: float | None = 10,
         visible: bool = True,
     ):
-        # Not only the events that hold a worker slot now: the handler of a
-        # gr.WebRTC stream logs between its event's calls
+        # Not only running events: a gr.WebRTC handler logs between calls
         event = self.event_ids_to_events.get(event_id)
         if event is not None:
             log_message = LogMessage(
@@ -1043,8 +1028,7 @@ class Queue:
 
         for event in events.values():
             event.alive = False
-            # A stream waiting for its next chunk ends now instead of holding
-            # its slot until the wait times out
+            # Wake a waiting stream; a lease's wait has no timeout
             event.signal.set()
 
         left_lines: set[str] = set()
@@ -1065,7 +1049,6 @@ class Queue:
                     pending_ids.discard(event_id)
                     if not pending_ids:
                         self.pending_event_ids_session.pop(current_session_hash)
-        # Everyone behind the events that left moves up
         if self.live_updates:
             for concurrency_id in left_lines:
                 self.broadcast_estimations(concurrency_id)
@@ -1090,9 +1073,7 @@ class Queue:
         if event_queue.current_concurrency == event_queue.concurrency_limit:
             expected_end_times = []
             for fn, start_times in event_queue.start_times_per_fn.items():
-                # A stream holds its slot until it is closed or reaches its
-                # time limit, so without a time limit there is no telling
-                # when the slot frees up
+                # A stream holds its slot until it is closed or hits its time limit
                 if fn.connection == "stream" and fn.time_limit is not None:
                     process_time = fn.time_limit
                 elif fn.connection == "stream" or fn not in self.process_time_per_fn:
@@ -1144,8 +1125,6 @@ class Queue:
             elif event.streaming and event.fn.time_limit is None:
                 wait_so_far = None
             elif wait_so_far is not None and process_time_for_fn is not None:
-                # A stream ahead in line can hold its slot for its whole time
-                # limit once it gets one
                 held_for = (
                     cast(float, event.fn.time_limit)
                     if event.streaming
@@ -1168,7 +1147,6 @@ class Queue:
     @staticmethod
     async def timeout(timeout: float | None) -> str:
         if timeout is None:
-            # Woken only by its signal (see `BlockFunction.lease`)
             await asyncio.Event().wait()
         else:
             await asyncio.sleep(timeout)
@@ -1186,12 +1164,10 @@ class Queue:
                 return_when=asyncio.FIRST_COMPLETED,
             )
         finally:
-            # A stream can be woken many times a second, or cancelled; either
-            # would otherwise leave a task sleeping for the whole timeout
+            # Otherwise the losing task sleeps out the whole timeout
             for task in (t1, t2):
                 task.cancel()
         event.signal.clear()
-        # Both may be done; asyncio.wait returns them as an unordered set
         return "signal" if t1 in done else "timeout"
 
     @staticmethod
@@ -1348,8 +1324,6 @@ class Queue:
                     root_path=root_path,
                     record_history=fn.connection != "stream",
                     queue_event_id=queue_event_id,
-                    # Each call of a stream of chunks is a run of its own; the
-                    # queue continues any other event's generator
                     run=route_utils.RunStep.alone()
                     if events[0].streaming and not fn.lease
                     else route_utils.RunStep.start(),
@@ -1359,7 +1333,6 @@ class Queue:
                 err = None
                 for event in awake_events:
                     event.run_time += end - start
-                    # A lease's run says itself when it is over
                     if event.streaming and not fn.lease:
                         response["is_generating"] = not event.is_finished
                     elif fn.lease and event.closed:
@@ -1413,12 +1386,8 @@ class Queue:
                     try:
                         start = time.monotonic()
                         if awake_events[0].streaming:
-                            # A stream computes nothing while it waits for its
-                            # next chunk, so it gives its worker slot back
-                            # meanwhile. It keeps its place in the concurrency
-                            # limit of its function. The progress loop sends
-                            # only for events in a slot, so what the last call
-                            # reported goes out now.
+                            # Free the worker slot while waiting for the next chunk.
+                            # The progress loop skips events without a slot, so flush now.
                             for event in awake_events:
                                 self.send_pending_progress(event)
                             self.active_jobs[self.active_jobs.index(job)] = None
@@ -1428,7 +1397,6 @@ class Queue:
                                 # the max time is the time limit of the function or 30 seconds (arbitrary) but should
                                 # never really take that long to make a request from the client to the server unless
                                 # the client disconnected.
-                                # A lease is woken by its stream, however long it waits
                                 [
                                     None
                                     if fn.lease
@@ -1437,10 +1405,8 @@ class Queue:
                                 ]
                                 * len(awake_events),
                             )
-                            # The last response went out with its chunk. A
-                            # stream that ends now ends with it, but does not
-                            # report its gr.State changes again, since the page
-                            # runs their .change listeners for each report.
+                            # The last response already went out, so do not
+                            # report its gr.State changes again (.change would rerun)
                             response = {**response, "changed_state_ids": []}
                             for closed_event in closed_events:
                                 self.send_message(
@@ -1467,7 +1433,6 @@ class Queue:
                             awake_events = [
                                 event for event in awake_events if event.alive
                             ]
-                            # A batch may have only events that timed out left
                             if not awake_events:
                                 break
                         # Re-read the event's fn, which may have been swapped out
@@ -1794,8 +1759,7 @@ def _output_without(old: dict, new: dict) -> dict:
         _value_without(value, new_data[i]) if i < len(new_data) else value
         for i, value in enumerate(old.get("data") or [])
     ]
-    # A call's state holds only the tokens it changed, and its
-    # changed_state_ids only the gr.State values it changed
+    # A call's state and changed_state_ids hold only what that call changed
     rest = {**old, "data": data}
     if old.get("state"):
         new_state = new.get("state") or {}

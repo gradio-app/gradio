@@ -1,11 +1,7 @@
 import type { Client } from "../client";
 import type { StatusMessage } from "../types";
 
-/**
- * A message about a stream: a control message from its data channel, or a
- * toast of its handler (`gr.Info`, `gr.Warning`, `gr.Success`, its error),
- * which comes through the stream's queue event.
- */
+/** A data channel control message, or a handler toast (gr.Info, gr.Warning, its error). */
 export interface WebRTCControlMessage {
 	type: string;
 	data?: unknown;
@@ -28,19 +24,15 @@ export function new_webrtc_id(): string {
 	return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// How long a connection may stay "disconnected" before its stream ends. The
-// state is often brief (a network switch, a short Wi-Fi drop) and goes back to
-// "connected" by itself.
+// "disconnected" is often brief (a network switch) and recovers by itself
 export const WEBRTC_DISCONNECT_GRACE_MS = 5000;
 
-// How long a connection may take to connect before `slow` is called. One that
-// cannot get through (a VPN, a strict NAT without TURN) never connects.
+// Wait before `slow`; a connection blocked by a VPN or strict NAT never connects
 export const WEBRTC_SLOW_CONNECT_MS = 10000;
 
 /**
- * Calls `connected` the first time the connection is up, `ended` when it
- * closes (or stays "disconnected" past a grace period), `failed` when it
- * fails, and `slow` if it has not connected after a while.
+ * Calls `connected` once the connection is first up, `ended` when it closes
+ * (or stays "disconnected" too long), `failed` on failure, `slow` if slow to connect.
  */
 export function on_webrtc_connection_state(
 	pc: RTCPeerConnection,
@@ -78,7 +70,6 @@ export function on_webrtc_connection_state(
 			case "connected":
 				clear_grace();
 				clear_slow();
-				// A connection that comes back carries on with its stream
 				if (!was_connected) {
 					was_connected = true;
 					connected();
@@ -124,10 +115,9 @@ export interface NegotiateOptions {
 }
 
 /**
- * Opens the data channel, adds the local tracks (or a receive-only
- * transceiver) and negotiates the connection of an admitted stream. Resolves
- * with the server's answer once the remote description is set; the caller
- * watches the connection state for the actual connection.
+ * Opens the data channel, adds the tracks and negotiates an admitted stream.
+ * Resolves with the server's answer once the remote description is set; the
+ * caller watches the connection state for the actual connection.
  */
 export async function negotiate_webrtc({
 	pc,
@@ -237,7 +227,6 @@ export function webrtc_rejection_message(
 		case "no_stream_handler":
 			return "No stream handler is attached to this component.";
 		case "setup_failed":
-			// What the handler raised, shown like the error of an event
 			return response.meta?.message ?? "Could not establish the connection.";
 		default:
 			return "Could not establish the connection.";
@@ -302,7 +291,6 @@ export function webrtc(
 	let inputs: unknown[] = options.inputs ?? [];
 	let channel: RTCDataChannel | null = null;
 	let pc: RTCPeerConnection | null = null;
-	// Whether the stream is over, and whether the caller ended it
 	let stopped = false;
 	let stopped_by_caller = false;
 	let was_connected = false;
@@ -317,8 +305,7 @@ export function webrtc(
 		};
 		reject_connected = reject;
 	});
-	// A stream stopped before it connected rejects `connected`; do not report
-	// that as unhandled when the caller only awaits `done`
+	// No unhandled rejection for a caller that only awaits `done`
 	connected.catch(() => {});
 
 	const send_inputs = (): void => {
@@ -379,9 +366,8 @@ export function webrtc(
 	// All events, whatever the client publishes: the helper needs the
 	// statuses to tell a failed stream from one that ended
 	const job = this.submit(endpoint, [webrtc_id], undefined, undefined, true);
-	// A page that goes away closes the connection at once, so that the server
-	// ends the stream (and frees a GPU it holds) without waiting for the queue
-	// to notice
+	// Close at once on pagehide so the server ends the stream (and frees its
+	// GPU) without waiting for the queue to notice
 	const on_pagehide = (): void => {
 		pc?.close();
 		job.close_stream();
@@ -413,8 +399,7 @@ export function webrtc(
 				} else if (msg.type === "data") {
 					// No data: the stream left the line before its turn
 					if (msg.data === undefined) continue;
-					// The event's first message is the turn: the stream is
-					// admitted and may connect
+					// The first data message means the stream's turn has come
 					if (!turn) {
 						turn = true;
 						if (!stopped) {
@@ -427,9 +412,8 @@ export function webrtc(
 			}
 		} finally {
 			stopped = true;
-			// The caller has no job to acknowledge: with resume_sessions, an
-			// event left unacknowledged comes back on resume_jobs() after a
-			// reload, and the server keeps its messages
+			// The caller has no job to acknowledge; an unacknowledged event would
+			// come back on resume_jobs() after a reload
 			job.acknowledge().catch(() => {});
 			if (typeof window !== "undefined") {
 				window.removeEventListener("pagehide", on_pagehide);
@@ -443,8 +427,7 @@ export function webrtc(
 		}
 		if (failure) throw failure;
 	})();
-	// Rejected when the stream fails; not unhandled for a caller that only
-	// awaits `connected`
+	// No unhandled rejection for a caller that only awaits `connected`
 	done.catch(() => {});
 
 	return {

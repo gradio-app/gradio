@@ -176,15 +176,8 @@ def add_stream_event(
     **kwargs: Any,
 ) -> tuple[BlockFunction, int]:
     """
-    Adds the queue event that runs each stream: one event per stream, from the
-    moment it is started until it ends. `fn` is the event's function, which
-    holds the `ConnectionManager` of the streams. The event waits in
-    line like any other. It is a lease (`BlockFunction.lease`): `fn` is a
-    generator that admits the stream on its first step (see
-    `connection.stream_run`) and delivers its AdditionalOutputs on the later
-    ones, each time the stream wakes the event. A running stream that the page
-    closes ends through its manager, so that the event still delivers every
-    pending output.
+    Adds the queue event that runs each stream, a lease whose `fn` holds the
+    streams' `ConnectionManager` (see `connection.stream_run`).
     """
     from gradio.webrtc import connection
 
@@ -218,11 +211,9 @@ def server_stream(
     concurrency_limit: int | None | Literal["default"],
 ) -> None:
     """
-    Adds the queued event of a gr.Server WebRTC endpoint (see
-    `Server.webrtc()`) to the Blocks being created. Like the stream of
-    gr.WebRTC, each stream is one queue event that admits the stream when its
-    turn comes and then delivers its AdditionalOutputs, each as one list. The
-    client sends the extra inputs over the stream's data channel.
+    Adds the stream event of a gr.Server WebRTC endpoint (see `Server.webrtc()`),
+    which delivers each AdditionalOutputs as one list. The client sends the
+    extra inputs over the stream's data channel.
     """
     from gradio_client.utils import python_type_to_json_schema
 
@@ -251,7 +242,6 @@ def server_stream(
     )
 
     async def run_stream(webrtc_id: str | None) -> AsyncIterator[Any]:
-        # Closed with the queue's run, so that the stream ends at once
         async with aclosing(connection.stream_run(manager, webrtc_id)) as steps:
             async for outputs in steps:
                 yield skip() if outputs is None else list(outputs.args)

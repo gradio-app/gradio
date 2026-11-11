@@ -99,8 +99,7 @@ export class Client {
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
-	// Events this page acknowledged; messages that still arrive for them
-	// (e.g. the completion of a stopped stream) are dropped
+	// Acknowledged events, whose late messages (e.g. a stopped stream's completion) are dropped
 	acknowledged_events: Set<string> = new Set();
 	events_to_resume: Set<string> = new Set();
 	stream_reconnect_attempts = 0;
@@ -785,16 +784,14 @@ export class Client {
 	}
 
 	/**
-	 * Sends a WebRTC stream's SDP offer, or one of its trickled ICE candidates
-	 * (`type: "ice-candidate"`), to the process that admitted the stream.
+	 * Sends a WebRTC stream's SDP offer or a trickled ICE candidate (`type: "ice-candidate"`).
 	 * Resolves with the server's answer, or undefined if the request failed.
 	 */
 	public async webrtc_offer(
 		body: Record<string, unknown>
 	): Promise<Record<string, any> | undefined> {
-		// The offer starts the stream's handler, whose GPU work is the
-		// visitor's, as for a queued event. It does not wait on the embedding
-		// page for long: without an answer it goes out without the headers.
+		// The offer starts the handler, so it carries the visitor's ZeroGPU
+		// headers, but goes out without them if the embedding page is slow.
 		const headers =
 			body.type === "offer"
 				? ((await with_timeout(
@@ -807,9 +804,8 @@ export class Client {
 	}
 
 	/**
-	 * The RTCPeerConnection configuration (ICE servers) for a WebRTC stream
-	 * whose turn in the queue has come. Resolves with `{ error }` instead if
-	 * the stream was not admitted, or undefined if the request failed.
+	 * ICE server configuration for a WebRTC stream whose queue turn has come;
+	 * `{ error }` if it was not admitted, undefined if the request failed.
 	 */
 	public async webrtc_rtc_configuration(
 		webrtc_id: string

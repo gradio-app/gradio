@@ -93,7 +93,6 @@
 	} = $props();
 
 	let video_source = $state<HTMLVideoElement>();
-	// The camera, for the preview and the stream
 	let stream: MediaStream | null = null;
 	// For "audio-video", the microphone, held only while a stream runs
 	let mic_stream: MediaStream | null = null;
@@ -105,7 +104,6 @@
 	let options_open = $state(false);
 	let facing_mode = $state<string | undefined>(undefined);
 	let active_time_limit = $state<number | null>(null);
-	// The time limit the server reported in its answer, if any
 	let negotiated_time_limit: number | null = null;
 	const attempts = new StreamAttempts(() => turn);
 
@@ -124,8 +122,7 @@
 	const show_mirrored = $derived(
 		mirrored && (stream_state !== "open" || mode === "send")
 	);
-	// For "video" the constraints apply to the video track; for "audio-video"
-	// they are split into {video, audio}.
+	// For "audio-video" the constraints are split into {video, audio}
 	const video_constraints = $derived(
 		include_audio ? (track_constraints.video ?? {}) : track_constraints
 	);
@@ -180,8 +177,7 @@
 		}
 	}
 
-	// `ask_mic`: for "audio-video", also ask for the microphone, so that one
-	// prompt covers both; it is let go again right away
+	// `ask_mic`: one prompt covers camera and microphone; the mic is released at once
 	async function access_webcam(
 		device_id?: string | null,
 		ask_mic = false
@@ -213,15 +209,11 @@
 				onerror?.(i18n("image.allow_webcam_access"));
 				return;
 			}
-			// e.g. no camera, a camera another app holds, or constraints the
-			// device cannot meet
 			console.debug("getUserMedia failed", err);
 			onerror?.(i18n("audio.no_device_support"));
 		}
 	}
 
-	// Releases the camera that the preview holds; the access button brings it
-	// back.
 	function turn_off_camera(): void {
 		camera_request++;
 		stop_tracks(stream);
@@ -257,9 +249,8 @@
 		}
 		stream_state = "closed";
 		active_time_limit = null;
-		// stop() ends the local tracks too, so reopen the camera for the
-		// preview. Without a connection (stopped while waiting in line, or it
-		// never connected) the preview is still running.
+		// stop() ends the local tracks, so reopen the camera for the preview
+		// (without a connection the preview is still running)
 		if (connection) {
 			// No stream may start with the ended tracks meanwhile
 			stream = null;
@@ -297,8 +288,6 @@
 			include_audio ? open_mic() : Promise.resolve(null),
 			get_rtc_configuration(server, webrtc_id)
 		]);
-		// Stopped (or unmounted) while the microphone or the configuration
-		// was loading
 		if (!attempts.is_current(token)) {
 			stop_tracks(mic);
 			return;
@@ -422,8 +411,6 @@
 		{/if}
 		<div class="button-wrap">
 			{#if stream_state === "waiting"}
-				<!-- Waiting in line: the place and the expected wait, and a way out
-				that does not look like the start button -->
 				<div class="icon-with-text queue-status" role="status">
 					<div class="icon color-primary" title="spinner">
 						<Spinner />

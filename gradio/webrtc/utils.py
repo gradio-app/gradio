@@ -29,9 +29,7 @@ AUDIO_PTIME = 0.020
 # How long to wait before asking a handler again when it had nothing to send,
 # so that an emit() that returns None without awaiting does not spin
 EMPTY_EMIT_WAIT = 0.005
-# How long a handler call may take before a warning is logged
 SLOW_EMIT_WARNING = 60
-# What a receive-mode generator gives once it is exhausted
 GENERATOR_DONE = object()
 # Frames of audio (20 ms each) a receive-mode generator may get ahead of
 # playback. Handlers' audio is not bounded: their clear_queue() drops what
@@ -122,9 +120,7 @@ class StreamInputs:
 def has_streams(blocks: Any) -> bool:
     """Whether the app `blocks` serves a WebRTC stream event (a lease). Read
     from the events it serves, so that a Blocks rendered into another app
-    (a multipage app's page, gr.TabbedInterface) brings its streams along.
-    Signalling for an app without a stream handler is answered at once: no
-    stream can be admitted."""
+    (a multipage app's page, gr.TabbedInterface) brings its streams along."""
     return any(fn.lease for fn in blocks.fns.values())
 
 
@@ -169,7 +165,6 @@ class StreamErrors:
         # Taken when the stream starts: the threads that run sync handlers do
         # not have the app in their context
         self.show_error = show_error
-        # The handler's error as error_payload() shows it, once it failed
         self.failure: dict[str, Any] | None = None
         # fail() can be called from several handler threads at once
         self._lock = threading.Lock()
@@ -190,7 +185,6 @@ class StreamErrors:
         self.loop.call_soon_threadsafe(self.end_stream)
 
 
-# Where the errors of the stream whose handler runs here go
 current_errors: ContextVar[StreamErrors | None] = ContextVar(
     "current_errors", default=None
 )
@@ -281,8 +275,8 @@ def split_output(
     if isinstance(data, AdditionalOutputs | CloseStream):
         return None, data
     if isinstance(data, tuple):
-        # A bare (sample_rate, array) audio frame. Three elements are FastRTC's
-        # explicit layout, let through so that check_audio() explains the change
+        # A bare (sample_rate, array) audio frame. A 3-tuple with a layout goes
+        # on so that check_audio() rejects it with a clear message
         if 2 <= len(data) <= 3 and isinstance(data[1], np.ndarray):
             return data, None
         if len(data) != 2:
@@ -454,7 +448,7 @@ async def player_worker_decode(
     frame_size: int = int(48000 * AUDIO_PTIME),
 ):
     """
-    Pulls `(sample_rate, array[, layout])` chunks from `next_frame` and puts
+    Pulls `(sample_rate, array)` chunks from `next_frame` and puts
     fixed-size `av.AudioFrame`s at `sample_rate` on `queue`, ready to be sent
     over the peer connection. Puts None and returns when `next_frame` gives
     `GENERATOR_DONE`.
@@ -568,9 +562,8 @@ async def player_worker_decode(
                 )
                 in_frame.sample_rate = in_sample_rate
 
-                # av.AudioResampler requires every input frame to share one format,
-                # so a handler that changes sample rate or layout mid-stream gets a
-                # fresh resampler, after the old one is flushed.
+                # av.AudioResampler takes one input format, so a change of rate
+                # or layout gets a new resampler after the old one is flushed
                 key = (layout, in_sample_rate)
                 if resampler is None or key != resampler_key:
                     if resampler is not None:
@@ -585,7 +578,6 @@ async def player_worker_decode(
             except (HandlerFailedError, _DecoderStoppedError):
                 raise
             except Exception as e:
-                # What the handler returned cannot be played
                 raise handler_failed(e) from e
     except _DecoderStoppedError:
         pass

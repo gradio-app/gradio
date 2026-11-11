@@ -102,7 +102,6 @@ class StreamHandlerBase:
         self._resampler = None
         self._channel: DataChannel | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
-        # The extra inputs of the stream it serves (see `_use_inputs`)
         self._inputs = StreamInputs()
         self.channel_set = asyncio.Event()
         self._clear_queue: Callable | None = None
@@ -317,16 +316,7 @@ class AsyncAudioVideoStreamHandler(AsyncStreamHandler):
 
 class VideoStreamHandler(StreamHandlerBase, ABC):
     """
-    Base class for synchronous handlers of video-only streams that need state
-    or resources for the whole stream, for example one GPU allocation per
-    stream on ZeroGPU. `video_receive()` is called with every incoming frame
-    (or, when it is slower than the camera, with the newest one that arrived
-    while it ran) and `video_emit()` is polled for the next outgoing frame; `start_up()` is
-    called once when the connection is established (frames may already arrive
-    while it runs) and `shutdown()` when it closes. Works in mode="send-receive" and
-    in mode="send", where `video_emit()` is still called and only its
-    `AdditionalOutputs` are used (it can return them without a frame). For a function called once per frame,
-    pass the function (or a `VideoOptions`) to `WebRTC.stream()` instead.
+    Base class for synchronous handlers of video-only streams that need state or resources for the whole stream, for example one GPU allocation per stream on ZeroGPU. `video_receive()` is called with every incoming frame (or, when it is slower than the camera, with the newest one that arrived while it ran) and `video_emit()` is polled for the next outgoing frame; `start_up()` is called once when the connection is established (frames may already arrive while it runs) and `shutdown()` when it closes. Works in mode="send-receive" and in mode="send", where `video_emit()` is still called and only its `AdditionalOutputs` are used (it can return them without a frame). For a function called once per frame, pass the function (or a `VideoOptions`) to `WebRTC.stream()` instead.
 
     Parameters:
         fps: the frame rate at which frames are sent to the client; in mode="send", how often `video_emit()` is called.

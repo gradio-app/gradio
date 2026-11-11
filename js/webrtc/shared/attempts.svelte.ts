@@ -1,19 +1,15 @@
 import type { QueueTurn } from "../types";
 
 /**
- * The streams a component starts and their turns in the queue. Starting a
- * stream awaits several things (the turn, the RTC configuration, the
- * microphone), and a stop, a newer start or the unmount can happen during
- * any of them. Each start gets a token; after every await it checks
- * `is_current(token)` and gives up when it no longer is, instead of
- * connecting a stream nobody wants.
+ * A component's stream starts and their queue turns. A stop, newer start or
+ * unmount can happen during any await of a start, so each start gets a token
+ * and gives up once `is_current(token)` is false.
  */
 export class StreamAttempts {
 	/** Whether the current attempt's turn in the queue has come. */
 	admitted = $state(false);
 	#attempt = 0;
 	#destroyed = false;
-	// A turn was requested and not given back yet
 	#holds_turn = false;
 	#turn: () => QueueTurn;
 
@@ -21,7 +17,6 @@ export class StreamAttempts {
 		this.#turn = turn;
 	}
 
-	/** Starts a new attempt, superseding any earlier one. */
 	begin(): number {
 		return ++this.#attempt;
 	}
@@ -30,12 +25,10 @@ export class StreamAttempts {
 		return token === this.#attempt && !this.#destroyed;
 	}
 
-	/** Whether the component was unmounted. */
 	get destroyed(): boolean {
 		return this.#destroyed;
 	}
 
-	/** Joins the queue and waits for the attempt's turn. */
 	async request_turn(
 		token: number
 	): Promise<"admitted" | "refused" | "superseded"> {
@@ -57,7 +50,6 @@ export class StreamAttempts {
 		}
 	}
 
-	/** For the component's onDestroy. */
 	destroy(): void {
 		this.#destroyed = true;
 		this.end();

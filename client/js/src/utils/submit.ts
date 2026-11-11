@@ -41,8 +41,7 @@ import {
 	update_run_inputs
 } from "./run_history";
 
-// Acknowledged events remembered so that their late messages can be dropped;
-// such messages come within moments, so the oldest can be forgotten
+// Late messages come within moments, so the oldest acknowledged events can be forgotten
 const MAX_ACKNOWLEDGED_EVENTS = 1000;
 
 export function submit(
@@ -320,16 +319,12 @@ export function submit(
 		async function acknowledge(): Promise<void> {
 			if (!event_id_final) return;
 			if (!options.resume_sessions) return;
-			// The server drops what is left of an acknowledged event (e.g. the
-			// completion of a stream stopped on the page), so stop waiting for
-			// it: an event left open makes every close of the message stream
-			// reopen it.
+			// The server drops the rest of an acknowledged event, so stop waiting:
+			// an event left open makes every close of the message stream reopen it.
 			unclosed_events.delete(event_id_final);
 			delete event_callbacks[event_id_final];
 			delete pending_diff_streams[event_id_final];
-			// Nor can the completion end the iterator any more
 			close();
-			// Its late messages would otherwise wait for this callback forever
 			const acknowledged = that.acknowledged_events;
 			acknowledged.add(event_id_final);
 			delete pending_stream_messages[event_id_final];
@@ -1218,8 +1213,7 @@ export function submit(
 				);
 			},
 			close_stream: (options?: { read_to_end?: boolean }) => {
-				// With read_to_end, the messages keep coming until the server
-				// reports that the event is over
+				// With read_to_end, messages keep coming until the event is over
 				if (!options?.read_to_end) close();
 				post_to_event("/close", {});
 			},

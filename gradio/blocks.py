@@ -2334,8 +2334,7 @@ Received inputs:
                     and isinstance(prediction_value, dict)
                     and prediction_value == skip()
                 ):
-                    # The output of gr.api() or gr.Server has no properties to
-                    # update, so gr.skip() leaves it as it is
+                    # gr.api() output has no props, so gr.skip() leaves it as is
                     pass
                 elif utils.is_prop_update(prediction_value):
                     # The output block may be absent from the session config if

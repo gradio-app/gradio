@@ -280,19 +280,9 @@ class Server(App):
         `fn` is what `gr.WebRTC.stream()` takes for the same modality and mode:
         a function, a `VideoOptions`, or a handler class or instance from
         `gradio.webrtc`. Each stream waits its turn in the queue, like a
-        queued endpoint. In the browser, `client.webrtc(name, {media, inputs,
-        on_track, on_output})` of the `@gradio/client` JavaScript client does
-        everything below. The client joins the queue with `[webrtc_id]`, a
-        random id of its own; once the turn comes, it gets the RTCPeerConnection
-        configuration from `/gradio_api/webrtc/rtc_configuration` and sends its
-        offer and ICE candidates to `/gradio_api/webrtc/offer`, both with the
-        `webrtc_id` and the client's session hash. Each `AdditionalOutputs` the
-        handler emits arrives as a data message whose value is the list of its
-        values; messages with `{"__type__": "update"}` carry nothing. The client
-        sends the values of the extra inputs over the stream's data channel as
-        `{"type": "input", "data": [...]}`: once the channel opens (an empty
-        list if there are none; a receive-mode stream starts only then), when
-        they change, and when the handler asks with a `send_input` message.
+        queued endpoint. In the browser, connect with `client.webrtc(name,
+        {media, inputs, on_track, on_output})` of the `@gradio/client`
+        JavaScript client.
 
         Parameters:
             fn: the function or handler that processes each stream.
@@ -442,9 +432,6 @@ class Server(App):
 
                 for webrtc_kwargs in self._deferred_webrtc:
                     server_stream(**webrtc_kwargs)
-        # The login routes that gr.LoginButton brings to a Blocks app, for a
-        # webrtc() function that takes the visitor's gr.OAuthProfile or
-        # gr.OAuthToken
         if any(map(_takes_oauth, self._oauth_candidates())):
             blocks._expects_oauth = True  # type: ignore[attr-defined]
 
@@ -505,12 +492,9 @@ class Server(App):
         )
 
     def _oauth_candidates(self) -> list[Any]:
-        """The functions whose OAuth type hints bring the sign-in routes: those
-        of `webrtc()`. An `api()` function's hint does not, since an API caller
-        passes its token with the request (`Client(oauth_token=...)`), and an
-        app that only takes tokens that way must start without `gradio[oauth]`,
-        `hf_oauth: true` on its Space, or an HF login on the machine. Once the
-        routes are there, `api()` functions get the visitor's values too."""
+        """The `webrtc()` functions, whose OAuth hints add the login routes. An
+        `api()` hint does not: its callers pass their own token, so the app must
+        start without `gradio[oauth]` or an HF login."""
         candidates: list[Any] = []
         for webrtc_kwargs in self._deferred_webrtc:
             candidates += [webrtc_kwargs["fn"], webrtc_kwargs["rtc_configuration"]]

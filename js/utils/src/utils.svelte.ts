@@ -10,14 +10,10 @@ export const I18N_MARKER = "__i18n__";
 
 /** A run of an event that a component started with `Gradio.dispatch`. */
 export interface EventRun {
-	/**
-	 * Ends the run as the page's close of a stream does: the server still
-	 * delivers what is pending and reports how the run ended.
-	 */
+	/** Ends the run; the server still delivers what is pending and reports the outcome. */
 	close(): void;
 }
 
-/** What a run reports as it goes, the same as the event's loading status. */
 export interface EventRunStatus {
 	status: string;
 	stream_state?: "waiting" | "open" | "closed" | null;
@@ -27,10 +23,8 @@ export interface EventRunStatus {
 }
 
 /**
- * Follows the run that a `Gradio.dispatch` call starts. `on_end` is called
- * exactly once: "not_started" when the dispatch started no run (e.g. the
- * event is already running and takes no second run), "ended" when the run
- * ended, and "error" when it failed.
+ * Follows the run a `Gradio.dispatch` call starts. `on_end` is called exactly
+ * once: "not_started" if no run started, "ended", or "error" if it failed.
  */
 export interface DispatchObserver {
 	on_start?(run: EventRun): void;
@@ -604,11 +598,7 @@ export class Gradio<T extends object = {}, U extends object = {}> {
 		return this.i18n(value);
 	};
 
-	/**
-	 * Dispatches an event of the component. `observer`, if given, follows the
-	 * run of the event's function that this dispatch starts (see
-	 * `DispatchObserver`).
-	 */
+	/** Dispatches an event; `observer` follows the run it starts (see `DispatchObserver`). */
 	dispatch<E extends keyof T>(
 		event_name: E,
 		data?: T[E],

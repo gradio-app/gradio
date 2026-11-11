@@ -136,7 +136,6 @@ class RunningEvent:
     ):
         self._id = event_id
         self.session_hash = session_hash
-        # How many events of its concurrency group this process runs at once
         self.concurrency_limit = concurrency_limit
         self.alive = True
 
@@ -155,11 +154,9 @@ class RemoteEventHandle:
         self.session_hash = running.session_hash
         self.concurrency_limit = running.concurrency_limit
         self.actions: list[str] = []
-        # Goes back with the call that admitted the stream
         self.admitted_stream: str | None = None
-        # Not whether the session is closed: a page whose heartbeat dropped
-        # (one in the background) is closed for the server but still sends
-        # events, and the queue no longer runs the events of a page that left
+        # Not session closure: a backgrounded page whose heartbeat dropped still
+        # sends events, and the queue already drops a page that left
         self.live = running.alive
 
     def _act(self, action: str) -> None:
@@ -487,8 +484,7 @@ class Worker:
         except BaseException as e:
             if running is not None and isinstance(e, asyncio.CancelledError):
                 running.alive = False
-            # A call that fails or is cancelled ends its event: what it asked
-            # of the queue no longer applies
+            # A failed or cancelled call drops what it asked of the queue
             self.take_requests(event_id)
             raise
         finally:
@@ -624,9 +620,7 @@ class Worker:
             "has_validator": fn.validator is not None,
             "cached": hasattr(fn.fn, "cache"),
             "parameter_names": list(fn.input_parameter_names) or parameter_names(fn.fn),
-            # A stream whose function works here between its calls (gr.WebRTC)
             "closes_streams": fn.close_stream is not None,
-            # A stream that holds its place until it ends itself (gr.WebRTC)
             "lease": fn.lease,
         }
 
