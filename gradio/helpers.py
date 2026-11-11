@@ -780,6 +780,9 @@ class TrackedIterable:
         self._tqdm = _tqdm
         self.progress = progress
 
+    def __getstate__(self):
+        return {**self.__dict__, "iterable": None, "_tqdm": None}
+
 
 @document("__call__", "tqdm")
 class Progress(Iterable):
