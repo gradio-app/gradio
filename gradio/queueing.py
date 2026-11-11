@@ -274,8 +274,8 @@ class Queue:
     def process_rpc(self):
         assert self.rpc_queue is not None  # noqa: S101
         while True:
-            event_id, message = self.rpc_queue.get()
             try:
+                event_id, message = self.rpc_queue.get()
                 self.dispatch_event_message(event_id, message)
             except Exception:
                 traceback.print_exc()
