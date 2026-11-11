@@ -79,3 +79,30 @@ uv venv --python 3.12 .venvs/main && VIRTUAL_ENV=.venvs/main uv pip install -c c
 .venvs/tools/bin/python bench.py --hf-auth --suites pageload --page-reps 10 --throttled-reps 3 --out results/spaces-main.json \
   $(.venvs/tools/bin/python spaces/deploy.py urls --owner <you> --app simple --arms main,base-csr,pr-default)
 ```
+
+## Server full of model calls (`bench_queue.py`)
+
+How fast does the page load for a new visitor while the server is busy?
+`apps/ml_gradio.py` and `apps/ml_fastapi.py` are the `simple` app with a ~1 s
+model call (`apps/ml_work.py`). K background clients each keep one call in
+flight (K = 0, 10, 50), and a new visitor's cold page load is timed 10 times.
+
+- `cpu` work is pure-Python compute that holds the GIL. `gpu` work is a wait
+  that releases it, like a GPU kernel or a remote model.
+- FastAPI gets its best case: the model call is a `def` route (run in its
+  thread pool) and the page is an `async def` route.
+- Gradio keeps its defaults: the queue, with `concurrency_limit=1`.
+
+One extra load per cell is recorded, and `--compose` puts the arms side by side,
+each clip starting at the frame where navigation starts.
+
+```bash
+.venvs/tools/bin/python bench_queue.py --out results/queue.json --video-dir results/videos/queue
+.venvs/tools/bin/python bench_queue.py --compose results/queue.json --video-dir results/videos/queue
+
+# cold loads of existing servers (here, the Spaces): keeps the median of --reps takes
+.venvs/tools/bin/python bench_queue.py --hf-auth --reps 7 --out results/recorded.json --video-dir results/videos/spaces \
+  --record spaces-cold/base-csr/simple=https://<you>-bench-14016-base-csr.hf.space \
+  --record spaces-cold/pr-default/simple=https://<you>-bench-14016-pr-default.hf.space
+.venvs/tools/bin/python bench_queue.py --compose results/recorded.json --video-dir results/videos/spaces --arms base-csr,pr-default
+```

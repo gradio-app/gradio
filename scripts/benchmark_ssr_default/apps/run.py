@@ -1,6 +1,6 @@
 """Launches one benchmark app and prints startup timestamps.
 
-    python run.py {simple_gradio,many_tabs,simple_fastapi}
+    python run.py {simple_gradio,many_tabs,ml_gradio,simple_fastapi,ml_fastapi}
 
 Prints one line `BENCH_STARTUP {...}` with wall-clock timestamps for: process
 start (BENCH_T0, set by the caller just before spawning, so it includes
@@ -26,7 +26,7 @@ def report(**stamps):
     print("BENCH_STARTUP " + json.dumps({"t0": T0, **stamps}), flush=True)
 
 
-if APP == "simple_fastapi":
+if APP.endswith("_fastapi"):
     import fastapi  # noqa: F401
     import uvicorn
 
