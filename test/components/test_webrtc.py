@@ -3305,10 +3305,12 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
             lambda frame, *args: (frame, AdditionalOutputs(1)),
             inputs=[webrtc],
             outputs=[webrtc, number],
-            time_limit=1,
+            # Leaves time to connect on a loaded CI runner before the limit
+            # ends the stream, and still ends it well before the busy job
+            time_limit=2,
         )
         busy = gr.Button()
-        busy.click(lambda: time.sleep(4), None, None, concurrency_limit=None)
+        busy.click(lambda: time.sleep(6), None, None, concurrency_limit=None)
     busy_fn = next(
         fn
         for fn in demo.fns.values()
@@ -3335,8 +3337,8 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         )
         await h.wait_until(lambda: h.demo._queue.get_active_worker_count() == 1)
         # The media stops at the time limit, not when a worker frees up
-        await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=4)
-        assert time.monotonic() - started < 2.5
+        await h.wait_until(lambda: server_pc.connectionState == "closed", timeout=6)
+        assert time.monotonic() - started < 3.5
         # Once a worker is free, the event still delivers every pending
         # output, however long past its time limit, and reports the failure
         session = stream_of(h.manager, "one")
