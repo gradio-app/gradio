@@ -1,26 +1,16 @@
-// frame side of the gradio-console postMessage protocol v1
+// frame side of the gradio-console postMessage protocol v1, pull model
 import { get_zerogpu_origin } from "./zerogpu";
 
 export const CONSOLE_FORWARD_PROTOCOL = "gradio-console";
 export const CONSOLE_FORWARD_VERSION = 1;
 
-/** entries kept until sent, older ones are evicted and counted as dropped */
+/** entries kept for the next state reply, older ones are evicted and counted as dropped */
 export const CONSOLE_FORWARD_BUFFER_SIZE = 100;
-export const CONSOLE_FORWARD_BATCH_SIZE = 50;
-export const CONSOLE_FORWARD_BATCH_MS = 250;
-/** includes the truncation marker */
 export const CONSOLE_FORWARD_MAX_TEXT = 4096;
-/** the console is given back if no valid init arrives this long after page load */
+/** the console is given back if no valid get arrives this long after page load */
 export const CONSOLE_FORWARD_IDLE_MS = 10_000;
-/** overflow stays in the ring buffer, where eviction counts it as dropped */
-export const CONSOLE_FORWARD_MAX_MESSAGES_PER_SECOND = 20;
 
-const TRUNCATED_SUFFIX = "…[truncated]";
 const UNSERIALIZABLE = "[Unserializable]";
-const MAX_DEPTH = 4;
-// bounds work on huge values since the text is cut to 4096 chars anyway
-const MAX_ITEMS_PER_CONTAINER = 100;
-const MAX_CONTAINERS = 1000;
 
 const CONSOLE_LEVELS = ["log", "info", "warn", "error", "debug"] as const;
 type ConsoleLevel = (typeof CONSOLE_LEVELS)[number];
@@ -38,7 +28,7 @@ export interface ConsoleForwardEntry {
 const HUB_ORIGIN = "https://huggingface.co";
 const LOCAL_DEV_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
 
-/** the v1 allowlist of parent origins that may send init */
+/** the v1 allowlist of parent origins that may send get */
 export function is_console_forward_origin_allowed(
 	origin: string,
 	frame_hostname: string
@@ -52,6 +42,7 @@ export function is_console_forward_origin_allowed(
 }
 
 type Listener = (event: any) => void;
+type Untrack = <T>(fn: () => T) => T;
 
 /** the parts of window the forwarder uses, so tests can pass a fake */
 export interface ConsoleForwardHost {
@@ -64,22 +55,17 @@ export interface ConsoleForwardHost {
 }
 
 export interface ConsoleForwardOptions {
-	/** reported in the ack, defaults to an empty string */
+	/** reported in the state reply, defaults to an empty string */
 	gradio_version?: string;
+	/** svelte untrack, so converting a logged $state value adds no dependency to the effect that logged it */
+	untrack?: Untrack;
 }
 
 export interface ConsoleForwarder {
 	readonly session_id: string;
-	/** sets the version for later acks if none is set yet */
-	set_gradio_version(version: string): void;
+	/** fills in a missing gradio version and sets untrack if given */
+	configure(options: ConsoleForwardOptions): void;
 	uninstall(): void;
-}
-
-interface PendingCapture {
-	seq: number;
-	ts: number;
-	level: ConsoleForwardLevel;
-	serialize: () => { text: string; stack?: string };
 }
 
 /** returns null and installs nothing when host is not embedded */
@@ -95,23 +81,25 @@ export function install_console_forwarding(
 	}
 
 	const session_id = create_session_id();
-	let gradio_version =
-		typeof options.gradio_version === "string" ? options.gradio_version : "";
+	let gradio_version = "";
+	let untrack: Untrack | null = null;
+	configure(options);
 
 	let active = true;
 	// true while the forwarder runs, so console calls it triggers are not captured
 	let busy = false;
 	let seq = 0;
 	let dropped = 0;
-	let target_origin: string | null = null;
-	let flush_timer: ReturnType<typeof setTimeout> | null = null;
+	let answered = false;
 	let idle_timer: ReturnType<typeof setTimeout> | null = null;
-	let rate_window_start = 0;
-	let rate_window_count = 0;
-	let drain_scheduled = false;
-	// serialized in a microtask so reading a logged object cannot add reactive dependencies to the effect that logged it
-	const pending: PendingCapture[] = [];
-	const unsent: ConsoleForwardEntry[] = [];
+	const buffer: ConsoleForwardEntry[] = [];
+
+	function configure(next: ConsoleForwardOptions): void {
+		if (!gradio_version && typeof next.gradio_version === "string") {
+			gradio_version = next.gradio_version;
+		}
+		if (typeof next.untrack === "function") untrack = next.untrack;
+	}
 
 	function guarded(fn: () => void): void {
 		if (busy || !active) return;
@@ -125,111 +113,27 @@ export function install_console_forwarding(
 		}
 	}
 
-	function post(message: Record<string, unknown>): void {
-		const p = host.parent;
-		if (!p || target_origin === null) return;
-		p.postMessage(
-			{
-				protocol: CONSOLE_FORWARD_PROTOCOL,
-				version: CONSOLE_FORWARD_VERSION,
-				...message
-			},
-			target_origin
-		);
-	}
-
-	function flush(): void {
-		if (flush_timer !== null) {
-			clearTimeout(flush_timer);
-			flush_timer = null;
-		}
-		if (target_origin === null) return;
-		while (unsent.length > 0) {
-			const now = Date.now();
-			if (now - rate_window_start >= 1000) {
-				rate_window_start = now;
-				rate_window_count = 0;
-			}
-			if (rate_window_count >= CONSOLE_FORWARD_MAX_MESSAGES_PER_SECOND) {
-				flush_timer = setTimeout(
-					() => {
-						flush_timer = null;
-						guarded(flush);
-					},
-					rate_window_start + 1000 - now
-				);
-				return;
-			}
-			const entries = unsent.slice(0, CONSOLE_FORWARD_BATCH_SIZE);
-			post({ type: "entries", session_id, entries, dropped });
-			rate_window_count++;
-			unsent.splice(0, entries.length);
-			dropped = 0;
-		}
-	}
-
-	function schedule_flush(): void {
-		if (target_origin === null) return;
-		if (unsent.length >= CONSOLE_FORWARD_BATCH_SIZE) {
-			flush();
-		} else if (flush_timer === null && unsent.length > 0) {
-			flush_timer = setTimeout(() => {
-				flush_timer = null;
-				guarded(flush);
-			}, CONSOLE_FORWARD_BATCH_MS);
-		}
-	}
-
-	function drain(): void {
-		while (pending.length > 0) {
-			const capture = pending.shift()!;
-			let result: { text: string; stack?: string };
-			try {
-				result = capture.serialize();
-			} catch {
-				result = { text: UNSERIALIZABLE };
-			}
+	function capture(
+		level: ConsoleForwardLevel,
+		convert: () => { text: string; stack?: string }
+	): void {
+		guarded(() => {
+			const ts = Date.now();
+			const result = untrack ? untrack(convert) : convert();
 			const entry: ConsoleForwardEntry = {
-				seq: capture.seq,
-				ts: capture.ts,
-				level: capture.level,
+				seq: ++seq,
+				ts,
+				level,
 				text: truncate(result.text)
 			};
 			if (typeof result.stack === "string") {
 				entry.stack = truncate(result.stack);
 			}
-			unsent.push(entry);
-			if (unsent.length > CONSOLE_FORWARD_BUFFER_SIZE) {
-				const evicted = unsent.length - CONSOLE_FORWARD_BUFFER_SIZE;
-				unsent.splice(0, evicted);
-				dropped += evicted;
+			buffer.push(entry);
+			if (buffer.length > CONSOLE_FORWARD_BUFFER_SIZE) {
+				dropped += buffer.length - CONSOLE_FORWARD_BUFFER_SIZE;
+				buffer.splice(0, buffer.length - CONSOLE_FORWARD_BUFFER_SIZE);
 			}
-			schedule_flush();
-		}
-	}
-
-	function schedule_drain(): void {
-		if (drain_scheduled) return;
-		drain_scheduled = true;
-		Promise.resolve().then(() => {
-			drain_scheduled = false;
-			guarded(drain);
-		});
-	}
-
-	function capture(
-		level: ConsoleForwardLevel,
-		serialize: PendingCapture["serialize"]
-	): void {
-		guarded(() => {
-			pending.push({ seq: ++seq, ts: Date.now(), level, serialize });
-			// a burst in one task cannot grow past what the ring buffer keeps
-			if (pending.length > CONSOLE_FORWARD_BUFFER_SIZE) {
-				const evicted = pending.length - CONSOLE_FORWARD_BUFFER_SIZE;
-				pending.splice(0, evicted);
-				dropped += evicted;
-			}
-			schedule_drain();
 		});
 	}
 
@@ -238,22 +142,32 @@ export function install_console_forwarding(
 			const data = event?.data;
 			if (typeof data !== "object" || data === null) return;
 			if (data.protocol !== CONSOLE_FORWARD_PROTOCOL) return;
-			if (data.type !== "init") return;
-			if (event.source !== host.parent) return;
+			if (data.type !== "get") return;
+			const parent = host.parent;
+			if (!parent || event.source !== parent) return;
 			const origin = event.origin;
 			if (!is_console_forward_origin_allowed(origin, host.location.hostname)) {
 				return;
 			}
-			target_origin = origin;
+			answered = true;
 			if (idle_timer !== null) {
 				clearTimeout(idle_timer);
 				idle_timer = null;
 			}
 			wrap_console();
-			post({ type: "ack", session_id, gradio_version, dropped });
-			dropped = 0;
-			drain();
-			flush();
+			const reply: Record<string, unknown> = {
+				protocol: CONSOLE_FORWARD_PROTOCOL,
+				version: CONSOLE_FORWARD_VERSION,
+				type: "state",
+				session_id,
+				gradio_version,
+				dropped,
+				entries: buffer.slice()
+			};
+			if (typeof data.id === "string" || typeof data.id === "number") {
+				reply.id = data.id;
+			}
+			parent.postMessage(reply, origin);
 		});
 	}
 
@@ -345,10 +259,10 @@ export function install_console_forwarding(
 	}
 
 	function start_idle_timer(): void {
-		if (idle_timer !== null || target_origin !== null || !active) return;
+		if (idle_timer !== null || answered || !active) return;
 		idle_timer = setTimeout(() => {
 			idle_timer = null;
-			if (target_origin === null) unwrap_console();
+			if (!answered) unwrap_console();
 		}, CONSOLE_FORWARD_IDLE_MS);
 	}
 
@@ -377,16 +291,10 @@ export function install_console_forwarding(
 
 	return {
 		session_id,
-		set_gradio_version(version: string): void {
-			if (!gradio_version && typeof version === "string") {
-				gradio_version = version;
-			}
-		},
+		configure,
 		uninstall(): void {
 			active = false;
-			if (flush_timer !== null) clearTimeout(flush_timer);
 			if (idle_timer !== null) clearTimeout(idle_timer);
-			flush_timer = null;
 			idle_timer = null;
 			unwrap_console();
 			for (const undo of restore) {
@@ -402,7 +310,7 @@ export function install_console_forwarding(
 
 const GLOBAL_KEY = Symbol.for("gradio.console_forward");
 
-/** installs on window at most once per page even across bundled copies, later calls only fill in a missing gradio version */
+/** installs on window at most once per page even across bundled copies, later calls only configure it */
 export function initialize_console_forwarding(
 	options: ConsoleForwardOptions = {}
 ): ConsoleForwarder | null {
@@ -419,9 +327,7 @@ export function initialize_console_forwarding(
 		>;
 		const existing = store[GLOBAL_KEY];
 		if (existing !== undefined) {
-			if (existing && options.gradio_version) {
-				existing.set_gradio_version(options.gradio_version);
-			}
+			existing?.configure(options);
 			return existing;
 		}
 		const forwarder = install_console_forwarding(
@@ -450,6 +356,17 @@ export function initialize_console_forwarding_for_app(
 	}
 }
 
+/** initializes when this page is served from a space host, so custom pages capture from the moment they import the client */
+export function initialize_console_forwarding_on_space(): void {
+	try {
+		if (typeof window === "undefined") return;
+		if (get_zerogpu_origin(window.location.hostname) === null) return;
+		initialize_console_forwarding();
+	} catch {
+		// not a browser
+	}
+}
+
 function create_session_id(): string {
 	try {
 		const crypto = globalThis.crypto;
@@ -468,11 +385,9 @@ function create_session_id(): string {
 }
 
 function truncate(text: string): string {
-	if (text.length <= CONSOLE_FORWARD_MAX_TEXT) return text;
-	return (
-		text.slice(0, CONSOLE_FORWARD_MAX_TEXT - TRUNCATED_SUFFIX.length) +
-		TRUNCATED_SUFFIX
-	);
+	return text.length > CONSOLE_FORWARD_MAX_TEXT
+		? text.slice(0, CONSOLE_FORWARD_MAX_TEXT)
+		: text;
 }
 
 /** joins the arguments as text per the v1 contract and returns the first error stack, never throws */
@@ -484,22 +399,15 @@ export function serialize_console_args(args: readonly unknown[]): {
 	let stack: string | undefined;
 	let seen_error = false;
 	for (const arg of args) {
-		try {
-			if (!seen_error && is_error(arg)) {
-				seen_error = true;
-				const s = (arg as Error).stack;
-				if (typeof s === "string") stack = s;
+		if (!seen_error && arg instanceof Error) {
+			seen_error = true;
+			try {
+				if (typeof arg.stack === "string") stack = arg.stack;
+			} catch {
+				// no stack
 			}
-		} catch {
-			// no stack
 		}
-		let part: string;
-		try {
-			part = serialize_value(arg);
-		} catch {
-			part = UNSERIALIZABLE;
-		}
-		parts.push(part);
+		parts.push(serialize_arg(arg));
 	}
 	const result: { text: string; stack?: string } = {
 		text: truncate(parts.join(" "))
@@ -508,151 +416,16 @@ export function serialize_console_args(args: readonly unknown[]): {
 	return result;
 }
 
-function serialize_value(value: unknown): string {
-	switch (typeof value) {
-		case "string":
-			return value;
-		case "number":
-		case "boolean":
-		case "undefined":
-		case "bigint":
-		case "symbol":
-			return String(value);
-		case "function":
-			return format_function(value);
-	}
-	if (value === null) return "null";
-	if (is_error(value)) return format_error(value);
-	if (is_dom_node(value)) return format_dom_node(value);
-	const clone = to_json_value(value, 0, [], { remaining: MAX_CONTAINERS });
-	if (clone === UNSERIALIZABLE) return UNSERIALIZABLE;
-	const json = JSON.stringify(clone);
-	return typeof json === "string" ? json : String(json);
-}
-
-function to_json_value(
-	value: unknown,
-	depth: number,
-	ancestors: unknown[],
-	budget: { remaining: number }
-): unknown {
-	switch (typeof value) {
-		case "string":
-		case "boolean":
-		case "undefined":
-			return value;
-		case "number":
-			return Number.isFinite(value) ? value : String(value);
-		case "bigint":
-		case "symbol":
-			return String(value);
-		case "function":
-			return format_function(value);
-	}
-	if (value === null) return null;
+function serialize_arg(arg: unknown): string {
 	try {
-		if (is_error(value)) return format_error(value);
-		if (is_dom_node(value)) return format_dom_node(value);
-		if (ancestors.includes(value)) return "[Circular]";
-		const is_array = Array.isArray(value);
-		if (depth > MAX_DEPTH || budget.remaining-- <= 0) {
-			return is_array ? "[Array]" : "[Object]";
-		}
-		const to_json = (value as { toJSON?: unknown }).toJSON;
-		if (typeof to_json === "function") {
-			const replaced = to_json.call(value);
-			if (replaced !== value) {
-				return to_json_value(replaced, depth, ancestors, budget);
-			}
-		}
-
-		ancestors.push(value);
+		if (typeof arg === "string") return arg;
+		if (arg instanceof Error) return `${arg.name}: ${arg.message}`;
+		return JSON.stringify(arg) ?? String(arg);
+	} catch {
 		try {
-			if (is_array) {
-				const array = value as unknown[];
-				const out: unknown[] = [];
-				const length = array.length;
-				const shown = Math.min(length, MAX_ITEMS_PER_CONTAINER);
-				for (let i = 0; i < shown; i++) {
-					out.push(read_child(() => array[i], depth, ancestors, budget));
-				}
-				if (length > shown) out.push(`…[${length - shown} more]`);
-				return out;
-			}
-			const object = value as Record<string, unknown>;
-			const out: Record<string, unknown> = {};
-			const keys = Object.keys(object);
-			const shown = Math.min(keys.length, MAX_ITEMS_PER_CONTAINER);
-			for (let i = 0; i < shown; i++) {
-				const key = keys[i];
-				out[key] = read_child(() => object[key], depth, ancestors, budget);
-			}
-			if (keys.length > shown) out["…"] = `[${keys.length - shown} more]`;
-			return out;
-		} finally {
-			ancestors.pop();
-		}
-	} catch {
-		return UNSERIALIZABLE;
-	}
-}
-
-function read_child(
-	read: () => unknown,
-	depth: number,
-	ancestors: unknown[],
-	budget: { remaining: number }
-): unknown {
-	try {
-		return to_json_value(read(), depth + 1, ancestors, budget);
-	} catch {
-		return UNSERIALIZABLE;
-	}
-}
-
-function is_error(value: unknown): boolean {
-	if (typeof value !== "object" || value === null) return false;
-	return (
-		value instanceof Error ||
-		Object.prototype.toString.call(value) === "[object Error]"
-	);
-}
-
-function format_error(value: unknown): string {
-	const error = value as Error;
-	return `${String(error.name)}: ${String(error.message)}`;
-}
-
-function format_function(value: unknown): string {
-	const name = (value as { name?: unknown }).name;
-	return `[Function ${typeof name === "string" && name ? name : "anonymous"}]`;
-}
-
-function is_dom_node(value: unknown): boolean {
-	if (typeof value !== "object" || value === null) return false;
-	if (typeof Node !== "undefined" && value instanceof Node) return true;
-	// nodes from another realm fail instanceof
-	const node = value as { nodeType?: unknown; nodeName?: unknown };
-	return (
-		typeof node.nodeType === "number" &&
-		typeof node.nodeName === "string" &&
-		typeof (value as { cloneNode?: unknown }).cloneNode === "function"
-	);
-}
-
-function format_dom_node(value: unknown): string {
-	const node = value as Element;
-	if (node.nodeType !== 1) {
-		return `<${String(node.nodeName).toLowerCase()}>`;
-	}
-	let out = String(node.localName || node.nodeName).toLowerCase();
-	if (typeof node.id === "string" && node.id) out += `#${node.id}`;
-	const class_attr =
-		typeof node.getAttribute === "function" ? node.getAttribute("class") : null;
-	if (class_attr) {
-		for (const name of class_attr.split(/\s+/)) {
-			if (name) out += `.${name}`;
+			return String(arg);
+		} catch {
+			return UNSERIALIZABLE;
 		}
 	}
-	return `<${out}>`;
 }

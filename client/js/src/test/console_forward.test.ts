@@ -1,29 +1,26 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
+	CONSOLE_FORWARD_BUFFER_SIZE,
 	CONSOLE_FORWARD_IDLE_MS,
-	CONSOLE_FORWARD_MAX_MESSAGES_PER_SECOND,
 	CONSOLE_FORWARD_PROTOCOL,
 	initialize_console_forwarding,
 	initialize_console_forwarding_for_app,
+	initialize_console_forwarding_on_space,
 	install_console_forwarding,
 	is_console_forward_origin_allowed,
 	serialize_console_args,
 	type ConsoleForwardHost,
+	type ConsoleForwardOptions,
 	type ConsoleForwarder
 } from "../helpers/console_forward";
 import { initialize_zerogpu_handshake } from "../helpers/zerogpu";
 
 const HUB = "https://huggingface.co";
-const INIT = { protocol: CONSOLE_FORWARD_PROTOCOL, version: 1, type: "init" };
+const GET = { protocol: CONSOLE_FORWARD_PROTOCOL, version: 1, type: "get" };
 const LEVELS = ["log", "info", "warn", "error", "debug"] as const;
-const has_dom = typeof document !== "undefined";
+const in_browser = typeof window !== "undefined";
 
 type Listener = (event: any) => void;
-
-interface Posted {
-	message: any;
-	origin: string;
-}
 
 function make_host({
 	embedded = true,
@@ -31,7 +28,7 @@ function make_host({
 	ready_state = "loading"
 }: { embedded?: boolean; hostname?: string; ready_state?: string } = {}) {
 	const listeners = new Map<string, Set<Listener>>();
-	const posted: Posted[] = [];
+	const posted: { message: any; origin: string }[] = [];
 	const parent = {
 		postMessage: vi.fn((message: any, origin: string) => {
 			posted.push({ message, origin });
@@ -68,24 +65,22 @@ function make_host({
 		return [...(listeners.get(type) ?? [])].map((listener) => listener(event));
 	}
 
-	function init(
+	function get(
 		options: { origin?: string; source?: unknown; data?: unknown } = {}
 	): void {
 		dispatch("message", {
-			data: "data" in options ? options.data : INIT,
+			data: "data" in options ? options.data : GET,
 			origin: options.origin ?? HUB,
 			source: "source" in options ? options.source : parent
 		});
 	}
 
-	function messages(type?: string): any[] {
-		return posted
-			.map((p) => p.message)
-			.filter((m) => type === undefined || m.type === type);
+	function last_state(): any {
+		return posted.at(-1)?.message;
 	}
 
-	function entries(): any[] {
-		return messages("entries").flatMap((m) => m.entries);
+	function texts(): string[] {
+		return last_state().entries.map((e: any) => e.text);
 	}
 
 	return {
@@ -96,24 +91,19 @@ function make_host({
 		original,
 		listeners,
 		dispatch,
-		init,
-		messages,
-		entries
+		get,
+		last_state,
+		texts
 	};
-}
-
-// serialization runs in a microtask after the console call
-async function settle(): Promise<void> {
-	for (let i = 0; i < 5; i++) await Promise.resolve();
 }
 
 let installed: ConsoleForwarder[] = [];
 
 function install(
 	host: ReturnType<typeof make_host>["host"],
-	gradio_version?: string
+	options: ConsoleForwardOptions = {}
 ): ConsoleForwarder | null {
-	const forwarder = install_console_forwarding(host, { gradio_version });
+	const forwarder = install_console_forwarding(host, options);
 	if (forwarder) installed.push(forwarder);
 	return forwarder;
 }
@@ -141,8 +131,9 @@ describe("console forwarding: install", () => {
 		expect(env.host.addEventListener).not.toHaveBeenCalled();
 	});
 
-	it("listens for messages, errors and rejections only through addEventListener", () => {
+	it("listens only through addEventListener and leaves onerror alone", () => {
 		const env = make_host();
+		const existing = env.host.onerror;
 		install(env.host);
 		expect([...env.listeners.keys()].sort()).toEqual([
 			"error",
@@ -150,6 +141,7 @@ describe("console forwarding: install", () => {
 			"message",
 			"unhandledrejection"
 		]);
+		expect(env.host.onerror).toBe(existing);
 	});
 
 	it("uninstall restores the console and removes the listeners", () => {
@@ -162,14 +154,13 @@ describe("console forwarding: install", () => {
 	});
 });
 
-describe("console forwarding: before init", () => {
-	it("calls the original console method first, with the same arguments and this", async () => {
+describe("console forwarding: capture", () => {
+	it("calls the original console method first, with the same arguments and this", () => {
 		const env = make_host();
 		install(env.host);
 		const arg = { a: 1 };
 
-		const result = env.host.console.log("hello", arg, 3);
-		expect(result).toBe("log-result");
+		expect(env.host.console.log("hello", arg, 3)).toBe("log-result");
 		expect(env.calls).toEqual([
 			{ level: "log", self: env.host.console, args: ["hello", arg, 3] }
 		]);
@@ -181,12 +172,9 @@ describe("console forwarding: before init", () => {
 			self: other_this,
 			args: ["w"]
 		});
-
-		await settle();
-		expect(env.parent.postMessage).not.toHaveBeenCalled();
 	});
 
-	it("still calls the original when it throws, and rethrows its error", async () => {
+	it("still captures when the original throws, and rethrows its error", () => {
 		const env = make_host();
 		const boom = new Error("original failed");
 		env.host.console.error = vi.fn(() => {
@@ -194,12 +182,11 @@ describe("console forwarding: before init", () => {
 		});
 		install(env.host);
 		expect(() => env.host.console.error("x")).toThrow(boom);
-		await settle();
-		env.init();
-		expect(env.entries().map((e) => e.text)).toEqual(["x"]);
+		env.get();
+		expect(env.texts()).toEqual(["x"]);
 	});
 
-	it("posts nothing, ever, without an init", async () => {
+	it("never posts anything without a get", () => {
 		vi.useFakeTimers();
 		const env = make_host();
 		install(env.host);
@@ -209,162 +196,109 @@ describe("console forwarding: before init", () => {
 			reason: "r",
 			preventDefault: vi.fn()
 		});
-		await settle();
-		vi.advanceTimersByTime(10_000);
+		env.dispatch("load", {});
+		vi.advanceTimersByTime(60_000);
 		expect(env.parent.postMessage).not.toHaveBeenCalled();
 	});
 
-	it("keeps the last 100 entries and counts the evicted ones as dropped", async () => {
+	it("converts values at the moment of the call", () => {
 		const env = make_host();
 		install(env.host);
-		for (let i = 1; i <= 150; i++) {
-			env.host.console.log(`line ${i}`);
-			// spread over several microtask drains
-			if (i % 30 === 0) await settle();
-		}
-		await settle();
-		env.init();
-
-		const [ack] = env.messages("ack");
-		expect(ack.dropped).toBe(50);
-		const entries = env.entries();
-		expect(entries.map((e) => e.seq)).toEqual(
-			Array.from({ length: 100 }, (_, i) => i + 51)
-		);
-		expect(entries[0].text).toBe("line 51");
-		for (const message of env.messages("entries")) {
-			expect(message.entries.length).toBeGreaterThan(0);
-			expect(message.entries.length).toBeLessThanOrEqual(50);
-			expect(message.dropped).toBe(0);
-		}
+		const o = { x: 1 };
+		env.host.console.log("mutate", o);
+		o.x = 2;
+		env.get();
+		expect(env.texts()).toEqual(['mutate {"x":1}']);
 	});
 
-	it("caps a synchronous burst too, counting what was evicted", async () => {
-		const env = make_host();
-		install(env.host);
-		for (let i = 1; i <= 1000; i++) env.host.console.log(i);
-		await settle();
-		env.init();
-		expect(env.messages("ack")[0].dropped).toBe(900);
-		expect(env.entries().map((e) => e.seq)).toEqual(
-			Array.from({ length: 100 }, (_, i) => i + 901)
-		);
-	});
-});
-
-describe("console forwarding: init, ack and entries", () => {
-	it("acks a valid init, flushes the buffer, then batches new entries", async () => {
+	it("records seq from 1 and the time of the call", () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(1_000);
 		const env = make_host();
-		const forwarder = install(env.host, "6.0.0")!;
-
-		env.host.console.log("first");
+		install(env.host);
+		env.host.console.log("a");
 		vi.setSystemTime(2_000);
-		env.host.console.warn("second", { n: 2 });
-		vi.setSystemTime(3_000);
-		await settle();
+		env.host.console.debug("b");
+		env.get();
+		expect(env.last_state().entries).toEqual([
+			{ seq: 1, ts: 1_000, level: "log", text: "a" },
+			{ seq: 2, ts: 2_000, level: "debug", text: "b" }
+		]);
+	});
 
-		env.init();
-		expect(env.posted).toHaveLength(2);
-		expect(env.posted.every((p) => p.origin === HUB)).toBe(true);
+	it("keeps the last 100 entries and counts the evicted ones in dropped", () => {
+		const env = make_host();
+		install(env.host);
+		for (let i = 1; i <= 150; i++) env.host.console.log(`line ${i}`);
+		env.get();
+		const state = env.last_state();
+		expect(state.dropped).toBe(50);
+		expect(state.entries).toHaveLength(CONSOLE_FORWARD_BUFFER_SIZE);
+		expect(state.entries.map((e: any) => e.seq)).toEqual(
+			Array.from({ length: 100 }, (_, i) => i + 51)
+		);
 
+		for (let i = 151; i <= 160; i++) env.host.console.log(`line ${i}`);
+		env.get();
+		expect(env.last_state().dropped).toBe(60);
+		expect(env.last_state().entries[0].seq).toBe(61);
+	});
+});
+
+describe("console forwarding: get and state", () => {
+	it("answers a valid get with the whole buffer, sent only to the get's origin", () => {
+		const env = make_host();
+		const forwarder = install(env.host, { gradio_version: "6.0.0" })!;
+		env.host.console.warn("one", { n: 1 });
+		env.get({ origin: "http://localhost:5173", data: { ...GET, id: 7 } });
+
+		expect(env.posted).toHaveLength(1);
+		expect(env.posted[0].origin).toBe("http://localhost:5173");
 		expect(env.posted[0].message).toEqual({
 			protocol: "gradio-console",
 			version: 1,
-			type: "ack",
+			type: "state",
+			id: 7,
 			session_id: forwarder.session_id,
 			gradio_version: "6.0.0",
-			dropped: 0
-		});
-		expect(env.posted[1].message).toEqual({
-			protocol: "gradio-console",
-			version: 1,
-			type: "entries",
-			session_id: forwarder.session_id,
 			dropped: 0,
 			entries: [
-				{ seq: 1, ts: 1_000, level: "log", text: "first" },
-				{ seq: 2, ts: 2_000, level: "warn", text: 'second {"n":2}' }
+				{ seq: 1, ts: expect.any(Number), level: "warn", text: 'one {"n":1}' }
 			]
 		});
-
-		env.host.console.error("third");
-		await settle();
-		expect(env.posted).toHaveLength(2);
-		vi.advanceTimersByTime(249);
-		expect(env.posted).toHaveLength(2);
-		vi.advanceTimersByTime(1);
-		expect(env.posted).toHaveLength(3);
-		expect(env.posted[2].message.entries).toEqual([
-			{ seq: 3, ts: 3_000, level: "error", text: "third" }
-		]);
-
-		for (let i = 0; i < 50; i++) env.host.console.debug(i);
-		await settle();
-		expect(env.posted).toHaveLength(4);
-		expect(env.posted[3].message.entries).toHaveLength(50);
-		expect(env.posted[3].message.entries[0].seq).toBe(4);
-		vi.advanceTimersByTime(1_000);
-		expect(env.posted).toHaveLength(4);
 	});
 
-	it("a repeated init re-acks and only sends entries not yet sent", async () => {
-		vi.useFakeTimers();
+	it("answers every get with a snapshot and does not clear the buffer", () => {
 		const env = make_host();
-		const forwarder = install(env.host)!;
+		install(env.host);
 		env.host.console.log("a");
-		await settle();
-
-		env.init();
-		env.init();
-		expect(env.messages("ack")).toHaveLength(2);
-		expect(env.entries().map((e) => e.text)).toEqual(["a"]);
-
+		env.get({ data: { ...GET, id: "first" } });
 		env.host.console.log("b");
-		await settle();
-		env.init();
-		expect(env.messages("ack")).toHaveLength(3);
-		expect(env.entries().map((e) => e.text)).toEqual(["a", "b"]);
-		vi.advanceTimersByTime(1_000);
-		expect(env.entries().map((e) => e.text)).toEqual(["a", "b"]);
+		env.get();
+		env.get();
 
-		const acks = env.messages("ack");
-		expect(new Set(acks.map((a) => a.session_id))).toEqual(
-			new Set([forwarder.session_id])
-		);
-	});
-
-	it("reports evictions since the previous message in the next entries message", async () => {
-		const env = make_host();
-		install(env.host);
-		env.init();
-		for (let i = 1; i <= 130; i++) env.host.console.log(i);
-		await settle();
-		const messages = env.messages("entries");
-		const dropped = messages.reduce((sum, m) => sum + m.dropped, 0);
-		const seqs = env.entries().map((e) => e.seq);
-		expect(dropped + seqs.length).toBe(130);
-		expect(seqs).toEqual([...seqs].sort((a, b) => a - b));
-	});
-
-	it("posts to the exact origin of the latest init", async () => {
-		const env = make_host();
-		install(env.host);
-		env.init({ origin: "http://localhost:5173" });
-		env.host.console.log("x");
-		env.init({ origin: "http://127.0.0.1:8080" });
-		expect(env.posted.map((p) => p.origin)).toEqual([
-			"http://localhost:5173",
-			"http://127.0.0.1:8080",
-			"http://127.0.0.1:8080"
+		expect(env.posted).toHaveLength(3);
+		expect(env.posted[0].message.id).toBe("first");
+		expect("id" in env.posted[1].message).toBe(false);
+		expect(env.posted[0].message.entries.map((e: any) => e.text)).toEqual([
+			"a"
 		]);
+		expect(env.posted[2].message.entries.map((e: any) => e.text)).toEqual([
+			"a",
+			"b"
+		]);
+	});
+
+	it("copies only a string or number id", () => {
+		const env = make_host();
+		install(env.host);
+		env.get({ data: { ...GET, id: { nested: true } } });
+		expect("id" in env.last_state()).toBe(false);
 	});
 
 	it("uses a new random session_id per page load", () => {
 		const a = install(make_host().host)!;
 		const b = install(make_host().host)!;
-		expect(typeof a.session_id).toBe("string");
 		expect(a.session_id).not.toBe("");
 		expect(a.session_id).not.toBe(b.session_id);
 	});
@@ -372,17 +306,280 @@ describe("console forwarding: init, ack and entries", () => {
 	it("reports an empty gradio_version when it is unknown, and fills it in later", () => {
 		const env = make_host();
 		const forwarder = install(env.host)!;
-		env.init();
-		expect(env.messages("ack")[0].gradio_version).toBe("");
-		forwarder.set_gradio_version("6.1.0");
-		forwarder.set_gradio_version("ignored");
-		env.init();
-		expect(env.messages("ack")[1].gradio_version).toBe("6.1.0");
+		env.get();
+		expect(env.last_state().gradio_version).toBe("");
+		forwarder.configure({ gradio_version: "6.1.0" });
+		forwarder.configure({ gradio_version: "ignored" });
+		env.get();
+		expect(env.last_state().gradio_version).toBe("6.1.0");
+	});
+
+	it("accepts a higher version and ignores unknown fields", () => {
+		const env = make_host();
+		install(env.host);
+		env.get({ data: { ...GET, version: 2, extra: { nested: true } } });
+		expect(env.last_state()).toMatchObject({ version: 1, type: "state" });
 	});
 });
 
-describe("console forwarding: no init after load", () => {
-	it("gives the console back once the idle time passes, and a late init takes it again", async () => {
+describe("console forwarding: ignored messages", () => {
+	it.each([
+		"https://evil.example",
+		"https://huggingface.co.evil.example",
+		"http://huggingface.co",
+		"https://localhost:3000",
+		"http://localhost.evil.example",
+		"http://127.0.0.1.evil.example:80",
+		"null",
+		""
+	])("a get from a disallowed origin: %s", (origin) => {
+		const env = make_host();
+		install(env.host);
+		env.get({ origin });
+		expect(env.parent.postMessage).not.toHaveBeenCalled();
+	});
+
+	it("a get from a window that is not the parent", () => {
+		const env = make_host();
+		install(env.host);
+		env.get({ source: { postMessage: vi.fn() } });
+		env.get({ source: null });
+		env.get({ source: env.host });
+		expect(env.parent.postMessage).not.toHaveBeenCalled();
+	});
+
+	it.each([
+		["a string", "get"],
+		["the zerogpu string", "supports-zerogpu-headers"],
+		["null", null],
+		["a number", 42],
+		["undefined", undefined],
+		["an array", ["get"]],
+		["another protocol", { ...GET, protocol: "trackio-view" }],
+		["no protocol", { version: 1, type: "get" }],
+		["the superseded init", { ...GET, type: "init" }],
+		["a frame-to-parent type", { ...GET, type: "state" }],
+		["no type", { protocol: CONSOLE_FORWARD_PROTOCOL, version: 1 }]
+	])("%s", (_, data) => {
+		const env = make_host();
+		install(env.host);
+		expect(() => env.get({ data })).not.toThrow();
+		expect(env.parent.postMessage).not.toHaveBeenCalled();
+	});
+
+	it("a malformed event does not throw", () => {
+		const env = make_host();
+		install(env.host);
+		expect(() => env.dispatch("message", null)).not.toThrow();
+		expect(() =>
+			env.dispatch("message", {
+				get data() {
+					throw new Error("no");
+				}
+			})
+		).not.toThrow();
+		expect(env.parent.postMessage).not.toHaveBeenCalled();
+	});
+
+	it("a postMessage that throws does not reach the app", () => {
+		const env = make_host();
+		install(env.host);
+		env.parent.postMessage.mockImplementation(() => {
+			throw new Error("post failed");
+		});
+		expect(() => env.get()).not.toThrow();
+	});
+});
+
+describe("console forwarding: origin allowlist", () => {
+	it.each([
+		[HUB, "user-space.hf.space"],
+		["http://localhost:5173", "user-space.hf.space"],
+		["http://localhost", "user-space.hf.space"],
+		["http://127.0.0.1:65535", "user-space.hf.space"],
+		[
+			"https://moon-user.dev.spaces.huggingface.tech",
+			"space.user.dev.example.hf.space"
+		]
+	])("allows %s for a frame on %s", (origin, hostname) => {
+		expect(is_console_forward_origin_allowed(origin, hostname)).toBe(true);
+	});
+
+	it.each([
+		["https://moon-user.dev.spaces.huggingface.tech", "user-space.hf.space"],
+		["https://moon-other.dev.spaces.huggingface.tech", "x.user.dev.hf.space"],
+		["https://hf.co", "user-space.hf.space"],
+		["https://huggingface.co/", "user-space.hf.space"]
+	])("rejects %s for a frame on %s", (origin, hostname) => {
+		expect(is_console_forward_origin_allowed(origin, hostname)).toBe(false);
+	});
+});
+
+describe("console forwarding: serialization", () => {
+	it("follows the v1 rules", () => {
+		const cyclic: any = { name: "a" };
+		cyclic.self = cyclic;
+		function named(): void {}
+		expect(
+			serialize_console_args([
+				"str",
+				1.5,
+				true,
+				null,
+				undefined,
+				10n,
+				Symbol("s"),
+				{ a: [1, "x"] },
+				cyclic,
+				named
+			]).text
+		).toBe(
+			`str 1.5 true null undefined 10 Symbol(s) {"a":[1,"x"]} [object Object] ${String(named)}`
+		);
+	});
+
+	it("formats an Error as name: message and returns the first Error's stack", () => {
+		const first = new TypeError("bad thing");
+		const result = serialize_console_args([
+			"failed:",
+			first,
+			new RangeError("other")
+		]);
+		expect(result.text).toBe("failed: TypeError: bad thing RangeError: other");
+		expect(result.stack).toBe(first.stack);
+	});
+
+	it("falls back to String, then to [Unserializable]", () => {
+		const to_json_throws = {
+			toJSON() {
+				throw new Error("no json");
+			},
+			toString() {
+				return "custom";
+			}
+		};
+		const both_throw = {
+			toJSON() {
+				throw new Error("no json");
+			},
+			toString() {
+				throw new Error("no string");
+			}
+		};
+		expect(serialize_console_args([to_json_throws, both_throw]).text).toBe(
+			"custom [Unserializable]"
+		);
+	});
+
+	it("cuts text and stack to 4096 chars", () => {
+		expect(serialize_console_args(["x".repeat(5000)]).text).toHaveLength(4096);
+		const error = new Error("e");
+		error.stack = "s".repeat(5000);
+		expect(serialize_console_args([error]).stack).toHaveLength(4096);
+	});
+});
+
+describe("console forwarding: re-entry guard", () => {
+	it("a console call made while converting reaches the original but is not captured", () => {
+		const env = make_host();
+		install(env.host);
+		const sneaky = {
+			get value() {
+				env.host.console.log("from getter");
+				return 1;
+			}
+		};
+		env.host.console.log("outer", sneaky);
+		env.get();
+		expect(env.calls.map((c) => c.args[0])).toEqual(["outer", "from getter"]);
+		expect(env.texts()).toEqual(['outer {"value":1}']);
+	});
+
+	it("a console call made while posting doesn't loop", () => {
+		const env = make_host();
+		install(env.host);
+		env.parent.postMessage.mockImplementation((message: any, origin) => {
+			env.posted.push({ message, origin });
+			env.host.console.log("logged by postMessage");
+		});
+		env.host.console.log("a");
+		env.get();
+		expect(env.posted).toHaveLength(1);
+		env.get();
+		expect(env.texts()).toEqual(["a"]);
+	});
+});
+
+describe("console forwarding: errors and rejections", () => {
+	function error_event(fields: Record<string, unknown>) {
+		return { preventDefault: vi.fn(), ...fields };
+	}
+
+	it("captures window errors as exception entries without preventDefault", () => {
+		const env = make_host();
+		install(env.host);
+		const error = new Error("boom");
+		const events = [
+			error_event({ error, message: "Uncaught Error: boom" }),
+			error_event({
+				message: "Script error.",
+				filename: "https://x.hf.space/app.js",
+				lineno: 3,
+				colno: 7
+			}),
+			error_event({ error: "just a string" })
+		];
+		const results = events.flatMap((e) => env.dispatch("error", e));
+		env.get();
+
+		expect(results.every((r) => !r)).toBe(true);
+		for (const e of events) expect(e.preventDefault).not.toHaveBeenCalled();
+		expect(env.last_state().entries).toMatchObject([
+			{ level: "exception", text: "Error: boom", stack: error.stack },
+			{
+				level: "exception",
+				text: "Script error. (https://x.hf.space/app.js:3:7)"
+			},
+			{ level: "exception", text: "just a string" }
+		]);
+	});
+
+	it("captures unhandled rejections without preventDefault", () => {
+		const env = make_host();
+		install(env.host);
+		const reason = new TypeError("rejected");
+		const events = [
+			error_event({ reason }),
+			error_event({ reason: { code: 42 } })
+		];
+		events.forEach((e) => env.dispatch("unhandledrejection", e));
+		env.get();
+
+		for (const e of events) expect(e.preventDefault).not.toHaveBeenCalled();
+		expect(env.last_state().entries).toMatchObject([
+			{ level: "rejection", text: "TypeError: rejected", stack: reason.stack },
+			{ level: "rejection", text: '{"code":42}' }
+		]);
+	});
+
+	it.skipIf(typeof ErrorEvent === "undefined")(
+		"does not mark a real ErrorEvent as handled",
+		() => {
+			const env = make_host();
+			install(env.host);
+			const event = new ErrorEvent("error", {
+				error: new Error("real"),
+				message: "real",
+				cancelable: true
+			});
+			env.dispatch("error", event);
+			expect(event.defaultPrevented).toBe(false);
+		}
+	);
+});
+
+describe("console forwarding: idle restore", () => {
+	it("gives the console back after the idle time, and a later get takes it again", () => {
 		vi.useFakeTimers();
 		const env = make_host();
 		install(env.host);
@@ -402,18 +599,12 @@ describe("console forwarding: no init after load", () => {
 			error: new Error("late"),
 			preventDefault: vi.fn()
 		});
-		await settle();
-		env.init();
+		env.get();
+		expect(env.texts()).toEqual(["before", "Error: late"]);
 		expect(env.host.console.log).not.toBe(env.original.log);
 		env.host.console.log("again");
-		await settle();
-		env.init();
-		expect(env.entries().map((e) => e.text)).toEqual([
-			"before",
-			"Error: late",
-			"again"
-		]);
-		expect(env.parent.postMessage).toHaveBeenCalled();
+		env.get();
+		expect(env.texts()).toEqual(["before", "Error: late", "again"]);
 	});
 
 	it("starts the idle timer at install when the page has already loaded", () => {
@@ -424,15 +615,25 @@ describe("console forwarding: no init after load", () => {
 		expect(env.host.console.log).toBe(env.original.log);
 	});
 
-	it("keeps the console after a valid init", () => {
+	it("keeps the console after a valid get", () => {
 		vi.useFakeTimers();
 		const env = make_host();
 		install(env.host);
 		env.dispatch("load", {});
 		vi.advanceTimersByTime(3_000);
-		env.init();
+		env.get();
 		vi.advanceTimersByTime(CONSOLE_FORWARD_IDLE_MS * 3);
 		expect(env.host.console.log).not.toBe(env.original.log);
+	});
+
+	it("an ignored get does not cancel the idle restore", () => {
+		vi.useFakeTimers();
+		const env = make_host();
+		install(env.host);
+		env.dispatch("load", {});
+		env.get({ origin: "https://evil.example" });
+		vi.advanceTimersByTime(CONSOLE_FORWARD_IDLE_MS);
+		expect(env.host.console.log).toBe(env.original.log);
 	});
 
 	it("leaves alone a console method that something else replaced", () => {
@@ -446,10 +647,8 @@ describe("console forwarding: no init after load", () => {
 		expect(env.host.console.warn).toBe(theirs);
 		expect(env.host.console.log).toBe(env.original.log);
 	});
-});
 
-describe("console forwarding: another wrapper chained on top", () => {
-	it("stops capturing after the idle restore and does not capture twice after a late init", async () => {
+	it("does not capture twice when another wrapper is chained on top", () => {
 		vi.useFakeTimers();
 		const env = make_host();
 		install(env.host);
@@ -463,428 +662,54 @@ describe("console forwarding: another wrapper chained on top", () => {
 		expect(env.host.console.log).toBe(theirs);
 
 		env.host.console.log("idle");
-		await settle();
-		env.init();
+		env.get();
 		expect(env.host.console.log).toBe(theirs);
-		env.host.console.log("after init");
-		await settle();
-		env.init();
+		env.host.console.log("after get");
+		env.get();
 
-		expect(env.entries().map((e) => e.text)).toEqual(["after init"]);
-		expect(env.calls.map((c) => c.args[0])).toEqual(["idle", "after init"]);
+		expect(env.texts()).toEqual(["after get"]);
+		expect(env.calls.map((c) => c.args[0])).toEqual(["idle", "after get"]);
 	});
 });
 
-describe("console forwarding: rate cap", () => {
-	it("posts at most the per-second cap of entries messages and counts the overflow as dropped", async () => {
-		vi.useFakeTimers();
+describe.skipIf(!in_browser)("console forwarding: svelte reactivity", () => {
+	it("converts a logged $state value under untrack, so the effect gains no dependency", async () => {
+		const { untrack, flushSync } = await import("svelte");
+		const { log_state_in_effect } =
+			await import("./console_forward_fixture.svelte");
+		const env = make_host();
+		install(env.host, { untrack });
+		const fx = log_state_in_effect((...args) => env.host.console.log(...args));
+		expect(fx.runs()).toBe(1);
+
+		fx.state.nested.count = 1;
+		flushSync();
+		expect(fx.runs()).toBe(1);
+		fx.cleanup();
+
+		env.get();
+		expect(env.texts()).toEqual(['state {"nested":{"count":0}}']);
+	});
+
+	it("without untrack the same log would add the dependency", async () => {
+		const { flushSync } = await import("svelte");
+		const { log_state_in_effect } =
+			await import("./console_forward_fixture.svelte");
 		const env = make_host();
 		install(env.host);
-		env.init();
-		const total = 2_000;
-		for (let i = 0; i < total; i += 50) {
-			for (let j = 0; j < 50; j++) env.host.console.log(i + j);
-			await settle();
-		}
-		expect(env.messages("entries")).toHaveLength(
-			CONSOLE_FORWARD_MAX_MESSAGES_PER_SECOND
-		);
-
-		vi.advanceTimersByTime(1_000);
-		const messages = env.messages("entries");
-		expect(messages.length).toBeGreaterThan(
-			CONSOLE_FORWARD_MAX_MESSAGES_PER_SECOND
-		);
-		const seqs = env.entries().map((e) => e.seq);
-		const dropped = messages.reduce((sum, m) => sum + m.dropped, 0);
-		expect(seqs.length + dropped).toBe(total);
-		expect(seqs).toEqual([...seqs].sort((a, b) => a - b));
-		expect(seqs.at(-1)).toBe(total);
+		const fx = log_state_in_effect((...args) => env.host.console.log(...args));
+		fx.state.nested.count = 1;
+		flushSync();
+		expect(fx.runs()).toBe(2);
+		fx.cleanup();
 	});
-});
-
-describe("console forwarding: ignored init", () => {
-	it.each([
-		"https://evil.example",
-		"https://huggingface.co.evil.example",
-		"http://huggingface.co",
-		"https://localhost:3000",
-		"http://localhost.evil.example",
-		"http://127.0.0.1.evil.example:80",
-		"null",
-		""
-	])("from a disallowed origin: %s", (origin) => {
-		const env = make_host();
-		install(env.host);
-		env.init({ origin });
-		expect(env.parent.postMessage).not.toHaveBeenCalled();
-	});
-
-	it("from a window that is not the parent", () => {
-		const env = make_host();
-		install(env.host);
-		env.init({ source: { postMessage: vi.fn() } });
-		env.init({ source: null });
-		env.init({ source: env.host });
-		expect(env.parent.postMessage).not.toHaveBeenCalled();
-	});
-
-	it.each([
-		["a string", "init"],
-		["the zerogpu string", "supports-zerogpu-headers"],
-		["null", null],
-		["a number", 42],
-		["undefined", undefined],
-		["an array", ["init"]],
-		["another protocol", { ...INIT, protocol: "something-else" }],
-		["no protocol", { version: 1, type: "init" }],
-		["an unknown type", { ...INIT, type: "flush" }],
-		["a frame-to-parent type", { ...INIT, type: "ack" }],
-		["no type", { protocol: CONSOLE_FORWARD_PROTOCOL, version: 1 }]
-	])("when the data is %s", (_, data) => {
-		const env = make_host();
-		install(env.host);
-		expect(() => env.init({ data })).not.toThrow();
-		expect(env.parent.postMessage).not.toHaveBeenCalled();
-	});
-
-	it("accepts a higher version and ignores unknown fields", () => {
-		const env = make_host();
-		install(env.host);
-		env.init({ data: { ...INIT, version: 2, extra: { nested: true } } });
-		const [ack] = env.messages("ack");
-		expect(ack.version).toBe(1);
-		expect(ack.type).toBe("ack");
-	});
-
-	it("does not throw when the event itself is malformed", () => {
-		const env = make_host();
-		install(env.host);
-		expect(() => env.dispatch("message", null)).not.toThrow();
-		expect(() => env.dispatch("message", undefined)).not.toThrow();
-		expect(() =>
-			env.dispatch("message", {
-				get data() {
-					throw new Error("no");
-				}
-			})
-		).not.toThrow();
-		expect(env.parent.postMessage).not.toHaveBeenCalled();
-	});
-});
-
-describe("console forwarding: origin allowlist", () => {
-	it.each([
-		[HUB, "user-space.hf.space"],
-		[HUB, "localhost"],
-		["http://localhost:5173", "user-space.hf.space"],
-		["http://localhost", "user-space.hf.space"],
-		["http://127.0.0.1:65535", "user-space.hf.space"],
-		[
-			"https://moon-user.dev.spaces.huggingface.tech",
-			"space.user.dev.example.hf.space"
-		]
-	])("allows %s for a frame on %s", (origin, hostname) => {
-		expect(is_console_forward_origin_allowed(origin, hostname)).toBe(true);
-	});
-
-	it.each([
-		["https://moon-user.dev.spaces.huggingface.tech", "user-space.hf.space"],
-		["https://moon-other.dev.spaces.huggingface.tech", "x.user.dev.hf.space"],
-		["https://hf.co", "user-space.hf.space"],
-		["https://huggingface.co:443", "user-space.hf.space"],
-		["https://huggingface.co/", "user-space.hf.space"]
-	])("rejects %s for a frame on %s", (origin, hostname) => {
-		expect(is_console_forward_origin_allowed(origin, hostname)).toBe(false);
-	});
-
-	it("acks the dev hub origin for a .dev. frame", () => {
-		const env = make_host({ hostname: "space.user.dev.example.hf.space" });
-		install(env.host);
-		env.init({ origin: "https://moon-user.dev.spaces.huggingface.tech" });
-		expect(env.messages("ack")).toHaveLength(1);
-	});
-});
-
-describe("console forwarding: serialization", () => {
-	it("joins arguments with a space and uses String() for primitives", () => {
-		expect(
-			serialize_console_args([
-				"str",
-				1.5,
-				true,
-				null,
-				undefined,
-				10n,
-				Symbol("s"),
-				NaN
-			])
-		).toEqual({ text: "str 1.5 true null undefined 10 Symbol(s) NaN" });
-	});
-
-	it("serializes objects and arrays as JSON", () => {
-		expect(
-			serialize_console_args([{ a: [1, "x", null], b: { c: true } }])
-		).toEqual({ text: '{"a":[1,"x",null],"b":{"c":true}}' });
-		expect(serialize_console_args([new Date(0)]).text).toBe(
-			'"1970-01-01T00:00:00.000Z"'
-		);
-	});
-
-	it("marks cycles as [Circular] but repeats shared references", () => {
-		const a: any = { name: "a" };
-		a.self = a;
-		a.list = [a];
-		expect(serialize_console_args([a]).text).toBe(
-			'{"name":"a","self":"[Circular]","list":["[Circular]"]}'
-		);
-		const shared = { s: 1 };
-		expect(serialize_console_args([{ x: shared, y: shared }]).text).toBe(
-			'{"x":{"s":1},"y":{"s":1}}'
-		);
-	});
-
-	it("replaces values deeper than 4 with [Object] or [Array]", () => {
-		const deep = { l1: { l2: { l3: { l4: { l5: { l6: 1 } } } } } };
-		expect(serialize_console_args([deep]).text).toBe(
-			'{"l1":{"l2":{"l3":{"l4":{"l5":"[Object]"}}}}}'
-		);
-		expect(serialize_console_args([[[[[[[1]]]]]]]).text).toBe(
-			'[[[[["[Array]"]]]]]'
-		);
-	});
-
-	it("formats an Error as name: message and returns the first Error's stack", () => {
-		const first = new TypeError("bad thing");
-		const second = new RangeError("other");
-		const result = serialize_console_args(["failed:", first, second]);
-		expect(result.text).toBe("failed: TypeError: bad thing RangeError: other");
-		expect(result.stack).toBe(first.stack);
-		expect(result.stack).toContain("bad thing");
-	});
-
-	it("formats nested Errors without their stack", () => {
-		const result = serialize_console_args([{ error: new Error("inner") }]);
-		expect(result).toEqual({ text: '{"error":"Error: inner"}' });
-	});
-
-	it("formats functions as [Function name]", () => {
-		function named_fn(): void {}
-		expect(
-			serialize_console_args([named_fn, () => {}, { cb: named_fn }]).text
-		).toBe(
-			'[Function named_fn] [Function anonymous] {"cb":"[Function named_fn]"}'
-		);
-	});
-
-	it.skipIf(!has_dom)("formats DOM nodes as <tag#id.classes>", () => {
-		const div = document.createElement("div");
-		div.id = "main";
-		div.className = "a  b";
-		const span = document.createElement("span");
-		const text = document.createTextNode("hi");
-		expect(serialize_console_args([div, span, text, { el: div }]).text).toBe(
-			'<div#main.a.b> <span> <#text> {"el":"<div#main.a.b>"}'
-		);
-	});
-
-	it("uses [Unserializable] for values that throw or can't be read", () => {
-		const getter_throws = {
-			ok: 1,
-			get bad() {
-				throw new Error("nope");
-			}
-		};
-		expect(serialize_console_args([getter_throws]).text).toBe(
-			'{"ok":1,"bad":"[Unserializable]"}'
-		);
-
-		const keys_throw = new Proxy(
-			{},
-			{
-				ownKeys() {
-					throw new Error("no keys");
-				}
-			}
-		);
-		expect(serialize_console_args(["x", keys_throw]).text).toBe(
-			"x [Unserializable]"
-		);
-
-		const to_json_throws = {
-			toJSON() {
-				throw new Error("no json");
-			}
-		};
-		expect(serialize_console_args([to_json_throws]).text).toBe(
-			"[Unserializable]"
-		);
-
-		const error_with_bad_name = new Error("m");
-		Object.defineProperty(error_with_bad_name, "name", {
-			get() {
-				throw new Error("no name");
-			}
-		});
-		expect(serialize_console_args([error_with_bad_name]).text).toBe(
-			"[Unserializable]"
-		);
-	});
-
-	it("cuts text and stack to 4096 chars, ending with …[truncated]", () => {
-		const result = serialize_console_args(["x".repeat(5000)]);
-		expect(result.text).toHaveLength(4096);
-		expect(result.text.endsWith("…[truncated]")).toBe(true);
-
-		const error = new Error("e");
-		error.stack = "s".repeat(5000);
-		expect(serialize_console_args([error]).stack!.length).toBe(4096);
-
-		expect(serialize_console_args(["y".repeat(4096)]).text).toBe(
-			"y".repeat(4096)
-		);
-	});
-
-	it("bounds the work done for huge values", () => {
-		const big = Array.from({ length: 10_000 }, (_, i) => ({ i }));
-		const text = serialize_console_args([big]).text;
-		expect(text.length).toBeLessThanOrEqual(4096);
-		expect(text.startsWith('[{"i":0},{"i":1}')).toBe(true);
-	});
-});
-
-describe("console forwarding: re-entry guard", () => {
-	it("a console call made while serializing reaches the original but is not captured", async () => {
-		const env = make_host();
-		install(env.host);
-		const sneaky = {
-			get value() {
-				env.host.console.log("from getter");
-				return 1;
-			}
-		};
-		env.host.console.log("outer", sneaky);
-		await settle();
-		env.init();
-		await settle();
-
-		expect(env.calls.map((c) => c.args[0])).toEqual(["outer", "from getter"]);
-		expect(env.entries().map((e) => e.text)).toEqual(['outer {"value":1}']);
-	});
-
-	it("a console call made while posting doesn't loop", async () => {
-		const env = make_host();
-		install(env.host);
-		env.parent.postMessage.mockImplementation((message: any, origin) => {
-			env.posted.push({ message, origin });
-			env.host.console.log("logged by postMessage");
-		});
-		env.host.console.log("a");
-		await settle();
-		env.init();
-		await settle();
-		expect(env.messages("entries")).toHaveLength(1);
-		expect(env.entries().map((e) => e.text)).toEqual(["a"]);
-	});
-
-	it("never throws into the app when postMessage throws", async () => {
-		vi.useFakeTimers();
-		const env = make_host();
-		install(env.host);
-		env.parent.postMessage.mockImplementation(() => {
-			throw new Error("post failed");
-		});
-		expect(() => env.init()).not.toThrow();
-		expect(() => env.host.console.log("x")).not.toThrow();
-		await settle();
-		expect(() => vi.advanceTimersByTime(1_000)).not.toThrow();
-	});
-});
-
-describe("console forwarding: errors and rejections", () => {
-	function error_event(fields: Record<string, unknown>) {
-		return { preventDefault: vi.fn(), ...fields };
-	}
-
-	it("captures window errors as exception entries without preventDefault", async () => {
-		const env = make_host();
-		install(env.host);
-		const error = new Error("boom");
-		const event = error_event({ error, message: "Uncaught Error: boom" });
-		const results = env.dispatch("error", event);
-		const no_error_object = error_event({
-			message: "Script error.",
-			filename: "https://x.hf.space/app.js",
-			lineno: 3,
-			colno: 7
-		});
-		env.dispatch("error", no_error_object);
-		const thrown_string = error_event({ error: "just a string" });
-		env.dispatch("error", thrown_string);
-		await settle();
-		env.init();
-
-		expect(results.every((r) => !r)).toBe(true);
-		for (const e of [event, no_error_object, thrown_string]) {
-			expect(e.preventDefault).not.toHaveBeenCalled();
-		}
-		expect(env.entries()).toMatchObject([
-			{ level: "exception", text: "Error: boom", stack: error.stack },
-			{
-				level: "exception",
-				text: "Script error. (https://x.hf.space/app.js:3:7)"
-			},
-			{ level: "exception", text: "just a string" }
-		]);
-	});
-
-	it("captures unhandled rejections without preventDefault", async () => {
-		const env = make_host();
-		install(env.host);
-		const reason = new TypeError("rejected");
-		const event = error_event({ reason });
-		const plain = error_event({ reason: { code: 42 } });
-		env.dispatch("unhandledrejection", event);
-		env.dispatch("unhandledrejection", plain);
-		await settle();
-		env.init();
-
-		expect(event.preventDefault).not.toHaveBeenCalled();
-		expect(plain.preventDefault).not.toHaveBeenCalled();
-		expect(env.entries()).toMatchObject([
-			{ level: "rejection", text: "TypeError: rejected", stack: reason.stack },
-			{ level: "rejection", text: '{"code":42}' }
-		]);
-	});
-
-	it("leaves an existing onerror handler in place", () => {
-		const env = make_host();
-		const existing = env.host.onerror;
-		install(env.host);
-		expect(env.host.onerror).toBe(existing);
-	});
-
-	it.skipIf(typeof ErrorEvent === "undefined")(
-		"does not mark a real ErrorEvent as handled",
-		() => {
-			const env = make_host();
-			install(env.host);
-			const event = new ErrorEvent("error", {
-				error: new Error("real"),
-				message: "real",
-				cancelable: true
-			});
-			env.dispatch("error", event);
-			expect(event.defaultPrevented).toBe(false);
-		}
-	);
 });
 
 describe("console forwarding: page-level initialisation", () => {
 	const KEY = Symbol.for("gradio.console_forward");
 
 	function clear(): void {
-		if (typeof window === "undefined") return;
+		if (!in_browser) return;
 		const store = window as any;
 		store[KEY]?.uninstall();
 		delete store[KEY];
@@ -897,9 +722,7 @@ describe("console forwarding: page-level initialisation", () => {
 		const first = initialize_console_forwarding({ gradio_version: "1" });
 		const second = initialize_console_forwarding({ gradio_version: "2" });
 		expect(second).toBe(first);
-		if (typeof window === "undefined") {
-			expect(first).toBeNull();
-		} else if (window.parent === window) {
+		if (!in_browser || window.parent === window) {
 			expect(first).toBeNull();
 		} else {
 			// vitest browser mode runs tests in an iframe
@@ -907,7 +730,7 @@ describe("console forwarding: page-level initialisation", () => {
 		}
 	});
 
-	it.skipIf(typeof window === "undefined")(
+	it.skipIf(!in_browser)(
 		"only initialises for an app on this page's origin",
 		() => {
 			clear();
@@ -920,28 +743,29 @@ describe("console forwarding: page-level initialisation", () => {
 			expect(KEY in window).toBe(true);
 		}
 	);
+
+	it.skipIf(!in_browser)("initialises on import only on a space host", () => {
+		clear();
+		initialize_console_forwarding_on_space();
+		expect(KEY in window).toBe(false);
+	});
 });
 
-describe("existing message listeners ignore a gradio-console init", () => {
-	it.skipIf(typeof window === "undefined")(
-		"the ZeroGPU handshake listener",
-		() => {
-			initialize_zerogpu_handshake();
-			delete window.supports_zerogpu_headers;
+describe("existing message listeners ignore a gradio-console get", () => {
+	it.skipIf(!in_browser)("the ZeroGPU handshake listener", () => {
+		initialize_zerogpu_handshake();
+		delete window.supports_zerogpu_headers;
 
-			window.dispatchEvent(new MessageEvent("message", { data: INIT }));
-			window.dispatchEvent(
-				new MessageEvent("message", {
-					data: { ...INIT, version: 2, extra: "x" }
-				})
-			);
-			expect(window.supports_zerogpu_headers).toBeUndefined();
+		window.dispatchEvent(new MessageEvent("message", { data: GET }));
+		window.dispatchEvent(
+			new MessageEvent("message", { data: { ...GET, version: 2, id: 1 } })
+		);
+		expect(window.supports_zerogpu_headers).toBeUndefined();
 
-			window.dispatchEvent(
-				new MessageEvent("message", { data: "supports-zerogpu-headers" })
-			);
-			expect(window.supports_zerogpu_headers).toBe(true);
-			delete window.supports_zerogpu_headers;
-		}
-	);
+		window.dispatchEvent(
+			new MessageEvent("message", { data: "supports-zerogpu-headers" })
+		);
+		expect(window.supports_zerogpu_headers).toBe(true);
+		delete window.supports_zerogpu_headers;
+	});
 });
