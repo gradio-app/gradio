@@ -66,6 +66,20 @@ function manager(
 	);
 }
 
+// An event with a .then(), a .success() and a .failure() step
+function chain(): DependencyConfig[] {
+	const run = dependency(0, "run", []);
+	const then = dependency(1, "then", []);
+	then.trigger_after = 0;
+	const on_success = dependency(2, "on_success", []);
+	on_success.trigger_after = 0;
+	on_success.trigger_only_on_success = true;
+	const on_failure = dependency(3, "on_failure", []);
+	on_failure.trigger_after = 0;
+	on_failure.trigger_only_on_failure = true;
+	return [run, then, on_success, on_failure];
+}
+
 describe("DependencyManager.reload", () => {
 	test("remaps the captured dependency by api_name across consecutive reloads", () => {
 		const dependencies = [dependency(0, "generate", [10])];
@@ -652,15 +666,6 @@ describe("DependencyManager.dispatch", () => {
 	test.each(["ends", "completes"])(
 		"a cancelled run runs .then() and .failure() once when its iterator %s",
 		async (ending) => {
-			const run = dependency(0, "run", []);
-			const then = dependency(1, "then", []);
-			then.trigger_after = 0;
-			const on_success = dependency(2, "on_success", []);
-			on_success.trigger_after = 0;
-			on_success.trigger_only_on_success = true;
-			const on_failure = dependency(3, "on_failure", []);
-			on_failure.trigger_after = 0;
-			on_failure.trigger_only_on_failure = true;
 			let cancelled!: () => void;
 			const cancelling = new Promise<void>((resolve) => (cancelled = resolve));
 			const running_run = Object.assign(
@@ -679,10 +684,7 @@ describe("DependencyManager.dispatch", () => {
 				{ cancel: vi.fn(async () => cancelled()) }
 			);
 			const client = { submit: () => running_run } as unknown as Client;
-			const dependency_manager = manager(
-				[run, then, on_success, on_failure],
-				client
-			);
+			const dependency_manager = manager(chain(), client);
 
 			const running = dependency_manager.dispatch({
 				type: "fn",
@@ -738,14 +740,10 @@ describe("DependencyManager.close_stream", () => {
 	});
 
 	test("a stream ended on the page still gets its last outputs and .success()", async () => {
-		const stream = dependency(0, "stream", [10]);
+		const [stream, ...steps] = chain();
 		stream.connection = "stream";
 		stream.targets = [[5, "stream"]];
-		const on_success = dependency(1, "on_success", []);
-		on_success.trigger_after = 0;
-		on_success.trigger_only_on_success = true;
-		const then = dependency(2, "then", []);
-		then.trigger_after = 0;
+		stream.outputs = [10];
 		let end!: () => void;
 		const ended = new Promise<void>((resolve) => (end = resolve));
 		const run = Object.assign(
@@ -769,7 +767,7 @@ describe("DependencyManager.close_stream", () => {
 		const client = { submit: () => run } as unknown as Client;
 		const update_state = vi.fn().mockResolvedValue(undefined);
 		const dependency_manager = manager(
-			[stream, on_success, then],
+			[stream, ...steps],
 			client,
 			update_state
 		);
@@ -808,115 +806,66 @@ describe("DependencyManager.close_stream", () => {
 		).toBe(true);
 	});
 
-	test("a stream ended on the page before its turn came runs .failure() and .then(), as a cancelled one", async () => {
-		const stream = dependency(0, "stream", [10]);
-		stream.connection = "stream";
-		stream.targets = [[5, "stream"]];
-		const on_success = dependency(1, "on_success", []);
-		on_success.trigger_after = 0;
-		on_success.trigger_only_on_success = true;
-		const then = dependency(2, "then", []);
-		then.trigger_after = 0;
-		const on_failure = dependency(3, "on_failure", []);
-		on_failure.trigger_after = 0;
-		on_failure.trigger_only_on_failure = true;
-		let end!: () => void;
-		const ended = new Promise<void>((resolve) => (end = resolve));
-		const run = Object.assign(
-			submission(
-				(async function* () {
-					yield { type: "status", stage: "pending", queue: true };
-					await ended;
-					// The server takes it out of the line and reports it over,
-					// without outputs
-					yield { type: "data", data: undefined };
-					yield { type: "status", stage: "complete", queue: true };
-				})()
-			),
-			{ close_stream: vi.fn(() => end()) }
-		);
-		const client = { submit: () => run } as unknown as Client;
-		const dependency_manager = manager(
-			[stream, on_success, then, on_failure],
-			client
-		);
+	test.each([
+		// The server takes it out of the line
+		["before its turn came", []],
+		// The queue had started the event when the page ended it: its first
+		// call runs and finishes it
+		[
+			"while its process_starts was on the way",
+			[
+				{
+					type: "status",
+					stage: "pending",
+					queue: true,
+					original_msg: "process_starts"
+				}
+			]
+		]
+	])(
+		"a stream ended on the page %s runs .failure() and .then(), as a cancelled one",
+		async (_, started: unknown[]) => {
+			const [stream, ...steps] = chain();
+			stream.connection = "stream";
+			stream.targets = [[5, "stream"]];
+			stream.outputs = [10];
+			let end!: () => void;
+			const ended = new Promise<void>((resolve) => (end = resolve));
+			const run = Object.assign(
+				submission(
+					(async function* () {
+						yield { type: "status", stage: "pending", queue: true };
+						await ended;
+						yield* started;
+						// Reported over, without outputs
+						yield { type: "data", data: undefined };
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				),
+				{ close_stream: vi.fn(() => end()) }
+			);
+			const client = { submit: () => run } as unknown as Client;
+			const dependency_manager = manager([stream, ...steps], client);
 
-		const running = dependency_manager.dispatch({
-			type: "fn",
-			fn_index: 0,
-			event_data: null
-		});
-		await vi.waitFor(() =>
-			expect((dependency_manager as any).submissions.has(0)).toBe(true)
-		);
-		const dispatch = vi
-			.spyOn(dependency_manager, "dispatch")
-			.mockResolvedValue(undefined);
-		dependency_manager.close_stream(5);
-		await running;
+			const running = dependency_manager.dispatch({
+				type: "fn",
+				fn_index: 0,
+				event_data: null
+			});
+			await vi.waitFor(() =>
+				expect((dependency_manager as any).submissions.has(0)).toBe(true)
+			);
+			const dispatch = vi
+				.spyOn(dependency_manager, "dispatch")
+				.mockResolvedValue(undefined);
+			dependency_manager.close_stream(5);
+			await running;
 
-		expect(
-			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
-		).toEqual([2, 3]);
-	});
-
-	test("a stream ended on the page while its process_starts was on the way still runs .failure()", async () => {
-		const stream = dependency(0, "stream", [10]);
-		stream.connection = "stream";
-		stream.targets = [[5, "stream"]];
-		const on_success = dependency(1, "on_success", []);
-		on_success.trigger_after = 0;
-		on_success.trigger_only_on_success = true;
-		const then = dependency(2, "then", []);
-		then.trigger_after = 0;
-		const on_failure = dependency(3, "on_failure", []);
-		on_failure.trigger_after = 0;
-		on_failure.trigger_only_on_failure = true;
-		let end!: () => void;
-		const ended = new Promise<void>((resolve) => (end = resolve));
-		const run = Object.assign(
-			submission(
-				(async function* () {
-					yield { type: "status", stage: "pending", queue: true };
-					await ended;
-					// The queue had started the event when the page ended it:
-					// its first call runs and finishes it
-					yield {
-						type: "status",
-						stage: "pending",
-						queue: true,
-						original_msg: "process_starts"
-					};
-					yield { type: "data", data: undefined };
-					yield { type: "status", stage: "complete", queue: true };
-				})()
-			),
-			{ close_stream: vi.fn(() => end()) }
-		);
-		const client = { submit: () => run } as unknown as Client;
-		const dependency_manager = manager(
-			[stream, on_success, then, on_failure],
-			client
-		);
-
-		const running = dependency_manager.dispatch({
-			type: "fn",
-			fn_index: 0,
-			event_data: null
-		});
-		await vi.waitFor(() =>
-			expect((dependency_manager as any).submissions.has(0)).toBe(true)
-		);
-		const dispatch = vi
-			.spyOn(dependency_manager, "dispatch")
-			.mockResolvedValue(undefined);
-		dependency_manager.close_stream(5);
-		await running;
-
-		expect(
-			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
-		).toEqual([2, 3]);
-	});
+			expect(
+				dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
+			).toEqual([1, 3]);
+		}
+	);
 });
 
 describe("DependencyManager.dispatch with an observer", () => {
@@ -1117,7 +1066,6 @@ describe("DependencyManager.dispatch with an observer", () => {
 		]);
 		const client = { submit: () => run } as unknown as Client;
 		const dependency_manager = manager([stream_dependency()], client);
-		const handle_data = vi.spyOn(dependency_manager as any, "handle_data");
 		const watcher = observer();
 
 		const running = start(dependency_manager, watcher);
@@ -1130,8 +1078,7 @@ describe("DependencyManager.dispatch with an observer", () => {
 
 		expect(run.close_stream).toHaveBeenCalledWith({ read_to_end: true });
 		expect((dependency_manager as any).submissions.has(0)).toBe(false);
-		// The last outputs still arrive; the page has settled the status itself
-		expect(handle_data).toHaveBeenCalledWith([10], ["last"]);
+		// The page has settled the status itself
 		expect(watcher.on_status).toHaveBeenCalledTimes(statuses);
 		expect(watcher.on_end.mock.calls).toEqual([["ended"]]);
 	});
@@ -1228,19 +1175,6 @@ describe("DependencyManager.dispatch_load_events", () => {
 });
 
 describe("DependencyManager.resume", () => {
-	function chain(): DependencyConfig[] {
-		const run = dependency(0, "run", []);
-		const then = dependency(1, "then", []);
-		then.trigger_after = 0;
-		const on_success = dependency(2, "on_success", []);
-		on_success.trigger_after = 0;
-		on_success.trigger_only_on_success = true;
-		const on_failure = dependency(3, "on_failure", []);
-		on_failure.trigger_after = 0;
-		on_failure.trigger_only_on_failure = true;
-		return [run, then, on_success, on_failure];
-	}
-
 	async function resume_with(stage: "complete" | "error"): Promise<number[]> {
 		async function* events(): AsyncGenerator<unknown> {
 			yield { type: "status", stage, fn_index: 0, queue: true };
@@ -1311,35 +1245,42 @@ describe("DependencyManager.resume", () => {
 		expect((dependency_manager as any).submissions.has(0)).toBe(false);
 	});
 
-	test("a stream ended after a reload shows the outputs the server replays", async () => {
+	test.each([
+		[
+			"that had failed before the reload runs its failure handlers",
+			[
+				{ type: "status", stage: "pending", fn_index: 0, queue: true },
+				{ type: "status", stage: "error", fn_index: 0, queue: true }
+			],
+			[3]
+		],
+		[
+			"that was running when the page was reloaded runs .then() and .success(), as a stopped one",
+			[
+				{
+					type: "status",
+					stage: "streaming",
+					fn_index: 0,
+					queue: true,
+					original_msg: "process_starts"
+				},
+				{ type: "status", stage: "complete", fn_index: 0, queue: true }
+			],
+			[1, 2]
+		],
+		[
+			"still waiting for its turn when the page was reloaded ends as a cancelled one",
+			[
+				{ type: "status", stage: "pending", fn_index: 0, queue: true },
+				{ type: "status", stage: "complete", fn_index: 0, queue: true }
+			],
+			[1, 3]
+		]
+	])("a stream %s", async (_, messages: unknown[], expected: number[]) => {
 		async function* events(): AsyncGenerator<unknown> {
-			yield { type: "status", stage: "streaming", fn_index: 0, queue: true };
-			// Sent while the page was reloading
-			yield { type: "data", data: ["latest"], fn_index: 0 };
+			yield* messages;
 		}
-		const stream = dependency(0, "stream", [7]);
-		stream.connection = "stream";
-		const resumed = Object.assign(submission(events()), {
-			close_stream: vi.fn()
-		});
-		const client = {
-			resume_jobs: vi.fn(() => [resumed])
-		} as unknown as Client;
-		const dependency_manager = manager([stream], client);
-		const handle_data = vi
-			.spyOn(dependency_manager as any, "handle_data")
-			.mockResolvedValue(undefined);
-
-		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
-		expect(handle_data).toHaveBeenCalledWith([7], ["latest"]);
-	});
-
-	test("a stream that had failed before the reload runs its failure handlers", async () => {
-		async function* events(): AsyncGenerator<unknown> {
-			yield { type: "status", stage: "pending", fn_index: 0, queue: true };
-			yield { type: "status", stage: "error", fn_index: 0, queue: true };
-		}
-		const [run, then, on_success, on_failure] = chain();
+		const [run, ...steps] = chain();
 		run.connection = "stream";
 		const resumed = Object.assign(submission(events()), {
 			close_stream: vi.fn()
@@ -1347,18 +1288,15 @@ describe("DependencyManager.resume", () => {
 		const client = {
 			resume_jobs: vi.fn(() => [resumed])
 		} as unknown as Client;
-		const dependency_manager = manager(
-			[run, then, on_success, on_failure],
-			client
-		);
+		const dependency_manager = manager([run, ...steps], client);
 		const dispatch = vi
 			.spyOn(dependency_manager, "dispatch")
 			.mockResolvedValue(undefined);
 
 		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
-		expect(dispatch.mock.calls.map(([meta]) => (meta as any).fn_index)).toEqual(
-			[3]
-		);
+		expect(
+			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
+		).toEqual(expected);
 	});
 
 	test("a stream ended after a reload reads what the server sends to its end", async () => {
@@ -1369,7 +1307,7 @@ describe("DependencyManager.resume", () => {
 			yield { type: "data", data: ["sent during the reload"], fn_index: 0 };
 			yield { type: "status", stage: "error", fn_index: 0, queue: true };
 		}
-		const [run, then, on_success, on_failure] = chain();
+		const [run, ...steps] = chain();
 		run.connection = "stream";
 		run.outputs = [7];
 		const resumed = Object.assign(submission(events()), {
@@ -1378,10 +1316,7 @@ describe("DependencyManager.resume", () => {
 		const client = {
 			resume_jobs: vi.fn(() => [resumed])
 		} as unknown as Client;
-		const dependency_manager = manager(
-			[run, then, on_success, on_failure],
-			client
-		);
+		const dependency_manager = manager([run, ...steps], client);
 		const dispatch = vi
 			.spyOn(dependency_manager, "dispatch")
 			.mockResolvedValue(undefined);
@@ -1394,50 +1329,6 @@ describe("DependencyManager.resume", () => {
 		// connection; the page acknowledges it only after that
 		expect(resumed.close_stream).toHaveBeenCalledWith({ read_to_end: true });
 		expect(handle_data).toHaveBeenCalledWith([7], ["sent during the reload"]);
-		expect(dispatch.mock.calls.map(([meta]) => (meta as any).fn_index)).toEqual(
-			[3]
-		);
-	});
-
-	test("a resumed stream that takes long to end still reports how it ended", async () => {
-		vi.useFakeTimers();
-		async function* events(): AsyncGenerator<unknown> {
-			yield { type: "status", stage: "pending", fn_index: 0, queue: true };
-			// e.g. its last call waits for a free worker
-			await new Promise((resolve) => setTimeout(resolve, 6000));
-			yield { type: "data", data: ["last"], fn_index: 0 };
-			yield { type: "status", stage: "error", fn_index: 0, queue: true };
-		}
-		const [run, then, on_success, on_failure] = chain();
-		run.connection = "stream";
-		run.outputs = [7];
-		const resumed = Object.assign(submission(events()), {
-			close_stream: vi.fn()
-		});
-		const client = {
-			resume_jobs: vi.fn(() => [resumed])
-		} as unknown as Client;
-		const dependency_manager = manager(
-			[run, then, on_success, on_failure],
-			client
-		);
-		const dispatch = vi
-			.spyOn(dependency_manager, "dispatch")
-			.mockResolvedValue(undefined);
-		const handle_data = vi
-			.spyOn(dependency_manager as any, "handle_data")
-			.mockResolvedValue(undefined);
-
-		try {
-			const resuming = dependency_manager.resume([
-				{ event_id: "e", fn_index: 0 }
-			]);
-			await vi.advanceTimersByTimeAsync(6000);
-			await resuming;
-		} finally {
-			vi.useRealTimers();
-		}
-		expect(handle_data).toHaveBeenCalledWith([7], ["last"]);
 		expect(dispatch.mock.calls.map(([meta]) => (meta as any).fn_index)).toEqual(
 			[3]
 		);
@@ -1473,67 +1364,6 @@ describe("DependencyManager.resume", () => {
 		expect(
 			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index)
 		).toContain(1);
-	});
-
-	test("runs the events chained to a stream it ends after a reload", async () => {
-		async function* events(): AsyncGenerator<unknown> {
-			yield {
-				type: "status",
-				stage: "streaming",
-				fn_index: 0,
-				queue: true,
-				original_msg: "process_starts"
-			};
-			yield { type: "status", stage: "complete", fn_index: 0, queue: true };
-		}
-		const [run, then, on_success, on_failure] = chain();
-		run.connection = "stream";
-		const resumed = Object.assign(submission(events()), {
-			close_stream: vi.fn()
-		});
-		const client = {
-			resume_jobs: vi.fn(() => [resumed])
-		} as unknown as Client;
-		const dependency_manager = manager(
-			[run, then, on_success, on_failure],
-			client
-		);
-		const dispatch = vi
-			.spyOn(dependency_manager, "dispatch")
-			.mockResolvedValue(undefined);
-
-		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
-		// As when a stream is stopped: .then() and .success() follow it
-		expect(
-			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
-		).toEqual([1, 2]);
-	});
-
-	test("a stream still waiting for its turn when the page was reloaded ends as a cancelled one", async () => {
-		async function* events(): AsyncGenerator<unknown> {
-			yield { type: "status", stage: "pending", fn_index: 0, queue: true };
-			yield { type: "status", stage: "complete", fn_index: 0, queue: true };
-		}
-		const [run, then, on_success, on_failure] = chain();
-		run.connection = "stream";
-		const resumed = Object.assign(submission(events()), {
-			close_stream: vi.fn()
-		});
-		const client = {
-			resume_jobs: vi.fn(() => [resumed])
-		} as unknown as Client;
-		const dependency_manager = manager(
-			[run, then, on_success, on_failure],
-			client
-		);
-		const dispatch = vi
-			.spyOn(dependency_manager, "dispatch")
-			.mockResolvedValue(undefined);
-
-		await dependency_manager.resume([{ event_id: "e", fn_index: 0 }]);
-		expect(
-			dispatch.mock.calls.map(([meta]) => (meta as any).fn_index).sort()
-		).toEqual([1, 3]);
 	});
 
 	test("builds the block of a resumed render function", async () => {

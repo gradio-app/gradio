@@ -19,7 +19,14 @@ vi.mock("../helpers/zerogpu", async (importOriginal) => ({
 
 import { Client } from "../client";
 import { post_data } from "../utils/post_data";
-import { webrtc } from "../utils/webrtc";
+import {
+	negotiate_webrtc,
+	new_webrtc_id,
+	on_webrtc_connection_state,
+	webrtc,
+	WEBRTC_DISCONNECT_GRACE_MS,
+	WEBRTC_SLOW_CONNECT_MS
+} from "../utils/webrtc";
 
 function fake_client(token?: `hf_${string}`): {
 	client: Client;
@@ -54,8 +61,10 @@ describe("WebRTC signalling", () => {
 		vi.useRealTimers();
 	});
 
-	it("sends the offer with the session and the visitor's ZeroGPU headers, so that the handler's GPU work is attributed to the visitor", async () => {
+	it("sends the offer, and not an ICE candidate, with the session and the visitor's ZeroGPU headers, so that the handler's GPU work is attributed to the visitor", async () => {
 		zerogpu_headers.value = { "X-ZeroGPU-Token": "jwt" };
+		const asked = vi.fn();
+		zerogpu_headers.on_request = asked;
 		const { client, requests } = fake_client();
 
 		const answer = await Client.prototype.webrtc_offer.call(client, {
@@ -78,12 +87,6 @@ describe("WebRTC signalling", () => {
 			"X-ZeroGPU-Token": "jwt",
 			"Content-Type": "application/json"
 		});
-	});
-
-	it("does not ask for ZeroGPU headers for an ICE candidate", async () => {
-		const asked = vi.fn();
-		zerogpu_headers.on_request = asked;
-		const { client } = fake_client();
 
 		await Client.prototype.webrtc_offer.call(client, {
 			type: "ice-candidate",
@@ -91,7 +94,7 @@ describe("WebRTC signalling", () => {
 			candidate: {}
 		});
 
-		expect(asked).not.toHaveBeenCalled();
+		expect(asked).toHaveBeenCalledTimes(1);
 	});
 
 	it("sends the offer without ZeroGPU headers when the embedding page does not answer", async () => {
@@ -182,6 +185,97 @@ class FakePeerConnection {
 		this.listeners.connectionstatechange?.forEach((listener) => listener());
 	}
 }
+
+describe("WebRTC connection", () => {
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
+	function watch() {
+		const pc = new FakePeerConnection({});
+		const handlers = {
+			connected: vi.fn(),
+			ended: vi.fn(),
+			failed: vi.fn(),
+			slow: vi.fn()
+		};
+		on_webrtc_connection_state(pc as unknown as RTCPeerConnection, handlers);
+		return { pc, handlers };
+	}
+
+	it("a brief disconnection does not end the stream, one that lasts does", () => {
+		vi.useFakeTimers();
+		const { pc, handlers } = watch();
+		pc.set_state("connected");
+		// e.g. a phone switching from Wi-Fi to cellular
+		pc.set_state("disconnected");
+		vi.advanceTimersByTime(WEBRTC_DISCONNECT_GRACE_MS - 100);
+		pc.set_state("connected");
+		vi.advanceTimersByTime(WEBRTC_DISCONNECT_GRACE_MS);
+		expect(handlers.ended).not.toHaveBeenCalled();
+		// The stream carries on as it was
+		expect(handlers.connected).toHaveBeenCalledTimes(1);
+
+		pc.set_state("disconnected");
+		vi.advanceTimersByTime(WEBRTC_DISCONNECT_GRACE_MS);
+		expect(handlers.ended).toHaveBeenCalledTimes(1);
+	});
+
+	it("a closed or failed connection ends the stream at once", () => {
+		const closed = watch();
+		closed.pc.set_state("closed");
+		expect(closed.handlers.ended).toHaveBeenCalledTimes(1);
+		const failed = watch();
+		failed.pc.set_state("failed");
+		expect(failed.handlers.failed).toHaveBeenCalledTimes(1);
+	});
+
+	it("a connection that is slow to connect says so", () => {
+		vi.useFakeTimers();
+		const stuck = watch();
+		// The answer came back at once, but ICE cannot get through
+		stuck.pc.set_state("connecting");
+		const connects = watch();
+		connects.pc.set_state("connected");
+		vi.advanceTimersByTime(WEBRTC_SLOW_CONNECT_MS);
+		expect(stuck.handlers.slow).toHaveBeenCalledTimes(1);
+		expect(connects.handlers.slow).not.toHaveBeenCalled();
+	});
+
+	it("the empty candidate that ends gathering is not sent", async () => {
+		const pc = new FakePeerConnection({});
+		const offer = vi.fn(async (_body: Record<string, unknown>) => ({
+			sdp: "v=0 answer",
+			type: "answer"
+		}));
+		await negotiate_webrtc({
+			pc: pc as unknown as RTCPeerConnection,
+			offer,
+			webrtc_id: "id",
+			stream: null,
+			modality: "video"
+		});
+		const candidate = (text: string) => ({
+			candidate: text,
+			toJSON: () => ({ candidate: text })
+		});
+		pc.onicecandidate?.({ candidate: candidate("candidate:1 1 udp 1 x 9") });
+		// As Firefox does
+		pc.onicecandidate?.({ candidate: candidate("") });
+		pc.onicecandidate?.({ candidate: null });
+		const sent = offer.mock.calls.filter(
+			([body]) => body.type === "ice-candidate"
+		);
+		expect(sent).toHaveLength(1);
+	});
+
+	it("stream ids are hard to guess", () => {
+		// The id names the stream to the server in signalling
+		const id = new_webrtc_id();
+		expect(id).toMatch(/^[0-9a-f]{32}$/);
+		expect(new_webrtc_id()).not.toBe(id);
+	});
+});
 
 // A submission whose messages the test sends
 function fake_job() {
@@ -292,42 +386,30 @@ describe("client.webrtc", () => {
 		]);
 	});
 
-	it("stop() ends the stream with its last outputs and closes the connection", async () => {
+	it("stop() ends the stream with its last outputs, closes the connection and acknowledges the event, leaving the caller's media running", async () => {
 		vi.useFakeTimers();
-		const stream = webrtc.call(client, "/echo");
+		const track = { kind: "video", stop: vi.fn() };
+		const media = { getTracks: () => [track] } as unknown as MediaStream;
+		const stream = webrtc.call(client, "/echo", { media });
 		job.send(turn);
 		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
 		const pc = FakePeerConnection.instances[0];
+		job.send({ type: "data", data: [[0.5]] });
+		await vi.advanceTimersByTimeAsync(0);
+		// Not while it runs: acknowledging ends the job's messages
+		expect(job.acknowledge).not.toHaveBeenCalled();
 
 		const stopping = stream.stop();
 		expect(job.close_stream).toHaveBeenCalledWith({ read_to_end: true });
 		job.end();
 		await stopping;
+		// Once over, so that resume_jobs() does not bring it back
+		expect(job.acknowledge).toHaveBeenCalledTimes(1);
 		await vi.advanceTimersByTimeAsync(1000);
 		expect(pc.close).toHaveBeenCalled();
+		// The page opened the camera; it decides when to turn it off
+		expect(track.stop).not.toHaveBeenCalled();
 		await expect(stream.done).resolves.toBeUndefined();
-	});
-
-	it("acknowledges its event once the stream is over, so that resume_jobs() does not bring it back", async () => {
-		const stream = webrtc.call(client, "/echo");
-		job.send(turn);
-		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
-		job.send({ type: "data", data: [[0.5]] });
-		await flush();
-		// Not while it runs: acknowledging ends the job's messages
-		expect(job.acknowledge).not.toHaveBeenCalled();
-		const stopping = stream.stop();
-		job.end();
-		await stopping;
-		expect(job.acknowledge).toHaveBeenCalledTimes(1);
-	});
-
-	it("acknowledges a stream that failed too", async () => {
-		const stream = webrtc.call(client, "/echo");
-		job.send({ type: "status", stage: "error", message: "Bad frame" });
-		job.end();
-		await expect(stream.done).rejects.toThrow("Bad frame");
-		expect(job.acknowledge).toHaveBeenCalledTimes(1);
 	});
 
 	it("fails with the server's reason when the offer is rejected", async () => {
@@ -376,22 +458,6 @@ describe("client.webrtc", () => {
 		expect(client.webrtc_rtc_configuration).not.toHaveBeenCalled();
 	});
 
-	it("leaves the caller's media running when the stream ends", async () => {
-		vi.useFakeTimers();
-		const track = { kind: "video", stop: vi.fn() };
-		const media = { getTracks: () => [track] } as unknown as MediaStream;
-		const stream = webrtc.call(client, "/echo", { media });
-		job.send(turn);
-		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
-		const stopping = stream.stop();
-		job.end();
-		await stopping;
-		await vi.advanceTimersByTimeAsync(1000);
-		expect(FakePeerConnection.instances[0].close).toHaveBeenCalled();
-		// The page opened the camera; it decides when to turn it off
-		expect(track.stop).not.toHaveBeenCalled();
-	});
-
 	it("tells on_message the handler's gr.Info, gr.Warning and error, which come through the queue", async () => {
 		const messages: any[] = [];
 		const stream = webrtc.call(client, "/echo", {
@@ -426,13 +492,14 @@ describe("client.webrtc", () => {
 		]);
 	});
 
-	it("fails when the queue reports an error before the turn", async () => {
+	it("fails, and acknowledges its event, when the queue reports an error before the turn", async () => {
 		const stream = webrtc.call(client, "/echo");
 		job.send({ type: "status", stage: "error", message: "Queue is full." });
 		job.end();
 		await expect(stream.connected).rejects.toThrow("Queue is full.");
 		await expect(stream.done).rejects.toThrow("Queue is full.");
 		expect(FakePeerConnection.instances).toHaveLength(0);
+		expect(job.acknowledge).toHaveBeenCalledTimes(1);
 	});
 
 	// The client tests also run in Node, which has no page to leave

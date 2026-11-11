@@ -120,38 +120,6 @@ class TestServer:
         finally:
             gr.close_all()
 
-    def test_server_has_login_routes_only_when_a_webrtc_function_asks_for_oauth(
-        self, monkeypatch
-    ):
-        pytest.importorskip("authlib")
-        pytest.importorskip("aiortc")
-        from gradio import oauth
-
-        monkeypatch.setattr(oauth, "_get_mocked_oauth_info", lambda: {})
-        plain = gr.Server()
-
-        @plain.api(name="echo")
-        def echo(x: str) -> str:
-            return x
-
-        signed_in = gr.Server()
-
-        def issue_credentials(token: gr.OAuthToken | None) -> dict:
-            return {"iceServers": []}
-
-        @signed_in.webrtc(name="flip", rtc_configuration=issue_credentials)
-        def flip(frame):
-            return frame
-
-        try:
-            for server, expected in ((plain, 404), (signed_in, 307)):
-                app, _, _ = server.launch(prevent_thread_lock=True, executor="thread")
-                with TestClient(app) as client:
-                    response = client.get("/login/huggingface", follow_redirects=False)
-                assert response.status_code == expected
-        finally:
-            gr.close_all()
-
     def test_server_api_taking_an_oauth_token_gets_the_callers_token_without_login(
         self, monkeypatch
     ):

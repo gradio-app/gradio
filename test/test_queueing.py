@@ -942,51 +942,7 @@ def _history_session(demo):
     return queue, resumable, event
 
 
-def test_history_keeps_only_the_latest_output_of_a_stream():
-    from gradio.server_messages import ProcessGeneratingMessage, ServerMessage
-
-    with gr.Blocks() as demo:
-        gr.Textbox()
-    demo.launch(prevent_thread_lock=True)
-    try:
-        queue, resumable, event = _history_session(demo)
-        stream = event("stream", True)
-        generating = event("generating", True)
-        for i in range(3):
-            for e, msg in (
-                (stream, ServerMessage.process_streaming),
-                (generating, ServerMessage.process_generating),
-            ):
-                queue.send_message(
-                    e,
-                    ProcessGeneratingMessage(
-                        msg=msg, output={"i": i, "data": [f"value {i}"]}, success=True
-                    ),
-                )
-        # A wake-up with nothing new: every output skipped
-        queue.send_message(
-            stream,
-            ProcessGeneratingMessage(
-                msg=ServerMessage.process_streaming,
-                output={"i": 3, "data": [{"__type__": "update"}]},
-                success=True,
-            ),
-        )
-        kept = [(m.event_id, cast(Any, m).output["i"]) for m in resumable.history]
-        # Each call of a stream sends whole values, even from a generator
-        # function; a stream that runs for hours must not fill the history,
-        # and a call that changed nothing adds nothing
-        assert kept == [
-            ("generating", 0),
-            ("generating", 1),
-            ("stream", 2),
-            ("generating", 2),
-        ]
-    finally:
-        demo.close()
-
-
-def test_history_of_a_stream_keeps_no_logs_or_progress():
+def test_a_streams_logs_skip_the_history_but_reach_a_reconnecting_page():
     from gradio.server_messages import (
         LogMessage,
         ProcessGeneratingMessage,
@@ -1001,6 +957,7 @@ def test_history_of_a_stream_keeps_no_logs_or_progress():
         queue, resumable, event = _history_session(demo)
         stream = event("stream", False, connection="stream")
         other = event("other", True)
+        # Sent while the page's /queue/data connection was down
         for i in range(3):
             for e in (stream, other):
                 queue.send_message(
@@ -1019,44 +976,15 @@ def test_history_of_a_stream_keeps_no_logs_or_progress():
             ServerMessage.process_streaming
         ]
         assert len([m for m in resumable.history if m.event_id == "other"]) == 6
-    finally:
-        demo.close()
-
-
-def test_a_reconnecting_page_gets_the_logs_a_stream_sent_meanwhile():
-    from gradio.server_messages import (
-        LogMessage,
-        ProcessGeneratingMessage,
-        ServerMessage,
-    )
-
-    with gr.Blocks() as demo:
-        gr.Textbox()
-    demo.launch(prevent_thread_lock=True)
-    try:
-        queue, resumable, event = _history_session(demo)
-        stream = event("stream", False, connection="stream")
-        other = event("other", True)
-        # Sent while the page's /queue/data connection was down
-        queue.send_message(
-            stream,
-            ProcessGeneratingMessage(
-                msg=ServerMessage.process_streaming,
-                output={"data": ["value"]},
-                success=True,
-            ),
-        )
-        queue.send_message(stream, LogMessage(log="careful", level="warning", title=""))
-        queue.send_message(other, LogMessage(log="hello", level="info", title=""))
         # The page reconnects and resumes its running events
         queue.resume_session("s", ["stream", "other"])
         waiting = queue.pending_messages_per_session["s"]._queue  # type: ignore
         # A stream's logs are not in the history (they would pile up), so
         # the ones waiting for the page are still delivered: each is a toast
         assert [(m.event_id, m.msg) for m in waiting] == [
+            *[("other", ServerMessage.log), ("other", ServerMessage.progress)] * 3,
             ("stream", ServerMessage.process_streaming),
-            ("other", ServerMessage.log),
-            ("stream", ServerMessage.log),
+            *[("stream", ServerMessage.log)] * 3,
         ]
     finally:
         demo.close()
@@ -1149,10 +1077,25 @@ def test_history_of_a_stream_keeps_outputs_that_later_calls_skip():
                 [3, 4],
             )
         )
-        assert len(resumable.history) < len(sent)
+        # The first call's value is set again by the last one, and the call
+        # that changed nothing adds nothing: a stream that runs for hours must
+        # not fill the history
+        assert len(resumable.history) == len(sent) - 2
         # The messages still waiting for the client are not changed
         waiting = queue.pending_messages_per_session["s"]
         assert [m.output for m in waiting._queue] == [m.output for m in sent]  # type: ignore
+        # Every output of a generator event is kept
+        generating = event("generating", True)
+        for i in range(3):
+            queue.send_message(
+                generating,
+                ProcessGeneratingMessage(
+                    msg=ServerMessage.process_generating,
+                    output={"data": [f"value {i}"]},
+                    success=True,
+                ),
+            )
+        assert [m.event_id for m in resumable.history].count("generating") == 3
     finally:
         demo.close()
 
@@ -1288,9 +1231,8 @@ def test_streams_waiting_for_chunks_do_not_block_other_events():
                     pytest.fail("The streams did not start")
                 time.sleep(0.05)
 
-            # Both streams now wait for their next chunk. Before a waiting
-            # stream gave its worker slot back, they held both slots and the
-            # click never ran.
+            # Both streams now wait for their next chunk, holding no worker
+            # slot, so the click runs
             assert client.submit(fn_index=1).result(timeout=5) == "clicked"
 
             # A stream that gets a chunk takes a slot again and keeps going
