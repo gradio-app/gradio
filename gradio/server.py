@@ -302,7 +302,7 @@ class Server(App):
             rtc_configuration: the browser's RTCPeerConnection configuration, or a function that returns it, as in `gr.WebRTC`. Required on Hugging Face Spaces and Colab.
             server_rtc_configuration: the configuration of the server's side of the connection.
             video_bitrate: the video bitrate range in kbps, as in `gr.WebRTC`.
-            allow_extra_tracks: whether the client may send tracks the stream does not use (beyond the modality, or any track in mode="receive"); they are read and dropped. If False, such connections are rejected.
+            allow_extra_tracks: whether the client may send tracks the stream does not use (beyond the modality, a second track of a kind, or any track in mode="receive"); they are read and dropped. If False, such connections are rejected.
             time_limit: the maximum duration of a stream in seconds, from when its turn comes.
             concurrency_limit: how many streams run at once; the others wait in the queue. "default" uses the queue's default (1).
         """

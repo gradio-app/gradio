@@ -959,14 +959,15 @@ class TestWebRTC:
 
 
 async def make_offer(audio=False, video=False, receive=None):
+    """`audio` and `video` are a flag or a number of tracks."""
     pc = RTCPeerConnection()
     channel = pc.createDataChannel("text")
     # What the server says over the data channel, decoded
     pc.messages = []  # type: ignore[attr-defined]
     channel.on("message", lambda m: pc.messages.append(json.loads(m)))  # type: ignore[attr-defined]
-    if audio:
+    for _ in range(int(audio)):
         pc.addTrack(AudioStreamTrack())
-    if video:
+    for _ in range(int(video)):
         pc.addTrack(VideoStreamTrack())
     if receive:
         pc.addTransceiver(receive, direction="recvonly")
@@ -1967,6 +1968,30 @@ class TestStreams:
         # The extra track is read and dropped: aiortc queues every frame it
         # decodes until the track is read, without a bound
         assert len(extra._queue._getters) == 1
+        await pc.close()
+
+    @pytest.mark.asyncio
+    async def test_a_second_track_of_the_same_kind_is_rejected(self, launched):
+        h = launched
+        await h.start("one")
+        pc = await make_offer(video=2)
+        response = await h.offer(pc, "one")
+        assert response["meta"]["error"] == "unsupported_track"
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("launched", [{"allow_extra_tracks": True}], indirect=True)
+    async def test_a_second_track_of_the_same_kind_is_extra(self, launched):
+        h = launched
+        await h.start("one")
+        pc = await make_offer(video=2)
+        assert (await h.offer(pc, "one"))["type"] == "answer"
+        second = live_pc(h.manager, "one").getReceivers()[1].track
+        await asyncio.sleep(0.1)
+        # One handler track, not one per incoming track; the second is read
+        # and dropped
+        assert len(tracks_of(h.manager, "one")) == 1
+        assert len(second._queue._getters) == 1
         await pc.close()
 
     @pytest.mark.asyncio

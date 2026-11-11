@@ -807,6 +807,10 @@ class ConnectionManager:
             # without a bound, so a track nobody uses is read and dropped
             self._spawn(self._discard(track))
 
+        # The kinds that already have a handler track: one handler takes one
+        # track of each kind
+        used_kinds: set[str] = set()
+
         @pc.on("track")
         def on_track(track):
             relay = MediaRelay()
@@ -814,6 +818,9 @@ class ConnectionManager:
             if self.mode == "receive":
                 # The server only sends: a track from the client is extra
                 extra_track(track, f"mode 'receive' takes no {track.kind} track")
+                return
+            if track.kind in used_kinds:
+                extra_track(track, f"a stream takes one {track.kind} track")
                 return
             if (
                 self.modality == "video"
@@ -875,6 +882,7 @@ class ConnectionManager:
                 )
                 return
 
+            used_kinds.add(track.kind)
             if not stream.add_track(cb):
                 return
             # A handler that returns CloseStream stops its track: end the
