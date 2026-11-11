@@ -1094,6 +1094,8 @@ async def stream_run(
                         # page shows its generic text, as for any event
                         cast(str, failure["error"]),
                         title=cast(str, failure.get("title") or "Error"),
+                        # Only a gr.Error has one; None keeps it open
+                        duration=cast(float | None, failure.get("duration", 10)),
                         visible=bool(failure.get("visible", True)),
                         print_exception=False,
                     )

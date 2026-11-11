@@ -1687,6 +1687,21 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("duration", [3, None])
+    async def test_a_handler_error_keeps_its_duration(self, launched, duration):
+        h = launched
+        await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        errors = stream_of(h.manager, "one").errors
+        assert errors is not None
+        errors.fail(gr.Error("Sign in first", duration=duration))
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m["msg"] == "process_completed")
+        assert completion["output"]["duration"] == duration
+        await pc.close()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched", [{"stream_kwargs": {"time_limit": 1}}], indirect=True
     )
