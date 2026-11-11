@@ -143,7 +143,10 @@
 				on_message: (msg) => {
 					if (pc === connection) handle_message(msg);
 				},
-				on_reject: (response) => onreject?.(response)
+				// The server declines a stream stopped during its setup
+				on_reject: (response) => {
+					if (pc === connection) onreject?.(response);
+				}
 			});
 		} catch (e) {
 			console.debug("WebRTC offer failed", e);
