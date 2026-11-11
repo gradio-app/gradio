@@ -2978,6 +2978,10 @@ class FakeLink:
         self.on_drained = None
         self.closed = False
         self.responsive = True
+        self.slots: dict[str, asyncio.Semaphore] = {}
+
+    def slot(self, concurrency_id, limit) -> asyncio.Semaphore:
+        return self.slots.setdefault(concurrency_id, asyncio.Semaphore(limit))
 
     @property
     def active(self) -> bool:
@@ -3075,6 +3079,26 @@ class TestGatewayPlacements:
             pool.place(event._id, cast(Any, streaming), True, event.session_hash)
         other.sessions["idle visitor"] = True
         assert pool.for_session("new visitor") is other
+
+    def test_a_new_sessions_first_event_starts_where_fewer_streams_run(self):
+        events = [self.event(f"e{i}", f"s{i}") for i in range(2)]
+        pool = self.pool(*events)
+        pool.blocks._queue.active_jobs = []
+        streaming, other = FakeLink(), FakeLink()
+        pool.links = cast(Any, [streaming, other])
+        for event in events:
+            pool.place(event._id, cast(Any, streaming), True, event.session_hash)
+        other.sessions["idle visitor"] = True
+        # A click with the default limit: both processes have its slot free
+        pool.group_limits["click"] = 1
+        click = SimpleNamespace(
+            _id="c",
+            session_hash="new visitor",
+            fn=SimpleNamespace(queue=True, batch=False, concurrency_id="click"),
+        )
+        assert pool.can_start(click)
+        assert "new visitor" in other.sessions
+        assert "new visitor" not in streaming.sessions
 
     def test_a_stream_whose_process_exited_is_over(self):
         from gradio.exceptions import Error

@@ -450,7 +450,9 @@ class Pool:
                     candidates or serving,
                     key=lambda link: (
                         free(link),
-                        -(link.running + len(link.held)),
+                        # As in for_session: a gr.WebRTC stream's handler works
+                        # in its process though it may hold no slot
+                        -(link.running + len(set(link.held) | link.serving_events)),
                         -len(link.sessions),
                     ),
                 )
