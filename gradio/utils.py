@@ -11,6 +11,7 @@ import importlib.resources
 import inspect
 import json
 import os
+import pickle as pkl
 import pkgutil
 import posixpath
 import re
@@ -39,6 +40,9 @@ from contextlib import AbstractContextManager, ExitStack, contextmanager
 from contextvars import ContextVar
 from functools import wraps
 from io import BytesIO
+from multiprocessing.connection import Pipe
+from multiprocessing.context import BaseContext
+from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
 from types import ModuleType, NoneType
 from typing import (
@@ -2219,3 +2223,40 @@ def resolve_resume_sessions(resume_sessions: bool | None) -> bool:
         return resume_sessions
     value = os.environ.get("GRADIO_RESUME_SESSIONS", "True").strip().lower()
     return value not in ("false", "0", "no", "off")
+
+
+class SharedMemoryQueue(Generic[T]):
+    def __init__(self, *, ctx: BaseContext):
+        self._reader, self._writer = Pipe(duplex=False)
+        self._rlock = ctx.Lock()
+        self._shm_kwargs: dict[str, Any] = {}
+        if "track" in inspect.signature(SharedMemory).parameters:
+            self._shm_kwargs = {"track": False}
+
+    def close(self):
+        self._reader.close()
+        self._writer.close()
+
+    def get(self) -> T:
+        with self._rlock:
+            name = self._reader.recv_bytes()
+        view = SharedMemory(name=name.decode(), create=False, **self._shm_kwargs)
+        try:
+            assert view.buf is not None  # noqa: S101
+            data = view.buf.tobytes()
+        finally:
+            view.unlink()
+            view.close()
+        return pkl.loads(data)
+
+    def put(self, obj: T):
+        data = pkl.dumps(obj)
+        view = SharedMemory(create=True, size=len(data), **self._shm_kwargs)
+        try:
+            assert view.buf is not None  # noqa: S101
+            view.buf[: len(data)] = data
+            self._writer.send_bytes(view.name.encode())
+        except Exception:
+            view.unlink()
+            view.close()
+            raise

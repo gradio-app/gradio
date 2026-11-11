@@ -14,7 +14,6 @@ from asyncio import Queue as AsyncQueue
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from multiprocessing import SimpleQueue
 from threading import Thread
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -50,6 +49,7 @@ from gradio.server_messages import (
 )
 from gradio.utils import (
     LRUCache,
+    SharedMemoryQueue,
     error_payload,
     run_coro_in_background,
     safe_aclose_iterator,
@@ -171,7 +171,7 @@ class Queue:
         self.delete_lock = asyncio.Lock()
         self.server_app = None
         self.server_pid = os.getpid()
-        self.rpc_queue: SimpleQueue[tuple[str, EventMessage]] | None = None
+        self.rpc_queue: SharedMemoryQueue[tuple[str, EventMessage]] | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -268,7 +268,7 @@ class Queue:
         except ValueError:
             warnings.warn("GRADIO_QUEUE_MULTIPROCESSING_ENABLED but fork not available")
             return
-        self.rpc_queue = ctx.SimpleQueue()
+        self.rpc_queue = SharedMemoryQueue(ctx=ctx)
         Thread(target=self.process_rpc, daemon=True).start()
 
     def process_rpc(self):
