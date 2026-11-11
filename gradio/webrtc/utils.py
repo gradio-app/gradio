@@ -119,21 +119,13 @@ class StreamInputs:
         self.arrived.set()
 
 
-# Set on an app's Blocks when a WebRTC stream handler is attached to it
-_HAS_STREAMS = "_has_webrtc_streams"
-
-
-def mark_streaming(blocks: Any) -> None:
-    """Records that the app of `blocks` (a Blocks, or a BlocksConfig) has a
-    WebRTC stream handler, so that its signalling routes wait for streams."""
-    setattr(getattr(blocks, "root_block", blocks), _HAS_STREAMS, True)
-
-
 def has_streams(blocks: Any) -> bool:
-    """Whether `mark_streaming` was called for the app of `blocks`. Signalling
-    for an app without a stream handler is answered at once: no stream can be
-    admitted."""
-    return bool(getattr(blocks, _HAS_STREAMS, False))
+    """Whether the app `blocks` serves a WebRTC stream event (a lease). Read
+    from the events it serves, so that a Blocks rendered into another app
+    (a multipage app's page, gr.TabbedInterface) brings its streams along.
+    Signalling for an app without a stream handler is answered at once: no
+    stream can be admitted."""
+    return any(fn.lease for fn in blocks.fns.values())
 
 
 current_channel: ContextVar[DataChannel | None] = ContextVar(

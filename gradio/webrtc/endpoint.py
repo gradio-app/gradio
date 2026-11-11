@@ -27,7 +27,6 @@ from gradio.webrtc.handlers import (
 from gradio.webrtc.utils import (
     is_async,
     is_async_generator,
-    mark_streaming,
 )
 
 if TYPE_CHECKING:
@@ -189,8 +188,6 @@ def add_stream_event(
     """
     from gradio.webrtc import connection
 
-    # Signalling waits for streams only in an app that has a handler
-    mark_streaming(root_block)
     stream_fn, index = root_block.set_event_trigger(
         triggers,
         fn,

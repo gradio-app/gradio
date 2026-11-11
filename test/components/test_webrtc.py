@@ -2755,6 +2755,30 @@ class TestStreams:
             assert "error" in configuration.json()
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("compose", ["render", "tabbed"])
+    async def test_a_stream_of_a_rendered_app_connects(self, compose, monkeypatch):
+        monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+        forget_earlier_streams()
+        # A page built as an app of its own, as the multipage guide does
+        with gr.Blocks() as page:
+            webrtc = gr.WebRTC()
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        if compose == "render":
+            with gr.Blocks() as demo:
+                page.render()
+        else:
+            demo = gr.TabbedInterface([page, gr.Interface(lambda x: x, "text", "text")])
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
+            h = Harness(demo, local_url, webrtc)
+            await h.start("one")
+            pc = await make_offer(video=True)
+            answer = await h.connect(pc, "one")
+            assert "m=video" in answer["sdp"]
+            await pc.close()
+            await h.http.aclose()
+
+    @pytest.mark.asyncio
     async def test_rtc_configuration_gets_the_visitor_oauth_token(self):
         from starlette.requests import Request
 
