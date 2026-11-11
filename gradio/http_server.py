@@ -31,7 +31,7 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
-START_TIMEOUT = int(os.getenv("GRADIO_START_TIMEOUT", "5"))
+START_TIMEOUT = float(os.getenv("GRADIO_START_TIMEOUT", "5"))
 
 GRADIO_HOT_RELOAD = os.getenv("GRADIO_HOT_RELOAD", "false").lower()
 
