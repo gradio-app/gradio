@@ -401,6 +401,7 @@ class BlocksConfigDict(TypedDict):
     head: str | None
     title: str | I18nData
     space_id: str | None
+    oauth_available: NotRequired[bool]
     enable_queue: bool
     show_error: bool
     is_colab: bool
