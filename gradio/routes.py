@@ -2400,7 +2400,7 @@ class App(FastAPI):
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid JSON body.",
                 )
-            if not isinstance(body.get("webrtc_id") or "", str):
+            if not isinstance(body.get("webrtc_id", ""), str | None):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="webrtc_id must be a string.",

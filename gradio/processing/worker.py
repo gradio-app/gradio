@@ -133,10 +133,12 @@ class RunningEvent:
         event_id: str,
         session_hash: str | None,
         concurrency_limit: int | None = None,
+        lease: bool = False,
     ):
         self._id = event_id
         self.session_hash = session_hash
         self.concurrency_limit = concurrency_limit
+        self.lease = lease
         self.alive = True
 
 
@@ -412,13 +414,12 @@ class Worker:
             self.app.reopen_session(session_hash)
             return
         self.app.mark_session_closed(session_hash)
+        # A lease (a gr.WebRTC stream) ends only when the gateway says that its
+        # event ended, as with threads: a page whose heartbeat dropped may
+        # still be streaming, and its event would keep its place forever
         for event in self.running.values():
-            if event.session_hash == session_hash:
+            if event.session_hash == session_hash and not event.lease:
                 event.alive = False
-        for event_id, handle in list(self.event_handles.items()):
-            if handle.session_hash == session_hash:
-                handle.live = False
-                del self.event_handles[event_id]
         caching.clear_session_caches(session_hash)
         for run in self.blocks.pending_streams.pop(session_hash, {}).values():
             for stream in run.values():
@@ -464,7 +465,7 @@ class Worker:
         running = None
         if event_id is not None:
             running = RunningEvent(
-                event_id, body.session_hash, p.get("concurrency_limit")
+                event_id, body.session_hash, p.get("concurrency_limit"), fn.lease
             )
             self.running[event_id] = running
         try:

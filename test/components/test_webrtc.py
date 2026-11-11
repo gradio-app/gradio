@@ -2420,10 +2420,16 @@ class TestStreams:
             async with httpx2.AsyncClient(timeout=10, base_url=local_url) as http:
                 for route in ("rtc_configuration", "offer"):
                     url = f"{API_PREFIX.lstrip('/')}/webrtc/{route}"
-                    response = await http.post(
-                        url, json={"session_hash": "s", "webrtc_id": [1], "sdp": "x"}
-                    )
-                    assert response.status_code == 400
+                    for webrtc_id in ([1], 0, False, [], {}):
+                        response = await http.post(
+                            url,
+                            json={
+                                "session_hash": "s",
+                                "webrtc_id": webrtc_id,
+                                "sdp": "x",
+                            },
+                        )
+                        assert response.status_code == 400, webrtc_id
                     await http.post(
                         url,
                         json={"session_hash": f"made-up-{route}", "webrtc_id": "x"},
@@ -2522,6 +2528,62 @@ class TestStreams:
             assert "m=video" in answer["sdp"]
             await pc.close()
             await h.http.aclose()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("executor", ["thread", "process"])
+    async def test_a_running_stream_outlives_a_dropped_heartbeat(
+        self, executor, monkeypatch
+    ):
+        monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+        monkeypatch.setenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "0.2")
+        forget_earlier_streams()
+        with gr.Blocks() as demo:
+            webrtc = gr.WebRTC()
+            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
+            h = Harness(demo, local_url, webrtc)
+            messages: list[dict] = []
+
+            async def read_own_stream():
+                # The event's own message stream (sse_v4, as on an HTTP/2 host
+                # such as Spaces), so the session has no events of its own
+                async with h.http.stream(
+                    "POST",
+                    f"{h.api}/queue/join",
+                    json={
+                        "data": ["one"],
+                        "fn_index": h.stream_fn._id,
+                        "session_hash": "one",
+                    },
+                    headers={"accept": "text/event-stream"},
+                ) as response:
+                    async for line in response.aiter_lines():
+                        if line.startswith("data:"):
+                            messages.append(json.loads(line[5:]))
+
+            reader = asyncio.create_task(read_own_stream())
+            try:
+                await h.wait_until(lambda: has_stream(h.manager, "one"))
+                h.sessions["one"] = "one"
+                pc = await make_offer(video=True)
+                await h.connect(pc, "one")
+                await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+                # The page goes to the background and its heartbeat drops, so
+                # the server takes the session as closed
+                async with h.http.stream("GET", f"{h.api}/heartbeat/one") as response:
+                    await anext(response.aiter_lines())
+                await asyncio.sleep(1.5)
+                stream = stream_of(h.manager, "one")
+                assert stream is not None and not stream.ended
+                # Its event still runs: the page's close completes it
+                event_id = next(m["event_id"] for m in messages if "event_id" in m)
+                await h.http.post(f"{h.api}/stream/{event_id}/close")
+                await h.wait_until(lambda: completed(messages), timeout=10)
+                await pc.close()
+            finally:
+                reader.cancel()
+                await h.http.aclose()
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("executor", ["thread", "process"])
@@ -4364,6 +4426,23 @@ class TestCleanUp:
             webrtc_connection.set_input(cast(Any, [1]), "s", 0.5)
         finally:
             LocalContext.blocks.reset(token)
+
+    def test_a_session_close_leaves_a_stream_call_running(self):
+        from gradio.processing.worker import RemoteEventHandle, RunningEvent, Worker
+
+        stream = RunningEvent("stream", "s", lease=True)
+        plain = RunningEvent("plain", "s")
+        worker = SimpleNamespace(
+            app=SimpleNamespace(mark_session_closed=lambda _: None),
+            running={"stream": stream, "plain": plain},
+            event_handles={},
+            blocks=SimpleNamespace(pending_streams={}),
+        )
+        # E.g. the heartbeat of a page in the background dropped during the
+        # stream's first call: its event still runs, so the stream is admitted
+        Worker.session_changed(cast(Any, worker), "s", closed=True)
+        assert RemoteEventHandle(cast(Any, worker), stream).live
+        assert not plain.alive
 
     @pytest.mark.asyncio
     async def test_closing_a_stream_of_a_forgotten_session_keeps_no_state(self):
