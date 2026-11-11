@@ -427,6 +427,10 @@ export function webrtc(
 			}
 		} finally {
 			stopped = true;
+			// The caller has no job to acknowledge: with resume_sessions, an
+			// event left unacknowledged comes back on resume_jobs() after a
+			// reload, and the server keeps its messages
+			job.acknowledge().catch(() => {});
 			if (typeof window !== "undefined") {
 				window.removeEventListener("pagehide", on_pagehide);
 			}

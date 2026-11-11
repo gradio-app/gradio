@@ -190,6 +190,7 @@ function fake_job() {
 	let ended = false;
 	const job = {
 		close_stream: vi.fn(),
+		acknowledge: vi.fn(async () => {}),
 		[Symbol.asyncIterator]() {
 			return this;
 		},
@@ -305,6 +306,28 @@ describe("client.webrtc", () => {
 		await vi.advanceTimersByTimeAsync(1000);
 		expect(pc.close).toHaveBeenCalled();
 		await expect(stream.done).resolves.toBeUndefined();
+	});
+
+	it("acknowledges its event once the stream is over, so that resume_jobs() does not bring it back", async () => {
+		const stream = webrtc.call(client, "/echo");
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		job.send({ type: "data", data: [[0.5]] });
+		await flush();
+		// Not while it runs: acknowledging ends the job's messages
+		expect(job.acknowledge).not.toHaveBeenCalled();
+		const stopping = stream.stop();
+		job.end();
+		await stopping;
+		expect(job.acknowledge).toHaveBeenCalledTimes(1);
+	});
+
+	it("acknowledges a stream that failed too", async () => {
+		const stream = webrtc.call(client, "/echo");
+		job.send({ type: "status", stage: "error", message: "Bad frame" });
+		job.end();
+		await expect(stream.done).rejects.toThrow("Bad frame");
+		expect(job.acknowledge).toHaveBeenCalledTimes(1);
 	});
 
 	it("fails with the server's reason when the offer is rejected", async () => {
