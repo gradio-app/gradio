@@ -299,6 +299,9 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
     os.close(fd)
     try:
         shutil.copy2(file_path, staging_path)
+        # `copy2` keeps the source's mtime, which `delete_cache` ages by, so a
+        # source dated in the future would give a copy that is never deleted.
+        os.utime(staging_path)
         os.replace(staging_path, full_temp_file_path)
     except BaseException:
         Path(staging_path).unlink(missing_ok=True)

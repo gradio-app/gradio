@@ -75,6 +75,18 @@ class TestTempFileManagement:
         assert reused == cached
         assert Path(reused).stat().st_mtime > time.time() - 60
 
+    def test_save_file_to_cache_does_not_keep_a_future_mtime(self, tmp_path):
+        source = tmp_path / "clip.txt"
+        source.write_text("content")
+        a_year_from_now = time.time() + 365 * 24 * 60 * 60
+        os.utime(source, (a_year_from_now, a_year_from_now))
+
+        cached = processing_utils.save_file_to_cache(
+            source, cache_dir=str(tmp_path / "cache")
+        )
+
+        assert Path(cached).stat().st_mtime < time.time() + 60
+
     def test_delete_cache_keeps_a_file_touched_after_it_was_created(
         self, tmp_path, monkeypatch
     ):
