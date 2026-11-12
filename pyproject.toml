@@ -111,7 +111,7 @@ exclude = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = {hf-gradio = false, gradio-client = false, starlette = false, safehttpx = false, pillow = false, brotli = false}
+exclude-newer-package = {hf-gradio = false, gradio-client = false, spaces = false, starlette = false, safehttpx = false, pillow = false, brotli = false}
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py", "gradio/_vendor/*"]
@@ -130,6 +130,7 @@ extend-select = [
   "SIM",
   "UP",
   "W",
+  "TC004",
 ]
 ignore = [
   "B008",    # function call in argument defaults

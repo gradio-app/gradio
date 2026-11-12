@@ -151,6 +151,7 @@ from gradio.utils import (
     get_upload_folder,
     safe_aclose_iterator,
 )
+from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
 if TYPE_CHECKING:
     from gradio.blocks import Block, BlockFunction
@@ -383,8 +384,8 @@ class App(FastAPI):
         # queue, which can both end a session, run them only once
         self.unloaded_sessions: utils.LRUCache[str, bool] = utils.LRUCache(10000)
         self.session_listener: Callable[[str, bool], None] | None = None
-        self.lock = utils.safe_get_lock()
-        self.stop_event = utils.safe_get_stop_event()
+        self.lock = asyncio.Lock()
+        self.stop_event = asyncio.Event()
         self.cookie_id = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
@@ -2940,6 +2941,7 @@ def mount_gradio_app(
     app.router.lifespan_context = new_lifespan  # type: ignore
 
     app.mount(path, gradio_app)
+    maybe_setup_zerogpu_middleware(app)
     return app
 
 
