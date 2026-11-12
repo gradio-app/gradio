@@ -82,6 +82,12 @@ class Server(uvicorn.Server):
         self.thread.join(timeout=5)
 
 
+def _is_windows_reserved_port_error(error: Exception) -> bool:
+    """Windows refuses to bind a port in one of its excluded port ranges with
+    WSAEACCES (10013), even when nothing is listening on it."""
+    return sys.platform == "win32" and getattr(error, "winerror", None) == 10013
+
+
 def start_server(
     app: App,
     server_name: str | None = None,
@@ -126,6 +132,7 @@ def start_server(
         else range(INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
     )
 
+    port_reserved_by_windows = False
     for port in server_ports:
         try:
             # The fastest way to check if a port is available is to try to bind to it with socket.
@@ -176,12 +183,14 @@ def start_server(
                 server = Server(config=config)
             server.run_in_thread()
             break
-        except (OSError, ServerFailedToStartError):
-            pass
+        except (OSError, ServerFailedToStartError) as e:
+            if _is_windows_reserved_port_error(e):
+                port_reserved_by_windows = True
     else:
-        raise OSError(
-            f"Cannot find empty port in range: {min(server_ports)}-{max(server_ports)}. You can specify a different port by setting the GRADIO_SERVER_PORT environment variable or passing the `server_port` parameter to `launch()`."
-        )
+        message = f"Cannot find empty port in range: {min(server_ports)}-{max(server_ports)}. You can specify a different port by setting the GRADIO_SERVER_PORT environment variable or passing the `server_port` parameter to `launch()`."
+        if port_reserved_by_windows:
+            message += " The port may not be in use but reserved by Windows (for example by Hyper-V, WSL or Docker). Run `netsh int ipv4 show excludedportrange protocol=tcp` to see the reserved port ranges."
+        raise OSError(message)
 
     if ssl_keyfile is not None:
         path_to_local_server = f"https://{url_host_name}:{port}/"
