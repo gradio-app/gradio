@@ -132,7 +132,10 @@ def start_server(
             # The fastest way to check if a port is available is to try to bind to it with socket.
             # If the port is not available, socket will throw an OSError.
             s = socket.socket()
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # On Windows SO_REUSEADDR lets bind succeed on a port that another
+            # socket is listening on, so busy ports would look free.
+            if sys.platform != "win32":
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # Really, we should be checking if (server_name, server_port) is available, but
             # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
             # Instead, we just check if the port is available on localhost.

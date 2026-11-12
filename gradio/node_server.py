@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import signal
 import socket
 import subprocess
@@ -89,6 +90,56 @@ def start_node_server(
 
 GRADIO_LOCAL_DEV_MODE = os.getenv("GRADIO_LOCAL_DEV_MODE") is not None
 SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
+# The oldest release of each supported Node line with the latest security fixes
+# (the October 2026 security release). SSR runs only on these lines, at or above
+# these releases; older releases and end-of-life lines (20, 21, 23, 25) fall back
+# to client-side rendering. Lines newer than the newest one here are allowed.
+MIN_NODE_VERSIONS = {22: (22, 23, 4), 24: (24, 22, 1), 26: (26, 12, 1)}
+MIN_NODE_VERSIONS_STR = ", ".join(
+    ".".join(str(part) for part in version) + "+"
+    for version in MIN_NODE_VERSIONS.values()
+)
+
+
+def is_supported_node_version(version: tuple[int, ...]) -> bool:
+    """Returns whether SSR may run on this Node version (see MIN_NODE_VERSIONS)."""
+    if version[0] > max(MIN_NODE_VERSIONS):
+        return True
+    minimum = MIN_NODE_VERSIONS.get(version[0])
+    return minimum is not None and version >= minimum
+
+
+def get_node_version(node_path: str) -> tuple[int, ...] | None:
+    """Returns the version of the Node executable at node_path, or None if it isn't one."""
+    try:
+        output = subprocess.check_output(
+            [node_path, "--version"], stderr=subprocess.DEVNULL, timeout=10
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    match = re.fullmatch(r"v(\d+)\.(\d+)\.(\d+)", output.decode().strip())
+    if match is None:
+        return None
+    return tuple(int(part) for part in match.groups())
+
+
+def get_ssr_unavailable_reason(node_path: str | None) -> str | None:
+    """Returns why SSR can't run with the Node at node_path, or None if it can."""
+    if not SSR_APP_PATH.exists():
+        return "The Gradio SSR build was not found."
+    version = get_node_version(node_path) if node_path else None
+    if version is None:
+        return (
+            f"SSR mode requires Node {MIN_NODE_VERSIONS_STR}, but no Node executable "
+            "was found. Install Node or set the GRADIO_NODE_PATH environment variable."
+        )
+    if not is_supported_node_version(version):
+        found = ".".join(str(part) for part in version)
+        return (
+            f"SSR mode requires a Node release with the latest security fixes "
+            f"({MIN_NODE_VERSIONS_STR}), but found Node {found} at {node_path}."
+        )
+    return None
 
 
 def start_node_process(
@@ -119,7 +170,10 @@ def start_node_process(
             # The fastest way to check if a port is available is to try to bind to it with socket.
             # If the port is not available, socket will throw an OSError.
             s = socket.socket()
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # On Windows SO_REUSEADDR lets bind succeed on a port that another
+            # socket is listening on, so busy ports would look free.
+            if sys.platform != "win32":
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # Really, we should be checking if (server_name, server_port) is available, but
             # socket.bind() doesn't seem to throw an OSError with ipv6 addresses, based on my testing.
             # Instead, we just check if the port is available on localhost.
@@ -228,7 +282,7 @@ def start_node_process(
             print(f"No free port found in range {server_ports[0]}-{server_ports[-1]}.")
     else:
         print(
-            "Please install Node 24 or higher and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
+            f"Please install Node {MIN_NODE_VERSIONS_STR} and set the environment variable GRADIO_NODE_PATH to the path of your Node executable."
         )
     print(
         "You can explicitly specify a port by setting the environment variable GRADIO_NODE_SERVER_PORT."
