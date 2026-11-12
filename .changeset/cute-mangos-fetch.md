@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Keep reused cached files alive on Windows when delete_cache is set
+fix:Fix two Windows bugs: reused cached files deleted early, misleading reserved-port error
