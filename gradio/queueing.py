@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-import multiprocessing
 import os
 import platform
 import random
+import sys
 import time
 import traceback
 import uuid
@@ -49,7 +49,7 @@ from gradio.server_messages import (
 )
 from gradio.utils import (
     LRUCache,
-    SharedMemoryQueue,
+    ShmFdQueue,
     error_payload,
     run_coro_in_background,
     safe_aclose_iterator,
@@ -171,7 +171,7 @@ class Queue:
         self.delete_lock = asyncio.Lock()
         self.server_app = None
         self.server_pid: int | None = None
-        self.rpc_queue: SharedMemoryQueue[tuple[str, EventMessage]] | None = None
+        self.rpc_queue: ShmFdQueue[tuple[str, EventMessage | None]] | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -263,12 +263,10 @@ class Queue:
             return
         if self.rpc_queue is not None:
             return
-        try:
-            ctx = multiprocessing.get_context("fork")
-        except ValueError:
-            warnings.warn("GRADIO_QUEUE_MULTIPROCESSING_ENABLED but fork not available")
+        if sys.platform != "linux":
+            warnings.warn("GRADIO_QUEUE_MULTIPROCESSING_ENABLED only works on Linux")
             return
-        self.rpc_queue = SharedMemoryQueue(ctx=ctx)
+        self.rpc_queue = ShmFdQueue()
         Thread(target=self.process_rpc, daemon=True).start()
 
     def process_rpc(self):
@@ -889,6 +887,8 @@ class Queue:
         finally:
             self.stopped = True
             self._cancel_asyncio_tasks()
+            if self.rpc_queue is not None:
+                self.rpc_queue.close()
 
     async def start_progress_updates(self) -> None:
         """

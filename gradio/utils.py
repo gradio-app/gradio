@@ -17,6 +17,7 @@ import posixpath
 import re
 import shutil
 import site
+import socket
 import subprocess
 import sys
 import tempfile
@@ -40,9 +41,6 @@ from contextlib import AbstractContextManager, ExitStack, contextmanager
 from contextvars import ContextVar
 from functools import wraps
 from io import BytesIO
-from multiprocessing.connection import Pipe
-from multiprocessing.context import BaseContext
-from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
 from types import ModuleType, NoneType
 from typing import (
@@ -2225,38 +2223,22 @@ def resolve_resume_sessions(resume_sessions: bool | None) -> bool:
     return value not in ("false", "0", "no", "off")
 
 
-class SharedMemoryQueue(Generic[T]):
-    def __init__(self, *, ctx: BaseContext):
-        self._reader, self._writer = Pipe(duplex=False)
-        self._rlock = ctx.Lock()
-        self._shm_kwargs: dict[str, Any] = {}
-        if "track" in inspect.signature(SharedMemory).parameters:
-            self._shm_kwargs = {"track": False}
+class ShmFdQueue(Generic[T]):
+    def __init__(self):
+        self._rx, self._tx = socket.socketpair(socket.AF_UNIX, socket.SOCK_DGRAM)
 
     def close(self):
-        self._reader.close()
-        self._writer.close()
+        self._rx.close()
+        self._tx.close()
 
     def get(self) -> T:
-        with self._rlock:
-            name = self._reader.recv_bytes()
-        view = SharedMemory(name=name.decode(), create=False, **self._shm_kwargs)
-        try:
-            assert view.buf is not None  # noqa: S101
-            data = view.buf.tobytes()
-        finally:
-            view.unlink()
-            view.close()
-        return pkl.loads(data)
+        _, (fd,), _, _ = socket.recv_fds(self._rx, 1, 1)
+        with open(fd, "rb") as f:
+            f.seek(0)
+            return pkl.load(f)
 
     def put(self, obj: T):
-        data = pkl.dumps(obj)
-        view = SharedMemory(create=True, size=len(data), **self._shm_kwargs)
-        try:
-            assert view.buf is not None  # noqa: S101
-            view.buf[: len(data)] = data
-            self._writer.send_bytes(view.name.encode())
-        except Exception:
-            view.unlink()
-            view.close()
-            raise
+        with tempfile.TemporaryFile(dir="/dev/shm") as f:
+            pkl.dump(obj, f)
+            f.flush()
+            socket.send_fds(self._tx, [b"\0"], [f.fileno()])
