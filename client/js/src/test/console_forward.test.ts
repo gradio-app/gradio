@@ -9,6 +9,7 @@ import {
 	install_console_forwarding,
 	is_console_forward_origin_allowed,
 	serialize_console_args,
+	stringify_bounded,
 	type ConsoleForwardHost,
 	type ConsoleForwardOptions,
 	type ConsoleForwarder
@@ -468,6 +469,69 @@ describe("console forwarding: serialization", () => {
 		};
 		expect(serialize_console_args([to_json_throws, both_throw]).text).toBe(
 			"custom [Unserializable]"
+		);
+	});
+
+	it("cuts a long array to its first 100 items, also when nested", () => {
+		const text = serialize_console_args([
+			{ rows: Array.from({ length: 250 }, (_, i) => i) }
+		]).text;
+		const expected_items = Array.from({ length: 100 }, (_, i) => i).join(",");
+		expect(text).toBe(`{"rows":[${expected_items},"…[150 more]"]}`);
+	});
+
+	it("does not expand typed arrays, DataView or ArrayBuffer", () => {
+		const buffer = new ArrayBuffer(8);
+		expect(
+			serialize_console_args([
+				{
+					bytes: new Uint8Array(1_000_000),
+					floats: new Float32Array(3),
+					view: new DataView(buffer),
+					buffer
+				}
+			]).text
+		).toBe(
+			'{"bytes":"[Uint8Array length 1000000]","floats":"[Float32Array length 3]","view":"[DataView length 8]","buffer":"[ArrayBuffer length 8]"}'
+		);
+	});
+
+	it("turns every value after 1000 replacer calls into …", () => {
+		const many = Object.fromEntries(
+			Array.from({ length: 5_000 }, (_, i) => [`k${i}`, i])
+		);
+		const json = stringify_bounded(many)!;
+		expect(json.startsWith('{"k0":0,"k1":1,')).toBe(true);
+		expect(json).toContain('"k998":998,"k999":"…","k1000":"…"');
+		expect(json.endsWith('"k4999":"…"}')).toBe(true);
+
+		const zeros = "[" + Array(10).fill(0).join(",") + "]";
+		const nested = Array.from({ length: 100 }, () => Array(10).fill(0));
+		expect(serialize_console_args([nested]).text).toBe(
+			"[" +
+				[
+					...Array(90).fill(zeros),
+					'[0,0,0,0,0,0,0,0,"…","…"]',
+					...Array(9).fill('"…"')
+				].join(",") +
+				"]"
+		);
+	});
+
+	it("logs a 500k-row array about as fast as the original call", () => {
+		const env = make_host();
+		install(env.host);
+		const rows = Array.from({ length: 500_000 }, (_, i) => ({
+			id: i,
+			name: `row ${i}`
+		}));
+		const start = performance.now();
+		env.host.console.log(rows);
+		const elapsed = performance.now() - start;
+		expect(elapsed).toBeLessThan(50);
+		env.get();
+		expect(env.texts()[0]).toContain(
+			'{"id":99,"name":"row 99"},"…[499900 more]"'
 		);
 	});
 

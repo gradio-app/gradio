@@ -11,6 +11,9 @@ export const CONSOLE_FORWARD_MAX_TEXT = 4096;
 export const CONSOLE_FORWARD_IDLE_MS = 10_000;
 
 const UNSERIALIZABLE = "[Unserializable]";
+// keeps a huge logged value about as cheap to convert as a small one
+const MAX_ARRAY_ITEMS = 100;
+const MAX_REPLACER_CALLS = 1000;
 
 const CONSOLE_LEVELS = ["log", "info", "warn", "error", "debug"] as const;
 type ConsoleLevel = (typeof CONSOLE_LEVELS)[number];
@@ -420,7 +423,7 @@ function serialize_arg(arg: unknown): string {
 	try {
 		if (typeof arg === "string") return arg;
 		if (arg instanceof Error) return `${arg.name}: ${arg.message}`;
-		return JSON.stringify(arg) ?? String(arg);
+		return stringify_bounded(arg) ?? String(arg);
 	} catch {
 		try {
 			return String(arg);
@@ -428,4 +431,23 @@ function serialize_arg(arg: unknown): string {
 			return UNSERIALIZABLE;
 		}
 	}
+}
+
+/** json with a budget on the work done, exported for tests */
+export function stringify_bounded(value: unknown): string | undefined {
+	let calls = 0;
+	return JSON.stringify(value, (_key, v: unknown) => {
+		if (++calls > MAX_REPLACER_CALLS) return "…";
+		if (typeof v !== "object" || v === null) return v;
+		if (ArrayBuffer.isView(v) || v instanceof ArrayBuffer) {
+			const length = "length" in v ? v.length : v.byteLength;
+			return `[${v.constructor?.name ?? "ArrayBuffer"} length ${length}]`;
+		}
+		if (Array.isArray(v) && v.length > MAX_ARRAY_ITEMS) {
+			const head: unknown[] = v.slice(0, MAX_ARRAY_ITEMS);
+			head.push(`…[${v.length - MAX_ARRAY_ITEMS} more]`);
+			return head;
+		}
+		return v;
+	});
 }
