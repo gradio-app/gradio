@@ -281,9 +281,10 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if Path(full_temp_file_path).exists():
-        # `delete_cache` ages files by ctime, so a cached copy that is handed
-        # out again is touched; otherwise it could be deleted on the schedule of
-        # its first use, before the new reference to it is ever fetched.
+        # `delete_cache` ages files by the later of ctime and mtime, so a cached
+        # copy that is handed out again is touched; otherwise it could be deleted
+        # on the schedule of its first use, before the new reference to it is
+        # ever fetched.
         try:
             os.utime(full_temp_file_path)
         except OSError:

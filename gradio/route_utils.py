@@ -1169,7 +1169,13 @@ def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
                 continue
             try:
                 file_path = Path(file)
-                modified_time = datetime.fromtimestamp(file_path.lstat().st_ctime)
+                stat = file_path.lstat()
+                # On Windows `st_ctime` is the creation time and is never
+                # refreshed, so the mtime is also considered: a cached copy that
+                # is handed out again is touched to keep it alive.
+                modified_time = datetime.fromtimestamp(
+                    max(stat.st_ctime, stat.st_mtime)
+                )
                 if (
                     age is None
                     or (datetime.now() - modified_time).total_seconds() > age
