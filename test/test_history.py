@@ -452,6 +452,33 @@ class TestServerSideRecording:
             "schema_version",
         }
 
+    def test_spaces_storage_needs_no_sign_in(self, recording_app, monkeypatch):
+        """On Spaces the proxy's per-viewer token addresses the storage facade,
+        and any bucket the browser names is ignored."""
+        client, hub, io = recording_app
+        monkeypatch.setenv("HF_STORAGE_ENDPOINT", "http://storage.internal")
+        headers = {"x-hf-storage-token": "viewer-tok"}
+        with patch("gradio.history.HfApi", return_value=hub) as hf_api:
+            r = client.post(
+                "/gradio_api/run/greet", json={"data": ["world"]}, headers=headers
+            )
+            assert r.status_code == 200, r.text
+            assert _wait_for(lambda: len(hub.files) == 1), "no record was written"
+            r = client.get(
+                "/gradio_api/run-history/records?bucket=some/one", headers=headers
+            )
+        assert r.status_code == 200, r.text
+        assert [rec["outputs"] for rec in r.json()["records"]] == [["hello world"]]
+        assert set(hub.bucket_of.values()) == {"me/spaces-storage"}
+        assert {c.kwargs["token"] for c in hf_api.call_args_list} == {"viewer-tok"}
+        assert {c.kwargs["endpoint"] for c in hf_api.call_args_list} == {
+            "http://storage.internal"
+        }
+        assert client.get("/config", headers=headers).json()["history_storage"] == (
+            "spaces"
+        )
+        assert "history_storage" not in client.get("/config").json()
+
     def test_a_hub_failure_does_not_fail_the_prediction(self, recording_app):
         client, hub, io = recording_app
         hub.fail_next_add_paths = None
@@ -602,7 +629,10 @@ class TestServerSideRecording:
                 "gradio.history.resolve_token",
                 side_effect=lambda request: f"tok-{request.session_hash}",
             ),
-            patch("gradio.history.HfApi", side_effect=lambda token: hubs[token]),
+            patch(
+                "gradio.history.HfApi",
+                side_effect=lambda token, **kw: hubs[token],
+            ),
         ):
             _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
             try:

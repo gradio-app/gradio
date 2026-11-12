@@ -435,6 +435,7 @@ class BlocksConfigDict(TypedDict):
     mcp_server: NotRequired[bool]
     footer_links: list[str | dict[str, str]]
     run_history: NotRequired[bool]
+    history_storage: NotRequired[Literal["spaces"]]
 
 
 class MediaStreamChunk(TypedDict):
