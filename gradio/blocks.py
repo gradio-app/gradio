@@ -2664,17 +2664,18 @@ Received inputs:
                 for i in zip(*inputs, strict=False)
             ]
             with TrackManualCacheUsage():
-                result = await self.call_function(
-                    block_fn,
-                    list(zip(*inputs, strict=False)),
-                    None,
-                    request,
-                    event_id,
-                    event_data,
-                    in_event_listener,
-                    state,
-                    oauth_token,
-                )
+                async with self._queue.flush_event_forwarder():
+                    result = await self.call_function(
+                        block_fn,
+                        list(zip(*inputs, strict=False)),
+                        None,
+                        request,
+                        event_id,
+                        event_data,
+                        in_event_listener,
+                        state,
+                        oauth_token,
+                    )
                 manual_cache_used = used_manual_cache()
             preds = result["prediction"]
             data = [
@@ -2699,7 +2700,10 @@ Received inputs:
                     )
             was_generating = old_iterator is not None
             with TrackManualCacheUsage():
-                async with trace_phase("fn_call"):
+                async with (
+                    trace_phase("fn_call"),
+                    self._queue.flush_event_forwarder(),
+                ):
                     result = await self.call_function(
                         block_fn,
                         inputs,

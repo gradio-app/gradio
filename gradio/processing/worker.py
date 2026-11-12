@@ -502,7 +502,7 @@ class Worker:
 
         self.loop = asyncio.get_running_loop()
         self.blocks._queue.set_server_app(self.app)
-        self.blocks._queue.maybe_start_rpc()
+        self.blocks._queue.start_event_forwarder()
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
         self.ipc_port = server.sockets[0].getsockname()[1]
         http_port = await self.serve_http()
