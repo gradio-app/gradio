@@ -1,3 +1,5 @@
+import { initialize_console_forwarding_on_space } from "./helpers/console_forward";
+
 export { Client } from "./client";
 
 export { predict } from "./utils/predict";
@@ -6,6 +8,13 @@ export { upload_files } from "./utils/upload_files";
 export { FileData, upload, prepare_files } from "./upload";
 export { handle_file } from "./helpers/data";
 export type { ResumableJob } from "./utils/session";
+export {
+	initialize_console_forwarding,
+	is_console_forward_origin_allowed
+} from "./helpers/console_forward";
+
+// custom pages such as gr.Server ones capture from the moment they import the client
+initialize_console_forwarding_on_space();
 export {
 	apply_run_history_replay,
 	clear_run_history,
@@ -27,6 +36,7 @@ export {
 export {
 	asset_url,
 	connect_bucket,
+	disconnect_bucket,
 	is_valid_bucket_id,
 	list_bucket_records,
 	list_user_buckets,

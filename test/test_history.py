@@ -15,7 +15,7 @@ import threading
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import httpx2
 import pytest
@@ -600,7 +600,7 @@ class TestServerSideRecording:
         with (
             patch(
                 "gradio.history.resolve_token",
-                side_effect=lambda request: f"tok-{request.session_hash}",
+                side_effect=lambda request, app=None: f"tok-{request.session_hash}",
             ),
             patch("gradio.history.HfApi", side_effect=lambda token: hubs[token]),
         ):
@@ -935,32 +935,20 @@ class TestWorkflowRecording:
         close_all()
 
 
-def test_a_direct_local_app_uses_the_hosts_own_token():
-    """The browser opened on localhost can use the host's CLI login without
-    needing the Workflow-only write-token handshake."""
-    from gradio.routes import App
+def _hub_tokens(hub):
+    """Patches the Hub client and records the token each call was made with."""
+    tokens: list[str | None] = []
 
-    hub = FakeHub()
-    with gr.Blocks() as demo:
-        gr.Textbox()
-    app = App.create_app(demo)
-    url = "/gradio_api/run-history/records?bucket=alice/hist"
+    def make_api(token=None, **kw):
+        tokens.append(token)
+        return hub
 
-    with (
-        patch("gradio.workflow._get_locally_saved_hf_token", return_value="hf_local"),
-        patch("gradio.history.HfApi", return_value=hub),
-    ):
-        local = TestClient(
-            app,
-            base_url="http://localhost",
-            client=("127.0.0.1", 50000),
-        ).get(url)
-        assert local.status_code == 200, local.text
-    close_all()
+    return tokens, patch("gradio.history.HfApi", side_effect=make_api)
 
 
-def test_a_remote_request_cannot_use_the_hosts_own_token():
-    """Neither a share proxy nor a LAN visitor inherits the host credential."""
+def test_the_hosts_saved_token_is_never_used_by_request_origin():
+    """Not by a browser on localhost, a share proxy or a LAN visitor: where a
+    request seems to come from is not a credential."""
     from gradio.routes import App
 
     with gr.Blocks() as demo:
@@ -969,16 +957,272 @@ def test_a_remote_request_cannot_use_the_hosts_own_token():
     url = "/gradio_api/run-history/records?bucket=alice/hist"
 
     with patch("gradio.workflow._get_locally_saved_hf_token", return_value="hf_local"):
-        share_proxy = TestClient(
-            app,
-            base_url="https://example.gradio.live",
-            client=("127.0.0.1", 50000),
-        ).get(url)
-        lan_visitor = TestClient(
-            app,
-            base_url="http://localhost",
-            client=("192.168.1.50", 50000),
-        ).get(url)
-        assert share_proxy.status_code == 401
-        assert lan_visitor.status_code == 401
+        for base_url, client in [
+            ("http://localhost", ("127.0.0.1", 50000)),
+            ("https://example.gradio.live", ("127.0.0.1", 50000)),
+            ("http://localhost", ("192.168.1.50", 50000)),
+        ]:
+            r = TestClient(app, base_url=base_url, client=client).get(url)
+            assert r.status_code == 401, (base_url, client)
+    close_all()
+
+
+def test_a_token_given_on_connect_is_used_for_that_browsers_history():
+    from gradio.routes import App
+
+    hub = FakeHub()
+    history_mod._ensured.clear()
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = App.create_app(demo)
+    tokens, hf_api = _hub_tokens(hub)
+
+    with hf_api:
+        client = TestClient(app)
+        r = client.post(
+            "/gradio_api/run-history/connect",
+            json={"bucket_id": "alice/hist", "token": " hf_alice "},
+        )
+        assert r.status_code == 200, r.text
+        assert hub.created == ["alice/hist"]
+        secure_name, unsecure_name = history_mod.token_cookie_names(app)
+        set_cookies = r.headers.get_list("set-cookie")
+        assert any(
+            c.startswith(f"{secure_name}=hf_alice;")
+            and "HttpOnly" in c
+            and "Secure" in c
+            for c in set_cookies
+        )
+        assert any(
+            c.startswith(f"{unsecure_name}=hf_alice;") and "HttpOnly" in c
+            for c in set_cookies
+        )
+
+        r = client.get("/gradio_api/run-history/records?bucket=alice/hist")
+        assert r.status_code == 200, r.text
+        assert set(tokens) == {"hf_alice"}
+
+        # Another browser has no token of its own.
+        r = TestClient(app).get("/gradio_api/run-history/records?bucket=alice/hist")
+        assert r.status_code == 401
+    close_all()
+
+
+def test_a_rejected_token_is_not_kept():
+    from gradio.routes import App
+
+    error = RuntimeError("unauthorized")
+    error.response = MagicMock(status_code=401)  # type: ignore[attr-defined]
+    hub = FakeHub()
+    hub.create_bucket = MagicMock(side_effect=error)  # type: ignore[method-assign]
+    history_mod._ensured.clear()
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = App.create_app(demo)
+
+    with patch("gradio.history.HfApi", return_value=hub):
+        r = TestClient(app).post(
+            "/gradio_api/run-history/connect",
+            json={"bucket_id": "alice/hist", "token": "hf_wrong"},
+        )
+    assert r.status_code == 401
+    assert "set-cookie" not in r.headers
+    close_all()
+
+
+def test_a_token_cookie_only_works_for_the_app_that_set_it():
+    from gradio.routes import App
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = App.create_app(demo)
+    with gr.Blocks() as other_demo:
+        gr.Textbox()
+    other_app = App.create_app(other_demo)
+    other_name, _ = history_mod.token_cookie_names(other_app)
+
+    client = TestClient(app, cookies={other_name: "hf_other"})
+    r = client.get("/gradio_api/run-history/records?bucket=alice/hist")
+    assert r.status_code == 401
+    close_all()
+
+
+def test_a_recorded_run_uses_the_browsers_token():
+    hub = FakeHub()
+    history_mod._ensured.clear()
+    io = gr.Interface(lambda x: x, "text", "text", api_name="echo")
+    app, _, _ = io.launch(prevent_thread_lock=True)
+    tokens, hf_api = _hub_tokens(hub)
+    secure_name, _ = history_mod.token_cookie_names(app)
+
+    with hf_api, TestClient(app, cookies={secure_name: "hf_alice"}) as client:
+        r = client.post(
+            "/gradio_api/run/echo",
+            json={"data": ["hi"]},
+            headers={"X-Gradio-History-Bucket": "alice/hist"},
+        )
+        assert r.status_code == 200, r.text
+        assert _wait_for(lambda: len(hub.files) == 1), "no record was written"
+        assert set(tokens) == {"hf_alice"}
+    io.close()
+    close_all()
+
+
+def test_an_oauth_session_is_only_used_on_a_space():
+    """Off Spaces, signing in is mocked with a token the Hub rejects, so it must
+    not stand in for a real token, or the visitor never gets asked for one."""
+    from gradio.routes import App
+
+    hub = FakeHub()
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    app = App.create_app(demo)
+    tokens, hf_api = _hub_tokens(hub)
+    url = "/gradio_api/run-history/records?bucket=alice/hist"
+    session = {"access_token": "oauth-token"}
+
+    with (
+        hf_api,
+        patch("starlette.requests.Request.session", new_callable=PropertyMock),
+        patch("gradio.oauth._get_valid_oauth_info_from_session", return_value=session),
+    ):
+        assert TestClient(app).get(url).status_code == 401
+        with patch("gradio.history.get_space", return_value="user/space"):
+            assert TestClient(app).get(url).status_code == 200
+    assert set(tokens) == {"oauth-token"}
+    close_all()
+
+
+def test_oauth_is_available_only_on_a_space_with_a_login_button():
+    with gr.Blocks() as with_login:
+        gr.LoginButton()
+    with gr.Blocks() as without_login:
+        gr.Textbox()
+
+    assert with_login.get_config_file()["oauth_available"] is False
+    with_login.space_id = without_login.space_id = "user/space"
+    assert with_login.get_config_file()["oauth_available"] is True
+    assert without_login.get_config_file()["oauth_available"] is False
+
+
+def _app_with_history():
+    from gradio.routes import App
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    return App.create_app(demo)
+
+
+def test_a_read_only_token_is_not_kept():
+    """create_bucket(exist_ok=True) succeeds for an existing bucket even when the
+    token can only read it, so connect has to try a write."""
+    error = RuntimeError("forbidden")
+    error.response = MagicMock(status_code=403)  # type: ignore[attr-defined]
+    hub = FakeHub()
+    hub.batch_bucket_files = MagicMock(side_effect=error)  # type: ignore[method-assign]
+    history_mod._ensured.clear()
+    app = _app_with_history()
+
+    with patch("gradio.history.HfApi", return_value=hub):
+        r = TestClient(app).post(
+            "/gradio_api/run-history/connect",
+            json={"bucket_id": "alice/hist", "token": "hf_read_only"},
+        )
+    assert r.status_code == 403
+    assert "set-cookie" not in r.headers
+    close_all()
+
+
+def test_the_write_check_leaves_nothing_behind():
+    hub = FakeHub()
+    history_mod._ensured.clear()
+    app = _app_with_history()
+
+    with patch("gradio.history.HfApi", return_value=hub):
+        r = TestClient(app).post(
+            "/gradio_api/run-history/connect",
+            json={"bucket_id": "alice/hist", "token": "hf_alice"},
+        )
+    assert r.status_code == 200
+    assert hub.files == {}
+    close_all()
+
+
+def test_another_site_cannot_set_or_clear_the_token():
+    """Gradio's CORS lets other origins call the API with the visitor's
+    cookies, so a cross-site request could otherwise plant its own token."""
+    hub = FakeHub()
+    history_mod._ensured.clear()
+    app = _app_with_history()
+    client = TestClient(app, base_url="https://app.hf.space")
+    body = {"bucket_id": "attacker/b", "token": "hf_attacker"}
+
+    with patch("gradio.history.HfApi", return_value=hub):
+        for path in ("connect", "disconnect"):
+            r = client.post(
+                f"/gradio_api/run-history/{path}",
+                json=body,
+                headers={"Origin": "https://attacker.example"},
+            )
+            assert r.status_code == 403, path
+            assert "set-cookie" not in r.headers
+        # A no-cors request can only send a "simple" content type, or none,
+        # which FastAPI still parses as JSON.
+        for content_type in (None, "text/plain"):
+            headers = {"Origin": "https://app.hf.space"}
+            if content_type:
+                headers["Content-Type"] = content_type
+            r = client.post(
+                "/gradio_api/run-history/connect",
+                content=json.dumps(body),
+                headers=headers,
+            )
+            assert r.status_code in (415, 422), content_type
+            assert "set-cookie" not in r.headers
+        r = client.post(
+            "/gradio_api/run-history/connect",
+            json=body,
+            headers={"Origin": "https://app.hf.space"},
+        )
+        assert r.status_code == 200
+    close_all()
+
+
+@pytest.mark.parametrize("route", ["disconnect", "logout"])
+def test_disconnecting_or_signing_out_forgets_the_token(route):
+    app = _app_with_history()
+    secure_name, unsecure_name = history_mod.token_cookie_names(app)
+    client = TestClient(app, follow_redirects=False)
+
+    if route == "disconnect":
+        r = client.post("/gradio_api/run-history/disconnect", json={})
+    else:
+        r = client.get("/logout")
+    cleared = [c for c in r.headers.get_list("set-cookie") if "Max-Age=0" in c]
+    assert any(c.startswith(f"{secure_name}=") for c in cleared)
+    assert any(c.startswith(f"{unsecure_name}=") for c in cleared)
+    close_all()
+
+
+def test_signing_in_wins_over_a_pasted_token():
+    """A revoked or expired pasted token must not block a visitor who signs in."""
+    hub = FakeHub()
+    app = _app_with_history()
+    secure_name, _ = history_mod.token_cookie_names(app)
+    tokens, hf_api = _hub_tokens(hub)
+
+    with (
+        hf_api,
+        patch("gradio.history.get_space", return_value="user/space"),
+        patch("starlette.requests.Request.session", new_callable=PropertyMock),
+        patch(
+            "gradio.oauth._get_valid_oauth_info_from_session",
+            return_value={"access_token": "oauth-token"},
+        ),
+    ):
+        r = TestClient(app, cookies={secure_name: "hf_revoked"}).get(
+            "/gradio_api/run-history/records?bucket=alice/hist"
+        )
+    assert r.status_code == 200
+    assert set(tokens) == {"oauth-token"}
     close_all()

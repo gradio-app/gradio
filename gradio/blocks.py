@@ -2841,6 +2841,8 @@ Received inputs:
             "head": self.head,
             "title": self.title or "Gradio",
             "space_id": self.space_id,
+            # Off Spaces, the login routes are mocked and give no real token.
+            "oauth_available": self.space_id is not None and self.expects_oauth,
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "footer_links": getattr(self, "footer_links", []),
