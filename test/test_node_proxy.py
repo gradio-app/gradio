@@ -1,13 +1,16 @@
 """Tests for the Node-as-proxy architecture and static worker routing."""
 
 import shutil
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
+import fastapi
 import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
+from gradio.node_server import node_proxy_forwarded_allow_ips
 from gradio.static_server import StaticServerConfig, StaticWorkerPool, create_static_app
 
 
@@ -201,7 +204,8 @@ class TestNodeProxyStartupOrdering:
     backend was ready, causing 502 errors on hosts like HF Spaces that
     route traffic as soon as the port opens."""
 
-    def _cleanup(self, demo):
+    @staticmethod
+    def _cleanup(demo):
         node_process = getattr(demo, "node_process", None)
         if node_process is not None:
             node_process.terminate()
@@ -356,6 +360,155 @@ class TestNodeProxyStartupOrdering:
             )
         finally:
             self._cleanup(demo)
+
+
+@contextmanager
+def _ssr_app_reporting_client_address():
+    """Launches an SSR app on free ports with a route that reports what Python
+    sees about its caller, and yields that route's URL through Node."""
+    import socket
+
+    import gradio as gr
+    from gradio.history import _is_direct_local_request
+
+    # A port the OS picks, rather than the next free one after 7860: parallel
+    # test workers search that range too, and could take the port before Node
+    # binds it, leaving this test talking to another worker's app.
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+
+    demo = gr.Interface(lambda x: x, "text", "text")
+    try:
+        demo.launch(
+            ssr_mode=True,
+            server_port=port,
+            executor="thread",
+            prevent_thread_lock=True,
+            quiet=True,
+        )
+        if not getattr(demo, "_node_is_proxy", False):
+            pytest.skip("Node proxy mode did not engage in this environment")
+
+        @demo.app.get("/gradio_api/test_client_address")
+        def client_address(request: fastapi.Request):
+            return {
+                "forwarded_for": request.headers.get("x-forwarded-for"),
+                "host": request.client.host if request.client else None,
+                "direct_local": _is_direct_local_request(request),
+            }
+
+        yield f"http://127.0.0.1:{demo.node_port}/gradio_api/test_client_address"
+    finally:
+        TestNodeProxyStartupOrdering._cleanup(demo)
+
+
+class TestNodeProxyClientAddress:
+    """Behind the Node proxy, Python must see the browser's address, not the
+    proxy's 127.0.0.1, or a remote request passes for a local one."""
+
+    def test_python_sees_the_client_address(self, monkeypatch):
+        monkeypatch.delenv("FORWARDED_ALLOW_IPS", raising=False)
+        with _ssr_app_reporting_client_address() as url:
+            # Node appends the address of whoever connected to it, here a
+            # local browser, which is still treated as local.
+            assert httpx2.get(url).json() == {
+                "forwarded_for": "127.0.0.1",
+                "host": "127.0.0.1",
+                "direct_local": True,
+            }
+
+            # Python reads the client's address from what Node forwards, so a
+            # request that came through another proxy is not local, even with
+            # a Host of localhost.
+            assert httpx2.get(
+                url,
+                headers={"Host": "localhost", "X-Forwarded-For": "203.0.113.7"},
+            ).json() == {
+                "forwarded_for": "203.0.113.7, 127.0.0.1",
+                "host": "203.0.113.7",
+                "direct_local": False,
+            }
+
+    @pytest.mark.parametrize("configured", ["*", "192.168.1.100", ""])
+    def test_node_is_trusted_whatever_forwarded_allow_ips_says(
+        self, monkeypatch, configured
+    ):
+        """With "*", uvicorn would take the leftmost X-Forwarded-For entry, which
+        the client writes; with a list that leaves out Node's address, it would
+        ignore Node's entry. Either way a remote request would pass for local."""
+        monkeypatch.setenv("FORWARDED_ALLOW_IPS", configured)
+        with _ssr_app_reporting_client_address() as url:
+            response = httpx2.get(
+                url,
+                headers={
+                    "Host": "localhost",
+                    "X-Forwarded-For": "127.0.0.1, 203.0.113.7",
+                },
+            ).json()
+        assert response["host"] == "203.0.113.7"
+        assert response["direct_local"] is False
+
+    def test_spaces_proxy_header_is_passed_through(self, monkeypatch):
+        """On Spaces, Hugging Face's proxy appends the visitor's address and is
+        the only way in, so Node must not append that proxy's own address."""
+        import os
+
+        import gradio.blocks as blocks_mod
+
+        monkeypatch.delenv("FORWARDED_ALLOW_IPS", raising=False)
+        original_start_node = blocks_mod.start_node_server
+
+        def start_node_on_spaces(*args, **kwargs):
+            # Only Node sees SPACE_ID, so Python keeps its local behavior.
+            os.environ["SPACE_ID"] = "user/space"
+            try:
+                return original_start_node(*args, **kwargs)
+            finally:
+                del os.environ["SPACE_ID"]
+
+        monkeypatch.setattr(blocks_mod, "start_node_server", start_node_on_spaces)
+        with _ssr_app_reporting_client_address() as url:
+            # What the Spaces proxy sends: anything the visitor sent, then the
+            # visitor's real address.
+            assert httpx2.get(
+                url, headers={"X-Forwarded-For": "6.6.6.6, 203.0.113.7"}
+            ).json() == {
+                "forwarded_for": "6.6.6.6, 203.0.113.7",
+                "host": "203.0.113.7",
+                "direct_local": False,
+            }
+
+
+class TestNodeProxyForwardedAllowIps:
+    def test_trusts_loopback_by_default(self, monkeypatch):
+        monkeypatch.delenv("FORWARDED_ALLOW_IPS", raising=False)
+        assert node_proxy_forwarded_allow_ips("0.0.0.0") == ["127.0.0.1", "::1"]
+        assert node_proxy_forwarded_allow_ips("127.0.0.1") == ["127.0.0.1", "::1"]
+        assert node_proxy_forwarded_allow_ips("[::1]") == ["127.0.0.1", "::1"]
+
+    def test_trusts_the_address_node_connects_from(self, monkeypatch):
+        monkeypatch.delenv("FORWARDED_ALLOW_IPS", raising=False)
+        assert node_proxy_forwarded_allow_ips("192.168.1.10") == [
+            "127.0.0.1",
+            "::1",
+            "192.168.1.10",
+        ]
+
+    def test_keeps_the_configured_proxies(self, monkeypatch):
+        monkeypatch.setenv("FORWARDED_ALLOW_IPS", "10.0.0.5, 10.0.0.0/24")
+        assert node_proxy_forwarded_allow_ips("0.0.0.0") == [
+            "127.0.0.1",
+            "::1",
+            "10.0.0.5",
+            "10.0.0.0/24",
+        ]
+
+    def test_drops_the_wildcard_with_a_warning(self, monkeypatch):
+        monkeypatch.setenv("FORWARDED_ALLOW_IPS", "*,10.0.0.5")
+        with pytest.warns(UserWarning, match="FORWARDED_ALLOW_IPS"):
+            trusted = node_proxy_forwarded_allow_ips("0.0.0.0")
+        assert trusted == ["127.0.0.1", "::1", "10.0.0.5"]
 
 
 class _FakeNodeProcess:
