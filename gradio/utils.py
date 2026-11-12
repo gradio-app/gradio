@@ -11,11 +11,13 @@ import importlib.resources
 import inspect
 import json
 import os
+import pickle as pkl
 import pkgutil
 import posixpath
 import re
 import shutil
 import site
+import socket
 import subprocess
 import sys
 import tempfile
@@ -31,12 +33,12 @@ from collections import OrderedDict
 from collections.abc import (
     Callable,
     Hashable,
-    Iterable,
     Iterator,
     MutableMapping,
     Sequence,
 )
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, ExitStack, contextmanager
+from contextvars import ContextVar
 from functools import wraps
 from io import BytesIO
 from pathlib import Path
@@ -47,6 +49,7 @@ from typing import (
     Generic,
     Literal,
     Optional,
+    ParamSpec,
     TypeVar,
     get_args,
     get_origin,
@@ -54,12 +57,11 @@ from typing import (
 
 import anyio
 import gradio_client.utils as client_utils
-import httpx
+import httpx2
 import orjson
 from gradio_client.documentation import document
 from gradio_client.exceptions import AppError
 from packaging import version
-from typing_extensions import ParamSpec
 
 import gradio
 from gradio import themes
@@ -110,29 +112,6 @@ def get_package_version() -> str:
         return version
     except Exception:
         return ""
-
-
-def safe_get_lock() -> asyncio.Lock:
-    """Get asyncio.Lock() without fear of getting an Exception.
-
-    Needed because in reload mode we import the Blocks object outside
-    the main thread.
-    """
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    return asyncio.Lock()
-
-
-def safe_get_stop_event() -> asyncio.Event:
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    return asyncio.Event()
 
 
 class DynamicBoolean(int):
@@ -516,8 +495,11 @@ def reassign_pending_event_fns(new_blocks: "Blocks"):
         yield from list(queue.event_ids_to_events.values())
 
     for event in all_events():
-        new_fn = new_fns_by_api_name.get(event.fn.api_name)
-        if new_fn is not None and new_fn.connection == event.fn.connection:
+        fn = getattr(event, "fn", None)
+        if fn is None:
+            continue
+        new_fn = new_fns_by_api_name.get(fn.api_name)
+        if new_fn is not None and new_fn.connection == fn.connection:
             event.fn = new_fn
 
 
@@ -573,6 +555,29 @@ def colab_check() -> bool:
     return is_colab
 
 
+def get_browser_streams() -> Literal["auto", "per_event", "per_session"]:
+    """
+    How browsers receive queued events' messages, from GRADIO_BROWSER_STREAMS:
+    "per_event" (sse_v4, one request per event), "per_session" (the session's
+    shared stream), or "auto", which uses per_event when the browser speaks
+    HTTP/2 or later to the app and per_session on HTTP/1.1.
+    """
+    modes: dict[str, Literal["auto", "per_event", "per_session"]] = {
+        "auto": "auto",
+        "per_event": "per_event",
+        "per_session": "per_session",
+    }
+    value = os.environ.get("GRADIO_BROWSER_STREAMS", "auto").strip().lower()
+    mode = modes.get(value)
+    if mode is None:
+        warnings.warn(
+            f"Ignoring GRADIO_BROWSER_STREAMS={value!r}: expected 'auto', "
+            "'per_event' or 'per_session'."
+        )
+        return "auto"
+    return mode
+
+
 def is_hosted_notebook() -> bool:
     """
     Check if Gradio app is launching from a hosted notebook such as Kaggle or Sagemaker.
@@ -606,7 +611,7 @@ def get_space() -> str | None:
 
 
 def is_zero_gpu_space() -> bool:
-    return os.getenv("SPACES_ZERO_GPU") == "true"
+    return os.getenv("SPACES_ZERO_GPU") in ("1", "true")
 
 
 def get_theme(theme: Theme | str | None) -> Theme:
@@ -636,10 +641,10 @@ def download_if_url(article: str) -> str:
         return article
 
     try:
-        response = httpx.get(article, timeout=3)
-        if response.status_code == httpx.codes.OK:  # pylint: disable=no-member
+        response = httpx2.get(article, timeout=3)
+        if response.status_code == httpx2.codes.OK:  # pylint: disable=no-member
             article = response.text
-    except (httpx.InvalidURL, httpx.RequestError, httpx.TimeoutException):
+    except (httpx2.InvalidURL, httpx2.RequestError, httpx2.TimeoutException):
         pass
 
     return article
@@ -1030,10 +1035,10 @@ def append_unique_suffix(name: str, list_of_names: list[str]):
 def validate_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; gradio-team@huggingface.co)"}
     try:
-        head_request = httpx.head(possible_url, headers=headers, follow_redirects=True)
+        head_request = httpx2.head(possible_url, headers=headers, follow_redirects=True)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
         if head_request.status_code in (403, 405):
-            return httpx.get(
+            return httpx2.get(
                 possible_url, headers=headers, follow_redirects=True
             ).is_success
         return head_request.is_success
@@ -1047,43 +1052,30 @@ def is_prop_update(val):
 
 def function_wrapper(
     f: Callable,
-    before_fn: Callable | None = None,
-    before_args: Iterable | None = None,
-    after_fn: Callable | None = None,
-    after_args: Iterable | None = None,
+    context_factory: Callable[[], AbstractContextManager],
 ):
-    before_args = [] if before_args is None else before_args
-    after_args = [] if after_args is None else after_args
+    """Run each call or generator step in a fresh context, exiting before yielding."""
     if inspect.isasyncgenfunction(f):
 
         @functools.wraps(f)
         async def asyncgen_wrapper(*args, **kwargs):
             iterator = f(*args, **kwargs)
             while True:
-                if before_fn:
-                    before_fn(*before_args)
                 try:
-                    response = await iterator.__anext__()
+                    with context_factory():
+                        response = await iterator.__anext__()
                 except StopAsyncIteration:
-                    if after_fn:
-                        after_fn(*after_args)
                     break
-                if after_fn:
-                    after_fn(*after_args)
                 yield response
 
         return asyncgen_wrapper
 
-    elif asyncio.iscoroutinefunction(f):
+    elif inspect.iscoroutinefunction(f):
 
         @functools.wraps(f)
         async def async_wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
-            response = await f(*args, **kwargs)
-            if after_fn:
-                after_fn(*after_args)
-            return response
+            with context_factory():
+                return await f(*args, **kwargs)
 
         return async_wrapper
 
@@ -1093,16 +1085,11 @@ def function_wrapper(
         def gen_wrapper(*args, **kwargs):
             iterator = f(*args, **kwargs)
             while True:
-                if before_fn:
-                    before_fn(*before_args)
                 try:
-                    response = next(iterator)
+                    with context_factory():
+                        response = next(iterator)
                 except StopIteration:
-                    if after_fn:
-                        after_fn(*after_args)
                     break
-                if after_fn:
-                    after_fn(*after_args)
                 yield response
 
         return gen_wrapper
@@ -1111,12 +1098,8 @@ def function_wrapper(
 
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
-            response = f(*args, **kwargs)
-            if after_fn:
-                after_fn(*after_args)
-            return response
+            with context_factory():
+                return f(*args, **kwargs)
 
         return wrapper
 
@@ -1129,29 +1112,25 @@ def get_function_with_locals(
     request: "Request | None",
     state: "SessionState | None",
 ):
-    def before_fn(blocks, event_id):
+    def set_and_reset(stack: ExitStack, var: ContextVar[V], value: V):
+        stack.callback(var.reset, var.set(value))
+
+    @contextmanager
+    def context():
         from gradio.context import LocalContext
+        from gradio.zerogpu import maybe_setup_zerogpu_context
 
-        LocalContext.blocks.set(blocks)
-        LocalContext.in_event_listener.set(in_event_listener)
-        LocalContext.event_id.set(event_id)
-        LocalContext.request.set(request)
-        if state:
-            LocalContext.blocks_config.set(state.blocks_config)
+        with ExitStack() as stack:
+            set_and_reset(stack, LocalContext.blocks, blocks)
+            set_and_reset(stack, LocalContext.in_event_listener, in_event_listener)
+            set_and_reset(stack, LocalContext.event_id, event_id)
+            set_and_reset(stack, LocalContext.request, request)
+            if state:
+                set_and_reset(stack, LocalContext.blocks_config, state.blocks_config)
+            with maybe_setup_zerogpu_context(blocks, request):
+                yield
 
-    def after_fn():
-        from gradio.context import LocalContext
-
-        LocalContext.in_event_listener.set(False)
-        LocalContext.request.set(None)
-        LocalContext.blocks_config.set(None)
-
-    return function_wrapper(
-        fn,
-        before_fn=before_fn,
-        before_args=(blocks, event_id),
-        after_fn=after_fn,
-    )
+    return function_wrapper(fn, context)
 
 
 async def cancel_tasks(task_ids: set[str]) -> list[str]:
@@ -1168,6 +1147,26 @@ async def cancel_tasks(task_ids: set[str]) -> list[str]:
             task.cancel()
     await asyncio.gather(*matching_tasks, return_exceptions=True)
     return event_ids
+
+
+async def cancel_event_tasks(event_ids: set[str]) -> list[str]:
+    """Cancels the queue tasks running exactly these events, and returns the ids
+    of the events it cancelled. Batched runs have no task name (see
+    `set_task_name`), so they are never cancelled here: they also carry other
+    sessions' events."""
+    matching_tasks = []
+    cancelled = []
+    for task in asyncio.all_tasks():
+        name = task.get_name()
+        if "<gradio-sep>" not in name:
+            continue
+        event_id = name.split("<gradio-sep>")[1]
+        if event_id in event_ids:
+            matching_tasks.append(task)
+            cancelled.append(event_id)
+            task.cancel()
+    await asyncio.gather(*matching_tasks, return_exceptions=True)
+    return cancelled
 
 
 def set_task_name(task, session_hash: str, fn_index: int, event_id: str, batch: bool):
@@ -2213,3 +2212,33 @@ def set_default_buttons(
     else:
         [btn.unrender() for btn in buttons if isinstance(btn, Button)]
         return buttons
+
+
+def resolve_resume_sessions(resume_sessions: bool | None) -> bool:
+    """The `resume_sessions` setting of `launch()`, falling back to the
+    GRADIO_RESUME_SESSIONS environment variable, and to True."""
+    if resume_sessions is not None:
+        return resume_sessions
+    value = os.environ.get("GRADIO_RESUME_SESSIONS", "True").strip().lower()
+    return value not in ("false", "0", "no", "off")
+
+
+class ShmFdQueue(Generic[T]):
+    def __init__(self):
+        self._rx, self._tx = socket.socketpair(socket.AF_UNIX, socket.SOCK_DGRAM)
+
+    def close(self):
+        self._rx.close()
+        self._tx.close()
+
+    def get(self) -> T:
+        _, (fd,), _, _ = socket.recv_fds(self._rx, 1, 1)
+        with open(fd, "rb") as f:
+            f.seek(0)
+            return pkl.load(f)
+
+    def put(self, obj: T):
+        with tempfile.TemporaryFile(dir="/dev/shm") as f:
+            pkl.dump(obj, f)
+            f.flush()
+            socket.send_fds(self._tx, [b"\0"], [f.fileno()])

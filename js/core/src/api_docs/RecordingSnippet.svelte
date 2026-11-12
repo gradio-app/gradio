@@ -189,9 +189,8 @@ await client.predict(<span
 				</div>
 				<div bind:this={bash_code}>
 					{#each bash_zipped as { call, api_name }}
-						<pre>curl -X POST {short_root}call/v2/{api_name} -s -H "Content-Type: application/json" -d '{call}' \
-  | awk -F'"' '{"{"} print $4{"}"}' \
-  | read EVENT_ID; curl -N {short_root}call/{api_name}/$EVENT_ID</pre>
+						<pre>curl -s -N -X POST {short_root}call/v2/{api_name} -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" -d '{call}'</pre>
 						<br />
 					{/each}
 				</div>

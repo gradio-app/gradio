@@ -97,6 +97,7 @@ export async function load({
 	try {
 		app = await Client.connect(api_url, {
 			with_null_state: true,
+			resume_sessions: true,
 			events: ["data", "log", "status", "render"],
 			query_params: {
 				...(deepLink ? { deep_link: deepLink } : {}),
@@ -161,7 +162,10 @@ export async function load({
 	let page_config = app.get_url_config(url.toString());
 
 	if (browser) {
-		apply_run_history_replay(page_config);
+		// A run loaded from the history becomes what a refresh keeps
+		apply_run_history_replay(page_config, (ids, values) =>
+			app.session_store.record(ids, values, page_config.components)
+		);
 	}
 
 	await setupi18n(app.config?.i18n_translations || undefined, accept_language);

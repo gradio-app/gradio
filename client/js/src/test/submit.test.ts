@@ -11,6 +11,8 @@ import { HttpResponse, http } from "msw";
 
 import { Client } from "../client";
 import {
+	clear_run_history,
+	load_run_history,
 	read_run_history,
 	set_run_history_storage
 } from "../utils/run_history";
@@ -89,10 +91,7 @@ describe("submit iterator", () => {
 		"sends the selected history bucket with queued submissions",
 		async () => {
 			const app = await Client.connect("hmb/hello_world");
-			const scope = {
-				app_id: app.config?.app_id,
-				username: app.config?.username
-			};
+			const scope = app.config!;
 			set_run_history_storage(scope, {
 				type: "bucket",
 				bucket_id: "alice/app-history"
@@ -120,9 +119,16 @@ describe("submit iterator", () => {
 			const app = await Client.connect("hmb/hello_world");
 			app.stream_status.open = true;
 			const scope = {
+				root: app.config?.root,
+				app_key: app.config?.app_key,
 				app_id: app.config?.app_id,
 				username: app.config?.username
 			};
+			// Runs and the storage choice saved by earlier tests outlive them,
+			// in IndexedDB
+			await load_run_history(scope);
+			set_run_history_storage(scope, { type: "browser" });
+			clear_run_history(scope);
 			const dependency = app.config!.dependencies[0];
 			dependency.connection = "stream";
 			dependency.targets = [[dependency.inputs[0], "stream"]];
@@ -148,9 +154,69 @@ describe("submit iterator", () => {
 			expect(run.api_name).toBe("/predict");
 			expect(run.inputs).toEqual([null, 7]);
 			expect(sent).toEqual(["hi", 3]);
+			const [streamed, other] = dependency.inputs.map((id) => ({
+				id,
+				type: app.config!.components.find((c) => c.id === id)!.type,
+				props: {} as Record<string, unknown>
+			}));
+			app.session_store.restore_into([streamed, other]);
+			expect(streamed.props).toEqual({});
+			expect(other.props.value).toBe(3);
 			await iterator.return();
 		}
 	);
+
+	test("does not save the frame a streaming component sends to another event", async () => {
+		const app = await Client.connect("hmb/hello_world");
+		app.stream_status.open = true;
+		const cam_id = app.config!.dependencies[0].inputs[0];
+		const cam = app.config!.components.find((c) => c.id === cam_id)!;
+		cam.type = "image";
+		cam.props.streaming = true;
+		server.resetHandlers(
+			http.post(`${direct_space_url}/queue/join`, () =>
+				HttpResponse.json({ event_id: "click-event" })
+			)
+		);
+
+		const iterator = app.submit("/predict", [
+			{ url: "data:image/jpeg;base64,frame" }
+		]);
+		await iterator.wait_for_id();
+		const restored = {
+			id: cam.id,
+			type: cam.type,
+			props: {} as Record<string, unknown>
+		};
+		app.session_store.restore_into([restored]);
+		expect(restored.props).toEqual({});
+		await iterator.return();
+	});
+
+	test("saves a file uploaded into a streaming audio for another event", async () => {
+		const app = await Client.connect("hmb/hello_world");
+		app.stream_status.open = true;
+		const mic_id = app.config!.dependencies[0].inputs[0];
+		const mic = app.config!.components.find((c) => c.id === mic_id)!;
+		mic.type = "audio";
+		mic.props.streaming = true;
+		server.resetHandlers(
+			http.post(`${direct_space_url}/queue/join`, () =>
+				HttpResponse.json({ event_id: "click-event" })
+			)
+		);
+
+		const iterator = app.submit("/predict", [{ url: "speech.wav" }]);
+		await iterator.wait_for_id();
+		const restored = {
+			id: mic.id,
+			type: mic.type,
+			props: {} as Record<string, unknown>
+		};
+		app.session_store.restore_into([restored]);
+		expect(restored.props.value).toEqual({ url: "speech.wav" });
+		await iterator.return();
+	});
 
 	test("next() after the iterator is closed resolves to {done: true}", async () => {
 		const app = await Client.connect("hmb/hello_world");

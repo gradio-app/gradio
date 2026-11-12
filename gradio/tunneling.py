@@ -9,7 +9,7 @@ import sys
 import time
 from pathlib import Path
 
-import httpx
+import httpx2
 from huggingface_hub.constants import HF_HOME
 
 from gradio.exceptions import ChecksumMismatchError
@@ -83,7 +83,7 @@ class Tunnel:
     def download_binary():
         if not Path(BINARY_PATH).exists():
             Path(BINARY_FOLDER).mkdir(parents=True, exist_ok=True)
-            resp = httpx.get(BINARY_URL, timeout=30)
+            resp = httpx2.get(BINARY_URL, timeout=30)
 
             if resp.status_code == 403:
                 raise OSError(

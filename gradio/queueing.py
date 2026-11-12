@@ -5,18 +5,24 @@ import inspect
 import os
 import platform
 import random
+import sys
 import time
 import traceback
 import uuid
+import warnings
 from asyncio import Queue as AsyncQueue
 from collections import defaultdict
+from collections.abc import Callable
+from contextlib import asynccontextmanager
+from dataclasses import dataclass, field
+from threading import Barrier, Lock, Thread
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
 import numpy as np
 from anyio.to_thread import run_sync
 
-from gradio import history, route_utils, routes
+from gradio import caching, history, route_utils, routes
 from gradio.caching import CacheMissError, ProbeCache
 from gradio.data_classes import (
     PredictBodyInternal,
@@ -40,20 +46,20 @@ from gradio.server_messages import (
     ProgressMessage,
     ProgressUnit,
     ServerMessage,
+    UnexpectedErrorMessage,
 )
 from gradio.utils import (
     LRUCache,
+    ShmFdQueue,
     error_payload,
     run_coro_in_background,
     safe_aclose_iterator,
-    safe_get_lock,
     set_task_name,
 )
 
 from .block_function import BlockFunction
 
 if TYPE_CHECKING:
-    from gradio.block_function import BlockFunction
     from gradio.blocks import Blocks
 
 
@@ -80,6 +86,7 @@ class Event:
         self.run_time: float = 0
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
+        self.own_stream = False
 
     @property
     def streaming(self):
@@ -107,6 +114,24 @@ class EventQueue:
         )
 
 
+@dataclass
+class ResumableSession:
+    history: list[EventMessage] = field(default_factory=list)
+    expires_at: float | None = None
+    active_streams: int = 0
+    closing: bool = False
+    # Whether a client that acknowledges results (and so may resume) has
+    # attached. Only then is the history worth keeping.
+    acknowledges: bool = False
+    # The request (and its route) that `unload` events run with, kept for when
+    # none of the session's events is left to take it from
+    unload_request: tuple[fastapi.Request, str | None, str] | None = None
+
+    def expire_after(self, seconds: float) -> None:
+        deadline = time.monotonic() + seconds
+        self.expires_at = min(deadline, self.expires_at or deadline)
+
+
 class ProcessTime:
     def __init__(self):
         self.process_time = 0
@@ -117,6 +142,36 @@ class ProcessTime:
         self.process_time += time
         self.count += 1
         self.avg_time = self.process_time / self.count
+
+
+class QueueEventForwarder:
+    def __init__(self, dispatch: Callable[[str, EventMessage], None]):
+        self._queue: ShmFdQueue[tuple[str, EventMessage] | None] = ShmFdQueue()
+        self._dispatch = dispatch
+        self._barrier = Barrier(2)
+        self._flush_lock = Lock()
+
+    def send(self, event_id: str, message: EventMessage) -> None:
+        self._queue.put((event_id, message))
+
+    def run(self) -> None:
+        while True:
+            try:
+                message = self._queue.get()
+                if message is None:
+                    self._barrier.wait()
+                else:
+                    self._dispatch(*message)
+            except Exception:
+                traceback.print_exc()
+
+    def flush(self) -> None:
+        with self._flush_lock:
+            self._queue.put(None)
+            self._barrier.wait()
+
+    def close(self) -> None:
+        self._queue.close()
 
 
 class Queue:
@@ -132,16 +187,22 @@ class Queue:
         self.pending_messages_per_session: LRUCache[str, AsyncQueue[EventMessage]] = (
             LRUCache(2000)
         )
+        self.pending_messages_per_event: dict[str, AsyncQueue[EventMessage]] = {}
         self.pending_event_ids_session: dict[str, set[str]] = {}
+        self.resumable_sessions: dict[str, ResumableSession] = {}
         self.event_ids_to_events: dict[str, Event] = {}
-        self.pending_message_lock = safe_get_lock()
+        self.pending_message_lock = asyncio.Lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
+        self.can_start: Callable[[Event], bool] | None = None
+        self.end_event: Callable[[Event], None] | None = None
         self.stopped = False
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = []
-        self.delete_lock = safe_get_lock()
+        self.delete_lock = asyncio.Lock()
         self.server_app = None
+        self.server_pid: int | None = None
+        self._event_forwarder: QueueEventForwarder | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -164,6 +225,9 @@ class Queue:
         self.cached_event_analytics_summary = {"functions": {}}
         self.events_recorded = 0
         self.event_count_at_last_cache = 0
+        self.resume_ttl = float(os.getenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "3600"))
+        self._session_cleanups: set[asyncio.Task] = set()
+        self.close_grace_period = max(0.0, min(5.0, self.resume_ttl))
         self.ANAYLTICS_CACHE_FREQUENCY = int(
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
         )
@@ -223,6 +287,26 @@ class Queue:
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
+        self.start_event_forwarder()
+
+    def start_event_forwarder(self):
+        if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED") != "true":
+            return
+        if self._event_forwarder is not None:
+            return
+        if sys.platform != "linux":
+            warnings.warn("GRADIO_QUEUE_MULTIPROCESSING_ENABLED only works on Linux")
+            return
+        self._event_forwarder = QueueEventForwarder(self.dispatch_event_message)
+        Thread(target=self._event_forwarder.run, daemon=True).start()
+
+    @asynccontextmanager
+    async def flush_event_forwarder(self):
+        try:
+            yield
+        finally:
+            if self._event_forwarder is not None:
+                await asyncio.to_thread(self._event_forwarder.flush)
 
     def create_event_queue_for_fn(self, block_fn: BlockFunction):
         concurrency_id = block_fn.concurrency_id
@@ -256,8 +340,270 @@ class Queue:
         if not event.alive:
             return
         event_message.event_id = event._id
+        # Kept for replaying to a client that resumes, so only for sessions
+        # with such a client: the history would otherwise grow without bound
+        resumable = self.resumable_sessions.get(event.session_hash)
+        if resumable is not None and resumable.acknowledges:
+            resumable.history.append(event_message)
+        if event.own_stream:
+            own_messages = self.pending_messages_per_event.get(event._id)
+            if own_messages is not None:
+                own_messages.put_nowait(event_message)
+            return
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait(event_message)
+
+    def resume_session(self, session_hash: str, event_ids: list[str]) -> None:
+        requested_ids = set(event_ids)
+        # Messages sent before any resuming client attached are still waiting
+        # rather than in the history; take them in before replaying it
+        self.start_history(session_hash)
+        # The replay goes in front of what is already waiting for the session's
+        # other events. Messages still waiting for the replayed events are in
+        # their history too, so they are not kept twice.
+        messages = self.pending_messages_per_session.get(session_hash)
+        if messages is None:
+            messages = AsyncQueue()
+            self.pending_messages_per_session[session_hash] = messages
+        waiting: list[EventMessage] = []
+        while not messages.empty():
+            message = messages.get_nowait()
+            if message.event_id not in requested_ids:
+                waiting.append(message)
+        resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
+        history = resumable.history
+        known_ids = {
+            message.event_id for message in history if message.event_id is not None
+        }
+        known_ids.update(
+            event_id
+            for event_id, event in self.event_ids_to_events.items()
+            if event.session_hash == session_hash
+        )
+        for message in history:
+            if message.event_id in requested_ids:
+                messages.put_nowait(message)
+        for event_id in requested_ids - known_ids:
+            messages.put_nowait(
+                UnexpectedErrorMessage(
+                    event_id=event_id,
+                    message="Session event not found.",
+                    session_not_found=True,
+                )
+            )
+        for message in waiting:
+            messages.put_nowait(message)
+
+    async def acknowledge_event(self, event_id: str) -> None:
+        event = self.event_ids_to_events.get(event_id)
+        session_hash = (
+            event.session_hash
+            if event is not None
+            else next(
+                (
+                    current_session_hash
+                    for current_session_hash, resumable in self.resumable_sessions.items()
+                    if event_id
+                    in self.pending_event_ids_session.get(current_session_hash, set())
+                    or any(
+                        message.event_id == event_id for message in resumable.history
+                    )
+                ),
+                None,
+            )
+        )
+        if session_hash is None:
+            return
+        pending_ids = self.pending_event_ids_session.get(session_hash)
+        if pending_ids is not None:
+            pending_ids.discard(event_id)
+        if resumable := self.resumable_sessions.get(session_hash):
+            resumable.history = [
+                message for message in resumable.history if message.event_id != event_id
+            ]
+        has_unacknowledged_history = resumable and any(
+            message.event_id for message in resumable.history
+        )
+        if (
+            not pending_ids
+            and not has_unacknowledged_history
+            and not (resumable and resumable.active_streams)
+        ):
+            self.pending_event_ids_session.pop(session_hash, None)
+            await self.delete_session(session_hash)
+        else:
+            await self.clean_events(event_id=event_id)
+
+    def start_history(self, session_hash: str) -> ResumableSession:
+        """Starts keeping the session's history, for a client that acknowledges
+        results (and so may resume). The messages still waiting to be delivered
+        are taken in, so that the history holds everything the client gets."""
+        resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
+        if not resumable.acknowledges:
+            waiting = self.pending_messages_per_session.get(session_hash)
+            if waiting is not None:
+                resumable.history.extend(
+                    m for m in list(waiting._queue) if m.event_id is not None
+                )
+            resumable.acknowledges = True
+        return resumable
+
+    def move_to_session_stream(self, event_id: str, session_hash: str) -> None:
+        """Hands an sse_v4 event whose request closed early over to its session's
+        `queue/data` stream, where a page resuming it after a refresh reads the
+        rest. Everything it sent so far is already in the session's history."""
+        self.pending_messages_per_event.pop(event_id, None)
+        if session_hash not in self.pending_messages_per_session:
+            self.pending_messages_per_session[session_hash] = AsyncQueue()
+        event = self.event_ids_to_events.get(event_id)
+        if event is not None:
+            event.own_stream = False
+            self.pending_event_ids_session.setdefault(session_hash, set()).add(event_id)
+
+    def mark_session_attached(self, session_hash: str) -> None:
+        resumable = self.start_history(session_hash)
+        resumable.active_streams += 1
+        resumable.expires_at = None
+        resumable.closing = False
+
+    def mark_session_closing(self, session_hash: str) -> None:
+        resumable = self.resumable_sessions.get(session_hash)
+        # A job that finished but whose result the page has not acknowledged
+        # leaves only its buffered messages behind, which a reload would replay.
+        has_unacknowledged = resumable is not None and any(
+            message.event_id for message in resumable.history
+        )
+        if not self.pending_event_ids_session.get(session_hash) and not (
+            has_unacknowledged
+        ):
+            return
+        resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
+        resumable.closing = True
+        if not resumable.active_streams:
+            resumable.expire_after(self.close_grace_period)
+
+    async def mark_session_detached(self, session_hash: str) -> None:
+        resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
+        resumable.active_streams = max(0, resumable.active_streams - 1)
+        if resumable.active_streams:
+            return
+        if self.pending_event_ids_session.get(session_hash) or resumable.history:
+            resumable.expire_after(
+                self.close_grace_period if resumable.closing else self.resume_ttl
+            )
+        else:
+            await self.delete_session(session_hash)
+
+    async def delete_session(
+        self, session_hash: str, *, run_unload: bool = False
+    ) -> None:
+        if run_unload:
+            await self._run_unload(session_hash)
+        self.resumable_sessions.pop(session_hash, None)
+        self.pending_messages_per_session.pop(session_hash, None)
+        await self.clean_events(session_hash=session_hash)
+
+    def remember_unload_request(
+        self,
+        session_hash: str,
+        request: fastapi.Request,
+        username: str | None,
+        route_path: str,
+    ) -> None:
+        """Keeps a request to run the session's `unload` events with, since the
+        session may outlive all of its events (e.g. a finished job that no page
+        came back to acknowledge)."""
+        resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
+        resumable.unload_request = (request, username, route_path)
+
+    async def _run_unload(self, session_hash: str) -> None:
+        app = self.server_app
+        if app is None:
+            return
+        # The heartbeat may have ended the session (and run unload) already
+        run_unload_fns = app.claim_unload(session_hash)
+        event = next(
+            (
+                event
+                for event in self.event_ids_to_events.values()
+                if event.session_hash == session_hash
+            ),
+            None,
+        )
+        resumable = self.resumable_sessions.get(session_hash)
+        unload_request = None
+        if event is not None:
+            unload_request = (
+                event.request,
+                event.username,
+                route_utils.get_api_call_path(request=event.request),
+            )
+        elif resumable is not None:
+            unload_request = resumable.unload_request
+        # Before unload, which may need the process slot a running stream holds
+        for event_id in self.pending_event_ids_session.get(session_hash, set()):
+            pending_event = self.event_ids_to_events.get(event_id)
+            if pending_event is not None:
+                pending_event.run_time = float("inf")
+                pending_event.closed = True
+                pending_event.signal.set()
+        if unload_request is not None and run_unload_fns:
+            request, username, route_path = unload_request
+            body = PredictBodyInternal(
+                session_hash=session_hash, data=[], request=request
+            )
+            gr_request = route_utils.Request(
+                request, username, session_hash=session_hash
+            )
+            root_path = route_utils.get_root_url(
+                request=request,
+                route_path=route_path,
+                root_path=app.root_path,
+            )
+            unload_fns = [
+                fn
+                for fn in app.get_blocks().fns.values()
+                if any(target[1] == "unload" for target in fn.targets)
+            ]
+            results = await asyncio.gather(
+                *(
+                    route_utils.call_process_api(
+                        app=app,
+                        body=body,
+                        gr_request=gr_request,
+                        fn=fn,
+                        root_path=root_path,
+                    )
+                    for fn in unload_fns
+                ),
+                return_exceptions=True,
+            )
+            for result in results:
+                if isinstance(result, BaseException):
+                    print(f"An unload event of session {session_hash} failed:")
+                    traceback.print_exception(result)
+        app.mark_session_closed(session_hash)
+        caching.clear_session_caches(session_hash)
+
+    def expire_detached_sessions(self) -> list[asyncio.Task]:
+        """Starts ending the detached sessions whose time is up. They end in the
+        background, so that their `unload` events never hold up the queue."""
+        now = time.monotonic()
+        tasks = []
+        for session_hash, resumable in list(self.resumable_sessions.items()):
+            if resumable.expires_at is None or resumable.expires_at > now:
+                continue
+            resumable.expires_at = None  # so that it is not picked again
+            task = asyncio.create_task(
+                self.delete_session(session_hash, run_unload=True)
+            )
+            self._session_cleanups.add(task)
+            task.add_done_callback(self._session_cleanups.discard)
+            tasks.append(task)
+        return tasks
+
+    async def clean_expired_detached_sessions(self) -> None:
+        await asyncio.gather(*self.expire_detached_sessions())
 
     def _resolve_concurrency_limit(
         self, default_concurrency_limit: int | None | Literal["not_set"]
@@ -288,7 +634,11 @@ class Queue:
         return total_len
 
     async def push(
-        self, body: PredictBodyInternal, request: fastapi.Request, username: str | None
+        self,
+        body: PredictBodyInternal,
+        request: fastapi.Request,
+        username: str | None,
+        own_stream: bool = False,
     ) -> tuple[
         bool,
         str | list[dict[str, Any]],
@@ -356,12 +706,19 @@ class Queue:
         event.data = body
         if body.session_hash is None:
             body.session_hash = event.session_hash
+        if own_stream:
+            event.own_stream = True
+            self.pending_messages_per_event[event._id] = AsyncQueue()
         async with self.pending_message_lock:
-            if body.session_hash not in self.pending_messages_per_session:
+            if (
+                not own_stream
+                and body.session_hash not in self.pending_messages_per_session
+            ):
                 self.pending_messages_per_session[body.session_hash] = AsyncQueue()
-            if body.session_hash not in self.pending_event_ids_session:
-                self.pending_event_ids_session[body.session_hash] = set()
-        self.pending_event_ids_session[body.session_hash].add(event._id)
+            if not own_stream:
+                self.pending_event_ids_session.setdefault(body.session_hash, set()).add(
+                    event._id
+                )
         self.event_ids_to_events[event._id] = event
         body.event_id = event._id if not fn.batch else None
 
@@ -426,11 +783,13 @@ class Queue:
             except CacheMissError:
                 pass  # Fall through to normal queue path
             except Exception:
+                self.pending_messages_per_event.pop(event._id, None)
                 raise
 
         try:
             event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
         except KeyError as e:
+            self.pending_messages_per_event.pop(event._id, None)
             raise KeyError(
                 "Event not found in queue. If you are deploying this Gradio app with multiple replicas, please enable stickiness to ensure that all requests from the same user are routed to the same instance."
             ) from e
@@ -467,6 +826,7 @@ class Queue:
         self._asyncio_tasks.clear()
 
     def set_server_app(self, app: routes.App):
+        self.server_pid = os.getpid()
         self.server_app = app
 
     def get_active_worker_count(self) -> int:
@@ -485,7 +845,16 @@ class Queue:
                 event_queue.concurrency_limit is None
                 or event_queue.current_concurrency < event_queue.concurrency_limit
             ):
-                first_event = event_queue.queue[0]
+                first_event = next(
+                    (
+                        event
+                        for event in event_queue.queue
+                        if self.can_start is None or self.can_start(event)
+                    ),
+                    None,
+                )
+                if first_event is None:
+                    continue
                 block_fn = first_event.fn
                 events = [first_event]
                 batch = block_fn.batch
@@ -504,6 +873,7 @@ class Queue:
     async def start_processing(self) -> None:
         try:
             while not self.stopped:
+                self.expire_detached_sessions()
                 if len(self) == 0:
                     await asyncio.sleep(self.sleep_when_free)
                     continue
@@ -547,6 +917,8 @@ class Queue:
         finally:
             self.stopped = True
             self._cancel_asyncio_tasks()
+            if self._event_forwarder is not None:
+                self._event_forwarder.close()
 
     async def start_progress_updates(self) -> None:
         """
@@ -568,6 +940,32 @@ class Queue:
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
+    def dispatch_event_message(
+        self,
+        event_id: str,
+        message: EventMessage,
+    ):
+        if self.server_pid is not None and self.server_pid != os.getpid():
+            if self._event_forwarder is None:
+                warnings.warn(
+                    "Queue event from forked process without GRADIO_QUEUE_MULTIPROCESSING_ENABLED"
+                )
+                return
+            self._event_forwarder.send(event_id, message)
+            return
+        if (worker := self.blocks._process_worker) is not None:
+            worker.forward_message(event_id, message)
+            return
+        events = [evt for job in self.active_jobs if job is not None for evt in job]
+        for event in events:
+            if event._id == event_id:
+                match message:
+                    case ProgressMessage():
+                        event.progress = message
+                        event.progress_pending = True
+                    case _:
+                        self.send_message(event, message)
+
     def set_progress(
         self,
         event_id: str,
@@ -575,23 +973,18 @@ class Queue:
     ):
         if iterables is None:
             return
-        for job in self.active_jobs:
-            if job is None:
-                continue
-            for evt in job:
-                if evt._id == event_id:
-                    progress_data: list[ProgressUnit] = []
-                    for iterable in iterables:
-                        progress_unit = ProgressUnit(
-                            index=iterable.index,
-                            length=iterable.length,
-                            unit=iterable.unit,
-                            progress=iterable.progress,
-                            desc=iterable.desc,
-                        )
-                        progress_data.append(progress_unit)
-                    evt.progress = ProgressMessage(progress_data=progress_data)
-                    evt.progress_pending = True
+        progress_data: list[ProgressUnit] = []
+        for iterable in iterables:
+            progress_unit = ProgressUnit(
+                index=iterable.index,
+                length=iterable.length,
+                unit=iterable.unit,
+                progress=iterable.progress,
+                desc=iterable.desc,
+            )
+            progress_data.append(progress_unit)
+        message = ProgressMessage(progress_data=progress_data)
+        self.dispatch_event_message(event_id, message)
 
     def log_message(
         self,
@@ -602,45 +995,52 @@ class Queue:
         duration: float | None = 10,
         visible: bool = True,
     ):
-        events = [evt for job in self.active_jobs if job is not None for evt in job]
-        for event in events:
-            if event._id == event_id:
-                log_message = LogMessage(
-                    log=log,
-                    level=level,
-                    duration=duration,
-                    visible=visible,
-                    title=title,
-                )
-                self.send_message(event, log_message)
+        log_message = LogMessage(
+            log=log,
+            level=level,
+            duration=duration,
+            visible=visible,
+            title=title,
+        )
+        self.dispatch_event_message(event_id, log_message)
 
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None
     ) -> None:
-        for job_set in self.active_jobs:
-            if job_set:
-                for job in job_set:
-                    if job.session_hash == session_hash or job._id == event_id:
-                        job.alive = False
+        def matches(event: Event) -> bool:
+            if event._id == event_id:
+                return True
+            return event.session_hash == session_hash and not event.own_stream
+
+        events = {
+            event._id: event
+            for event in self.event_ids_to_events.values()
+            if matches(event)
+        }
+        for job in self.active_jobs:
+            for event in job or []:
+                if matches(event):
+                    events[event._id] = event
+
+        for event in events.values():
+            event.alive = False
 
         async with self.delete_lock:
-            events_to_remove: list[Event] = []
-            for event_queue in self.event_queue_per_concurrency_id.values():
-                for event in event_queue.queue:
-                    if event.session_hash == session_hash or event._id == event_id:
-                        events_to_remove.append(event)
-
-            for event in events_to_remove:
-                self.event_queue_per_concurrency_id[event.concurrency_id].queue.remove(
-                    event
-                )
+            for event in events.values():
+                queue = self.event_queue_per_concurrency_id[event.concurrency_id].queue
+                if event in queue:
+                    queue.remove(event)
                 self.event_ids_to_events.pop(event._id, None)
 
-            if session_hash and session_hash in self.pending_event_ids_session:
-                removed_ids = {e._id for e in events_to_remove}
-                self.pending_event_ids_session[session_hash] -= removed_ids
-                if not self.pending_event_ids_session[session_hash]:
-                    self.pending_event_ids_session.pop(session_hash, None)
+            if session_hash:
+                self.pending_event_ids_session.pop(session_hash, None)
+            elif event_id:
+                for current_session_hash, pending_ids in list(
+                    self.pending_event_ids_session.items()
+                ):
+                    pending_ids.discard(event_id)
+                    if not pending_ids:
+                        self.pending_event_ids_session.pop(current_session_hash)
 
     async def notify_clients(self) -> None:
         """
@@ -799,7 +1199,8 @@ class Queue:
             if body is None:
                 raise ValueError("No event data")
             username = events[0].username
-            body.event_id = events[0]._id if not batch else None
+            queue_event_id = events[0]._id if not batch else None
+            body.event_id = queue_event_id
             try:
                 body.request = events[0].request
             except ValueError:
@@ -874,6 +1275,7 @@ class Queue:
                     fn=fn,
                     root_path=root_path,
                     record_history=fn.connection != "stream",
+                    queue_event_id=queue_event_id,
                 )
                 end = time.monotonic()
                 first_iteration = end - start
@@ -977,6 +1379,7 @@ class Queue:
                             fn=fn,
                             root_path=root_path,
                             record_history=fn.connection != "stream",
+                            queue_event_id=queue_event_id,
                         )
                         end = time.monotonic()
                         for event in awake_events:
@@ -1089,6 +1492,9 @@ class Queue:
             if not isinstance(e, Error) or e.print_exception:
                 traceback.print_exc()
         finally:
+            if self.end_event is not None:
+                for event in events:
+                    self.end_event(event)
             if PROFILING_ENABLED:
                 trace = get_current_trace()
                 if trace is not None:

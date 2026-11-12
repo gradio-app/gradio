@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/multimodaltextbox",
-	"version": "0.14.4",
+	"version": "0.15.0-dev.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -33,7 +33,8 @@
 		"@gradio/audio": "workspace:^"
 	},
 	"devDependencies": {
-		"@gradio/preview": "workspace:^"
+		"@gradio/preview": "workspace:^",
+		"wavesurfer.js": "7.11.0"
 	},
 	"peerDependencies": {
 		"svelte": "^5.48.0"

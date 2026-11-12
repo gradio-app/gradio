@@ -31,6 +31,7 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+START_TIMEOUT = float(os.getenv("GRADIO_START_TIMEOUT", "5"))
 
 GRADIO_HOT_RELOAD = os.getenv("GRADIO_HOT_RELOAD", "false").lower()
 
@@ -69,7 +70,7 @@ class Server(uvicorn.Server):
         start = time.time()
         while not self.started:
             time.sleep(1e-3)
-            if time.time() - start > 5:
+            if time.time() - start > START_TIMEOUT:
                 raise ServerFailedToStartError(
                     "Server failed to start. Please check that the port is available."
                 )
@@ -149,7 +150,7 @@ def start_server(
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
             )
-            if get_space() is not None:
+            if get_space() is not None and not os.environ.get("GRADIO_PROCESS_GATEWAY"):
                 reloader = SpacesReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,
@@ -160,7 +161,7 @@ def start_server(
                 server = Server(
                     config=config, reloader=reloader, watchfn=watchfn_spaces
                 )
-            elif GRADIO_WATCH_DIRS:
+            elif GRADIO_WATCH_DIRS and not os.environ.get("GRADIO_PROCESS_GATEWAY"):
                 reloader = SourceFileReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,

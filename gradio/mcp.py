@@ -14,12 +14,11 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 from urllib.parse import unquote, urlparse
 
 import gradio_client.utils as client_utils
-import httpx
+import httpx2
 from anyio.to_thread import run_sync
 from gradio_client import Client, handle_file
 from gradio_client.utils import Status, StatusUpdate
 from PIL import Image
-from pydantic import AnyUrl
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
@@ -34,8 +33,7 @@ from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
     from mcp import types  # noqa: F401
-    from mcp.server import Server  # noqa: F401
-    from mcp.server.lowlevel.helper_types import ReadResourceContents  # noqa: F401
+    from mcp.server import Server, ServerRequestContext  # noqa: F401
 
     from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
@@ -385,7 +383,6 @@ class GradioMCPServer:
     try:
         from mcp import types
         from mcp.server import Server
-        from mcp.server.lowlevel.helper_types import ReadResourceContents
         from mcp.server.sse import SseServerTransport
         from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
     except ImportError:
@@ -404,16 +401,24 @@ class GradioMCPServer:
         self.mcp_server = self.create_mcp_server()
         self.root_path = ""
         space_id = utils.get_space()
-        self.tool_prefix = space_id.split("/")[-1] + "_" if space_id else ""
+        self.tool_prefix = (
+            re.sub(r"[^a-zA-Z0-9]", "_", space_id.split("/")[-1]) + "_"
+            if space_id
+            else ""
+        )
         self.tool_to_endpoint = self.get_tool_to_endpoint()
         self.warn_about_state_inputs()
         self._local_url: str | None = None
         self._client_instance: Client | None = None
         self._app: App | None = None
 
-        manager = self.StreamableHTTPSessionManager(  # type: ignore
-            app=self.mcp_server, json_response=False, stateless=True
-        )
+        def new_manager():
+            return self.StreamableHTTPSessionManager(  # type: ignore
+                app=self.mcp_server, json_response=False, stateless=True
+            )
+
+        self.manager = new_manager()
+        self._manager_ran = False
 
         async def handle_streamable_http(
             scope: Scope, receive: Receive, send: Send
@@ -451,19 +456,21 @@ class GradioMCPServer:
                     await response(scope, receive, send)
                     return
 
-            await manager.handle_request(scope, receive, send)
+            await self.manager.handle_request(scope, receive, send)
 
         @contextlib.asynccontextmanager
         async def lifespan(app: Starlette) -> AsyncIterator[None]:  # noqa: ARG001
             """Context manager for managing session manager lifecycle."""
-            async with manager.run():
+            if self._manager_ran:
+                self.manager = new_manager()
+            self._manager_ran = True
+            async with self.manager.run():
                 try:
                     yield
                 finally:
                     pass
 
         self.lifespan = lifespan
-        self.manager = manager
         self.handle_streamable_http = handle_streamable_http
 
     @property
@@ -533,7 +540,7 @@ class GradioMCPServer:
         Gets the route path of the MCP server based on the incoming request.
         Can be different depending on whether the request is coming from the MCP SSE transport or the HTTP transport.
         """
-        url = httpx.URL(str(request.url))
+        url = httpx2.URL(str(request.url))
         url = url.copy_with(query=None)
         url = str(url).rstrip("/")
         if url.endswith("/gradio_api/mcp/messages"):
@@ -541,12 +548,13 @@ class GradioMCPServer:
         else:
             return "/gradio_api/mcp"
 
-    def get_selected_tools_from_request(self) -> list[str] | None:
+    def get_selected_tools_from_request(
+        self, context_request: Request | None
+    ) -> list[str] | None:
         """
         Extract the selected tools from the request query parameters and return the full tool names (with the tool prefix).
         Returns None if no tools parameter is specified (meaning all tools are available).
         """
-        context_request: Request | None = self.mcp_server.request_context.request
         if context_request is None:
             return None
         query_params = dict(getattr(context_request, "query_params", {}))
@@ -558,15 +566,16 @@ class GradioMCPServer:
 
     @staticmethod
     def valid_and_unique_tool_name(
-        tool_name: str, existing_tool_names: set[str]
+        tool_name: str, existing_tool_names: set[str], sanitize: bool = True
     ) -> str:
         """
         Sanitizes a tool name to make it a valid MCP tool name (only
         alphanumeric characters, underscores, <= 128 characters)
         and is unique among the existing tool names.
         """
-        tool_name = re.sub(r"[^a-zA-Z0-9]", "_", tool_name)
-        tool_name = tool_name[:120]  # Leave room for suffix if needed
+        if sanitize:
+            tool_name = re.sub(r"[^a-zA-Z0-9]", "_", tool_name)
+            tool_name = tool_name[:120]  # Leave room for suffix if needed
         tool_name_base = tool_name
         suffix = 1
         while tool_name in existing_tool_names:
@@ -580,23 +589,32 @@ class GradioMCPServer:
         creates a mapping from the tool names to the endpoint names in the API docs.
         """
         tool_to_endpoint = {}
-        for endpoint_name in self.api_info["named_endpoints"]:
-            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-            if block_fn is None or block_fn.fn is None:
-                continue
-            fn_name = (
-                getattr(block_fn.fn, "__name__", None)
-                or (
-                    hasattr(block_fn.fn, "__class__")
-                    and getattr(block_fn.fn.__class__, "__name__", None)
+        # Reserve existing tool and resource names before assigning prompt names.
+        for prompts in (False, True):
+            for endpoint_name in self.api_info["named_endpoints"]:
+                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
+                if block_fn is None or block_fn.fn is None:
+                    continue
+                is_prompt = getattr(block_fn.fn, "_mcp_type", None) == "prompt"
+                if is_prompt != prompts:
+                    continue
+                fn_name = (
+                    getattr(block_fn.fn, "__name__", None)
+                    or (
+                        hasattr(block_fn.fn, "__class__")
+                        and getattr(block_fn.fn.__class__, "__name__", None)
+                    )
+                    or endpoint_name.lstrip("/")
                 )
-                or endpoint_name.lstrip("/")
-            )
-            tool_name = self.tool_prefix + fn_name
-            tool_name = self.valid_and_unique_tool_name(
-                tool_name, set(tool_to_endpoint.keys())
-            )
-            tool_to_endpoint[tool_name] = endpoint_name
+                # Prompts are named by `gr.mcp.prompt(name=...)`, kept as-is because the
+                # MCP spec puts no character rules on prompt names
+                if is_prompt:
+                    fn_name = block_fn.fn._mcp_name  # type: ignore
+                tool_name = self.tool_prefix + fn_name
+                tool_name = self.valid_and_unique_tool_name(
+                    tool_name, set(tool_to_endpoint.keys()), sanitize=not is_prompt
+                )
+                tool_to_endpoint[tool_name] = endpoint_name
         return tool_to_endpoint
 
     def warn_about_state_inputs(self) -> None:
@@ -613,9 +631,11 @@ class GradioMCPServer:
                 )
 
     def _create_client(
-        self, headers: dict[str, str], ssl_verify: bool = False
+        self,
+        context_request: Request | None,
+        headers: dict[str, str],
+        ssl_verify: bool = False,
     ) -> Client:
-        context_request: Request | None = self.mcp_server.request_context.request
         if context_request is None:
             raise ValueError(
                 "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
@@ -636,9 +656,9 @@ class GradioMCPServer:
             headers={**headers, "x-gradio-user": "mcp"},
         )
 
-    def _get_or_create_client(self) -> Client:
+    def _get_or_create_client(self, context_request: Request | None) -> Client:
         if self._client_instance is None:
-            self._client_instance = self._create_client({})
+            self._client_instance = self._create_client(context_request, {})
         return self._client_instance
 
     def _auth_enabled(self) -> bool:
@@ -646,11 +666,13 @@ class GradioMCPServer:
             self._app.auth is not None or self._app.auth_dependency is not None
         )
 
-    def _get_request_headers(self, exclude: set[str]) -> dict[str, str]:
+    @staticmethod
+    def _get_request_headers(
+        context_request: Request | None, exclude: set[str]
+    ) -> dict[str, str]:
         """
-        Returns the headers of the current MCP request, except those in `exclude`.
+        Returns the headers of the MCP request, except those in `exclude`.
         """
-        context_request: Request | None = self.mcp_server.request_context.request
         if context_request is None:
             return {}
         return {
@@ -660,7 +682,9 @@ class GradioMCPServer:
         }
 
     @contextlib.asynccontextmanager
-    async def _loopback_client(self) -> AsyncIterator[Client]:
+    async def _loopback_client(
+        self, context_request: Request | None
+    ) -> AsyncIterator[Client]:
         """
         Yields a Client for calling the app's queued endpoints over HTTP. If the
         app uses authentication, the Client is created for this request only and
@@ -669,7 +693,7 @@ class GradioMCPServer:
         callers.
         """
         if not self._auth_enabled():
-            yield await run_sync(self._get_or_create_client)
+            yield await run_sync(self._get_or_create_client, context_request)
             return
         # The caller's credentials are only sent without checking the TLS
         # certificate to the app's own local URL. Apps mounted with
@@ -678,7 +702,8 @@ class GradioMCPServer:
         # credentials from being sent to anyone who intercepts the connection.
         client = await run_sync(
             self._create_client,
-            self._get_request_headers(_NON_CREDENTIAL_HEADERS),
+            context_request,
+            self._get_request_headers(context_request, _NON_CREDENTIAL_HEADERS),
             self.local_url is None,
         )
         try:
@@ -687,7 +712,7 @@ class GradioMCPServer:
             client.close()
 
     def _prepare_tool_call_args(
-        self, name: str, arguments: dict[str, Any]
+        self, name: str, arguments: dict[str, Any], context_request: Request | None
     ) -> tuple[str, list[Any], dict[str, str], "BlockFunction"]:
         """
         Prepare and validate arguments for a tool call.
@@ -695,7 +720,7 @@ class GradioMCPServer:
         Returns:
             A tuple of (endpoint_name, processed_args, request_headers, block_fn)
         """
-        selected_tools = self.get_selected_tools_from_request()
+        selected_tools = self.get_selected_tools_from_request(context_request)
         _, filedata_positions = self.get_input_schema(name)
         processed_kwargs = self.convert_strings_to_filedata(
             arguments, filedata_positions
@@ -722,12 +747,13 @@ class GradioMCPServer:
         else:
             processed_args = []
 
-        context_request: Request | None = self.mcp_server.request_context.request
         if context_request is None:
             raise ValueError(
                 "Could not find the request object in the MCP server context. This is not expected to happen. Please raise an issue: https://github.com/gradio-app/gradio."
             )
-        request_headers = self._get_request_headers(_NON_FORWARDED_HEADERS)
+        request_headers = self._get_request_headers(
+            context_request, _NON_FORWARDED_HEADERS
+        )
 
         return endpoint_name, processed_args, request_headers, block_fn
 
@@ -777,7 +803,7 @@ class GradioMCPServer:
         return None
 
     async def _execute_tool_with_progress(  # type: ignore
-        self, job: Any, progress_token: str | int
+        self, job: Any, ctx: "ServerRequestContext"
     ) -> dict[str, Any]:
         """
         Execute a tool call with progress tracking (streaming path).
@@ -793,16 +819,7 @@ class GradioMCPServer:
                 update = cast(StatusUpdate, update)
                 message = self._format_progress_message(update)
 
-                await (
-                    self.mcp_server.request_context.session.send_progress_notification(
-                        progress_token=progress_token,
-                        progress=step,
-                        message=message,  # type: ignore
-                        related_request_id=str(
-                            self.mcp_server.request_context.request_id
-                        ),
-                    )
-                )
+                await ctx.session.report_progress(progress=step, message=message)
                 step += 1
             elif update.type == "output" and update.final:
                 output = update.outputs
@@ -832,85 +849,31 @@ class GradioMCPServer:
         Returns:
             The MCP server.
         """
-        server = self.Server(str(self.blocks.title or "Gradio App"))  # type: ignore
+        types = self.types  # type: ignore
 
-        @server.call_tool()
         async def call_tool(
-            name: str, arguments: dict[str, Any]
-        ) -> self.types.CallToolResult:  # type: ignore
+            ctx: "ServerRequestContext", params: "types.CallToolRequestParams"
+        ) -> "types.CallToolResult":
             """
-            Call a tool on the Gradio app.
-
-            Args:
-                name: The name of the tool to call.
-                arguments: The arguments to pass to the tool.
+            Call a tool on the Gradio app. Errors are returned as an error result
+            (rather than a JSON-RPC error) so that the calling model can see them.
             """
-            endpoint_name, processed_args, request_headers, block_fn = (
-                self._prepare_tool_call_args(name, arguments)
-            )
-            processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
-
-            if not block_fn.queue:
-                # Fast path for non-queued events: call blocks.process_api()
-                # directly instead of the HTTP loopback through gradio_client.
-                # This eliminates thread dispatches, TCP round-trips, and SSE
-                # overhead — reducing MCP tool-call latency significantly.
-                session_state = SessionState(self.blocks)
-                raw_output = await self.blocks.process_api(
-                    block_fn=block_fn,
-                    inputs=processed_args,
-                    state=session_state,
-                    request=self.mcp_server.request_context.request,
+            try:
+                return await self._call_tool(ctx, params.name, params.arguments or {})
+            except Exception as e:
+                return types.CallToolResult(
+                    content=[types.TextContent(type="text", text=str(e))],
+                    is_error=True,
                 )
-                output_data = raw_output["data"]
-            else:
-                # Queued path: use the HTTP loopback to preserve streaming
-                # updates, progress notifications, and queue-based features.
-                progress_token = None
-                if self.mcp_server.request_context.meta is not None:
-                    progress_token = self.mcp_server.request_context.meta.progressToken
 
-                async with self._loopback_client() as client:
-                    job = client.submit(
-                        *processed_args,
-                        api_name=endpoint_name,
-                        headers=request_headers,
-                    )
-
-                    if progress_token is None:
-                        output_data = await self._execute_tool_without_progress(job)
-                    else:
-                        output_data = await self._execute_tool_with_progress(
-                            job,
-                            progress_token,
-                        )
-
-            output_data = self.pop_returned_state(block_fn.outputs, output_data)
-
-            context_request: Request | None = self.mcp_server.request_context.request
-            route_path = self.get_route_path(context_request)  # type: ignore
-            root_url = route_utils.get_root_url(  # type: ignore
-                request=context_request,  # type: ignore
-                route_path=route_path,  # type: ignore
-                root_path=self.root_path,  # type: ignore
-            )
-            content = self.postprocess_output_data(output_data, root_url)
-            if getattr(block_fn.fn, "_mcp_structured_output", False):
-                structured_content = {"result": content}
-            else:
-                structured_content = None
-            return self.types.CallToolResult(  # type: ignore
-                content=content,  # type: ignore
-                structuredContent=structured_content,  # type: ignore
-                _meta=getattr(block_fn.fn, "_mcp_meta", None),  # type: ignore
-            )
-
-        @server.list_tools()
-        async def list_tools() -> list[self.types.Tool]:  # type: ignore
+        async def list_tools(
+            ctx: "ServerRequestContext",
+            params: "types.PaginatedRequestParams | None",  # noqa: ARG001
+        ) -> "types.ListToolsResult":
             """
             List all tools on the Gradio app.
             """
-            selected_tools = self.get_selected_tools_from_request()
+            selected_tools = self.get_selected_tools_from_request(ctx.request)
 
             tools = []
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
@@ -933,23 +896,25 @@ class GradioMCPServer:
                 tool_meta = getattr(block_fn.fn, "_mcp_meta", None)
 
                 tools.append(
-                    self.types.Tool(  # type: ignore
+                    types.Tool(
                         name=tool_name,
                         description=description,
-                        inputSchema=schema,
-                        _meta=tool_meta,  # type: ignore
+                        input_schema=schema,
+                        meta=tool_meta,
                     )
                 )
-            return tools
+            return types.ListToolsResult(tools=tools)
 
-        @server.list_resources()
-        async def list_resources() -> list[self.types.Resource]:  # type: ignore
+        async def list_resources(
+            ctx: "ServerRequestContext",
+            params: "types.PaginatedRequestParams | None",  # noqa: ARG001
+        ) -> "types.ListResourcesResult":
             """
             List all available resources.
             """
             resources = []
 
-            selected_tools = self.get_selected_tools_from_request()
+            selected_tools = self.get_selected_tools_from_request(ctx.request)
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 if selected_tools is not None and tool_name not in selected_tools:
                     continue
@@ -968,22 +933,24 @@ class GradioMCPServer:
                     )
                     if not parameters:
                         resources.append(
-                            self.types.Resource(  # type: ignore
+                            types.Resource(
                                 uri=uri_template,
                                 name=block_fn.fn.__name__,  # type: ignore
                                 description=description,
-                                mimeType=block_fn.fn._mcp_mime_type,  # type: ignore
+                                mime_type=block_fn.fn._mcp_mime_type,  # type: ignore
                             )
                         )
-            return resources
+            return types.ListResourcesResult(resources=resources)
 
-        @server.list_resource_templates()
-        async def list_resource_templates() -> list[self.types.ResourceTemplate]:  # type: ignore
+        async def list_resource_templates(
+            ctx: "ServerRequestContext",
+            params: "types.PaginatedRequestParams | None",  # noqa: ARG001
+        ) -> "types.ListResourceTemplatesResult":
             """
             List all available resource templates.
             """
             templates = []
-            selected_tools = self.get_selected_tools_from_request()
+            selected_tools = self.get_selected_tools_from_request(ctx.request)
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 if selected_tools is not None and tool_name not in selected_tools:
                     continue
@@ -1002,21 +969,22 @@ class GradioMCPServer:
                     )
                     if parameters:
                         templates.append(
-                            self.types.ResourceTemplate(  # type: ignore
-                                uriTemplate=uri_template,
+                            types.ResourceTemplate(
+                                uri_template=uri_template,
                                 name=block_fn.fn.__name__,  # type: ignore
                                 description=description,
-                                mimeType=block_fn.fn._mcp_mime_type,  # type: ignore
+                                mime_type=block_fn.fn._mcp_mime_type,  # type: ignore
                             )
                         )
-            return templates
+            return types.ListResourceTemplatesResult(resource_templates=templates)
 
-        @server.read_resource()
-        async def read_resource(uri: AnyUrl | str) -> list[self.ReadResourceContents]:  # type: ignore
+        async def read_resource(
+            ctx: "ServerRequestContext", params: "types.ReadResourceRequestParams"
+        ) -> "types.ReadResourceResult":
             """
             Read a specific resource by URI.
             """
-            uri = str(uri)
+            uri = str(params.uri)
             for endpoint_name in self.tool_to_endpoint.values():
                 block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
 
@@ -1058,7 +1026,7 @@ class GradioMCPServer:
                         else:
                             processed_args = list(kwargs.values())
 
-                        async with self._loopback_client() as client:
+                        async with self._loopback_client(ctx.request) as client:
                             async for update in client.submit(
                                 *processed_args, api_name=endpoint_name
                             ):
@@ -1069,22 +1037,28 @@ class GradioMCPServer:
 
                         mime_type = block_fn.fn._mcp_mime_type  # type: ignore
                         if mime_type and not mime_type.startswith("text/"):
-                            result = base64.b64decode(result.encode("ascii"))
-                        return [
-                            self.ReadResourceContents(  # type: ignore
-                                content=result, mime_type=mime_type
+                            # Binary resources are returned by the Gradio function as a
+                            # base64 string, which is what MCP expects as the blob.
+                            contents = types.BlobResourceContents(
+                                uri=uri, blob=result, mime_type=mime_type
                             )
-                        ]
+                        else:
+                            contents = types.TextResourceContents(
+                                uri=uri, text=str(result), mime_type=mime_type
+                            )
+                        return types.ReadResourceResult(contents=[contents])
 
             raise ValueError(f"Resource not found: {uri}")
 
-        @server.list_prompts()
-        async def list_prompts() -> list[self.types.Prompt]:  # type: ignore
+        async def list_prompts(
+            ctx: "ServerRequestContext",
+            params: "types.PaginatedRequestParams | None",  # noqa: ARG001
+        ) -> "types.ListPromptsResult":
             """
             List all available prompts.
             """
             prompts = []
-            selected_tools = self.get_selected_tools_from_request()
+            selected_tools = self.get_selected_tools_from_request(ctx.request)
             for tool_name, endpoint_name in self.tool_to_endpoint.items():
                 if selected_tools is not None and tool_name not in selected_tools:
                     continue
@@ -1101,7 +1075,7 @@ class GradioMCPServer:
                     )
                     function_params = utils.get_function_params(block_fn.fn)
                     arguments = [
-                        self.types.PromptArgument(  # type: ignore
+                        types.PromptArgument(
                             name=param_name,
                             description=parameters.get(param_name, ""),
                             required=not has_default,
@@ -1109,40 +1083,32 @@ class GradioMCPServer:
                         for param_name, has_default, _, _ in function_params
                     ]
                     prompts.append(
-                        self.types.Prompt(  # type: ignore
+                        types.Prompt(
                             name=tool_name,
                             description=description,
                             arguments=arguments,
                         )
                     )
-            return prompts
+            return types.ListPromptsResult(prompts=prompts)
 
-        @server.get_prompt()
         async def get_prompt(
-            name: str, arguments: dict[str, Any] | None = None
-        ) -> self.types.GetPromptResult:  # type: ignore
+            ctx: "ServerRequestContext", params: "types.GetPromptRequestParams"
+        ) -> "types.GetPromptResult":
             """
             Get a specific prompt with filled-in arguments.
             """
-            endpoint_name = None
-            for endpoint_name in self.tool_to_endpoint.values():
-                block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-                if (
-                    block_fn
-                    and block_fn.fn
-                    and hasattr(block_fn.fn, "_mcp_type")
-                    and block_fn.fn._mcp_type == "prompt"
-                    and block_fn.fn._mcp_name == name  # type: ignore
-                ):
-                    break
-
-            if not endpoint_name:
+            name = params.name
+            endpoint_name = self.tool_to_endpoint.get(name)
+            block_fn = (
+                self.get_block_fn_from_endpoint_name(endpoint_name)
+                if endpoint_name
+                else None
+            )
+            if block_fn is None or getattr(block_fn.fn, "_mcp_type", None) != "prompt":
                 raise ValueError(f"Prompt not found: {name}")
+            assert endpoint_name is not None  # noqa: S101
 
-            arguments = arguments or {}
-
-            block_fn = self.get_block_fn_from_endpoint_name(endpoint_name)
-            assert block_fn is not None  # noqa: S101
+            arguments = params.arguments or {}
 
             if endpoint_name in self.api_info["named_endpoints"]:
                 parameters_info = self.api_info["named_endpoints"][endpoint_name][
@@ -1156,7 +1122,7 @@ class GradioMCPServer:
             else:
                 processed_args = list(arguments.values())
 
-            async with self._loopback_client() as client:
+            async with self._loopback_client(ctx.request) as client:
                 async for update in client.submit(
                     *processed_args, api_name=endpoint_name
                 ):
@@ -1165,16 +1131,91 @@ class GradioMCPServer:
                         result = output["data"][0]
                         break
 
-            return self.types.GetPromptResult(  # type: ignore
+            return types.GetPromptResult(
                 messages=[
-                    self.types.PromptMessage(  # type: ignore
+                    types.PromptMessage(
                         role="user",
-                        content=self.types.TextContent(type="text", text=str(result)),  # type: ignore
+                        content=types.TextContent(type="text", text=str(result)),
                     )
                 ]
             )
 
-        return server
+        return self.Server(  # type: ignore
+            str(self.blocks.title or "Gradio App"),
+            on_call_tool=call_tool,
+            on_list_tools=list_tools,
+            on_list_resources=list_resources,
+            on_list_resource_templates=list_resource_templates,
+            on_read_resource=read_resource,
+            on_list_prompts=list_prompts,
+            on_get_prompt=get_prompt,
+        )
+
+    async def _call_tool(
+        self, ctx: "ServerRequestContext", name: str, arguments: dict[str, Any]
+    ) -> "types.CallToolResult":
+        """
+        Call a tool on the Gradio app.
+
+        Args:
+            ctx: The MCP request context.
+            name: The name of the tool to call.
+            arguments: The arguments to pass to the tool.
+        """
+        context_request: Request | None = ctx.request
+        endpoint_name, processed_args, request_headers, block_fn = (
+            self._prepare_tool_call_args(name, arguments, context_request)
+        )
+        processed_args = self.insert_empty_state(block_fn.inputs, processed_args)
+
+        if not block_fn.queue:
+            # Fast path for non-queued events: call blocks.process_api()
+            # directly instead of the HTTP loopback through gradio_client.
+            # This eliminates thread dispatches, TCP round-trips, and SSE
+            # overhead — reducing MCP tool-call latency significantly.
+            session_state = SessionState(self.blocks)
+            raw_output = await self.blocks.process_api(
+                block_fn=block_fn,
+                inputs=processed_args,
+                state=session_state,
+                request=context_request,
+            )
+            output_data = raw_output["data"]
+        else:
+            # Queued path: use the HTTP loopback to preserve streaming
+            # updates, progress notifications, and queue-based features.
+            progress_token = (ctx.meta or {}).get("progress_token")
+
+            async with self._loopback_client(context_request) as client:
+                job = client.submit(
+                    *processed_args,
+                    api_name=endpoint_name,
+                    headers=request_headers,
+                )
+
+                if progress_token is None:
+                    output_data = await self._execute_tool_without_progress(job)
+                else:
+                    output_data = await self._execute_tool_with_progress(job, ctx)
+
+        output_data = self.pop_returned_state(block_fn.outputs, output_data)
+
+        route_path = self.get_route_path(context_request)  # type: ignore
+        root_url = route_utils.get_root_url(  # type: ignore
+            request=context_request,  # type: ignore
+            route_path=route_path,  # type: ignore
+            root_path=self.root_path,  # type: ignore
+        )
+        content = self.postprocess_output_data(output_data, root_url)
+        if getattr(block_fn.fn, "_mcp_structured_output", False):
+            structured_content = {"result": content}
+        else:
+            structured_content = None
+        return self.types.CallToolResult(  # type: ignore
+            content=content,  # type: ignore
+            structured_content=structured_content,  # type: ignore
+            meta=getattr(block_fn.fn, "_mcp_meta", None),
+        )
 
     def launch_mcp_on_sse(self, app: "App", subpath: str, root_path: str) -> None:
         """
@@ -1656,7 +1697,7 @@ class GradioMCPServer:
                 svg_url = f"{root_url}/gradio_api/file={encoded_path}"
                 return_value = [
                     self.types.ImageContent(  # type: ignore
-                        type="image", data=base64_data, mimeType=mimetype
+                        type="image", data=base64_data, mime_type=mimetype
                     ),
                     self.types.TextContent(  # type: ignore
                         type="text",
@@ -1670,7 +1711,7 @@ class GradioMCPServer:
                     mimetype = f"image/{image_format.lower()}"
                     return_value = [
                         self.types.ImageContent(  # type: ignore
-                            type="image", data=base64_data, mimeType=mimetype
+                            type="image", data=base64_data, mime_type=mimetype
                         ),
                         self.types.TextContent(  # type: ignore
                             type="text",

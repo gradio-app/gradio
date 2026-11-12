@@ -103,7 +103,7 @@ def test_create_endpoint_fn_docstring():
     assert "petId" in doc
 
 
-@patch("httpx.get")
+@patch("httpx2.get")
 def test_create_endpoint_fn_with_auth_token(mock_get):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -134,7 +134,7 @@ def test_create_endpoint_fn_with_auth_token(mock_get):
 
 
 def test_create_endpoint_fn_without_auth_token():
-    with patch("httpx.get") as mock_get:
+    with patch("httpx2.get") as mock_get:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"result": "success"}

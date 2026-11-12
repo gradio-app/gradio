@@ -1,5 +1,17 @@
 # @self/spa
 
+## 1.8.0-dev.0
+
+### Features
+
+- [#13585](https://github.com/gradio-app/gradio/pull/13585) [`8888208`](https://github.com/gradio-app/gradio/commit/88882080b380a00273e8d14e409c477cb07e9976) - Keep sessions (outputs, gr.State, running jobs) across refreshes, restarts and replicas.  Thanks @dawoodkhan82!
+- [#14002](https://github.com/gradio-app/gradio/pull/14002) [`dd82f43`](https://github.com/gradio-app/gradio/commit/dd82f435ee94c05ab9cdf946861a95ab77e72a47) - Remove `gradio sketch` and the vibe editor.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.8.0-dev.0
+- @gradio/core@1.14.0-dev.0
+
 ## 1.7.2
 
 ### Fixes
