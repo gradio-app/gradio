@@ -416,7 +416,8 @@ class FlagMethod:
         except Exception as e:
             print(f"Error while flagging: {e}")
             if self.visual_feedback:
-                return "Error!"
+                # Re-enable the button the "Saving..." step disabled
+                return gr.Button(value="Error!", interactive=True)
         if not self.visual_feedback:
             return
         time.sleep(0.8)  # to provide enough time for the user to observe button change

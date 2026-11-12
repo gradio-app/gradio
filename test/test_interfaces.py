@@ -185,6 +185,25 @@ class TestInterface:
         )
         assert dependency and dependency["show_progress"] == "hidden"
 
+    def test_flag_button_saves_after_showing_saving(self):
+        # Listeners of one click run at the same time, so the flag call must
+        # be chained after the "Saving..." update or it can finish first and
+        # leave the button disabled.
+        io = Interface(lambda x: x, "textbox", "textbox", flagging_mode="manual")
+        dependencies = io.config["dependencies"]  # type: ignore
+        flag_btn = next(
+            c["id"]
+            for c in io.config["components"]  # type: ignore
+            if c.get("props", {}).get("value") == "Flag"
+        )
+        click_deps = [
+            d for d in dependencies if (flag_btn, "click") in map(tuple, d["targets"])
+        ]
+        assert len(click_deps) == 1
+        assert [
+            d for d in dependencies if d.get("trigger_after") == click_deps[0]["id"]
+        ]
+
     def test_interface_in_blocks_does_not_error(self):
         with Blocks():
             Interface(fn=lambda x: x, inputs=Textbox(), outputs=Image())
