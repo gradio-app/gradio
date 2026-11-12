@@ -83,6 +83,7 @@
     "@gradio/workflowcanvas": "0.14.0"
   },
   "changesets": [
+    "beige-jobs-switch",
     "big-cloths-stop",
     "chilly-houses-play",
     "clean-ducks-bow",
@@ -91,8 +92,10 @@
     "flat-bats-tan",
     "forty-lights-kick",
     "four-cougars-sneeze",
+    "giant-stars-cut",
     "good-dragons-attend",
     "gradio-7-dev-release",
+    "heavy-ties-matter",
     "hungry-wasps-teach",
     "kind-actors-shop",
     "kind-parrots-switch",
@@ -105,6 +108,7 @@
     "rotten-regions-add",
     "six-signs-shine",
     "smart-bags-brush",
+    "sour-breads-thank",
     "stupid-mangos-think",
     "tangy-terms-march",
     "thick-teams-fold",

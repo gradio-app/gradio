@@ -1,5 +1,14 @@
 # gradio
 
+## 7.0.0-dev.1
+
+### Features
+
+- [#13969](https://github.com/gradio-app/gradio/pull/13969) [`fd4aea5`](https://github.com/gradio-app/gradio/commit/fd4aea5defa510d9fbddb4a7f08a03a6b5ca1195) - ZeroGPU native support.  Thanks @cbensimon!
+- [#14050](https://github.com/gradio-app/gradio/pull/14050) [`fda8037`](https://github.com/gradio-app/gradio/commit/fda8037b83f316454e96201dfad96e50944f8547) - Use the visitor's own HF token for run history buckets.  Thanks @dawoodkhan82!
+- [#14059](https://github.com/gradio-app/gradio/pull/14059) [`5819440`](https://github.com/gradio-app/gradio/commit/5819440d425ff73d66ec7124289322c7333e4edd) - add console forwarding for embedded apps.  Thanks @pngwn!
+- [#14057](https://github.com/gradio-app/gradio/pull/14057) [`ab27f92`](https://github.com/gradio-app/gradio/commit/ab27f920c293daeaec50fb1c3e21fac85e9fa308) - workflow: add 3d model node support.  Thanks @hannahblair!
+
 ## 7.0.0-dev.0
 
 ### Features

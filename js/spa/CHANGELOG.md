@@ -1,5 +1,17 @@
 # @self/spa
 
+## 1.8.0-dev.1
+
+### Features
+
+- [#14050](https://github.com/gradio-app/gradio/pull/14050) [`fda8037`](https://github.com/gradio-app/gradio/commit/fda8037b83f316454e96201dfad96e50944f8547) - Use the visitor's own HF token for run history buckets.  Thanks @dawoodkhan82!
+- [#14059](https://github.com/gradio-app/gradio/pull/14059) [`5819440`](https://github.com/gradio-app/gradio/commit/5819440d425ff73d66ec7124289322c7333e4edd) - add console forwarding for embedded apps.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@2.8.0-dev.1
+- @gradio/core@1.14.0-dev.1
+
 ## 1.8.0-dev.0
 
 ### Features
