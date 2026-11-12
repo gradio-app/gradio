@@ -1,5 +1,17 @@
 # @gradio/workflowcanvas
 
+## 0.15.0-dev.1
+
+### Features
+
+- [#14050](https://github.com/gradio-app/gradio/pull/14050) [`fda8037`](https://github.com/gradio-app/gradio/commit/fda8037b83f316454e96201dfad96e50944f8547) - Use the visitor's own HF token for run history buckets.  Thanks @dawoodkhan82!
+- [#14057](https://github.com/gradio-app/gradio/pull/14057) [`ab27f92`](https://github.com/gradio-app/gradio/commit/ab27f920c293daeaec50fb1c3e21fac85e9fa308) - workflow: add 3d model node support.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@2.8.0-dev.1
+- @gradio/model3d@0.20.0-dev.1
+
 ## 0.15.0-dev.0
 
 ### Features

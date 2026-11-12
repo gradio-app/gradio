@@ -1,5 +1,16 @@
 # @gradio/core
 
+## 1.14.0-dev.1
+
+### Features
+
+- [#14050](https://github.com/gradio-app/gradio/pull/14050) [`fda8037`](https://github.com/gradio-app/gradio/commit/fda8037b83f316454e96201dfad96e50944f8547) - Use the visitor's own HF token for run history buckets.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.8.0-dev.1
+- @gradio/model3d@0.20.0-dev.1
+
 ## 1.14.0-dev.0
 
 ### Features
