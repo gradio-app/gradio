@@ -897,7 +897,7 @@
 	}
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1320px) {
 	.zoom-controls,
 	.zoom-controls.history-open {
 		top: 12px;
@@ -921,6 +921,7 @@
 		box-shadow: none;
 	}
 	.toolbar {
+		position: relative;
 		height: auto;
 		min-height: 44px;
 		padding: 6px 8px;
@@ -931,7 +932,12 @@
 	.toolbar-left,
 	.toolbar-right {
 		gap: 6px;
-		flex-wrap: wrap;
+	}
+	.toolbar-left {
+		flex: 1 1 0;
+	}
+	.name-input {
+		min-width: 0;
 	}
 	.toolbar-stat {
 		display: none;
@@ -941,10 +947,13 @@
 	}
 	.name-btn,
 	.name-readonly,
+	.name-input,
 	.tool-btn,
 	.toolbar-login-btn,
 	.toolbar-user-chip {
 		white-space: nowrap;
+		height: 30px;
+		box-sizing: border-box;
 	}
 	.tool-btn {
 		padding: 5px 8px;
@@ -972,13 +981,21 @@
 	.save-menu {
 		width: min(280px, calc(100vw - 24px));
 	}
+	.toolbar-user-wrap {
+		position: static;
+	}
+	.toolbar-user-menu {
+		right: 8px;
+	}
 	.save-menu {
 		right: 0;
 	}
 	.zoom-controls,
 	.zoom-controls.history-open {
 		top: 8px;
+		bottom: auto;
 		left: 8px;
+		right: auto;
 	}
 	.shortcuts-panel,
 	.zoom-ctrl-shortcuts {
@@ -1004,5 +1021,14 @@
 	.drop-menu,
 	.add-node-menu {
 		max-width: calc(100vw - 16px);
+	}
+}
+
+@media (max-width: 640px) {
+	.toolbar-user-name {
+		display: none;
+	}
+	.toolbar-user-chip {
+		padding: 3px;
 	}
 }

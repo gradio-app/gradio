@@ -130,112 +130,114 @@
 		closeMenus();
 	}}
 >
-	{#if !readOnly}
-		{#if visible_modalities.length > 0}
-			<div class="bb-modality-group">
-				<span class="bb-group-label">Add a node:</span>
-				<div class="bb-group">
-					{#each visible_modalities as m}
-						<div class="bb-modality-wrap">
-							<button
-								class="bb-btn bb-modality-btn"
-								class:bb-modality-active={activeModalityKey === m.key}
-								onclick={(e) => {
-									e.stopPropagation();
-									closeMenus();
-									onopenpicker(m);
-								}}
-								title="Add {m.label} node"
-							>
-								<span class="bb-icon">
-									{#if m.key === "image"}
-										<ImageIcon />
-									{:else if m.key === "audio"}
-										<AudioIcon />
-									{:else if m.key === "video"}
-										<VideoIcon />
-									{:else if m.key === "3d"}
-										<Model3DIcon />
-									{:else if m.key === "text"}
-										<TextIcon />
+	<div class="bb-scroll">
+		{#if !readOnly}
+			{#if visible_modalities.length > 0}
+				<div class="bb-modality-group">
+					<span class="bb-group-label">Add a node:</span>
+					<div class="bb-group">
+						{#each visible_modalities as m}
+							<div class="bb-modality-wrap">
+								<button
+									class="bb-btn bb-modality-btn"
+									class:bb-modality-active={activeModalityKey === m.key}
+									onclick={(e) => {
+										e.stopPropagation();
+										closeMenus();
+										onopenpicker(m);
+									}}
+									title="Add {m.label} node"
+								>
+									<span class="bb-icon">
+										{#if m.key === "image"}
+											<ImageIcon />
+										{:else if m.key === "audio"}
+											<AudioIcon />
+										{:else if m.key === "video"}
+											<VideoIcon />
+										{:else if m.key === "3d"}
+											<Model3DIcon />
+										{:else if m.key === "text"}
+											<TextIcon />
+										{/if}
+									</span>
+									<span class="bb-label">{m.label}</span>
+									{#if activeModalityKey === m.key}
+										<span class="bb-active-caret" aria-hidden="true"></span>
 									{/if}
-								</span>
-								<span class="bb-label">{m.label}</span>
-								{#if activeModalityKey === m.key}
-									<span class="bb-active-caret" aria-hidden="true"></span>
-								{/if}
-							</button>
-						</div>
-					{/each}
-				</div>
-			</div>
-		{/if}
-
-		<button
-			class="bb-btn"
-			onclick={(e) => {
-				e.stopPropagation();
-				onopenpicker(DATASET_MODALITY);
-			}}
-			title="Add dataset node"
-		>
-			<span class="bb-icon">
-				<DatasetIcon />
-			</span>
-			<span class="bb-label">Dataset</span>
-		</button>
-
-		<div class="bb-divider"></div>
-
-		<div class="bb-input-wrap">
-			<button
-				class="bb-input-btn"
-				onclick={toggleComponentMenu}
-				title="Add a component node — becomes an output once something is wired into it"
-			>
-				<PlusIcon />
-				<span class="bb-input-label">Component</span>
-			</button>
-			{#if showComponentMenu}
-				<div class="input-type-menu">
-					{#each COMPONENT_TYPES as t}
-						<button
-							class="input-type-opt"
-							onclick={(e) => handleComponentType(t.key, e)}>{t.label}</button
-						>
-					{/each}
+								</button>
+							</div>
+						{/each}
+					</div>
 				</div>
 			{/if}
-		</div>
 
-		{#if boundFns.length > 0}
+			<button
+				class="bb-btn"
+				onclick={(e) => {
+					e.stopPropagation();
+					onopenpicker(DATASET_MODALITY);
+				}}
+				title="Add dataset node"
+			>
+				<span class="bb-icon">
+					<DatasetIcon />
+				</span>
+				<span class="bb-label">Dataset</span>
+			</button>
+
+			<div class="bb-divider"></div>
+
 			<div class="bb-input-wrap">
 				<button
 					class="bb-input-btn"
-					onclick={toggleFnMenu}
-					title="Add Python function node"
+					onclick={toggleComponentMenu}
+					title="Add a component node — becomes an output once something is wired into it"
 				>
-					<FunctionIcon />
-					<span class="bb-input-label">Function</span>
+					<PlusIcon />
+					<span class="bb-input-label">Component</span>
 				</button>
-				{#if showFnMenu}
-					<div class="input-type-menu fn-menu">
-						{#each boundFns as t}
+				{#if showComponentMenu}
+					<div class="input-type-menu">
+						{#each COMPONENT_TYPES as t}
 							<button
 								class="input-type-opt"
-								onclick={(e) => handleFnClick(t, e)}
-								title={t.fn}
+								onclick={(e) => handleComponentType(t.key, e)}>{t.label}</button
 							>
-								{t.label}
-							</button>
 						{/each}
 					</div>
 				{/if}
 			</div>
-		{/if}
 
-		<div class="bb-divider"></div>
-	{/if}
+			{#if boundFns.length > 0}
+				<div class="bb-input-wrap">
+					<button
+						class="bb-input-btn"
+						onclick={toggleFnMenu}
+						title="Add Python function node"
+					>
+						<FunctionIcon />
+						<span class="bb-input-label">Function</span>
+					</button>
+					{#if showFnMenu}
+						<div class="input-type-menu fn-menu">
+							{#each boundFns as t}
+								<button
+									class="input-type-opt"
+									onclick={(e) => handleFnClick(t, e)}
+									title={t.fn}
+								>
+									{t.label}
+								</button>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/if}
+
+			<div class="bb-divider"></div>
+		{/if}
+	</div>
 
 	{#if running}
 		<button class="bb-run-btn stop" onclick={onstop}>
@@ -270,6 +272,10 @@
 			0 0 0 1px rgba(255, 255, 255, 0.03);
 		z-index: 20;
 		white-space: nowrap;
+	}
+
+	.bb-scroll {
+		display: contents;
 	}
 
 	.bb-group {
@@ -542,7 +548,7 @@
 		color: #1a1b25;
 	}
 
-	@media (max-width: 1280px) {
+	@media (max-width: 1320px) {
 		.bb-group-label {
 			display: none;
 		}
@@ -568,14 +574,31 @@
 		.bottom-bar {
 			bottom: calc(10px + env(safe-area-inset-bottom));
 			max-width: calc(100vw - 16px);
-			overflow-x: auto;
-			overflow-y: hidden;
-			scrollbar-width: none;
 			padding: 4px 6px;
 			gap: 4px;
 		}
-		.bottom-bar::-webkit-scrollbar {
+		.bb-scroll {
+			display: flex;
+			align-items: center;
+			gap: 4px;
+			min-width: 0;
+			overflow-x: auto;
+			overflow-y: hidden;
+			scrollbar-width: none;
+			mask-image: linear-gradient(
+				to right,
+				#000 calc(100% - 32px),
+				transparent
+			);
+		}
+		.bb-scroll:has(.input-type-menu) {
+			mask-image: none;
+		}
+		.bb-scroll::-webkit-scrollbar {
 			display: none;
+		}
+		.bb-input-wrap {
+			position: static;
 		}
 		.bb-group-label {
 			display: none;
@@ -597,7 +620,9 @@
 			gap: 4px;
 		}
 		.bb-run-btn {
-			padding: 7px 14px;
+			height: 26px;
+			padding: 0 12px;
+			gap: 4px;
 			font-size: 12px;
 			flex-shrink: 0;
 		}

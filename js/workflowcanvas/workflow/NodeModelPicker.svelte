@@ -1404,7 +1404,7 @@
 	}
 
 	:global(body:not(.dark)) .picker-sidebar {
-		border-right-color: #e2e4ea;
+		border-color: #e2e4ea;
 		scrollbar-color: #e2e4ea transparent;
 	}
 
@@ -2050,9 +2050,21 @@
 			display: none;
 		}
 		.picker-task-item {
+			width: auto;
 			flex-shrink: 0;
 			white-space: nowrap;
 			padding: 6px 10px;
+		}
+		.picker-space-grid {
+			grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+		}
+		.space-card {
+			min-height: 0;
+		}
+		.space-card-thumb {
+			height: 72px;
+			min-height: 72px;
+			max-height: 72px;
 		}
 	}
 </style>

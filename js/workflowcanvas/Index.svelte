@@ -422,12 +422,13 @@
 		cursor: pointer;
 	}
 
-	.workflow-fullscreen:has(:global(.templates-overlay-backdrop))
-		~ .view-toggle {
+	.workflow-fullscreen:has(:global(.templates-overlay-backdrop)) ~ .view-toggle,
+	.workflow-fullscreen:has(:global(.picker-overlay)) ~ .view-toggle,
+	.workflow-fullscreen:has(:global(.input-type-menu)) ~ .view-toggle {
 		display: none;
 	}
 
-	@media (min-width: 641px) and (max-width: 1280px) and (pointer: fine) {
+	@media (min-width: 641px) and (max-width: 1320px) and (pointer: fine) {
 		.workflow-fullscreen.has-view-toggle :global(.bottom-bar) {
 			left: 206px;
 			right: 12px;
@@ -436,7 +437,7 @@
 			transform: none;
 		}
 		.view-toggle.on-canvas {
-			bottom: calc(25px + var(--frame-lift, 0px));
+			bottom: calc(25px + env(safe-area-inset-bottom) + var(--frame-lift, 0px));
 		}
 	}
 	@media (max-width: 640px), (pointer: coarse) {
