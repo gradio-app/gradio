@@ -29,6 +29,7 @@ from gradio.processing import protocol
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
     from gradio.routes import App
+    from gradio.server_messages import EventMessage
 
 STARTUP_TIMEOUT = 300
 REPLICA_STABLE_SECONDS = 30
@@ -61,67 +62,6 @@ def custom_component_locations() -> dict[str, tuple[str, str]]:
                 os.path.dirname(os.path.abspath(module.__file__)),  # type: ignore[arg-type]
             )
     return locations
-
-
-class ForwardingQueue:
-    """Stands in for `blocks._queue` here, so gr.Info and gr.Progress reach the
-    gateway's queue, which owns the events and their connections."""
-
-    def __init__(self, worker: Worker, original: Any):
-        self.worker = worker
-        self.original = original
-        self.server_app = worker.app
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self.original, name)
-
-    @property
-    def active_jobs(self) -> list[list[RunningEvent]]:
-        return [list(self.worker.running.values())]
-
-    def log_message(self, event_id, log, title, level, duration=10, visible=True):
-        self.worker.send(
-            (
-                "log",
-                event_id,
-                {
-                    "log": log,
-                    "title": title,
-                    "level": level,
-                    "duration": duration,
-                    "visible": visible,
-                },
-            )
-        )
-
-    def set_progress(self, event_id, iterables):
-        if iterables is None:
-            return
-        units = [
-            {
-                "index": i.index,
-                "length": i.length,
-                "unit": i.unit,
-                "progress": i.progress,
-                "desc": i.desc,
-            }
-            for i in iterables
-        ]
-        self.worker.send(("progress", event_id, units))
-
-    def close(self):
-        pass
-
-    def event_handle(self, event_id: str | None) -> RemoteEventHandle | None:
-        """`Queue.event_handle` for an event running here."""
-        running = self.worker.running.get(event_id or "")
-        if running is None:
-            return None
-        handle = self.worker.event_handles.get(running._id)
-        if handle is None:
-            handle = RemoteEventHandle(self.worker, running)
-            self.worker.event_handles[running._id] = handle
-        return handle
 
 
 class RunningEvent:
@@ -204,6 +144,7 @@ class Worker:
     ):
         from gradio.processing.proxy import GatewayFront, dependency_checker
         from gradio.routes import App
+        from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
         launch_kwargs = launch_kwargs or {}
         self.blocks = blocks
@@ -224,6 +165,7 @@ class Worker:
             strict_cors=launch_kwargs.get("strict_cors", True),
             mcp_server=launch_kwargs.get("mcp_server"),
         )
+        maybe_setup_zerogpu_middleware(self.app)
         self.checker = (
             dependency_checker(self.app) if self.app.router.dependencies else None
         )
@@ -236,6 +178,7 @@ class Worker:
         self.http_server: Any = None
         self.http_task: asyncio.Task | None = None
         self.http_port: int | None = None
+        self.ipc_port: int | None = None
         self.token = secrets.token_hex(16)
         self.loop: asyncio.AbstractEventLoop | None = None
         self.writer: asyncio.StreamWriter | None = None
@@ -278,6 +221,21 @@ class Worker:
         self.shutting_down = False
         self.replica_failures = 0
         self.files = protocol.FileCopies()
+
+    def forward_message(self, event_id: str, message: EventMessage):
+        data = message.model_dump(exclude={"msg", "event_id"})
+        self.send((message.msg, event_id, data))
+
+    def event_handle(self, event_id: str | None) -> RemoteEventHandle | None:
+        """`Queue.event_handle` for an event running here."""
+        running = self.running.get(event_id or "")
+        if running is None:
+            return None
+        handle = self.event_handles.get(running._id)
+        if handle is None:
+            handle = RemoteEventHandle(self, running)
+            self.event_handles[running._id] = handle
+        return handle
 
     def send(self, message: Any) -> None:
         """Writes a message from any thread (functions run in worker threads).
@@ -629,7 +587,7 @@ class Worker:
         """Reload mode swapped in the script's new Blocks: they run the events
         here, and the gateway serves their config."""
         self.blocks = demo
-        demo._process_worker = self  # type: ignore[attr-defined]
+        demo._process_worker = self
         try:
             description = self.description()
         except Exception as err:  # noqa: BLE001
@@ -659,7 +617,10 @@ class Worker:
         from gradio.data_classes import _StaticFiles
 
         self.loop = asyncio.get_running_loop()
+        self.blocks._queue.set_server_app(self.app)
+        self.blocks._queue.start_event_forwarder()
         server = await asyncio.start_server(self.handle, "127.0.0.1", 0)
+        self.ipc_port = server.sockets[0].getsockname()[1]
         http_port = await self.serve_http()
         self.http_port = http_port
         self.blocks.create_limiter()
@@ -667,7 +628,7 @@ class Worker:
             await self.blocks.run_extra_startup_events()
             self.app.startup_events_triggered = True
         address = {
-            "port": server.sockets[0].getsockname()[1],
+            "port": self.ipc_port,
             "token": self.token,
             "pid": os.getpid(),
             "http_port": http_port,
@@ -688,7 +649,7 @@ class Worker:
             "session_capacity": self.blocks.state_session_capacity,
             "replicas": self.replicas,
             "autoscale": self.autoscale,
-            "port": server.sockets[0].getsockname()[1],
+            "port": self.ipc_port,
             "token": self.token,
             "http_port": http_port,
             "http_token": self.http_token,
@@ -927,18 +888,15 @@ def serve(
     app: App | None = None,
     launch_kwargs: dict[str, Any] | None = None,
 ) -> tuple[App, str, str | None]:
-    original_queue = blocks._queue
+    queue = blocks._queue
     queue_kwargs = {
-        "max_size": original_queue.max_size,
-        "default_concurrency_limit": original_queue.default_concurrency_limit,
+        "max_size": queue.max_size,
+        "default_concurrency_limit": queue.default_concurrency_limit,
         "api_open": blocks.api_open,
-        "status_update_rate": "auto"
-        if original_queue.live_updates
-        else original_queue.update_intervals,
+        "status_update_rate": "auto" if queue.live_updates else queue.update_intervals,
     }
     worker = Worker(blocks, gateway_kwargs, queue_kwargs, app, launch_kwargs)
-    blocks._queue = ForwardingQueue(worker, original_queue)  # type: ignore[assignment]
-    blocks._process_worker = worker  # type: ignore[attr-defined]
+    blocks._process_worker = worker
     blocks.has_launched = True
     threading.Thread(
         target=asyncio.run, args=(worker.main(),), daemon=True, name="gradio-worker"
@@ -961,8 +919,7 @@ def serve(
                 )
         if failure is not None:
             worker.close()
-            blocks._queue = original_queue
-            blocks._process_worker = None  # type: ignore[attr-defined]
+            blocks._process_worker = None
             raise RuntimeError(failure)
 
     worker.start_reloader()
@@ -994,8 +951,7 @@ def serve_replica(blocks: Blocks, app: App | None, launch_kwargs: dict[str, Any]
         launch_kwargs,
         replica_fd=int(os.environ["GRADIO_PROCESS_REPLICA_FD"]),
     )
-    blocks._queue = ForwardingQueue(worker, blocks._queue)  # type: ignore[assignment]
-    blocks._process_worker = worker  # type: ignore[attr-defined]
+    blocks._process_worker = worker
     threading.Thread(
         target=asyncio.run, args=(worker.main(),), daemon=True, name="gradio-worker"
     ).start()

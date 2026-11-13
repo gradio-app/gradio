@@ -151,6 +151,7 @@ from gradio.utils import (
     get_upload_folder,
     safe_aclose_iterator,
 )
+from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
 if TYPE_CHECKING:
     from gradio.blocks import Block, BlockFunction
@@ -383,8 +384,8 @@ class App(FastAPI):
         # queue, which can both end a session, run them only once
         self.unloaded_sessions: utils.LRUCache[str, bool] = utils.LRUCache(10000)
         self.session_listener: Callable[[str, bool], None] | None = None
-        self.lock = utils.safe_get_lock()
-        self.stop_event = utils.safe_get_stop_event()
+        self.lock = asyncio.Lock()
+        self.stop_event = asyncio.Event()
         self.cookie_id = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
@@ -731,6 +732,7 @@ class App(FastAPI):
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
                 )
+                history.delete_token_cookies(response, app)
                 if all_session:
                     # Delete the tokens of all sessions associated with the current user.
                     for token in list(app.tokens.keys()):
@@ -961,9 +963,13 @@ class App(FastAPI):
             async def connect_history(
                 request: fastapi.Request,
                 body: history.ConnectBody,
-                token: history.TokenDep,
             ):
-                """Create the bucket if needed and confirm it is writable."""
+                """Create the bucket if needed and confirm it is writable. A
+                token sent with the bucket is kept in this browser's cookies
+                once it works, and used for this caller's history from then on."""
+                history.check_same_origin(request)
+                given_token = (body.token or "").strip()
+                token = given_token or history.require_token(request)
                 blocks = request.app.get_blocks()
                 try:
                     target = history.HistoryTarget.build(
@@ -972,7 +978,19 @@ class App(FastAPI):
                 except ValueError as exc:
                     raise HTTPException(422, "invalid bucket id") from exc
                 await history.offload(history.ensure_bucket, target)
-                return {"ok": True}
+                await history.offload(history.verify_writable, target)
+                response = JSONResponse({"ok": True})
+                if given_token:
+                    history.set_token_cookies(response, request.app, given_token)
+                return response
+
+            @router.post("/run-history/disconnect")
+            async def disconnect_history(request: fastapi.Request):
+                """Forget the token this browser gave for run history."""
+                history.check_same_origin(request)
+                response = JSONResponse({"ok": True})
+                history.delete_token_cookies(response, request.app)
+                return response
 
             @router.get("/run-history/buckets")
             async def list_history_buckets(token: history.TokenDep):
@@ -3018,6 +3036,7 @@ def mount_gradio_app(
     app.router.lifespan_context = new_lifespan  # type: ignore
 
     app.mount(path, gradio_app)
+    maybe_setup_zerogpu_middleware(app)
     return app
 
 

@@ -833,6 +833,7 @@ class TestWebRTC:
         queue = cast(Any, UnitQueue())
         queue.event_ids_to_events = {"event": event}
         queue.event_queue_per_concurrency_id = {}
+        queue.blocks = demo
         queue.event_handle = lambda event_id: Queue.event_handle(queue, event_id)
         demo._queue = queue
         blocks_token = LocalContext.blocks.set(demo)
@@ -2658,7 +2659,7 @@ class TestStreams:
 class TestStreamsWithProcesses:
     """Streams with executor="process": the queue runs in the gateway process,
     and the stream's function and media in this one, which reaches the
-    queue's event through `ForwardingQueue.event_handle`."""
+    queue's event through `Worker.event_handle`."""
 
     executor = "process"
     launched = TestStreams.launched

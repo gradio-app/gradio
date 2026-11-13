@@ -5,13 +5,17 @@ import inspect
 import os
 import platform
 import random
+import sys
 import time
 import traceback
 import uuid
+import warnings
 from asyncio import Queue as AsyncQueue
 from collections import defaultdict
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from threading import Barrier, Lock, Thread
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
@@ -46,17 +50,16 @@ from gradio.server_messages import (
 )
 from gradio.utils import (
     LRUCache,
+    ShmFdQueue,
     error_payload,
     run_coro_in_background,
     safe_aclose_iterator,
-    safe_get_lock,
     set_task_name,
 )
 
 from .block_function import BlockFunction
 
 if TYPE_CHECKING:
-    from gradio.block_function import BlockFunction
     from gradio.blocks import Blocks
 
 
@@ -173,6 +176,36 @@ class ProcessTime:
         self.avg_time = self.process_time / self.count
 
 
+class QueueEventForwarder:
+    def __init__(self, dispatch: Callable[[str, EventMessage], None]):
+        self._queue: ShmFdQueue[tuple[str, EventMessage] | None] = ShmFdQueue()
+        self._dispatch = dispatch
+        self._barrier = Barrier(2)
+        self._flush_lock = Lock()
+
+    def send(self, event_id: str, message: EventMessage) -> None:
+        self._queue.put((event_id, message))
+
+    def run(self) -> None:
+        while True:
+            try:
+                message = self._queue.get()
+                if message is None:
+                    self._barrier.wait()
+                else:
+                    self._dispatch(*message)
+            except Exception:
+                traceback.print_exc()
+
+    def flush(self) -> None:
+        with self._flush_lock:
+            self._queue.put(None)
+            self._barrier.wait()
+
+    def close(self) -> None:
+        self._queue.close()
+
+
 class Queue:
     def __init__(
         self,
@@ -190,7 +223,7 @@ class Queue:
         self.pending_event_ids_session: dict[str, set[str]] = {}
         self.resumable_sessions: dict[str, ResumableSession] = {}
         self.event_ids_to_events: dict[str, Event] = {}
-        self.pending_message_lock = safe_get_lock()
+        self.pending_message_lock = asyncio.Lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.can_start: Callable[[Event], bool] | None = None
         self.end_event: Callable[[Event], None] | None = None
@@ -199,8 +232,10 @@ class Queue:
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = []
         self.streams_waiting_for_worker = 0
-        self.delete_lock = safe_get_lock()
+        self.delete_lock = asyncio.Lock()
         self.server_app = None
+        self.server_pid: int | None = None
+        self._event_forwarder: QueueEventForwarder | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -285,8 +320,31 @@ class Queue:
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
+        self.start_event_forwarder()
+
+    def start_event_forwarder(self):
+        if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED") != "true":
+            return
+        if self._event_forwarder is not None:
+            return
+        if sys.platform != "linux":
+            warnings.warn("GRADIO_QUEUE_MULTIPROCESSING_ENABLED only works on Linux")
+            return
+        self._event_forwarder = QueueEventForwarder(self.dispatch_event_message)
+        Thread(target=self._event_forwarder.run, daemon=True).start()
+
+    @asynccontextmanager
+    async def flush_event_forwarder(self):
+        try:
+            yield
+        finally:
+            if self._event_forwarder is not None:
+                await asyncio.to_thread(self._event_forwarder.flush)
 
     def event_handle(self, event_id: str | None) -> EventHandle | None:
+        if (worker := self.blocks._process_worker) is not None:
+            # The gateway's queue owns the event; RemoteEventHandle stands in
+            return cast("EventHandle | None", worker.event_handle(event_id))
         event = self.event_ids_to_events.get(event_id or "")
         return EventHandle(event, self) if event is not None else None
 
@@ -843,6 +901,7 @@ class Queue:
         self._asyncio_tasks.clear()
 
     def set_server_app(self, app: routes.App):
+        self.server_pid = os.getpid()
         self.server_app = app
 
     def get_active_worker_count(self) -> int:
@@ -938,6 +997,8 @@ class Queue:
         finally:
             self.stopped = True
             self._cancel_asyncio_tasks()
+            if self._event_forwarder is not None:
+                self._event_forwarder.close()
 
     async def start_progress_updates(self) -> None:
         """
@@ -962,6 +1023,37 @@ class Queue:
             event.progress_pending = False
             self.send_message(event, event.progress)
 
+    def dispatch_event_message(
+        self,
+        event_id: str,
+        message: EventMessage,
+    ):
+        if self.server_pid is not None and self.server_pid != os.getpid():
+            if self._event_forwarder is None:
+                warnings.warn(
+                    "Queue event from forked process without GRADIO_QUEUE_MULTIPROCESSING_ENABLED"
+                )
+                return
+            self._event_forwarder.send(event_id, message)
+            return
+        if (worker := self.blocks._process_worker) is not None:
+            worker.forward_message(event_id, message)
+            return
+        match message:
+            case ProgressMessage():
+                events = [
+                    evt for job in self.active_jobs if job is not None for evt in job
+                ]
+                for event in events:
+                    if event._id == event_id:
+                        event.progress = message
+                        event.progress_pending = True
+            case _:
+                # Not only running events: a stream's handler logs between calls
+                event = self.event_ids_to_events.get(event_id)
+                if event is not None:
+                    self.send_message(event, message)
+
     def set_progress(
         self,
         event_id: str,
@@ -969,23 +1061,18 @@ class Queue:
     ):
         if iterables is None:
             return
-        for job in self.active_jobs:
-            if job is None:
-                continue
-            for evt in job:
-                if evt._id == event_id:
-                    progress_data: list[ProgressUnit] = []
-                    for iterable in iterables:
-                        progress_unit = ProgressUnit(
-                            index=iterable.index,
-                            length=iterable.length,
-                            unit=iterable.unit,
-                            progress=iterable.progress,
-                            desc=iterable.desc,
-                        )
-                        progress_data.append(progress_unit)
-                    evt.progress = ProgressMessage(progress_data=progress_data)
-                    evt.progress_pending = True
+        progress_data: list[ProgressUnit] = []
+        for iterable in iterables:
+            progress_unit = ProgressUnit(
+                index=iterable.index,
+                length=iterable.length,
+                unit=iterable.unit,
+                progress=iterable.progress,
+                desc=iterable.desc,
+            )
+            progress_data.append(progress_unit)
+        message = ProgressMessage(progress_data=progress_data)
+        self.dispatch_event_message(event_id, message)
 
     def log_message(
         self,
@@ -996,17 +1083,14 @@ class Queue:
         duration: float | None = 10,
         visible: bool = True,
     ):
-        # Not only running events: a gr.WebRTC handler logs between calls
-        event = self.event_ids_to_events.get(event_id)
-        if event is not None:
-            log_message = LogMessage(
-                log=log,
-                level=level,
-                duration=duration,
-                visible=visible,
-                title=title,
-            )
-            self.send_message(event, log_message)
+        log_message = LogMessage(
+            log=log,
+            level=level,
+            duration=duration,
+            visible=visible,
+            title=title,
+        )
+        self.dispatch_event_message(event_id, log_message)
 
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None

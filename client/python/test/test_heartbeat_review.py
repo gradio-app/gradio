@@ -249,6 +249,7 @@ def test_gc_runs_unload_and_closes_session(monkeypatch):
 
 def test_per_request_clients_release_heartbeats(monkeypatch):
     monkeypatch.setenv("GRADIO_HEARTBEAT_INTERVAL", "0.05")
+    monkeypatch.setenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "0")
     unloaded = []
     with gr.Blocks() as demo:
         state = gr.State(0)

@@ -106,7 +106,14 @@
 
 		if (source) {
 			try {
-				await currentViewer.loadModel(source, LOAD_OPTIONS);
+				const pluginExtension =
+					typeof source === "string" && source.startsWith("blob:")
+						? value.path.match(/\.[^./]+$/)?.[0]?.toLowerCase()
+						: undefined;
+				await currentViewer.loadModel(source, {
+					...LOAD_OPTIONS,
+					pluginExtension
+				});
 				if (mounted && currentViewer === viewer) {
 					await load_as_point_cloud(currentViewer, source);
 				}

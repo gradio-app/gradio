@@ -113,7 +113,12 @@ exclude = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = {hf-gradio = false, gradio-client = false, starlette = false, safehttpx = false, pillow = false, brotli = false}
+exclude-newer-package = {hf-gradio = false, gradio-client = false, spaces = false, starlette = false, safehttpx = false, pillow = false, brotli = false}
+
+# Use the in-repo client for development. An unpacked sdist has no
+# client/python, so pass --no-sources when installing from one with uv.
+[tool.uv.sources]
+gradio-client = { path = "client/python", editable = true }
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py", "gradio/_vendor/*"]
@@ -132,6 +137,7 @@ extend-select = [
   "SIM",
   "UP",
   "W",
+  "TC004",
 ]
 ignore = [
   "B008",    # function call in argument defaults
