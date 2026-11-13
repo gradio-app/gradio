@@ -55,9 +55,10 @@
 				throw new Error("No resolved URL");
 			}
 			loading = true;
-			if (url.endsWith(".ply")) {
+			const name = value.path.toLowerCase();
+			if (name.endsWith(".ply")) {
 				await SPLAT.PLYLoader.LoadAsync(url, scene, undefined);
-			} else if (url.endsWith(".splat")) {
+			} else if (name.endsWith(".splat")) {
 				await SPLAT.Loader.LoadAsync(url, scene, undefined);
 			} else {
 				throw new Error("Unsupported file type");

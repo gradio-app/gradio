@@ -1,5 +1,46 @@
 # gradio
 
+## 6.32.0
+
+### Features
+
+- [#14050](https://github.com/gradio-app/gradio/pull/14050) [`fda8037`](https://github.com/gradio-app/gradio/commit/fda8037b83f316454e96201dfad96e50944f8547) - Use the visitor's own HF token for run history buckets.  Thanks @dawoodkhan82!
+- [#14034](https://github.com/gradio-app/gradio/pull/14034) [`1028366`](https://github.com/gradio-app/gradio/commit/1028366300f10b26f0b54a1d6cda6d520895acbb) - Allow Pillow 13 on 6.x and keep 32-bit integer PNG output working.  Thanks @abidlabs!
+- [#14042](https://github.com/gradio-app/gradio/pull/14042) [`2f8693a`](https://github.com/gradio-app/gradio/commit/2f8693aa4a07d1ad300be5e6c28e9bf15c600f4e) - Add GitHub-installed CLI extensions.  Thanks @abidlabs!
+- [#14059](https://github.com/gradio-app/gradio/pull/14059) [`5819440`](https://github.com/gradio-app/gradio/commit/5819440d425ff73d66ec7124289322c7333e4edd) - add console forwarding for embedded apps.  Thanks @pngwn!
+- [#14017](https://github.com/gradio-app/gradio/pull/14017) [`ebccfcf`](https://github.com/gradio-app/gradio/commit/ebccfcf3194dd3cd132491a6bc35968f1321611a) - workflows: handle depth estimation.  Thanks @hannahblair!
+- [#13972](https://github.com/gradio-app/gradio/pull/13972) [`d702b19`](https://github.com/gradio-app/gradio/commit/d702b19b8a6d7f2e8af6d7cd260c6e44af3e9433) - workflow: add masked setting on textboxes.  Thanks @hannahblair!
+- [#14057](https://github.com/gradio-app/gradio/pull/14057) [`ab27f92`](https://github.com/gradio-app/gradio/commit/ab27f920c293daeaec50fb1c3e21fac85e9fa308) - workflow: add 3d model node support.  Thanks @hannahblair!
+- [#14053](https://github.com/gradio-app/gradio/pull/14053) [`29ba706`](https://github.com/gradio-app/gradio/commit/29ba706b42dd2a86079568c141e557c8b888e0c8) - Require login for the MCP server when the app uses auth, and make queued MCP calls work with auth.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13991](https://github.com/gradio-app/gradio/pull/13991) [`fa3f296`](https://github.com/gradio-app/gradio/commit/fa3f29607c4b2ded9973970053af6c6b7971d9ba) - Run a deferred always_last event with its own event data.  Thanks @hysts!
+- [#14064](https://github.com/gradio-app/gradio/pull/14064) [`62e7c9e`](https://github.com/gradio-app/gradio/commit/62e7c9ebe7225ff443f2bf3138638d03c363ee4c) - Fix two Windows bugs: reused cached files deleted early, misleading reserved-port error.  Thanks @dawoodkhan82!
+- [#14027](https://github.com/gradio-app/gradio/pull/14027) [`f3bab14`](https://github.com/gradio-app/gradio/commit/f3bab14e9d5a46bb22866a3a9db498c02f4e7ad0) - Show an error when camera permission is denied for the webcam.  Thanks @hysts!
+
+## 6.31.0
+
+### Features
+
+- [#13958](https://github.com/gradio-app/gradio/pull/13958) [`de986c7`](https://github.com/gradio-app/gradio/commit/de986c72372e233ffaaa7abe1b93608d4d115065) - Write gr.Video format conversions and watermarks into the cache.  Thanks @abidlabs!
+- [#13966](https://github.com/gradio-app/gradio/pull/13966) [`4b58c80`](https://github.com/gradio-app/gradio/commit/4b58c80fd67fe42bd4c1b1533a1c825afb1a979d) - forward ZeroGPU X-IP-Token from gr.Workflow + stop reporting quota errors as GPU unavailable.  Thanks @hannahblair!
+- [#13994](https://github.com/gradio-app/gradio/pull/13994) [`15199c0`](https://github.com/gradio-app/gradio/commit/15199c0faf5fa2a477ab9cf25178010ce8bc480e) - handle system clashing with browser scrolling in `gr.workflow`.  Thanks @hannahblair!
+- [#13996](https://github.com/gradio-app/gradio/pull/13996) [`336590f`](https://github.com/gradio-app/gradio/commit/336590f061a3ee59ca9592e3c6675bad616e35eb) - workflow: ensure inline checkbox works.  Thanks @hannahblair!
+- [#13971](https://github.com/gradio-app/gradio/pull/13971) [`b3c050c`](https://github.com/gradio-app/gradio/commit/b3c050c7d445a9d3d9ae5fd76adef8d5e6052874) - fit gr.workflow in full screen layouts.  Thanks @hannahblair!
+- [#13963](https://github.com/gradio-app/gradio/pull/13963) [`3570032`](https://github.com/gradio-app/gradio/commit/35700328a4dbe4a96708ed891dc661db7102dae5) - ensure app/workflow toggle is visible in tall spaces.  Thanks @hannahblair!
+- [#13970](https://github.com/gradio-app/gradio/pull/13970) [`c270f35`](https://github.com/gradio-app/gradio/commit/c270f35d91995d3f33b77b9504567d6d1c9b7216) - Don't flash the app view before showing a Workflow Space's owner the canvas.  Thanks @abidlabs!
+- [#13949](https://github.com/gradio-app/gradio/pull/13949) [`526c243`](https://github.com/gradio-app/gradio/commit/526c24340024dfae9c9a7709aad552382ed99f86) - Fix infinite loop when a file range extends past EOF.  Thanks @cbensimon!
+- [#14015](https://github.com/gradio-app/gradio/pull/14015) [`56f0f8d`](https://github.com/gradio-app/gradio/commit/56f0f8d9be57b0737b1f967fb90eed336e647212) - Require brotli>=1.2.1 (CVE-2026-111497).  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#13985](https://github.com/gradio-app/gradio/pull/13985) [`8a77753`](https://github.com/gradio-app/gradio/commit/8a77753ffd0cb7bf9c3c30d5f5a0aebb665cda30) - Record each user's run from a batched event to their own run history bucket.  Thanks @hysts!
+- [#13981](https://github.com/gradio-app/gradio/pull/13981) [`68a1122`](https://github.com/gradio-app/gradio/commit/68a112234da6f48df003d0de9449b455ac5d9e5b) - Don't save runs started by a Timer tick or a page load to run history.  Thanks @hysts!
+- [#13941](https://github.com/gradio-app/gradio/pull/13941) [`12cc9d4`](https://github.com/gradio-app/gradio/commit/12cc9d4cca0ecfa3f7a70ce445e8481382833b5f) - Render streamed markdown block by block instead of rebuilding the whole message.  Thanks @hysts!
+- [#13979](https://github.com/gradio-app/gradio/pull/13979) [`1d6b6cb`](https://github.com/gradio-app/gradio/commit/1d6b6cb8a626c876ea5b66dfd9fc85d5776b53d0) - Save a `.stream()` input event to run history once, with its last output.  Thanks @hysts!
+- [#13983](https://github.com/gradio-app/gradio/pull/13983) [`020c76c`](https://github.com/gradio-app/gradio/commit/020c76cd18e59609a26dc006f25d3bb071e3b8b2) - Don't rerun a `.stream()` handler on its last chunk when the stream ends.  Thanks @hysts!
+
 ## 6.30.0
 
 ### Features

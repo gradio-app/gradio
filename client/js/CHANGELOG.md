@@ -1,5 +1,19 @@
 # @gradio/client
 
+## 2.8.0
+
+### Features
+
+- [#14050](https://github.com/gradio-app/gradio/pull/14050) [`fda8037`](https://github.com/gradio-app/gradio/commit/fda8037b83f316454e96201dfad96e50944f8547) - Use the visitor's own HF token for run history buckets.  Thanks @dawoodkhan82!
+- [#14059](https://github.com/gradio-app/gradio/pull/14059) [`5819440`](https://github.com/gradio-app/gradio/commit/5819440d425ff73d66ec7124289322c7333e4edd) - add console forwarding for embedded apps.  Thanks @pngwn!
+
+## 2.7.2
+
+### Fixes
+
+- [#13981](https://github.com/gradio-app/gradio/pull/13981) [`68a1122`](https://github.com/gradio-app/gradio/commit/68a112234da6f48df003d0de9449b455ac5d9e5b) - Don't save runs started by a Timer tick or a page load to run history.  Thanks @hysts!
+- [#13979](https://github.com/gradio-app/gradio/pull/13979) [`1d6b6cb`](https://github.com/gradio-app/gradio/commit/1d6b6cb8a626c876ea5b66dfd9fc85d5776b53d0) - Save a `.stream()` input event to run history once, with its last output.  Thanks @hysts!
+
 ## 2.7.1
 
 ### Fixes

@@ -691,7 +691,21 @@ describe("get_data / set_data", () => {
 });
 
 describe("Edge cases", () => {
-	afterEach(() => cleanup());
+	afterEach(() => {
+		cleanup();
+		vi.restoreAllMocks();
+	});
+
+	test("a splat behind a blob URL loads", async () => {
+		const blob = await fetch(TEST_SPLAT.url!).then((r) => r.blob());
+		const value = { ...TEST_SPLAT, url: URL.createObjectURL(blob) };
+		const fetch_spy = vi.spyOn(window, "fetch");
+		await render(Model3D, { ...base_props, value });
+
+		await waitFor(() => {
+			expect(fetch_spy).toHaveBeenCalledWith(value.url, expect.anything());
+		});
+	});
 
 	test("value transition null → set → null renders correctly", async () => {
 		const { set_data, getByTestId, queryByTestId } = await render(Model3D, {

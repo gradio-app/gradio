@@ -60,18 +60,60 @@ class TestTempFileManagement:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
         assert Path(f).name == "cheetah1-copy.jpg"
 
-    def test_save_file_to_cache_refreshes_ctime_of_a_reused_copy(self, tmp_path):
+    def test_save_file_to_cache_refreshes_age_of_a_reused_copy(self, tmp_path):
         source = tmp_path / "clip.txt"
         source.write_text("content")
         cache_dir = tmp_path / "cache"
 
         cached = processing_utils.save_file_to_cache(source, cache_dir=str(cache_dir))
-        first_ctime = Path(cached).stat().st_ctime_ns
-        time.sleep(0.05)
+        # Backdate the copy so the refresh is visible on every platform. On
+        # Windows `st_ctime` is the creation time and can't be refreshed, which
+        # is why `delete_cache` also looks at the mtime.
+        os.utime(cached, (0, 0))
         reused = processing_utils.save_file_to_cache(source, cache_dir=str(cache_dir))
 
         assert reused == cached
-        assert Path(reused).stat().st_ctime_ns > first_ctime
+        assert Path(reused).stat().st_mtime > time.time() - 60
+
+    def test_save_file_to_cache_does_not_keep_a_future_mtime(self, tmp_path):
+        source = tmp_path / "clip.txt"
+        source.write_text("content")
+        a_year_from_now = time.time() + 365 * 24 * 60 * 60
+        os.utime(source, (a_year_from_now, a_year_from_now))
+
+        cached = processing_utils.save_file_to_cache(
+            source, cache_dir=str(tmp_path / "cache")
+        )
+
+        assert Path(cached).stat().st_mtime < time.time() + 60
+
+    def test_delete_cache_keeps_a_file_touched_after_it_was_created(
+        self, tmp_path, monkeypatch
+    ):
+        """On Windows `st_ctime` is the creation time and `os.utime` never
+        refreshes it, so `delete_cache` must also look at the mtime."""
+        from types import SimpleNamespace
+
+        from gradio.route_utils import delete_files_created_by_app
+
+        touched = tmp_path / "touched.txt"
+        touched.write_text("content")
+        real_lstat = Path.lstat
+
+        def lstat_with_old_creation_time(self):
+            result = real_lstat(self)
+            if self != touched:
+                return result
+            return SimpleNamespace(st_ctime=0, st_mtime=result.st_mtime)
+
+        monkeypatch.setattr(Path, "lstat", lstat_with_old_creation_time)
+        temp_set = {str(touched)}
+        blocks = SimpleNamespace(blocks={}, temp_file_sets=[temp_set])
+
+        delete_files_created_by_app(blocks, age=60)  # type: ignore[arg-type]
+
+        assert touched.exists()
+        assert temp_set == {str(touched)}
 
     def test_save_file_to_cache_leaves_nothing_behind_when_copy_fails(
         self, tmp_path, monkeypatch
@@ -330,6 +372,17 @@ class TestImagePreprocessing:
         )
         output_img = Image.open(file_obj)
         assert output_img.n_frames == input_img.n_frames == 3  # type: ignore
+
+    def test_save_pil_to_file_32_bit_integer_png(self, gradio_temp_dir):
+        arr = np.array([[-5, 0, 1000, 65535, 70000]], dtype=np.int32)
+        input_img = Image.fromarray(arr)
+        assert input_img.mode == "I"
+        file_obj = processing_utils.save_pil_to_cache(
+            input_img, cache_dir=gradio_temp_dir, format="png"
+        )
+        output_img = Image.open(file_obj)
+        assert output_img.mode == "I;16"
+        assert np.array(output_img).tolist() == [[0, 0, 1000, 65535, 65535]]
 
     def test_np_pil_encode_to_the_same(self, gradio_temp_dir):
         arr = np.random.randint(0, 255, size=(100, 100, 3), dtype=np.uint8)

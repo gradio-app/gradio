@@ -302,6 +302,24 @@ class App(FastAPI):
             raise ValueError("No Blocks has been configured for this app.")
         return self.blocks
 
+    async def get_current_user(self, request: fastapi.Request) -> str | None:
+        """Returns the logged-in user for a request, or None if there is no logged-in user."""
+        if self.auth_dependency is not None:
+            user = self.auth_dependency(request)
+            if inspect.isawaitable(user):
+                user = await user
+            return user
+        token = request.cookies.get(
+            f"access-token-{self.cookie_id}"
+        ) or request.cookies.get(f"access-token-unsecure-{self.cookie_id}")
+        return self.tokens.get(token)
+
+    async def is_authenticated(self, request: fastapi.Request) -> bool:
+        """Returns True if the app has no authentication or the request comes from a logged-in user."""
+        if self.auth is None and self.auth_dependency is None:
+            return True
+        return await self.get_current_user(request) is not None
+
     def build_proxy_request(self, url_path):
         url = httpx.URL(route_utils.requote_proxied_url(url_path))
         assert self.blocks  # noqa: S101
@@ -425,15 +443,7 @@ class App(FastAPI):
         @router.get("/user")
         @router.get("/user/")
         async def get_current_user(request: fastapi.Request) -> str | None:
-            if app.auth_dependency is not None:
-                user = app.auth_dependency(request)
-                if inspect.isawaitable(user):
-                    user = await user
-                return user
-            token = request.cookies.get(
-                f"access-token-{app.cookie_id}"
-            ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
-            return app.tokens.get(token)
+            return await app.get_current_user(request)
 
         @router.get("/login_check")
         @router.get("/login_check/")
@@ -563,6 +573,7 @@ class App(FastAPI):
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
                 )
+                history.delete_token_cookies(response, app)
                 if all_session:
                     # Delete the tokens of all sessions associated with the current user.
                     for token in list(app.tokens.keys()):
@@ -792,9 +803,13 @@ class App(FastAPI):
             async def connect_history(
                 request: fastapi.Request,
                 body: history.ConnectBody,
-                token: history.TokenDep,
             ):
-                """Create the bucket if needed and confirm it is writable."""
+                """Create the bucket if needed and confirm it is writable. A
+                token sent with the bucket is kept in this browser's cookies
+                once it works, and used for this caller's history from then on."""
+                history.check_same_origin(request)
+                given_token = (body.token or "").strip()
+                token = given_token or history.require_token(request)
                 blocks = request.app.get_blocks()
                 try:
                     target = history.HistoryTarget.build(
@@ -803,7 +818,19 @@ class App(FastAPI):
                 except ValueError as exc:
                     raise HTTPException(422, "invalid bucket id") from exc
                 await history.offload(history.ensure_bucket, target)
-                return {"ok": True}
+                await history.offload(history.verify_writable, target)
+                response = JSONResponse({"ok": True})
+                if given_token:
+                    history.set_token_cookies(response, request.app, given_token)
+                return response
+
+            @router.post("/run-history/disconnect")
+            async def disconnect_history(request: fastapi.Request):
+                """Forget the token this browser gave for run history."""
+                history.check_same_origin(request)
+                response = JSONResponse({"ok": True})
+                history.delete_token_cookies(response, request.app)
+                return response
 
             @router.get("/run-history/buckets")
             async def list_history_buckets(token: history.TokenDep):
@@ -2840,7 +2867,7 @@ def mount_gradio_app(
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears if `run_history` is True and the browser has at least one saved run for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
         run_history: If True, users can review and reload calls from the run history page at /gradio_api/runs. Runs are saved privately in the browser by default; from that page, a user can instead connect a Hugging Face bucket and save future runs there. Browser history is scoped to the logged-in user if the app uses `auth`. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
-        ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 20+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
+        ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 24+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.
         i18n: If provided, the i18n instance to use for this gradio app.
         node_port: The port on which the Node server should run. If None, will use GRADIO_NODE_SERVER_PORT environment variable or find a free port.

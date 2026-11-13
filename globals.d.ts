@@ -14,7 +14,13 @@ declare global {
 			size: (height: number) => void;
 			autoResize: (auto: boolean) => void;
 			getPageInfo: (
-				callback: (info: { scrollTop: number; offsetTop: number }) => void
+				callback:
+					| ((info: {
+							scrollTop: number;
+							offsetTop: number;
+							clientHeight: number;
+					  }) => void)
+					| false
 			) => void;
 		};
 		supports_zerogpu_headers?: boolean;

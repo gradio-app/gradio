@@ -33,6 +33,7 @@ import {
 } from "./helpers/init_helpers";
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
+import { initialize_console_forwarding_for_app } from "./helpers/console_forward";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { clear_run_history } from "./utils/run_history";
 import { sign_config_file_urls, sign_file_urls } from "./helpers/data";
@@ -239,6 +240,7 @@ export class Client {
 
 	private async init(): Promise<void> {
 		initialize_zerogpu_handshake();
+		initialize_console_forwarding_for_app(this.app_reference);
 
 		if (this.options.auth) {
 			await this.resolve_cookies();
@@ -263,6 +265,8 @@ export class Client {
 	async _resolve_heartbeat(_config: Config): Promise<void> {
 		this.config = _config;
 		this.api_prefix = _config.api_prefix || "";
+		// covers apps referenced by space id whose url is only known now
+		initialize_console_forwarding_for_app(_config.root, _config.version);
 
 		if (_config.space_id && this.options.token) {
 			this.jwt = await get_jwt(

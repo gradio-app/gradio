@@ -94,10 +94,16 @@ async function request<T>(
  * Create the bucket if it does not exist and confirm it is writable. Stores
  * nothing server-side — the caller keeps its own choice and names it on every
  * later request.
+ *
+ * `token` is the caller's own HF access token. Once the bucket connects, the
+ * server keeps it in an HttpOnly cookie for this app and uses it for this
+ * browser's history; without one, the request needs an OAuth session or a
+ * token kept by an earlier connect.
  */
 export async function connect_bucket(
 	root: string,
-	bucket_id: string
+	bucket_id: string,
+	token?: string
 ): Promise<HistoryResult<null>> {
 	if (!is_valid_bucket_id(bucket_id)) {
 		return {
@@ -112,7 +118,26 @@ export async function connect_bucket(
 		{
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ bucket_id })
+			body: JSON.stringify(token ? { bucket_id, token } : { bucket_id })
+		},
+		null,
+		() => null
+	);
+}
+
+/**
+ * Forget the token this browser gave for run history. The server clears its
+ * HttpOnly cookie, which page code can't.
+ */
+export async function disconnect_bucket(
+	root: string
+): Promise<HistoryResult<null>> {
+	return request(
+		url(root, "disconnect"),
+		{
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: "{}"
 		},
 		null,
 		() => null

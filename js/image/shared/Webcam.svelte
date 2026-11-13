@@ -97,8 +97,12 @@
 	};
 
 	async function access_webcam(): Promise<void> {
+		if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+			onerror?.(i18n("image.no_webcam_support"));
+			return;
+		}
 		try {
-			get_video_stream(include_audio, video_source, webcam_constraints)
+			await get_video_stream(include_audio, video_source, webcam_constraints)
 				.then(async (local_stream) => {
 					webcam_accessed = true;
 					available_video_devices = await get_devices();
@@ -117,10 +121,6 @@
 							available_video_devices[0]
 						: available_video_devices[0];
 				});
-
-			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-				onerror?.(i18n("image.no_webcam_support"));
-			}
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
 				onerror?.(i18n("image.allow_webcam_access"));
