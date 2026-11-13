@@ -205,7 +205,7 @@
 		height: 44px;
 		border: 1px dashed #2a2b38;
 		border-radius: 6px;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 10px;
 		color: #8a8c98;
 	}
@@ -242,7 +242,7 @@
 	}
 
 	.capture-error {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 9px;
 		line-height: 1.4;
 		color: #fca5a5;
@@ -260,9 +260,8 @@
 		border-radius: 5px;
 		background: #16171f;
 		color: #c5c7d0;
-		font-family: "Manrope", sans-serif;
 		font-size: 10px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		cursor: pointer;
 	}
 
