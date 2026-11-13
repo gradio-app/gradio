@@ -373,7 +373,7 @@
 		background: transparent;
 		color: var(--body-text-color-subdued);
 		font-size: 13px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		line-height: 1;
 		cursor: pointer;
 		transition:
@@ -417,7 +417,7 @@
 		background: var(--button-primary-background-fill);
 		color: var(--button-primary-text-color);
 		font-size: 13px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		cursor: pointer;
 	}
 

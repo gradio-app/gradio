@@ -280,7 +280,7 @@
 
 	.connect-title {
 		font-size: 13px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		color: #e8e9f0;
 	}
 
@@ -411,7 +411,7 @@
 		display: block;
 		margin: 0 0 6px;
 		font-size: 12px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		color: #c8cad8;
 	}
 
@@ -468,7 +468,7 @@
 		border-radius: 6px;
 		color: #9a9caa;
 		font-size: 12px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		padding: 7px 14px;
 		cursor: pointer;
 		white-space: nowrap;

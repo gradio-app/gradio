@@ -4129,9 +4129,8 @@
 	}
 
 	.templates-overlay-title {
-		font-family: "Manrope", sans-serif;
 		font-size: 14px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		color: #d5d6de;
 		letter-spacing: -0.01em;
 	}

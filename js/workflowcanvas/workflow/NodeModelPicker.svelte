@@ -1135,9 +1135,8 @@
 		border-radius: 11px;
 		background: transparent;
 		color: rgba(249, 115, 22, 0.85);
-		font-family: "Manrope", sans-serif;
 		font-size: 10px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		letter-spacing: 0.02em;
 		cursor: pointer;
 		transition:
@@ -1165,13 +1164,12 @@
 		border-radius: 28px;
 		background: rgba(249, 115, 22, 0.12);
 		box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.32);
-		font-family: "Manrope", sans-serif;
 		flex-shrink: 0;
 	}
 
 	.picker-filter-label {
 		font-size: 10px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: #f97316;
@@ -1183,7 +1181,7 @@
 		align-items: center;
 		gap: 6px;
 		font-size: 13px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		color: #f97316;
 		letter-spacing: -0.01em;
 	}
@@ -1265,7 +1263,6 @@
 		background: #0c0d10;
 		border: 1px solid #2a2b36;
 		border-radius: 10px;
-		font-family: "Manrope", sans-serif;
 		font-size: 14px;
 		color: #d5d6de;
 		outline: none;
@@ -1305,9 +1302,8 @@
 		align-items: center;
 		gap: 6px;
 		padding: 8px 8px 6px;
-		font-family: "Manrope", sans-serif;
 		font-size: 10px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: #4a4d57;
@@ -1334,9 +1330,8 @@
 		border-radius: 8px;
 		background: transparent;
 		color: #8b8d98;
-		font-family: "Manrope", sans-serif;
 		font-size: 11px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		text-align: left;
 		cursor: pointer;
 		transition:
@@ -1361,9 +1356,8 @@
 		border-radius: 8px;
 		background: transparent;
 		color: #8b8d98;
-		font-family: "Manrope", sans-serif;
 		font-size: 12px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		letter-spacing: -0.01em;
 		text-align: left;
 		cursor: pointer;
@@ -1439,9 +1433,8 @@
 	}
 
 	.type-chip {
-		font-family: "Manrope", sans-serif;
 		font-size: 9px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		padding: 1px 6px;
@@ -1466,9 +1459,8 @@
 	}
 
 	.verified-chip {
-		font-family: "Manrope", sans-serif;
 		font-size: 10px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		color: #10b981;
 		flex-shrink: 0;
 	}
@@ -1477,9 +1469,8 @@
 	}
 
 	.uncurated-chip {
-		font-family: "Manrope", sans-serif;
 		font-size: 9px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		padding: 1px 6px;
@@ -1506,7 +1497,6 @@
 		align-items: center;
 		gap: 8px;
 		padding: 10px 14px;
-		font-family: "Manrope", sans-serif;
 		font-size: 12px;
 		color: #8b8d98;
 	}
@@ -1540,9 +1530,8 @@
 	}
 
 	.picker-section-header {
-		font-family: "Manrope", sans-serif;
 		font-size: 13px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		color: #d5d6de;
 		padding: 10px 6px 4px;
 	}
@@ -1550,7 +1539,7 @@
 	.picker-section-subtitle {
 		display: block;
 		font-size: 13px;
-		font-weight: 400;
+		font-weight: var(--weight-regular);
 		color: #5a5c6a;
 		margin-top: 2px;
 		margin-bottom: 4px;
@@ -1623,9 +1612,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-family: "Manrope", sans-serif;
 		font-size: 48px;
-		font-weight: 800;
+		font-weight: var(--weight-semibold);
 		color: rgba(0, 0, 0, 0.55);
 		text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
 	}
@@ -1634,9 +1622,8 @@
 		position: absolute;
 		top: 6px;
 		right: 6px;
-		font-family: "Manrope", sans-serif;
 		font-size: 9px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		padding: 2px 6px;
 		border-radius: 6px;
 		background: rgba(249, 115, 22, 0.85);
@@ -1666,9 +1653,8 @@
 	}
 
 	.space-card-title {
-		font-family: "Manrope", sans-serif;
 		font-size: 13px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		color: #e8e9f0;
 		white-space: nowrap;
 		overflow: hidden;
@@ -1706,7 +1692,6 @@
 		align-items: center;
 		gap: 6px;
 		margin-top: 3px;
-		font-family: "Manrope", sans-serif;
 		font-size: 10px;
 		color: #6b6e78;
 		white-space: nowrap;
@@ -1766,7 +1751,6 @@
 	.picker-empty {
 		text-align: center;
 		padding: 60px 24px;
-		font-family: "Manrope", sans-serif;
 		font-size: 13px;
 		color: #4a4d57;
 	}
@@ -1776,7 +1760,7 @@
 		height: 52px;
 		border-radius: 12px;
 		font-size: 22px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		color: rgba(0, 0, 0, 0.55);
 		display: flex;
 		align-items: center;
@@ -1818,9 +1802,8 @@
 	}
 
 	.space-name {
-		font-family: "Manrope", sans-serif;
 		font-size: 14px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		color: #e8e9f0;
 		white-space: nowrap;
 		overflow: hidden;
@@ -1834,9 +1817,8 @@
 		border-radius: 10px;
 		background: rgba(255, 255, 255, 0.06);
 		color: #8b8d98;
-		font-family: "Manrope", sans-serif;
 		font-size: 10px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		white-space: nowrap;
 		flex-shrink: 0;
 	}
@@ -1852,7 +1834,6 @@
 	}
 
 	.space-desc {
-		font-family: "Manrope", sans-serif;
 		font-size: 12.5px;
 		color: #7a7d88;
 		margin-top: 3px;
@@ -1870,9 +1851,8 @@
 	}
 
 	.space-likes {
-		font-family: "Manrope", sans-serif;
 		font-size: 11px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		color: #4a4d57;
 		flex-shrink: 0;
 	}

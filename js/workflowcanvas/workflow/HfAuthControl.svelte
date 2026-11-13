@@ -63,9 +63,8 @@
 
 <style>
 	.login-btn {
-		font-family: "Manrope", sans-serif;
 		font-size: 12px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		padding: 5px 12px;
 		border: 1px solid #1e1f2a;
 		border-radius: 6px;
@@ -108,7 +107,6 @@
 	}
 
 	.token-input {
-		font-family: "JetBrains Mono", monospace;
 		font-size: 11px;
 		padding: 5px 10px;
 		border: 1px solid #1e1f2a;
@@ -150,15 +148,14 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 4px;
-		font-family: "Manrope", sans-serif;
 		font-size: 11px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		white-space: nowrap;
 	}
 
 	.token-status.validating {
 		color: #8b8d98;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		font-style: italic;
 	}
 

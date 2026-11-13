@@ -663,7 +663,7 @@
 		--input-shadow-focus: 0 0 0 2px var(--accent-dim);
 		--input-placeholder-color: #4a4b58;
 		--body-text-color: #c8c9d2;
-		--font-sans: "JetBrains Mono", monospace;
+		--font-sans: var(--font-mono);
 		--line-sm: 1.4;
 		--spacing-sm: 4px;
 		--weight-semibold: 600;
@@ -678,7 +678,7 @@
 
 	.widget-gradio-wrap :global(textarea),
 	.widget-gradio-wrap :global(input) {
-		font-family: "JetBrains Mono", monospace !important;
+		font-family: var(--font-mono) !important;
 		font-size: 11px !important;
 		line-height: 1.4 !important;
 		background: #101118 !important;
@@ -804,7 +804,7 @@
 	}
 
 	.widget-text-display {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 11px;
 		line-height: 1.4;
 		padding: 8px 10px;
@@ -821,7 +821,7 @@
 
 	.widget-number {
 		width: 100%;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 12px;
 		border: 1px solid #1e1f2a;
 		border-radius: 6px;
@@ -895,7 +895,7 @@
 	}
 
 	.widget-checkbox-label {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 11px;
 		color: #8b8d98;
 	}
@@ -905,7 +905,7 @@
 	}
 
 	.widget-file-name {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 10.5px;
 		color: #8b8d98;
 		word-break: break-all;
@@ -970,9 +970,8 @@
 		border-radius: 5px;
 		background: #191a23;
 		color: #a8aab6;
-		font-family: "Manrope", sans-serif;
 		font-size: 10.5px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		line-height: 1;
 		cursor: pointer;
 		transition:
@@ -1017,7 +1016,7 @@
 	}
 
 	.widget-placeholder {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 10px;
 		color: #2e2f3d;
 		text-align: center;
@@ -1246,7 +1245,7 @@
 	.widget-markdown :global(h3),
 	.widget-markdown :global(h4) {
 		margin: 0.8em 0 0.4em;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		line-height: 1.3;
 		color: #e6e7ec;
 	}
@@ -1277,7 +1276,7 @@
 	}
 
 	.widget-markdown :global(code) {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 0.9em;
 		background: #1a1b25;
 		border-radius: 4px;

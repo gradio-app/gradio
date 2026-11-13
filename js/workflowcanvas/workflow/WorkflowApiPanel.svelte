@@ -349,20 +349,18 @@
 		padding: var(--size-2) var(--size-2-5);
 	}
 	.api-title-main {
-		font-family: "Manrope", sans-serif;
 		font-size: 15px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		color: #e6e7ec;
 	}
 	.api-title-sub {
-		font-family: "Manrope", sans-serif;
 		font-size: var(--size-3);
 		color: #8a8c98;
 		margin-top: 2px;
 	}
 	.api-title-sub strong {
 		color: #a0a2ae;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 	}
 	.api-close {
 		background: transparent;
@@ -383,9 +381,8 @@
 		border-bottom: 1px solid #1e1f2a;
 	}
 	.api-lang {
-		font-family: "Manrope", sans-serif;
 		font-size: var(--size-3);
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		padding: var(--size-1) var(--size-3);
 		border-radius: var(--radius-full);
 		border: 1px solid transparent;
@@ -409,7 +406,6 @@
 		gap: var(--size-4);
 	}
 	.api-empty {
-		font-family: "Manrope", sans-serif;
 		font-size: 13px;
 		color: #8a8c98;
 		text-align: center;
@@ -433,9 +429,9 @@
 		border-bottom: 1px solid #1e1f2a;
 	}
 	.api-method {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 10px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		letter-spacing: 0.05em;
 		color: #1a1b25;
 		background: var(--color-accent, #f97316);
@@ -443,7 +439,7 @@
 		padding: 2px var(--size-1-5);
 	}
 	.api-name {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 13px;
 		color: #e6e7ec;
 		flex: 1;
@@ -456,9 +452,8 @@
 		top: var(--size-2);
 		right: var(--size-2);
 		z-index: 1;
-		font-family: "Manrope", sans-serif;
 		font-size: 11px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		padding: var(--size-1) var(--size-2-5);
 		border: 1px solid #2a2b38;
 		border-radius: var(--radius-md);
@@ -481,9 +476,8 @@
 		min-width: 0;
 	}
 	.api-io-label {
-		font-family: "Manrope", sans-serif;
 		font-size: 10px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: #6b6e78;
@@ -493,7 +487,7 @@
 		display: flex;
 		justify-content: space-between;
 		gap: var(--size-2);
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: var(--size-3);
 		padding: 3px 0;
 	}
@@ -515,7 +509,6 @@
 		border: 1px solid #1e1f2a;
 		border-radius: var(--size-2-5);
 		flex-shrink: 0;
-		font-family: "Manrope", sans-serif;
 		font-size: 12px;
 		line-height: 1.5;
 		color: #8a8c98;
@@ -527,7 +520,7 @@
 	}
 	.api-note-label {
 		flex-shrink: 0;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 10px;
 		color: var(--color-accent, #f97316);
 		background: #1a1b25;
@@ -540,7 +533,7 @@
 		margin: 0;
 		padding: var(--size-3) 76px var(--size-3) 14px;
 		background: #0b0c12;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: var(--size-3);
 		line-height: 1.55;
 		color: #c5c7d0;
