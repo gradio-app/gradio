@@ -2,6 +2,12 @@
 
 ## 2.5.0
 
+### Dependency updates
+
+- @gradio/client@2.9.0
+
+## 2.5.0
+
 ### Features
 
 - [#14059](https://github.com/gradio-app/gradio/pull/14059) [`5819440`](https://github.com/gradio-app/gradio/commit/5819440d425ff73d66ec7124289322c7333e4edd) - add console forwarding for embedded apps.  Thanks @pngwn!
