@@ -217,6 +217,11 @@ export interface Config {
 	 * Gradio, which is treated as permitted.
 	 */
 	run_history?: boolean;
+	/**
+	 * Whether visitors can sign in with Hugging Face: the app has a
+	 * `gr.LoginButton` and runs on a Space. Elsewhere sign-in is mocked.
+	 */
+	oauth_available?: boolean;
 }
 
 // todo: DRY up types

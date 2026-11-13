@@ -1,8 +1,11 @@
+import asyncio
 import copy
 import json
 import os
 import tempfile
+import time
 
+import httpx
 import pytest
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
@@ -500,3 +503,154 @@ async def test_mcp_browser_get_returns_landing_page():
     # connection snippets for common MCP clients.
     assert b"example.com/gradio_api/mcp/" in body
     assert b"Connect your AI assistant" in body
+
+
+MCP_HEADERS = {
+    "Accept": "application/json, text/event-stream",
+    "Content-Type": "application/json",
+}
+
+
+async def call_tool_over_http(client, mcp_url, name, arguments, headers=None):
+    response = await client.post(
+        mcp_url,
+        json={
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": name, "arguments": arguments},
+        },
+        headers={**MCP_HEADERS, **(headers or {})},
+    )
+    if response.status_code != 200:
+        return response.status_code
+    data_line = next(
+        line for line in response.text.splitlines() if line.startswith("data:")
+    )
+    return json.loads(data_line[len("data:") :])["result"]["content"][0]["text"]
+
+
+def build_auth_test_app():
+    def double(word: str) -> str:
+        return word * 2
+
+    def greet(greeting: str, request: gr.Request) -> str:
+        time.sleep(0.5)
+        return f"{greeting} {request.username}"
+
+    @gr.mcp.resource("info://user")
+    def user_info(request: gr.Request) -> str:
+        return f"user: {request.username}"
+
+    @gr.mcp.prompt()
+    def ask(topic: str, request: gr.Request) -> str:
+        return f"{request.username} asks about {topic}"
+
+    with gr.Blocks() as demo:
+        input_box = gr.Textbox()
+        output_box = gr.Textbox()
+        # queue=False exercises the fast path that calls process_api directly,
+        # while the queued event is called over HTTP through the queue
+        input_box.change(double, input_box, output_box, api_name="double", queue=False)
+        input_box.submit(greet, input_box, output_box, api_name="greet")
+        gr.api(user_info, api_name="user_info")
+        gr.api(ask, api_name="ask")
+    return demo
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+async def test_mcp_server_requires_login_when_auth_is_set():
+    demo = build_auth_test_app()
+    _, local_url, _ = demo.launch(
+        prevent_thread_lock=True, mcp_server=True, auth=("admin", "password")
+    )
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with httpx.AsyncClient() as client:
+            # Unauthenticated requests are rejected, as they are for /gradio_api/run
+            assert (
+                await client.post(
+                    f"{local_url}gradio_api/run/double", json={"data": ["Hello"]}
+                )
+            ).status_code == 401
+            assert (await client.get(f"{mcp_url}schema")).status_code == 401
+            assert (await client.get(f"{mcp_url}sse")).status_code == 401
+            for tool in ["double", "greet"]:
+                assert (
+                    await call_tool_over_http(client, mcp_url, tool, {"x": "Hello"})
+                    == 401
+                )
+
+            login = await client.post(
+                f"{local_url}login",
+                data={"username": "admin", "password": "password"},
+            )
+            assert login.is_success
+            assert (await client.get(f"{mcp_url}schema")).is_success
+            cookie = "; ".join(f"{k}={v}" for k, v in client.cookies.items())
+
+        # Once logged in, tools (queued or not), resources and prompts all work,
+        # and run as the user
+        async with streamablehttp_client(mcp_url, headers={"Cookie": cookie}) as (
+            read_stream,
+            write_stream,
+            _,
+        ):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                assert len((await session.list_tools()).tools) == 2
+                result = await session.call_tool("double", arguments={"word": "Hi"})
+                assert result.content[0].text == "HiHi"  # type: ignore
+                result = await session.call_tool("greet", arguments={"greeting": "Hi"})
+                assert result.content[0].text == "Hi admin"  # type: ignore
+                resource = await session.read_resource("info://user")  # type: ignore
+                assert resource.contents[0].text == "user: admin"  # type: ignore
+                prompt = await session.get_prompt("ask", arguments={"topic": "MCP"})
+                assert prompt.messages[0].content.text == "admin asks about MCP"  # type: ignore
+    finally:
+        demo.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+async def test_mcp_server_respects_auth_dependency():
+    async def get_user(request: Request):
+        # Reading the body checks that the MCP server still receives it afterwards
+        await request.body()
+        return request.headers.get("x-user")
+
+    demo = build_auth_test_app()
+    _, local_url, _ = demo.launch(
+        prevent_thread_lock=True, mcp_server=True, auth_dependency=get_user
+    )
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            assert (await client.get(f"{mcp_url}schema")).status_code == 401
+            assert (
+                await call_tool_over_http(client, mcp_url, "greet", {"greeting": "Hi"})
+                == 401
+            )
+            assert (
+                await client.get(f"{mcp_url}schema", headers={"x-user": "alice"})
+            ).is_success
+
+            # Concurrent queued calls from different users each run as their own user
+            results = await asyncio.gather(
+                *[
+                    call_tool_over_http(
+                        client,
+                        mcp_url,
+                        "greet",
+                        {"greeting": "Hi"},
+                        headers={"x-user": user},
+                    )
+                    for user in ["alice", "bob", "alice", "bob"]
+                ]
+            )
+            assert results == ["Hi alice", "Hi bob", "Hi alice", "Hi bob"]
+    finally:
+        demo.close()
