@@ -107,21 +107,31 @@ export async function render<
 		component_get_data = get_data;
 	};
 
-	const event_listeners = new Map<string, Set<(data: any) => void>>();
-	const event_buffer: { event: string; data: any }[] = [];
+	const event_listeners = new Map<
+		string,
+		Set<(data: any, observer?: any) => void>
+	>();
+	const event_buffer: { event: string; data: any; observer?: any }[] = [];
 
-	function notify_listeners(event: string, data: any): void {
+	function notify_listeners(event: string, data: any, observer?: any): void {
 		const listeners = event_listeners.get(event);
 		if (listeners) {
 			for (const listener of listeners) {
-				listener(data);
+				// Pass the observer only if set, so `toHaveBeenCalledWith(data)` holds
+				if (observer === undefined) listener(data);
+				else listener(data, observer);
 			}
 		}
 	}
 
-	const dispatcher = (_id: number, event: string, data: any): void => {
-		event_buffer.push({ event, data });
-		notify_listeners(event, data);
+	const dispatcher = (
+		_id: number,
+		event: string,
+		data: any,
+		observer?: any
+	): void => {
+		event_buffer.push({ event, data, observer });
+		notify_listeners(event, data, observer);
 	};
 
 	function listen(
@@ -137,7 +147,8 @@ export async function render<
 		if (opts?.retrospective) {
 			for (const entry of event_buffer) {
 				if (entry.event === event_name) {
-					fn(entry.data);
+					if (entry.observer === undefined) fn(entry.data);
+					else fn(entry.data, entry.observer);
 				}
 			}
 		}

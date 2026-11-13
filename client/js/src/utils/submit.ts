@@ -10,13 +10,8 @@ import type {
 	SubmitIterable
 } from "../types";
 
-import {
-	skip_queue,
-	post_message,
-	handle_payload,
-	sign_file_urls
-} from "../helpers/data";
-import { get_zerogpu_origin } from "../helpers/zerogpu";
+import { skip_queue, handle_payload, sign_file_urls } from "../helpers/data";
+import { get_zerogpu_headers } from "../helpers/zerogpu";
 import {
 	handle_message,
 	map_data_to_params,
@@ -45,6 +40,9 @@ import {
 	update_run_history,
 	update_run_inputs
 } from "./run_history";
+
+// Late messages come within moments, so the oldest acknowledged events can be forgotten
+const MAX_ACKNOWLEDGED_EVENTS = 1000;
 
 export function submit(
 	this: Client,
@@ -321,6 +319,18 @@ export function submit(
 		async function acknowledge(): Promise<void> {
 			if (!event_id_final) return;
 			if (!options.resume_sessions) return;
+			// The server drops the rest of an acknowledged event, so stop waiting:
+			// an event left open makes every close of the message stream reopen it.
+			unclosed_events.delete(event_id_final);
+			delete event_callbacks[event_id_final];
+			delete pending_diff_streams[event_id_final];
+			close();
+			const acknowledged = that.acknowledged_events;
+			acknowledged.add(event_id_final);
+			delete pending_stream_messages[event_id_final];
+			if (acknowledged.size > MAX_ACKNOWLEDGED_EVENTS) {
+				acknowledged.delete(acknowledged.values().next().value as string);
+			}
 			const response = await that
 				.fetch(`${config!.root}${api_prefix}/${RESET_URL}`, {
 					headers: { "Content-Type": "application/json" },
@@ -555,22 +565,7 @@ export function submit(
 		}
 
 		async function get_join_headers(): Promise<Record<string, string>> {
-			let hostname = "";
-			if (typeof window !== "undefined" && typeof document !== "undefined") {
-				hostname = window?.location?.hostname;
-			}
-
-			const origin = get_zerogpu_origin(hostname);
-
-			const is_zerogpu_iframe =
-				typeof window !== "undefined" &&
-				typeof document !== "undefined" &&
-				window.parent != window &&
-				!!origin &&
-				window.supports_zerogpu_headers;
-			const headers = is_zerogpu_iframe
-				? await post_message<Map<string, string>>("zerogpu-headers", origin)
-				: null;
+			const headers = await get_zerogpu_headers();
 			return { ...addt_headers, ...(headers || {}) } as Record<string, string>;
 		}
 
@@ -1217,8 +1212,9 @@ export function submit(
 					() => {}
 				);
 			},
-			close_stream: () => {
-				close();
+			close_stream: (options?: { read_to_end?: boolean }) => {
+				// With read_to_end, messages keep coming until the event is over
+				if (!options?.read_to_end) close();
 				post_to_event("/close", {});
 			},
 			event_id: () => event_id_final,

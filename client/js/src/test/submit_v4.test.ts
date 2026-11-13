@@ -165,4 +165,64 @@ describe("sse_v4: one request per event", () => {
 		expect(cancel_calls).toBe(1);
 		await vi.waitFor(() => expect(app.own_stream_controllers.size).toBe(0));
 	});
+
+	test.each([
+		["a running stream gets its last outputs", ["process_starts"], ["last"]],
+		["a stream taken out of the line ends without outputs", [], undefined]
+	])(
+		"close_stream({ read_to_end: true }): %s",
+		async (_, started: string[], last: string[] | undefined) => {
+			const app = await connect_v4();
+			let send!: (message: object) => void;
+			let end!: () => void;
+			const close_paths: string[] = [];
+			server.use(
+				http.post(`${direct_space_url}/queue/join`, () => {
+					const body = new ReadableStream({
+						start(controller) {
+							send = (message) =>
+								controller.enqueue(
+									encoder.encode(`data: ${JSON.stringify(message)}\n\n`)
+								);
+							end = () => controller.close();
+							send({ msg: "estimation", event_id: "ev3", rank: 0 });
+							for (const msg of started) send({ msg, event_id: "ev3" });
+						}
+					});
+					return new HttpResponse(body, {
+						headers: { "Content-Type": "text/event-stream" }
+					});
+				}),
+				http.post(/\/stream\/ev3\/close$/, ({ request }) => {
+					close_paths.push(new URL(request.url).pathname);
+					// What the server sends once it has ended the stream
+					send({
+						msg: "process_completed",
+						event_id: "ev3",
+						success: true,
+						output: last ? { data: last, is_generating: false } : {}
+					});
+					end();
+					return HttpResponse.json({ msg: "success" });
+				})
+			);
+
+			const iterator = app.submit("/predict", ["hi"]);
+			expect(await within(iterator.wait_for_id(), "no event id")).toBe("ev3");
+			const consumer = collect(iterator);
+			iterator.close_stream({ read_to_end: true });
+			const events = await within(consumer, "the iterator did not end");
+
+			expect(close_paths).toEqual(["/stream/ev3/close"]);
+			expect(events.filter((event) => event.type === "data").at(-1)).toEqual(
+				expect.objectContaining({ data: last })
+			);
+			expect(events.at(-1)).toMatchObject({
+				type: "status",
+				stage: "complete"
+			});
+			expect(events.some((event) => event.stage === "error")).toBe(false);
+			await vi.waitFor(() => expect(app.own_stream_controllers.size).toBe(0));
+		}
+	);
 });

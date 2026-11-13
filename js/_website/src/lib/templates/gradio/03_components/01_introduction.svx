@@ -15,6 +15,7 @@
     delete components_no_dataclasses["webcamoptions"];
     delete components_no_dataclasses["inputhtmlattributes"];
     delete components_no_dataclasses["watermarkoptions"];
+    delete components_no_dataclasses["streamoptions"];
 
     let events = get_object("events");
     let events_matrix = get_object("events_matrix");

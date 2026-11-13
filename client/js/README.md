@@ -235,6 +235,39 @@ const submission = app
 submission.cancel();
 ```
 
+#### `webrtc`
+
+The `webrtc` method streams media to and from a WebRTC endpoint of a `gradio.Server` app (one registered with `app.webrtc()`), in the browser. It waits for the stream's turn in the endpoint's queue, connects, and returns a handle at once:
+
+```ts
+import { Client } from "@gradio/client";
+
+const app = await Client.connect("user/space-name");
+const media = await navigator.mediaDevices.getUserMedia({ video: true });
+const stream = app.webrtc("/flip", {
+	media,
+	inputs: [1.0],
+	on_track: (event) => (video.srcObject = event.streams[0]),
+	on_output: (values) => console.log(values)
+});
+
+await stream.connected; // the media flows
+stream.set_inputs([1.5]);
+await stream.stop(); // outputs emitted until then still arrive
+```
+
+The options are:
+
+- `media`: the local `MediaStream` to send, if the endpoint takes media. It stays yours: the stream does not stop its tracks when it ends.
+- `modality`: `"video"` or `"audio"`, what to receive when no media is sent.
+- `inputs`: the values of the endpoint's extra inputs. Change them later with `set_inputs()`.
+- `on_track`: called with the `RTCTrackEvent` of the media the server sends back.
+- `on_output`: called with the values of each `AdditionalOutputs` the handler emits.
+- `on_message`: called with the messages of the handler (`gr.Info`, `gr.Warning`, its errors).
+- `on_status`: called with the queue statuses, such as the place in line.
+
+The handle has the stream's `webrtc_id`, its `pc` (the `RTCPeerConnection`, once the turn has come), `connected` (resolves once the media flows), `done` (resolves when the stream is over, or rejects with its error), `set_inputs()` and `stop()`. The connection closes when the page goes away.
+
 #### `view_api`
 
 The `view_api` method provides details about the API you are connected to. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.

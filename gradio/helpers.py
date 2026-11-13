@@ -1053,6 +1053,28 @@ def _session_from_request(request: Any) -> MutableMapping[str, Any]:
     return getattr(underlying, "session", None) or {}
 
 
+def is_oauth_hint(type_hint: Any) -> bool:
+    """Whether `special_args` fills a parameter with this type hint with the
+    visitor's gr.OAuthProfile or gr.OAuthToken."""
+    return type_hint in (
+        oauth.OAuthProfile | None,
+        oauth.OAuthToken | None,
+        oauth.OAuthProfile,
+        oauth.OAuthToken,
+    )
+
+
+def takes_oauth(fn: Callable) -> bool:
+    """Whether `special_args` would give `fn` the visitor's OAuth profile or
+    token."""
+    try:
+        parameters = inspect.signature(fn).parameters.values()
+    except ValueError:
+        return False
+    type_hints = utils.get_type_hints(fn)
+    return any(is_oauth_hint(type_hints.get(param.name)) for param in parameters)
+
+
 def special_args(
     fn: Callable,
     inputs: list[Any] | None = None,
@@ -1104,12 +1126,7 @@ def special_args(
         elif type_hint in (routes.Request, Optional[routes.Request]):
             if inputs is not None:
                 inputs.insert(i, request)
-        elif type_hint in (
-            oauth.OAuthProfile | None,
-            oauth.OAuthToken | None,
-            oauth.OAuthProfile,
-            oauth.OAuthToken,
-        ):
+        elif is_oauth_hint(type_hint):
             if inputs is not None:
                 # Read the session if a SessionMiddleware is installed (i.e. the
                 # user may be logged in); otherwise treat as logged out. Required

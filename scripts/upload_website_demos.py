@@ -28,6 +28,8 @@ DEMOS_TO_SKIP = {
     "custom_path",
     "kitchen_sink_random",
     "blocks_kitchen_sink",
+    # Needs a TURN server on Spaces (rtc_configuration)
+    "webrtc_video_flip",
 }
 
 api = huggingface_hub.HfApi()

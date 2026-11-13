@@ -405,6 +405,48 @@ def oauth_token_from_body(body: PredictBodyInternal) -> Optional[OAuthToken]:
     return _OAuthToken(token=token, scope="", expires_at=0)
 
 
+@python_dataclass(frozen=True)
+class RunStep:
+    """
+    What a call is in its event's run, which only its caller knows: the
+    queue steps a generator through several calls of one run, while each call
+    of a stream of chunks is a run of its own, though all of them carry the
+    event's id.
+
+    first: the event's first call.
+    continues: the call steps the generator that the run's last call left.
+    keeps: the run may be continued: its generator (and the diffs of its
+        streamed outputs) are kept under the event's id for the next call.
+    """
+
+    first: bool
+    continues: bool
+    keeps: bool
+
+    @classmethod
+    def start(cls) -> RunStep:
+        """The first call of a run that the caller continues while it generates."""
+        return cls(first=True, continues=False, keeps=True)
+
+    @classmethod
+    def next(cls) -> RunStep:
+        """A later call that steps the run's generator."""
+        return cls(first=False, continues=True, keeps=True)
+
+    @classmethod
+    def alone(cls, first: bool = True) -> RunStep:
+        """A call that is a run of its own: a chunk of a stream, a validator,
+        an unload event, a call without the queue."""
+        return cls(first=first, continues=False, keeps=False)
+
+    @classmethod
+    def from_event_id(cls, event_id: str | None) -> RunStep:
+        """For a caller that does not say: a call with an event id continues
+        and keeps the run stored under it."""
+        has_id = event_id is not None
+        return cls(first=True, continues=has_id, keeps=has_id)
+
+
 async def call_process_api(
     app: App,
     body: PredictBodyInternal,
@@ -414,7 +456,10 @@ async def call_process_api(
     record_history: bool = True,
     *,
     queue_event_id: str | None = None,
+    run: RunStep | None = None,
 ):
+    if run is None:
+        run = RunStep.from_event_id(body.event_id)
     pool = getattr(app.get_blocks(), "_process_pool", None)
     if pool is not None:
         from gradio.processing.gateway import forward_event
@@ -428,9 +473,12 @@ async def call_process_api(
             root_path,
             record_history,
             queue_event_id=queue_event_id,
+            run=run,
         )
 
     session_state, iterator = restore_session_state(app=app, body=body)
+    if not run.continues:
+        iterator = None
     # A batch mixes events from different sessions, so its state stays on the server
     client_state = body.client_state if not body.batched else None
     if client_state is not None and not fn.is_validator_function:
@@ -472,15 +520,17 @@ async def call_process_api(
                     simple_format=body.simple_format,
                     root_path=root_path,
                     oauth_token=oauth_token_from_body(body),
+                    # Streams send whole values each call, so even a lease keeps no diffs
+                    keeps_run=run.keeps and fn.connection != "stream",
                 )
         iterator = output.pop("iterator", None)
-        if event_id is not None:
+        if event_id is not None and run.keeps:
             app.iterators[event_id] = iterator  # type: ignore
         elif iterator is not None:
-            # Only the queue continues a generator, and it always carries an
-            # event id, so nobody will come back for this run: its streams are
-            # completed here, or they hold an encoder for the session's lifetime
-            # with the tail of the only chunk it will ever get still inside.
+            # Nobody will come back for this run (see `RunStep`): its streams
+            # are completed here, or they hold an encoder for the session's
+            # lifetime with the tail of the only chunk it will ever get still
+            # inside.
             await app.get_blocks()._finish_run_streams(session_hash, iterator)
         if isinstance(output, Error):
             raise output

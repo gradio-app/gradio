@@ -19,6 +19,7 @@ import type {
 	LogMessage
 } from "@gradio/client";
 import { settled } from "svelte";
+import type { DispatchObserver } from "@gradio/utils";
 const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 const NOVALUE = Symbol("NOVALUE");
@@ -171,6 +172,7 @@ interface DispatchEvent {
 	event_name?: string;
 	target_id?: number;
 	event_data: unknown;
+	observer?: DispatchObserver;
 }
 
 type UpdateStateCallback = (
@@ -209,6 +211,8 @@ export class DependencyManager {
 	render_id_deps = new Map<number, Set<number>>();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
+	page_ended: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
+	cancelled: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
 	submission_trigger_ids: Map<number, number | null> = new Map();
 	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
 		new Map();
@@ -409,7 +413,13 @@ export class DependencyManager {
 	 * @returns a value if there is no backend fn, a 'submission' if there is a backend fn, or null if there is no dependency
 	 */
 	async dispatch(event_meta: DispatchFunction | DispatchEvent): Promise<void> {
-		if (this.connection_lost) return;
+		// Observes the first function's run and hears its outcome exactly once
+		let observer =
+			event_meta.type === "event" ? event_meta.observer : undefined;
+		if (this.connection_lost) {
+			observer?.on_end?.("not_started");
+			return;
+		}
 		let deps: Dependency[] | undefined;
 		if (event_meta.type === "fn") {
 			const dep = this.dependencies_by_fn.get(event_meta.fn_index!);
@@ -419,9 +429,14 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
+		if (!deps?.length) observer?.on_end?.("not_started");
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
-			if (dep) {
+			if (!dep) continue;
+			const dep_observer = observer;
+			observer = undefined;
+			let outcome: "not_started" | "ended" | "error" = "not_started";
+			try {
 				this.cancel(dep.cancels);
 
 				const dispatch_status = should_dispatch(
@@ -461,6 +476,21 @@ export class DependencyManager {
 
 				const { success, failure, all } = dep.get_triggers();
 				let active_submission: ReturnType<Client["submit"]> | undefined;
+				const update_status = (status: LoadingStatusArgs): void => {
+					// A stream that the page ended had its status settled there,
+					// and a new stream of the same event may have started since
+					if (active_submission && this.page_ended.has(active_submission)) {
+						return;
+					}
+					this.update_loading_status(status);
+					dep_observer?.on_status?.({
+						status: status.status,
+						stream_state: status.stream_state,
+						queue_position: status.position ?? null,
+						queue_size: status.size,
+						eta: status.eta ?? null
+					});
+				};
 				const target_id = event_meta.target_id ?? null;
 
 				try {
@@ -493,6 +523,7 @@ export class DependencyManager {
 					);
 
 					if (dep_submission.type !== "submit") {
+						outcome = "ended";
 						if (dep_submission.type === "data") {
 							await this.handle_data(dep.outputs, dep_submission.data);
 						}
@@ -519,6 +550,11 @@ export class DependencyManager {
 						this.submission_trigger_ids.set(dep.id, target_id);
 						this.active_dependencies.set(dep_submission.data, dep);
 						active_submission = dep_submission.data;
+						outcome = "ended";
+						const run = dep_submission.data;
+						dep_observer?.on_start?.({
+							close: () => this.end_run(dep, run)
+						});
 						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
@@ -542,9 +578,11 @@ export class DependencyManager {
 								await this.handle_data(dep.outputs, result.data);
 							}
 							if (result.type === "status") {
+								// A stream the page ended while it was starting counts as stopped in line
 								if (
 									result.original_msg === "process_starts" &&
-									dep.connection_type === "stream"
+									dep.connection_type === "stream" &&
+									!this.page_ended.has(dep_submission.data)
 								) {
 									stream_state = "open";
 								}
@@ -552,8 +590,22 @@ export class DependencyManager {
 
 								// handle status updates here
 								if (result.stage === "complete") {
-									stream_state = "closed";
-									success.forEach((dep_id) => {
+									// A stream the page ended while in line never ran, so like a
+									// cancelled event it runs `.failure()`, not `.success()`
+									const stopped_in_line =
+										this.page_ended.has(dep_submission.data) &&
+										stream_state !== "open";
+									const chained = this.cancelled.has(dep_submission.data)
+										? []
+										: stopped_in_line
+											? failure
+											: success;
+									// Only a stream closes: on any other event, "closed" would
+									// reach its inputs and end a stream one of them is running
+									if (dep.connection_type === "stream") {
+										stream_state = "closed";
+									}
+									chained.forEach((dep_id) => {
 										this.dispatch({
 											type: "fn",
 											fn_index: dep_id,
@@ -563,7 +615,7 @@ export class DependencyManager {
 									});
 									this.dispatch_state_change_events(result);
 									// @ts-ignore
-									this.update_loading_status({
+									update_status({
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
@@ -577,7 +629,7 @@ export class DependencyManager {
 								) {
 									this.dispatch_state_change_events(result);
 									// @ts-ignore
-									this.update_loading_status({
+									update_status({
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
@@ -586,11 +638,12 @@ export class DependencyManager {
 									this.update_loading_stati_state();
 								} else if (result.stage === "error") {
 									if (result.broken || result.session_not_found) {
+										outcome = "error";
 										if (!this.connection_lost) {
 											this.connection_lost = true;
 											this.on_connection_lost_cb();
 										}
-										this.update_loading_status({
+										update_status({
 											status: "complete",
 											fn_index: dep.id,
 											stream_state: null
@@ -599,6 +652,7 @@ export class DependencyManager {
 										break submit_loop;
 									}
 									if (Array.isArray(result?.message)) {
+										outcome = "error";
 										// Settle this run's status: a pending entry left behind
 										// here is repainted by the next event, and since it
 										// keeps its time_start the spinner resumes from the
@@ -611,7 +665,7 @@ export class DependencyManager {
 										if (dep.connection_type === "stream") {
 											stream_state = "closed";
 										}
-										this.update_loading_status({
+										update_status({
 											status: "complete",
 											fn_index: dep.id,
 											stream_state,
@@ -674,7 +728,7 @@ export class DependencyManager {
 									throw new Error("Dependency function failed");
 								} else {
 									// @ts-ignore
-									this.update_loading_status({
+									update_status({
 										...status,
 										status: status.stage,
 										fn_index: dep.id,
@@ -685,7 +739,7 @@ export class DependencyManager {
 							}
 
 							if (result.type === "render") {
-								this.update_loading_status({
+								update_status({
 									status: "complete",
 									fn_index: dep.id,
 									stream_state: null
@@ -700,21 +754,27 @@ export class DependencyManager {
 							}
 						}
 						await dep_submission.data.acknowledge();
-						all.forEach((dep_id) => {
-							this.dispatch({
-								type: "fn",
-								fn_index: dep_id,
-								event_data: null,
-								target_id: target_id as number | undefined
+						// `cancel()` runs a cancelled run's chain
+						if (!this.cancelled.has(dep_submission.data)) {
+							all.forEach((dep_id) => {
+								this.dispatch({
+									type: "fn",
+									fn_index: dep_id,
+									event_data: null,
+									target_id: target_id as number | undefined
+								});
 							});
-						});
+						}
 						unset_args.forEach((fn) => fn());
 						this.clear_submission(dep.id, dep_submission.data);
 						this.dispatch_deferred(dep.id);
 					}
 				} catch (error) {
-					await this.submissions.get(dep.id)?.acknowledge();
-					this.update_loading_status({
+					outcome = "error";
+					// This run's own: with trigger_mode="multiple" the latest one
+					// may be another run, which acknowledging would close
+					await active_submission?.acknowledge();
+					update_status({
 						status: "error",
 						fn_index: dep.id,
 						eta: 0,
@@ -735,6 +795,8 @@ export class DependencyManager {
 					});
 					this.dispatch_deferred(dep.id);
 				}
+			} finally {
+				dep_observer?.on_end?.(outcome);
 			}
 		}
 		return;
@@ -774,6 +836,37 @@ export class DependencyManager {
 			.filter(({ fn_index }) => this.dependencies_by_fn.has(fn_index));
 	}
 
+	/**
+	 * Ends a resumed stream event and applies its outputs up to the end. Returns
+	 * how it ended ("cancelled" if still in line), "gone" if the server no longer
+	 * has it, or null if the messages stopped without an end.
+	 */
+	async end_resumed_stream(
+		submission: ReturnType<Client["resume_jobs"]>[number],
+		outputs: number[]
+	): Promise<"complete" | "cancelled" | "error" | "gone" | null> {
+		// In any state, the server replays what it sent and then reports the end,
+		// so nothing depends on connection or worker timing
+		submission.close_stream({ read_to_end: true });
+		let started = false;
+		for await (const result of submission) {
+			if (result?.type === "data") {
+				await this.handle_data(outputs, result.data);
+				continue;
+			}
+			if (result?.type !== "status") continue;
+			if (result.original_msg === "process_starts") started = true;
+			this.dispatch_state_change_events(result);
+			if (result.stage === "complete") {
+				return started ? "complete" : "cancelled";
+			}
+			if (result.stage === "error") {
+				return result.session_not_found ? "gone" : "error";
+			}
+		}
+		return null;
+	}
+
 	async resume(
 		events: ResumableJob[] = this.get_resumable_events()
 	): Promise<void> {
@@ -784,6 +877,28 @@ export class DependencyManager {
 				if (!dep) return;
 
 				const submission = submissions[index];
+				if (dep.connection_type === "stream") {
+					// A stream does not outlive the page: its input came from the page
+					// that was reloaded, so the event would only hold a concurrency
+					// slot until it timed out. End it; the component starts a new one.
+					const outcome = await this.end_resumed_stream(
+						submission,
+						dep.outputs
+					);
+					await submission.acknowledge();
+					if (outcome === "gone" || outcome === null) return;
+					const { success, failure, all } = dep.get_triggers();
+					const chained =
+						outcome === "error"
+							? failure
+							: outcome === "cancelled"
+								? [...failure, ...all]
+								: [...success, ...all];
+					for (const dep_id of chained) {
+						this.dispatch({ type: "fn", fn_index: dep_id, event_data: null });
+					}
+					return;
+				}
 				this.submissions.set(fn_index, submission);
 				this.loading_stati.update({
 					status: "pending",
@@ -938,7 +1053,9 @@ export class DependencyManager {
 	 * @param outputs the ids of the output components
 	 * @param data the data to update the components with
 	 * */
-	async handle_data(outputs: number[], data: unknown[]) {
+	async handle_data(outputs: number[], data: unknown[] | undefined) {
+		// An event that ends without outputs (e.g. a stream taken out of the line)
+		if (!data) return;
 		await Promise.all(
 			outputs.map(async (output_id, i) => {
 				const _data = data[i] === undefined ? NOVALUE : data[i];
@@ -1038,6 +1155,7 @@ export class DependencyManager {
 		for (const id of ids) {
 			const submission = this.submissions.get(id);
 			if (submission) {
+				this.cancelled.add(submission);
 				await submission.cancel();
 				this.update_loading_status({
 					status: "complete",
@@ -1109,10 +1227,13 @@ export class DependencyManager {
 		const fn_ids = this.get_fns_from_targets(id);
 
 		for (const fn_id of fn_ids) {
+			// Other events of the component (e.g. start_recording) keep running
+			if (this.dependencies_by_fn.get(fn_id)?.connection_type !== "stream") {
+				continue;
+			}
 			const submission = this.submissions.get(fn_id);
 			if (submission) {
-				submission.close_stream();
-				this.clear_submission(fn_id);
+				this.end_stream_run(fn_id, submission);
 			}
 
 			this.update_loading_status({
@@ -1124,6 +1245,39 @@ export class DependencyManager {
 			});
 		}
 
+		this.update_loading_stati_state();
+	}
+
+	/**
+	 * Ends a stream run the page closes. The server still delivers its pending
+	 * outputs and then reports how it ended, for `.success()` / `.failure()`.
+	 */
+	end_stream_run(
+		fn_id: number,
+		submission: ReturnType<Client["submit"]>
+	): void {
+		if (this.page_ended.has(submission)) return;
+		this.page_ended.add(submission);
+		submission.close_stream({ read_to_end: true });
+		this.clear_submission(fn_id, submission);
+	}
+
+	/** Ends one run a component started (see `EventRun.close`): a stream is closed, any other run cancelled. */
+	end_run(dep: Dependency, submission: ReturnType<Client["submit"]>): void {
+		const current = this.submissions.get(dep.id) === submission;
+		if (dep.connection_type !== "stream") {
+			if (current) this.cancel([dep.id]);
+			return;
+		}
+		this.end_stream_run(dep.id, submission);
+		if (!current) return;
+		this.update_loading_status({
+			status: "complete",
+			fn_index: dep.id,
+			eta: 0,
+			queue: false,
+			stream_state: "closed"
+		});
 		this.update_loading_stati_state();
 	}
 

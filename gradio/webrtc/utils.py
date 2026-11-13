@@ -1,0 +1,587 @@
+"""Helpers shared by the gr.WebRTC backend: handler return types, data channel
+messages, audio conversions and the audio frame encoder.
+
+This module must import without aiortc or av installed; both are imported
+inside the functions that need them.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import fractions
+import functools
+import inspect
+import json
+import logging
+import threading
+import warnings
+from collections.abc import Callable
+from contextvars import ContextVar
+from dataclasses import dataclass
+from typing import Any, Literal, Protocol, cast
+
+import numpy as np
+from numpy.typing import NDArray
+
+logger = logging.getLogger(__name__)
+
+AUDIO_PTIME = 0.020
+# How long to wait before asking a handler again when it had nothing to send,
+# so that an emit() that returns None without awaiting does not spin
+EMPTY_EMIT_WAIT = 0.005
+SLOW_EMIT_WARNING = 60
+GENERATOR_DONE = object()
+# Frames of audio (20 ms each) a receive-mode generator may get ahead of
+# playback. Handlers' audio is not bounded: their clear_queue() drops what
+# emit() returned so far, and a bound would leave more of it in the handler.
+RECEIVE_AUDIO_BUFFER = 50
+
+
+class _DecoderStoppedError(Exception):
+    """The stream stopped while the decoder waited for room in its queue."""
+
+
+WEBRTC_EXTRA_HINT = (
+    "The `aiortc` package is required to stream with gr.WebRTC. "
+    'Install it with the `webrtc` extra: pip install "gradio[webrtc]"'
+)
+
+
+class AdditionalOutputs:
+    """
+    Wraps values that a stream handler wants to send to the extra output
+    components listed in `outputs` of `WebRTC.stream()`. Return or yield it
+    on its own, or as the second element of a `(media, AdditionalOutputs(...))`
+    tuple next to a media frame.
+    """
+
+    def __init__(self, *args: Any) -> None:
+        self.args = args
+
+
+class CloseStream:
+    """
+    Return or yield from a stream handler to end the connection. The message is
+    shown to the user as a warning.
+    """
+
+    def __init__(self, msg: str = "Stream closed") -> None:
+        self.msg = msg
+
+
+class DataChannel(Protocol):
+    def send(self, message: str) -> None: ...
+
+
+def send_to_page(channel: DataChannel | None, message: str) -> None:
+    """
+    Sends a message over the stream's data channel, unless the channel is not
+    open: the page may have closed the stream first, which is no error.
+    """
+    if channel is None:
+        return
+    try:
+        channel.send(message)
+    except Exception:
+        logger.debug("Could not send %s", message, exc_info=True)
+
+
+MessageType = Literal["send_input", "end_stream"]
+
+
+def create_message(type: MessageType, data: list[Any] | str) -> str:
+    return json.dumps({"type": type, "data": data})
+
+
+@dataclass
+class Context:
+    webrtc_id: str
+
+
+class StreamInputs:
+    """
+    The latest values of the extra inputs of a stream, which all its tracks
+    and its handler read. `values` is None until they first arrive.
+    """
+
+    def __init__(self) -> None:
+        self.values: list[Any] | None = None
+        self.arrived = asyncio.Event()
+
+    @property
+    def latest(self) -> list[Any]:
+        return self.values if self.values is not None else []
+
+    def set(self, values: list[Any]) -> None:
+        self.values = list(values)
+        self.arrived.set()
+
+
+def has_streams(blocks: Any) -> bool:
+    """Whether the app `blocks` serves a WebRTC stream event (a lease). Read
+    from the events it serves, so that a Blocks rendered into another app
+    (a multipage app's page, gr.TabbedInterface) brings its streams along."""
+    return any(fn.lease for fn in blocks.fns.values())
+
+
+current_channel: ContextVar[DataChannel | None] = ContextVar(
+    "current_channel", default=None
+)
+current_context: ContextVar[Context | None] = ContextVar(
+    "current_context", default=None
+)
+
+
+def get_current_context() -> Context:
+    """
+    Returns the context of the connection whose handler is currently running,
+    which holds the connection id (`webrtc_id`).
+    """
+    if not (ctx := current_context.get()):
+        raise RuntimeError("No WebRTC connection is active in this context.")
+    return ctx
+
+
+class HandlerFailedError(Exception):
+    """A stream handler raised: the user has been told, and the stream ends."""
+
+
+class StreamErrors:
+    """
+    Records the first error of a stream's handler and ends the stream. The
+    stream's queue event then fails with it, as an event whose function
+    raised, so the page shows it like any event's error. Usable from any
+    thread.
+    """
+
+    def __init__(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        end_stream: Callable[[], None],
+        show_error: bool = False,
+    ) -> None:
+        self.loop = loop
+        self.end_stream = end_stream
+        # Taken when the stream starts: the threads that run sync handlers do
+        # not have the app in their context
+        self.show_error = show_error
+        self.failure: dict[str, Any] | None = None
+        # fail() can be called from several handler threads at once
+        self._lock = threading.Lock()
+
+    def fail(self, error: BaseException) -> None:
+        """
+        Records the handler's error the way a queued event's error is shown
+        (the message of a `gr.Error`; others only with `show_error=True`),
+        once, and ends the stream.
+        """
+        from gradio.utils import error_payload
+
+        payload = error_payload(error, self.show_error)
+        with self._lock:
+            if self.failure is not None:
+                return
+            self.failure = payload
+        self.loop.call_soon_threadsafe(self.end_stream)
+
+
+current_errors: ContextVar[StreamErrors | None] = ContextVar(
+    "current_errors", default=None
+)
+
+
+@dataclass
+class HandlerContext:
+    """
+    What a stream's handler calls need in their context: the stream's queue
+    event and its app, through which `gr.Info` / `gr.Warning` reach the page
+    as an event's do, and where the handler's errors go. Captured where the
+    stream's tracks are made, and set again where a call runs in a context of
+    its own (a worker thread started from elsewhere).
+    """
+
+    event_id: str | None
+    blocks: Any
+    errors: StreamErrors | None
+
+    @classmethod
+    def capture(cls) -> HandlerContext:
+        from gradio.context import LocalContext
+
+        return cls(
+            event_id=LocalContext.event_id.get(None),
+            blocks=LocalContext.blocks.get(None),
+            errors=current_errors.get(),
+        )
+
+    def apply(self) -> None:
+        from gradio.context import LocalContext
+
+        LocalContext.event_id.set(self.event_id)
+        LocalContext.blocks.set(self.blocks)
+        current_errors.set(self.errors)
+
+
+def handler_failed(error: BaseException) -> HandlerFailedError:
+    """
+    Reports an error of the handler of the current stream and returns the
+    exception to raise in its place. The errors of a connection's handler end
+    its stream, whichever task notices them.
+    """
+    from gradio.exceptions import Error as AppError
+
+    if isinstance(error, HandlerFailedError):
+        return error
+    if not isinstance(error, AppError) or error.print_exception:
+        logger.error(
+            "Error in the stream handler",
+            exc_info=(type(error), error, error.__traceback__),
+        )
+    errors = current_errors.get()
+    if errors is not None:
+        errors.fail(error)
+    return HandlerFailedError(str(error))
+
+
+def check_audio(frame: Any) -> tuple[int, NDArray[np.integer | np.floating]]:
+    """
+    Checks audio returned by a handler: `(sample_rate, array)` with the array
+    in gr.Audio's numpy layout, (samples,) for mono or (samples, 2) for
+    stereo, int16, float (e.g. float32, float64) in [-1, 1], or int32, uint16,
+    uint8 or int8 as gr.Audio takes them.
+    """
+    layout_hint = (
+        "Audio must be returned as a (sample_rate, numpy array) tuple, with the "
+        "array shaped (samples,) for mono or (samples, 2) for stereo, as in "
+        "gr.Audio"
+    )
+    if (
+        not isinstance(frame, tuple)
+        or len(frame) != 2
+        or not isinstance(frame[1], np.ndarray)
+    ):
+        raise TypeError(f"{layout_hint}.")
+    array = frame[1]
+    if array.ndim == 2 and array.shape[1] == 1:
+        array = array[:, 0]
+    if array.ndim not in (1, 2) or (array.ndim == 2 and array.shape[1] != 2):
+        raise ValueError(f"{layout_hint}; got an array of shape {array.shape}.")
+    return int(frame[0]), array
+
+
+def split_output(
+    data: tuple | Any,
+) -> tuple[Any, AdditionalOutputs | CloseStream | None]:
+    if isinstance(data, AdditionalOutputs | CloseStream):
+        return None, data
+    if isinstance(data, tuple):
+        # A bare (sample_rate, array) audio frame. A 3-tuple with a layout goes
+        # on so that check_audio() rejects it with a clear message
+        if 2 <= len(data) <= 3 and isinstance(data[1], np.ndarray):
+            return data, None
+        if len(data) != 2:
+            raise ValueError(
+                "A handler must return a media frame, or a tuple of a media frame "
+                "and an instance of AdditionalOutputs or CloseStream."
+            )
+        if not isinstance(data[1], AdditionalOutputs | CloseStream):
+            raise ValueError(
+                "The second element of the returned tuple must be an instance of "
+                "AdditionalOutputs or CloseStream."
+            )
+        return data[0], cast(AdditionalOutputs | CloseStream, data[1])
+    return data, None
+
+
+# Integer types that gr.Audio converts to int16 with a fixed scale
+_SCALED_INTEGER_TYPES = (np.int32, np.uint16, np.uint8, np.int8)
+
+
+def _scaled_integer_to_int16(audio: np.ndarray) -> NDArray[np.int16]:
+    from gradio.processing_utils import convert_to_16_bit_audio
+
+    with warnings.catch_warnings():
+        # Accepted as is in a stream, not worth a warning per chunk
+        warnings.simplefilter("ignore")
+        return convert_to_16_bit_audio(audio)
+
+
+def audio_to_float32(
+    audio: NDArray[np.integer | np.floating],
+) -> NDArray[np.float32]:
+    """
+    Converts an int16 audio array to float32 in the range [-1.0, 1.0). A float
+    array (in [-1.0, 1.0]) is returned as float32. int32, uint16, uint8 and
+    int8 arrays are first scaled to int16 as `gr.Audio` does.
+    """
+    if audio.dtype == np.int16:
+        return audio.astype(np.float32) / 32768.0
+    if np.issubdtype(audio.dtype, np.floating):
+        return audio.astype(np.float32, copy=False)
+    if audio.dtype in _SCALED_INTEGER_TYPES:
+        return _scaled_integer_to_int16(audio).astype(np.float32) / 32768.0
+    raise TypeError(f"Unsupported audio data type: {audio.dtype}")
+
+
+def audio_to_int16(
+    audio: NDArray[np.integer | np.floating],
+) -> NDArray[np.int16]:
+    """
+    Converts a float audio array in the range [-1.0, 1.0] to int16. Unlike
+    `gr.Audio`, a float array is not scaled to its own peak, which would give
+    every chunk of a stream the same loudness. An int16 array is returned
+    unchanged, and int32, uint16, uint8 and int8 arrays are scaled as
+    `gr.Audio` does.
+    """
+    if audio.dtype == np.int16:
+        return cast(NDArray[np.int16], audio)
+    if np.issubdtype(audio.dtype, np.floating):
+        # Values just past full scale would otherwise wrap around to the
+        # opposite sign, and NaN has no int16 value
+        clipped = np.clip(np.nan_to_num(audio.astype(np.float32)), -1.0, 1.0)
+        return (clipped * 32767.0).astype(np.int16)
+    if audio.dtype in _SCALED_INTEGER_TYPES:
+        return _scaled_integer_to_int16(audio)
+    raise TypeError(f"Unsupported audio data type: {audio.dtype}")
+
+
+async def wait_for_item(queue: asyncio.Queue, timeout: float = 0.1) -> Any:
+    """
+    Waits for an item from an asyncio.Queue and returns None when the timeout
+    is reached, so that `emit()` does not block when nothing is ready.
+    """
+    try:
+        return await asyncio.wait_for(queue.get(), timeout=timeout)
+    except TimeoutError:
+        return None
+
+
+def _and_call(fn: Any) -> tuple[Any, ...]:
+    return (fn, type(fn).__call__) if callable(fn) else (fn,)
+
+
+def is_async(fn: Any) -> bool:
+    """Whether `fn` is async, also when it is an object with an async `__call__`."""
+    return is_async_generator(fn) or any(
+        inspect.iscoroutinefunction(f) for f in _and_call(fn)
+    )
+
+
+def is_async_generator(fn: Any) -> bool:
+    """Whether `fn` is an async generator function, or an object whose
+    `__call__` is one."""
+    return any(inspect.isasyncgenfunction(f) for f in _and_call(fn))
+
+
+def bind_special_args(fn: Callable, request: Any) -> Callable:
+    """
+    Returns `fn` with its special parameters (`gr.Request`, `gr.OAuthProfile`,
+    `gr.OAuthToken`) filled in for one connection, as for an event listener;
+    the stream passes the other arguments. The values are computed on the
+    first call, inside the handler, so that e.g. a missing sign-in is reported
+    like any other handler error.
+    """
+    from gradio.helpers import special_args
+
+    # Where to insert what, by the number of arguments the stream passes
+    inserts: dict[int, list[tuple[int, Any]]] = {}
+
+    def with_specials(args: tuple) -> list:
+        if len(args) not in inserts:
+            marks = [object() for _ in args]
+            filled, *_ = special_args(fn, list(marks), request)
+            inserts[len(args)] = [
+                (i, value)
+                for i, value in enumerate(filled)
+                if not any(value is mark for mark in marks)
+            ]
+        call = list(args)
+        for i, value in inserts[len(args)]:
+            call.insert(i, value)
+        return call
+
+    if inspect.iscoroutinefunction(fn):
+
+        @functools.wraps(fn)
+        async def async_bound(*args):
+            return await fn(*with_specials(args))
+
+        return async_bound
+
+    @functools.wraps(fn)
+    def bound(*args):
+        return fn(*with_specials(args))
+
+    return bound
+
+
+def webrtc_error_handler(func: Callable) -> Callable:
+    """Wraps handler methods so that their errors are reported (see handler_failed)."""
+
+    @functools.wraps(func)
+    async def async_wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except HandlerFailedError:
+            raise
+        except Exception as e:
+            raise handler_failed(e) from e
+
+    @functools.wraps(func)
+    def sync_wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except HandlerFailedError:
+            raise
+        except Exception as e:
+            raise handler_failed(e) from e
+
+    return async_wrapper if inspect.iscoroutinefunction(func) else sync_wrapper
+
+
+async def player_worker_decode(
+    next_frame: Callable,
+    queue: asyncio.Queue,
+    thread_quit: asyncio.Event,
+    set_additional_outputs: Callable | None,
+    sample_rate: int = 48000,
+    frame_size: int = int(48000 * AUDIO_PTIME),
+):
+    """
+    Pulls `(sample_rate, array)` chunks from `next_frame` and puts
+    fixed-size `av.AudioFrame`s at `sample_rate` on `queue`, ready to be sent
+    over the peer connection. Puts None and returns when `next_frame` gives
+    `GENERATOR_DONE`.
+    """
+    import av
+
+    audio_samples = 0
+    audio_time_base = fractions.Fraction(1, sample_rate)
+    resampler = None
+    resampler_key: tuple[str, int] | None = None
+
+    def new_resampler():
+        return av.AudioResampler(
+            format="s16",
+            layout="stereo",
+            rate=sample_rate,
+            frame_size=frame_size,
+        )
+
+    # A call that is slow is waited for, not started again: a call in a worker
+    # thread cannot be stopped, and a second one would run next to it
+    pending: asyncio.Future | None = None
+    stopped = asyncio.ensure_future(thread_quit.wait())
+
+    async def put(item: Any) -> None:
+        # A bounded queue makes the decoder wait for playback, which a stop
+        # must still end
+        if not queue.full():
+            queue.put_nowait(item)
+            return
+        putting = asyncio.ensure_future(queue.put(item))
+        await asyncio.wait({putting, stopped}, return_when=asyncio.FIRST_COMPLETED)
+        if not putting.done():
+            putting.cancel()
+            raise _DecoderStoppedError
+
+    async def put_resampled(frames):
+        nonlocal audio_samples
+        for processed_frame in frames:
+            processed_frame.pts = audio_samples
+            processed_frame.time_base = audio_time_base
+            audio_samples += processed_frame.samples
+            await put(processed_frame)
+
+    async def end(item: Any) -> None:
+        # What the resampler still holds is the end of the audio. The encoder
+        # sends whole frames only, so the last one is padded with silence.
+        if resampler is not None:
+            frames = list(resampler.resample(None))
+            if frames and frames[-1].samples < frame_size:
+                last = frames[-1].to_ndarray()
+                padded = np.zeros((1, frame_size * 2), dtype=last.dtype)
+                padded[:, : last.shape[1]] = last
+                frames[-1] = av.AudioFrame.from_ndarray(
+                    padded, format="s16", layout="stereo"
+                )
+                frames[-1].sample_rate = sample_rate
+            await put_resampled(frames)
+        await put(item)
+
+    try:
+        while not thread_quit.is_set():
+            try:
+                if pending is None:
+                    pending = asyncio.ensure_future(next_frame())
+                await asyncio.wait(
+                    {pending, stopped},
+                    timeout=SLOW_EMIT_WARNING,
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                if not pending.done():
+                    if not thread_quit.is_set():
+                        logger.warning(
+                            "The stream handler has not returned anything for %s "
+                            "seconds",
+                            SLOW_EMIT_WARNING,
+                        )
+                    continue
+                done, pending = pending, None
+                item = done.result()
+                if item is GENERATOR_DONE:
+                    await end(None)
+                    break
+                frame, outputs = split_output(item)
+                if isinstance(outputs, AdditionalOutputs) and set_additional_outputs:
+                    set_additional_outputs(outputs)
+
+                # The handler is not called again after a CloseStream
+                if frame is None:
+                    if isinstance(outputs, CloseStream):
+                        await end(outputs)
+                        break
+                    await asyncio.sleep(EMPTY_EMIT_WAIT)
+                    continue
+
+                in_sample_rate, audio_array = check_audio(frame)
+                if audio_array.size == 0:
+                    # Nothing to play (e.g. TTS output for an empty sentence)
+                    if isinstance(outputs, CloseStream):
+                        await end(outputs)
+                        break
+                    await asyncio.sleep(EMPTY_EMIT_WAIT)
+                    continue
+                layout = "mono" if audio_array.ndim == 1 else "stereo"
+                # Planar float frames take (channels, samples)
+                planar = np.ascontiguousarray(
+                    audio_to_float32(audio_array).reshape(len(audio_array), -1).T
+                )
+                in_frame = av.AudioFrame.from_ndarray(
+                    planar, format="fltp", layout=layout
+                )
+                in_frame.sample_rate = in_sample_rate
+
+                # av.AudioResampler takes one input format, so a change of rate
+                # or layout gets a new resampler after the old one is flushed
+                key = (layout, in_sample_rate)
+                if resampler is None or key != resampler_key:
+                    if resampler is not None:
+                        await put_resampled(resampler.resample(None))
+                    resampler = new_resampler()
+                    resampler_key = key
+
+                await put_resampled(resampler.resample(in_frame))
+                if isinstance(outputs, CloseStream):
+                    await end(outputs)
+                    break
+            except (HandlerFailedError, _DecoderStoppedError):
+                raise
+            except Exception as e:
+                raise handler_failed(e) from e
+    except _DecoderStoppedError:
+        pass
+    finally:
+        stopped.cancel()
+        if pending is not None:
+            pending.cancel()

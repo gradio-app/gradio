@@ -167,4 +167,96 @@ async def generate(prompt: str):
 
 Generator functions automatically stream results via SSE, just like in a regular Gradio app. The `concurrency_limit` parameter controls how many concurrent calls to this endpoint are allowed. By default, this is set to 1, since many ML workloads that run on GPU can only support a single user at a time. However, you can increase this, or set to `None` to use FastAPI defaults, if you are e.g. calling an external API.
 
+## WebRTC Streams
+
+To stream a webcam or microphone to your model and back with low latency, register a handler with `app.webrtc()` and connect to it from the page with `client.webrtc()`. The handler is the same as for [`gr.WebRTC`](/guides/object-detection-from-webcam-with-webrtc): a function that gets each frame and returns the frame to show, a handler class for audio, or a generator for a stream that only plays media from the server (`mode="receive"`). This needs the `webrtc` extra: `pip install "gradio[webrtc]"`.
+
+```python
+import numpy as np
+from fastapi.responses import HTMLResponse
+from gradio import Server
+from gradio.webrtc import AdditionalOutputs
+
+app = Server()
+
+@app.webrtc(name="flip", time_limit=60)
+def flip(frame, brightness):
+    frame = np.clip(frame[::-1] * brightness, 0, 255).astype(np.uint8)
+    return frame, AdditionalOutputs(float(frame.mean()))
+
+@app.get("/", response_class=HTMLResponse)
+async def homepage():
+    return """
+<video id="out" autoplay playsinline></video>
+<input id="brightness" type="range" min="0" max="2" step="0.1" value="1">
+<button id="start">Start</button> <button id="stop">Stop</button>
+<p id="info"></p>
+<script type="module">
+  import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+  const app = await Client.connect(location.origin);
+  const slider = document.getElementById("brightness");
+  const info = document.getElementById("info");
+  let stream;
+  document.getElementById("start").onclick = async () => {
+    const media = await navigator.mediaDevices.getUserMedia({ video: true });
+    stream = app.webrtc("/flip", {
+      media,
+      inputs: [Number(slider.value)],
+      on_track: (event) => {
+        document.getElementById("out").srcObject = event.streams[0];
+      },
+      on_output: ([mean]) => {
+        info.textContent = `Mean brightness: ${mean.toFixed(1)}`;
+      }
+    });
+    stream.done
+      .catch((error) => (info.textContent = error.message))
+      // The page opened the camera, so the page turns it off
+      .finally(() => media.getTracks().forEach((track) => track.stop()));
+  };
+  slider.oninput = () => stream?.set_inputs([Number(slider.value)]);
+  document.getElementById("stop").onclick = () => stream?.stop();
+</script>
+"""
+
+app.launch()
+```
+
+A few things to know:
+
+- Each stream waits its turn in the queue like any other call, so `concurrency_limit` (1 by default) is the number of streams that run at once, and `time_limit` ends a stream after that many seconds, counted from its turn. `stream.connected` resolves once the media flows, and `stream.done` once the stream is over.
+- The values after the frame are the stream's inputs: the page sets them with `inputs` and changes them with `set_inputs()`. They are plain JSON values, since there are no components to process them.
+- Each `AdditionalOutputs(...)` the handler returns arrives in `on_output` as the list of its values.
+- On Hugging Face Spaces, many visitors' browsers reach the app only through a TURN server, so pass `rtc_configuration=` to `app.webrtc()`, as described in the [WebRTC guide](/guides/object-detection-from-webcam-with-webrtc#deploying-to-hugging-face-spaces). The recommended way there is a function that issues the credentials with each visitor's `gr.OAuthToken`, which works the same with `app.webrtc()`; for signing in, see [Sign in with Hugging Face](#sign-in-with-hugging-face) below. With ZeroGPU, `client.webrtc()` sends the visitor's ZeroGPU headers with the connection, so the GPU time counts against the visitor's quota.
+- WebRTC endpoints are left out of the API page and the Python client, which cannot send media.
+
+`client.webrtc()` handles the protocol for you, so you only need the following if you write your own client. The client joins the queue with `[webrtc_id]` as the data, where `webrtc_id` is a random id of its own. Once its turn comes (the event's first data message), it gets the RTCPeerConnection configuration from `/gradio_api/webrtc/rtc_configuration` and sends its offer and ICE candidates to `/gradio_api/webrtc/offer`, both with the `webrtc_id` and the client's session hash. Each `AdditionalOutputs` arrives as a data message of the event whose value is the list of its values; messages with `{"__type__": "update"}` carry nothing. The client sends the values of the extra inputs over the stream's data channel as `{"type": "input", "data": [...]}`: once the channel opens (an empty list if there are none; a `mode="receive"` stream starts only then), whenever they change, and when the handler asks for them with a `send_input` message.
+
+## Sign in with Hugging Face
+
+When an `app.webrtc()` handler or its `rtc_configuration` function takes the visitor's `gr.OAuthProfile` or `gr.OAuthToken`, the app gets the sign-in routes that a `gr.LoginButton` brings to a `gr.Blocks` app, so the page signs in with a link instead of the button. The app's `app.api()` functions then get the signed-in visitor's values as well:
+
+```python
+import gradio as gr
+
+async def turn_credentials(token: gr.OAuthToken | None) -> dict:
+    ...  # issue TURN credentials with the visitor's token
+
+@app.webrtc(name="flip", rtc_configuration=turn_credentials)
+def flip(frame):
+    return frame[::-1]
+
+@app.api(name="whoami")
+def whoami(profile: gr.OAuthProfile | None) -> str:
+    return profile.username if profile else "Not signed in"
+```
+
+```html
+<a href="/login/huggingface">Sign in with Hugging Face</a> <a href="/logout">Sign out</a>
+```
+
+As for a `gr.Blocks` app, add `hf_oauth: true` to the metadata of your Space's `README.md` and install `gradio[oauth]`. Outside of Spaces, signing in uses a mocked profile of the account your machine is logged in to, so the app starts only when your machine is logged in to Hugging Face.
+
+An `app.api()` function that takes a `gr.OAuthToken` does not bring the sign-in routes by itself. Callers of such an endpoint pass their own token with `Client(..., oauth_token=...)`, which needs none of the setup above.
+
 For the full API reference, see the [`Server` documentation](/docs/gradio/server).

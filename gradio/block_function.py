@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from typing import TYPE_CHECKING, Literal
 
 from . import utils
@@ -108,6 +108,13 @@ class BlockFunction:
         self.time_limit = time_limit
         self.stream_every = stream_every
         self.connection = connection
+        # Ends a running stream when the page closes it, given the queue event's
+        # id; returns False to leave that to the queue
+        self.close_stream: Callable[[str], bool | Awaitable[bool]] | None = None
+        # A stream (gr.WebRTC) that keeps its place in the queue while it runs:
+        # its wake wait has no timeout, and the function enforces its own time
+        # limit and ends the run itself.
+        self.lease = False
         self.event_specific_args = event_specific_args
         self.component_prop_inputs = component_prop_inputs or []
         self.input_keyword_names = input_keyword_names or []
