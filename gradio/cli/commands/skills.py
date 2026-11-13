@@ -28,7 +28,12 @@ _SKILL_PREFIX = ".agents/skills/gradio"
 _HF_SKILL_PREFIX = ".agents/skills/hf-gradio"
 
 _SKILL_FILES = ["SKILL.md"]
-_REFERENCE_FILES = ["examples.md", "api-signatures.md", "event-listeners.md"]
+_REFERENCE_FILES = [
+    "examples.md",
+    "api-signatures.md",
+    "event-listeners.md",
+    "workflows.md",
+]
 
 _HF_SKILL_FILES = ["SKILL.md"]
 
