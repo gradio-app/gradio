@@ -1,5 +1,15 @@
 # @gradio/workflowcanvas
 
+## 0.16.0
+
+### Features
+
+- [#14037](https://github.com/gradio-app/gradio/pull/14037) [`ec06278`](https://github.com/gradio-app/gradio/commit/ec06278ed72e5eb73494a9d171ca851d553dc82a) - workflow: add embedded inference token.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@2.9.0
+
 ## 0.15.0
 
 ### Features
