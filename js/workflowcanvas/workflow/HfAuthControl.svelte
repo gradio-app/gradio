@@ -63,6 +63,7 @@
 
 <style>
 	.login-btn {
+		white-space: nowrap;
 		font-family: "Manrope", sans-serif;
 		font-size: 12px;
 		font-weight: 500;
