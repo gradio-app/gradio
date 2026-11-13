@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:fix missing font files in workflow
+feat:workflow: fix missing fonts
