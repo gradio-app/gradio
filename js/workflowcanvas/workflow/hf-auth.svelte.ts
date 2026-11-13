@@ -1,3 +1,5 @@
+import { get_zerogpu_origin } from "@gradio/client";
+
 interface WhoAmI {
 	name: string;
 	isPro: boolean;
@@ -37,6 +39,62 @@ function redirect_to(path: string): void {
 		window.location.pathname + window.location.search
 	);
 	window.location.assign(`${path}?_target_url=${target}`);
+}
+
+const INFERENCE_JWT_REQUEST = "INFERENCE_JWT_REQUEST";
+const INFERENCE_JWT_RESPONSE = "INFERENCE_JWT_RESPONSE";
+const INFERENCE_JWT_PROBE = "INFERENCE_JWT_PROBE";
+const INFERENCE_JWT_PROBE_RESPONSE = "INFERENCE_JWT_PROBE_RESPONSE";
+const EMBEDDER_TOKEN_TIMEOUT_MS = 30_000;
+const EMBEDDER_TOKEN_FALLBACK_TTL_MS = 4 * 60_000;
+
+type EmbedderToken = { token: string; expires: number };
+
+export function request_embedder_token(
+	probe = false
+): Promise<EmbedderToken | null> {
+	const origin =
+		typeof window === "undefined" || window.self === window.top
+			? null
+			: get_zerogpu_origin(window.location.hostname);
+	if (!origin) return Promise.resolve(null);
+	const handshake = (window as { supports_zerogpu_headers?: boolean })
+		.supports_zerogpu_headers;
+	if (!probe && !handshake) return Promise.resolve(null);
+	return new Promise((resolve) => {
+		const done = (value: EmbedderToken | null): void => {
+			window.removeEventListener("message", on_message);
+			clearTimeout(timer);
+			resolve(value);
+		};
+		const on_message = (event: MessageEvent): void => {
+			if (event.source !== window.parent || event.origin !== origin) return;
+			const data = event.data as {
+				type?: unknown;
+				token?: unknown;
+				exp?: unknown;
+			};
+			if (
+				data?.type !==
+				(probe ? INFERENCE_JWT_PROBE_RESPONSE : INFERENCE_JWT_RESPONSE)
+			)
+				return;
+			if (typeof data.token !== "string" || !data.token) return done(null);
+			done({
+				token: data.token,
+				expires:
+					typeof data.exp === "number"
+						? data.exp * 1000
+						: Date.now() + EMBEDDER_TOKEN_FALLBACK_TTL_MS
+			});
+		};
+		const timer = setTimeout(() => done(null), EMBEDDER_TOKEN_TIMEOUT_MS);
+		window.addEventListener("message", on_message);
+		window.parent.postMessage(
+			{ type: probe ? INFERENCE_JWT_PROBE : INFERENCE_JWT_REQUEST },
+			origin
+		);
+	});
 }
 
 type AuthSource = "" | "oauth" | "local" | "pat";
@@ -114,6 +172,7 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 	let avatarUrl = $state("");
 	let token = $state("");
 	let source = $state<AuthSource>("");
+	let embedded = $state(false);
 	let status = $state<AuthStatus>("checking");
 	let isHFSpace = $state(false);
 	// Optimistic until the server answers, so the owner (the common case)
@@ -234,6 +293,11 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 			return;
 		}
 
+		void request_embedder_token(true).then((t) => {
+			if (!t || embedder) return;
+			embedder = t;
+			embedded = true;
+		});
 		status = "ready";
 	}
 
@@ -267,6 +331,24 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 			clearIdentity();
 			status = "invalid";
 		}
+	}
+
+	let embedder: EmbedderToken | null = null;
+	let embedder_pending: Promise<EmbedderToken | null> | null = null;
+	let embedder_declined = false;
+	async function inferenceToken(): Promise<string> {
+		if (token) return token;
+		if (embedder && embedder.expires - 30_000 > Date.now())
+			return embedder.token;
+		if (embedder_declined) return "";
+		embedder_pending ??= request_embedder_token().then((t) => {
+			embedder = t;
+			embedded = !!t;
+			embedder_declined = !t;
+			embedder_pending = null;
+			return t;
+		});
+		return (await embedder_pending)?.token ?? "";
 	}
 
 	function signIn(): void {
@@ -326,6 +408,9 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 		get source() {
 			return source;
 		},
+		get embedded() {
+			return embedded;
+		},
 		get status() {
 			return status;
 		},
@@ -351,6 +436,7 @@ export function createHFAuth(getServer: () => Record<string, any>) {
 			return scopesKnown;
 		},
 		hasScope,
+		inferenceToken,
 		refreshOAuthAvailable,
 		refreshOAuthScopes,
 		init,
