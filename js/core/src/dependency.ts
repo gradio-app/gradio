@@ -212,6 +212,8 @@ export class DependencyManager {
 	render_id_deps = new Map<number, Set<number>>();
 
 	submissions: Map<number, ReturnType<Client["submit"]>> = new Map();
+	/** The latest push of each WebRTC stream's other inputs (see push_stream_inputs) */
+	stream_input_seq: Map<number, number> = new Map();
 	page_ended: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
 	cancelled: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
 	submission_trigger_ids: Map<number, number | null> = new Map();
@@ -394,8 +396,13 @@ export class DependencyManager {
 		}
 	}
 
-	/** Clears the live media a WebRTC stream showed in its output */
-	end_live_stream(dep: Dependency): void {
+	/**
+	 * Clears the live media a WebRTC stream showed in its output, unless a
+	 * newer run of the stream has started since `run` (it shows its own).
+	 */
+	end_live_stream(dep: Dependency, run: ReturnType<Client["submit"]>): void {
+		const current = this.submissions.get(dep.id);
+		if (current !== undefined && current !== run) return;
 		const index = dep.transport?.media_output;
 		if (index === null || index === undefined) return;
 		const output_id = dep.outputs[index];
@@ -410,9 +417,16 @@ export class DependencyManager {
 		for (const [dep_id, submission] of this.submissions) {
 			const dep = this.dependencies_by_fn.get(dep_id);
 			if (!dep?.transport || !dep.inputs.includes(target_id)) continue;
-			this.gather_state(dep.inputs, dep.component_prop_inputs).then((data) =>
-				submission.send_chunk({ fn_index: dep.id, data } as any)
-			);
+			// Gathering is async, so only the newest one is sent
+			const seq = (this.stream_input_seq.get(dep_id) ?? 0) + 1;
+			this.stream_input_seq.set(dep_id, seq);
+			this.gather_state(dep.inputs, dep.component_prop_inputs)
+				.then((data) => {
+					if (this.stream_input_seq.get(dep_id) !== seq) return;
+					submission.send_chunk({ fn_index: dep.id, data } as any);
+				})
+				// The stream may have ended meanwhile
+				.catch(() => {});
 		}
 	}
 
@@ -712,7 +726,7 @@ export class DependencyManager {
 										unset_args.forEach((fn) => fn());
 										await dep_submission.data.acknowledge();
 										this.clear_submission(dep.id, dep_submission.data);
-										this.end_live_stream(dep);
+										this.end_live_stream(dep, dep_submission.data);
 										this.dispatch_deferred(dep.id);
 										return;
 									}
@@ -772,7 +786,7 @@ export class DependencyManager {
 						}
 						unset_args.forEach((fn) => fn());
 						this.clear_submission(dep.id, dep_submission.data);
-						this.end_live_stream(dep);
+						this.end_live_stream(dep, dep_submission.data);
 						this.dispatch_deferred(dep.id);
 					}
 				} catch (error) {
@@ -789,7 +803,7 @@ export class DependencyManager {
 					this.update_loading_stati_state();
 					if (active_submission) {
 						this.clear_submission(dep.id, active_submission);
-						this.end_live_stream(dep);
+						this.end_live_stream(dep, active_submission);
 					}
 					failure.forEach((dep_id) => {
 						this.dispatch({

@@ -868,6 +868,66 @@ describe("DependencyManager.close_stream", () => {
 	);
 });
 
+describe("DependencyManager: WebRTC streams", () => {
+	function webrtc_stream(): DependencyConfig {
+		const stream = dependency(0, "stream", [10]);
+		stream.inputs = [5];
+		(stream as any).transport = { type: "webrtc", media_output: 0 };
+		return stream;
+	}
+
+	test("the end of an older run leaves a newer run's live media", () => {
+		const stream = webrtc_stream();
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager([stream], {} as Client, update_state);
+		const submissions = (dependency_manager as any).submissions as Map<
+			number,
+			unknown
+		>;
+		const older = {} as ReturnType<Client["submit"]>;
+		submissions.set(0, {});
+
+		dependency_manager.end_live_stream(stream, older);
+		expect(update_state).not.toHaveBeenCalled();
+
+		submissions.delete(0);
+		dependency_manager.end_live_stream(stream, older);
+		expect(update_state).toHaveBeenCalledWith(10, { live_stream: null }, false);
+	});
+
+	test("the newest values of the other inputs go out last", async () => {
+		const dependency_manager = manager([webrtc_stream()]);
+		const sent: unknown[] = [];
+		const send_chunk = vi.fn((chunk: { data: unknown }) => {
+			sent.push(chunk.data);
+		});
+		(dependency_manager as any).submissions.set(0, { send_chunk });
+		let release_older!: (data: unknown[]) => void;
+		const gathered = [
+			new Promise<unknown[]>((resolve) => (release_older = resolve)),
+			Promise.resolve(["newer"])
+		];
+		vi.spyOn(dependency_manager as any, "gather_state").mockImplementation(
+			() => gathered.shift()
+		);
+
+		dependency_manager.push_stream_inputs(5);
+		dependency_manager.push_stream_inputs(5);
+		await vi.waitFor(() => expect(sent).toEqual([["newer"]]));
+		release_older(["older"]);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		expect(sent).toEqual([["newer"]]);
+
+		// A stream that ended meanwhile: the failed send is not left unhandled
+		send_chunk.mockImplementation(() => {
+			throw new Error("closed");
+		});
+		vi.spyOn(dependency_manager as any, "gather_state").mockResolvedValue([1]);
+		dependency_manager.push_stream_inputs(5);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+	});
+});
+
 describe("DependencyManager.dispatch_load_events", () => {
 	test("dispatches load handlers that are not already being resumed", () => {
 		const resumed_load = dependency(0, "resumed_load", []);
