@@ -294,17 +294,17 @@ def api_stream(
 
     from gradio.components.api_component import Api
 
+    audio_video = _is_a(fn, (AudioVideoStreamHandler, AsyncAudioVideoStreamHandler))
     if _is_a(fn, (StreamHandlerBase,)):
         # A handler class: the media is the parameter of receive() /
         # video_receive(), the outputs what emit() / video_emit() return
         cls = fn if inspect.isclass(fn) else type(fn)
         receive = getattr(cls, "video_receive", None) or cls.receive
         emit = getattr(cls, "emit", None) or cls.video_emit
-        if _is_a(fn, (AudioVideoStreamHandler, AsyncAudioVideoStreamHandler)):
-            raise ValueError(
-                "An AudioVideoStreamHandler is not supported on gr.Server yet; "
-                "use it with a gr.Video in Blocks."
-            )
+        if audio_video:
+            # Audio and video together: the audio methods' hints place the
+            # media, which carries both
+            receive, emit = cls.receive, cls.emit
         params = [p for p in utils.get_function_params(receive) if p[0] != "self"]
         returns = _return_types(emit)
     else:
@@ -321,7 +321,7 @@ def api_stream(
             "A WebRTC endpoint marks its media with one type hint, gr.VideoFrame "
             "or gr.AudioChunk, among its parameters and/or return values."
         )
-    modality = cast(Modality, kinds.pop())
+    modality = cast(Modality, "audio-video" if audio_video else kinds.pop())
     media_schema = {
         "type": "object",
         "description": f"live {modality} over WebRTC (a MediaStream in @gradio/client)",

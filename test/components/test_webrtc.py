@@ -4885,16 +4885,16 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         )
 
     class Both(AsyncAudioVideoStreamHandler):
-        async def receive(self, frame) -> None:
+        async def receive(self, frame: gr.AudioChunk) -> None:  # type: ignore[override]  # the hint marks the media
             pass
 
-        async def emit(self):
+        async def emit(self) -> tuple[gr.AudioChunk, str] | None:
             return None
 
-        async def video_receive(self, frame) -> None:
+        async def video_receive(self, frame: gr.VideoFrame) -> None:  # type: ignore[override]  # the hint marks the media
             pass
 
-        async def video_emit(self):
+        async def video_emit(self) -> gr.VideoFrame | None:
             return None
 
         def copy(self):
@@ -4928,9 +4928,12 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         for fn in (unmarked, mixed, CaptionVideo):
             with pytest.raises(ValueError, match="one type hint"):
                 api_stream(fn, **kwargs)
-        # Audio and video together is not supported on gr.Server yet
-        with pytest.raises(ValueError, match="AudioVideoStreamHandler"):
-            api_stream(Both, **kwargs)
+        # Audio and video together, from an AudioVideoStreamHandler
+        stream_fn, _ = api_stream(Both, **kwargs)
+        assert stream_fn.transport is not None
+        assert stream_fn.transport["modality"] == "audio-video"
+        assert stream_fn.transport["mode"] == "send-receive"
+        assert len(stream_fn.outputs) == 2
 
 
 def test_a_handler_class_gets_the_inputs_its_receive_declares():
