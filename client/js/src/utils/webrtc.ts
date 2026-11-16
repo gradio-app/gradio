@@ -253,7 +253,9 @@ export function submit_over_webrtc(
 	transport: StreamTransport,
 	_event_data?: unknown,
 	trigger_id?: number | null,
-	all_events?: boolean
+	all_events?: boolean,
+	// The endpoint's parameter names, for named values in send_chunk()
+	param_names: string[] = []
 ): SubmitIterable<GradioEvent> {
 	// The media comes in its input slot (gr.Server callers) or in the event
 	// data (Blocks components, whose value stays theirs); -1 in receive mode
@@ -271,6 +273,8 @@ export function submit_over_webrtc(
 	const others = (values: unknown[]): unknown[] =>
 		values.filter((_, i) => i !== media_index);
 	let inputs = others(data);
+	// The current value of each input, the media slot left null
+	let current = data.map((value, i) => (i === media_index ? null : value));
 	let channel: RTCDataChannel | null = null;
 	let pc: RTCPeerConnection | null = null;
 	let stopped = false;
@@ -523,11 +527,28 @@ export function submit_over_webrtc(
 		wait_for_id: () => job.wait_for_id(),
 		acknowledge: () => job.acknowledge(),
 		send_chunk: (chunk: Record<string, unknown>) => {
-			const values = chunk?.data;
+			let values = chunk?.data;
+			if (values && typeof values === "object" && !Array.isArray(values)) {
+				// Named, as submit() takes them: the ones given replace the
+				// current values
+				const named = values as Record<string, unknown>;
+				const unknown_name = Object.keys(named).find(
+					(name) => !param_names.includes(name)
+				);
+				if (unknown_name !== undefined) {
+					throw new Error(
+						`Parameter \`${unknown_name}\` is not a valid keyword argument.`
+					);
+				}
+				values = current.map((value, i) =>
+					param_names[i] in named ? named[param_names[i]] : value
+				);
+			}
 			if (!Array.isArray(values)) return;
 			const next = media_index >= 0 ? values[media_index] : undefined;
 			if (next instanceof MediaStream) replace_media(next);
 			inputs = others(values);
+			current = values.map((value, i) => (i === media_index ? null : value));
 			send_inputs();
 		},
 		close_stream: (options) => close(options)

@@ -397,7 +397,8 @@ describe("submit() of a stream with transport='webrtc'", () => {
 			send_receive,
 			{ media, ...event_data },
 			null,
-			true
+			true,
+			["frame", "brightness"]
 		);
 		return { media, video, audio, job_iter };
 	}
@@ -443,6 +444,9 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		expect(pc.channel.send).toHaveBeenLastCalledWith(input([2]));
 		pc.channel.onmessage?.({ data: JSON.stringify({ type: "send_input" }) });
 		expect(pc.channel.send).toHaveBeenLastCalledWith(input([2]));
+		// Named, as submit() takes them: the others keep their values
+		job_iter.send_chunk({ data: { brightness: 3 } });
+		expect(pc.channel.send).toHaveBeenLastCalledWith(input([3]));
 	});
 
 	it("a MediaStream in the media slot of send_chunk() switches the camera of a running stream", async () => {

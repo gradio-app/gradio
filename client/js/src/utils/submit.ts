@@ -118,7 +118,8 @@ export function submit(
 				dependency.transport,
 				event_data,
 				trigger_id,
-				all_events
+				all_events,
+				endpoint_info?.parameters.map((param) => param.parameter_name) ?? []
 			);
 		}
 
