@@ -120,20 +120,38 @@ export function submit(
 		// — records nothing for its in-app use.
 		const is_documented_endpoint = dependency.api_visibility === "public";
 		// A chunk is not the input of an input stream, so the streamed component
-		// is saved empty; the event's other inputs are kept. A password textbox
-		// is saved empty too, so its value never reaches the run history.
+		// is saved empty; the event's other inputs are kept.
+		const passwords = new Set(
+			config.components
+				.filter((c) => c.type === "textbox" && c.props.type === "password")
+				.map((c) => c.id)
+		);
 		const blank_inputs = new Set([
 			...dependency.targets
 				.filter(([, event]) => event === "stream")
 				.map(([id]) => id),
-			...config.components
-				.filter((c) => c.type === "textbox" && c.props.type === "password")
-				.map((c) => c.id)
+			...passwords
 		]);
 		const history_inputs = (values: unknown[]): unknown[] =>
 			values.map((value, index) =>
 				blank_inputs.has(dependency.inputs[index]) ? null : value
 			);
+		// Matches `handle_payload`, which drops `gr.State` outputs unless
+		// `with_null_state` is set.
+		const output_ids = options.with_null_state
+			? dependency.outputs
+			: dependency.outputs.filter(
+					(id) => config.components.find((c) => c.id === id)?.type !== "state"
+				);
+		const history_event = (event: GradioEvent): GradioEvent =>
+			event.type === "data" && Array.isArray(event.data)
+				? {
+						...event,
+						data: event.data.map((value, index) =>
+							passwords.has(output_ids[index]) ? null : value
+						)
+					}
+				: event;
 		// Either side may opt out: the app for everyone who uses it, and this
 		// caller for itself.
 		const history_enabled =
@@ -198,7 +216,7 @@ export function submit(
 
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
-			update_run_history(history_scope, history_run_id, event);
+			update_run_history(history_scope, history_run_id, history_event(event));
 			if (event.type === "data" || event.type === "render") {
 				sign_file_urls(event.data, root, api_prefix, that.jwt);
 			}

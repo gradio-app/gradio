@@ -480,6 +480,19 @@ def _is_automatic_run(
     return bool(events) and all(event in ("tick", "load") for event in events)
 
 
+def _blank_passwords(blocks: list, values: Any) -> Any:
+    if not isinstance(values, list):
+        return values
+    return [
+        None
+        if i < len(blocks)
+        and blocks[i].get_block_name() == "textbox"
+        and getattr(blocks[i], "type", None) == "password"
+        else value
+        for i, value in enumerate(values)
+    ]
+
+
 def _split_batched_run(
     gr_request: Union[Request, list[Request]],
     inputs: list[Any],
@@ -546,13 +559,6 @@ def record_run_history(
         else:
             runs = [(gr_request, inputs, outputs)]
             trigger_ids = [trigger_id]
-        # A password textbox's value never reaches the run history.
-        passwords = {
-            i
-            for i, block in enumerate(fn.inputs)
-            if block.get_block_name() == "textbox"
-            and getattr(block, "type", None) == "password"
-        }
         for (run_request, run_inputs, run_outputs), run_trigger_id in zip(
             runs, trigger_ids, strict=False
         ):
@@ -561,11 +567,8 @@ def record_run_history(
             history.schedule_record_run(
                 app,
                 request=run_request,
-                inputs=[
-                    None if i in passwords else value
-                    for i, value in enumerate(run_inputs)
-                ],
-                outputs=run_outputs,
+                inputs=_blank_passwords(fn.inputs, run_inputs),
+                outputs=_blank_passwords(fn.outputs, run_outputs),
                 api_name=fn.api_name,
                 fn_index=fn._id,
                 started_at=started_at,

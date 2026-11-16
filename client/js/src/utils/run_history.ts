@@ -414,9 +414,11 @@ function restore_run_impl(config: ReplayTarget, run: StoredRun): boolean {
 		for (const [index, id] of ids.entries()) {
 			const component = config.components.find((item) => item.id === id);
 			if (!component || index >= saved.length) continue;
-			// `gr.State` is held on the server and always saved as null, so
-			// writing it back would wipe out the component's real default.
+			// `gr.State` is held on the server and a password is never saved, so
+			// both come back null; writing that back would wipe the current value.
 			if (component.type === "state") continue;
+			if (component.props.type === "password" && saved[index] === null)
+				continue;
 			component.props.value = saved[index];
 		}
 	};

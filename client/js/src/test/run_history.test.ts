@@ -402,6 +402,15 @@ describe.skipIf(!in_browser)("replaying a run", () => {
 		expect(apply_run_history_replay(make_config())).toBe(false);
 	});
 
+	test("keeps a password textbox's current value, since it was never saved", () => {
+		stage_run_history_replay(scope, { ...stored, inputs: [null, null] });
+		const config = make_config();
+		config.components[0].props = { value: "sk-current", type: "password" };
+
+		expect(apply_run_history_replay(config)).toBe(true);
+		expect(config.components[0].props.value).toBe("sk-current");
+	});
+
 	test("matches the endpoint by api name when the fn index has moved", () => {
 		stage_run_history_replay(scope, { ...stored, fn_index: 99 });
 		const config = make_config();

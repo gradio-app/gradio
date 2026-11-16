@@ -165,8 +165,19 @@ describe("submit iterator", () => {
 			const input = app.config!.components.find(
 				(c) => c.id === dependency.inputs[0]
 			)!;
-			input.type = "textbox";
-			input.props.type = "password";
+			const output = app.config!.components.find(
+				(c) => c.id === dependency.outputs[0]
+			)!;
+			for (const component of [input, output]) {
+				component.type = "textbox";
+				component.props.type = "password";
+			}
+			// A state output in front shifts what the client returns.
+			app.config!.components.push(
+				{ id: 901, type: "state", props: {} } as any,
+				{ id: 902, type: "textbox", props: { type: "text" } } as any
+			);
+			dependency.outputs = [901, output.id, 902];
 			server.resetHandlers(
 				http.post(`${direct_space_url}/queue/join`, () =>
 					HttpResponse.json({ event_id: "password-event" })
@@ -175,8 +186,15 @@ describe("submit iterator", () => {
 
 			const iterator = app.submit("/predict", ["sk-secret"]);
 			await iterator.wait_for_id();
+			await app.event_callbacks["password-event"]({
+				msg: "process_completed",
+				output: { data: [null, "echo-sk-secret", "plain"] },
+				success: true
+			});
 			const [run] = read_run_history(scope);
 			expect(run.inputs).toEqual([null]);
+			expect(run.outputs).toEqual([null, "plain"]);
+			expect(JSON.stringify(run)).not.toContain("sk-secret");
 			await iterator.return();
 		}
 	);
