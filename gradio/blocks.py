@@ -3387,7 +3387,13 @@ Received inputs:
             )
             return TupleNoPrint((self.server_app, self.local_url, self.share_url))  # type: ignore
 
-        self.ssr_mode = self._resolve_ssr_mode(ssr_mode, disable_when_multi_page=False)
+        # gr.Server apps have no UI for Node to render: the proxy would only forward
+        # requests to Python (and break WebSocket routes), so SSR stays opt-in there.
+        self.ssr_mode = self._resolve_ssr_mode(
+            ssr_mode,
+            disable_when_multi_page=False,
+            default=self.mode != "server",
+        )
 
         # Resolve num_workers early so we can pre-compute worker ports
         # and pass them to the Node proxy at startup.

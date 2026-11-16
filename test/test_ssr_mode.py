@@ -133,6 +133,28 @@ class TestResolveSsrMode:
         assert demo._resolve_ssr_mode(None, default=False) is False
         assert demo._resolve_ssr_mode(True, default=False) is True
 
+    def test_server_mode_stays_opt_in(self, monkeypatch):
+        # In gr.Server mode Node has nothing to render and only proxies requests,
+        # which breaks WebSocket routes, so launch() must not turn SSR on by default.
+        # (The process executor's gateway copies `mode` from the config, so it
+        # resolves the same way.)
+        set_ssr_available(monkeypatch, None)
+        original = gr.Blocks._resolve_ssr_mode
+
+        class ResolvedError(Exception):
+            pass
+
+        def resolve_then_stop(self, ssr_mode, **kwargs):
+            raise ResolvedError(original(self, ssr_mode, **kwargs))
+
+        monkeypatch.setattr(gr.Blocks, "_resolve_ssr_mode", resolve_then_stop)
+        for ssr_mode, expected in [(None, False), (True, True)]:
+            with pytest.raises(ResolvedError) as exc:
+                gr.Server().launch(
+                    ssr_mode=ssr_mode, executor="thread", prevent_thread_lock=True
+                )
+            assert exc.value.args[0] is expected
+
     def test_dev_mode_stays_opt_in(self, monkeypatch, demo):
         set_ssr_available(monkeypatch, "no build")
         monkeypatch.setenv("GRADIO_LOCAL_DEV_MODE", "1")

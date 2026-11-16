@@ -158,56 +158,56 @@
 	cursor: help;
 }
 
-.paramviewer .dark .md .token.comment,
-.paramviewer .dark .md .token.prolog,
-.paramviewer .dark .md .token.cdata {
+.dark .paramviewer .md .token.comment,
+.dark .paramviewer .md .token.prolog,
+.dark .paramviewer .md .token.cdata {
 	color: hsl(220, 10%, 40%);
 }
 
-.paramviewer .dark .md .token.doctype,
-.paramviewer .dark .md .token.punctuation,
-.paramviewer .dark .md .token.entity {
+.dark .paramviewer .md .token.doctype,
+.dark .paramviewer .md .token.punctuation,
+.dark .paramviewer .md .token.entity {
 	color: hsl(220, 14%, 71%);
 }
 
-.paramviewer .dark .md .token.attr-name,
-.paramviewer .dark .md .token.class-name,
-.paramviewer .dark .md .token.boolean,
-.paramviewer .dark .md .token.constant,
-.paramviewer .dark .md .token.number,
-.paramviewer .dark .md .token.atrule {
+.dark .paramviewer .md .token.attr-name,
+.dark .paramviewer .md .token.class-name,
+.dark .paramviewer .md .token.boolean,
+.dark .paramviewer .md .token.constant,
+.dark .paramviewer .md .token.number,
+.dark .paramviewer .md .token.atrule {
 	color: hsl(29, 54%, 61%);
 }
 
-.paramviewer .dark .md .token.keyword {
+.dark .paramviewer .md .token.keyword {
 	color: hsl(286, 60%, 67%);
 }
 
-.paramviewer .dark .md .token.property,
-.paramviewer .dark .md .token.tag,
-.paramviewer .dark .md .token.symbol,
-.paramviewer .dark .md .token.deleted,
-.paramviewer .dark .md .token.important {
+.dark .paramviewer .md .token.property,
+.dark .paramviewer .md .token.tag,
+.dark .paramviewer .md .token.symbol,
+.dark .paramviewer .md .token.deleted,
+.dark .paramviewer .md .token.important {
 	color: hsl(355, 65%, 65%);
 }
 
-.paramviewer .dark .md .token.selector,
-.paramviewer .dark .md .token.string,
-.paramviewer .dark .md .token.char,
-.paramviewer .dark .md .token.builtin,
-.paramviewer .dark .md .token.inserted,
-.paramviewer .dark .md .token.regex,
-.paramviewer .dark .md .token.attr-value,
-.paramviewer .dark .md .token.attr-value > .token.punctuation {
+.dark .paramviewer .md .token.selector,
+.dark .paramviewer .md .token.string,
+.dark .paramviewer .md .token.char,
+.dark .paramviewer .md .token.builtin,
+.dark .paramviewer .md .token.inserted,
+.dark .paramviewer .md .token.regex,
+.dark .paramviewer .md .token.attr-value,
+.dark .paramviewer .md .token.attr-value > .token.punctuation {
 	color: hsl(95, 38%, 62%);
 }
 
-.paramviewer .dark .md .token.variable,
-.paramviewer .dark .md .token.operator,
-.paramviewer .dark .md .token.function {
+.dark .paramviewer .md .token.variable,
+.dark .paramviewer .md .token.operator,
+.dark .paramviewer .md .token.function {
 	color: hsl(207, 82%, 66%);
 }
 
-.paramviewer .dark .md .token.url {
+.dark .paramviewer .md .token.url {
 	color: hsl(187, 47%, 55%);
 }
