@@ -29,8 +29,6 @@ from pathlib import Path
 
 import aiohttp
 import psutil
-from playwright.async_api import async_playwright
-
 from bench import (
     READY_JS,
     VENVS,
@@ -39,6 +37,7 @@ from bench import (
     new_context,
     summarize,
 )
+from playwright.async_api import async_playwright
 
 HERE = Path(__file__).parent
 LABELS = {
@@ -48,6 +47,7 @@ LABELS = {
     "pr-default": "7.0-dev + SSR (#14016)",
 }
 PAGE_KEYS = ("ttfb", "fcp", "lcp", "ready")
+NAV_DELAY_S = 0.2  # from the red-to-white switch to navigation, in recorded loads
 
 
 class QueueServer(Server):
@@ -159,7 +159,13 @@ class Load:
 
 
 async def recorded_load(
-    browser, url, video_dir: Path, name: str, app="simple", headers=None
+    browser,
+    url,
+    video_dir: Path,
+    name: str,
+    app="simple",
+    headers=None,
+    size=(640, 400),
 ) -> dict | None:
     """One cold page load recorded on video, in a fresh browser profile. Returns
     the video's file name and when the page became interactive, in ms."""
@@ -168,13 +174,13 @@ async def recorded_load(
     ctx = await browser.new_context(
         extra_http_headers=headers or {},
         record_video_dir=str(tmp),
-        record_video_size={"width": 640, "height": 400},
-        viewport={"width": 640, "height": 400},
+        record_video_size={"width": size[0], "height": size[1]},
+        viewport={"width": size[0], "height": size[1]},
     )
     page = await ctx.new_page()
-    # A red page, turned white just before navigating: compose() starts each
-    # clip at the first frame that isn't red. Chrome keeps the white page on
-    # screen until the new page first paints, so the clip shows the wait.
+    # A red page, turned white NAV_DELAY_S before navigating: nav_start() finds
+    # the switch in the video. Chrome keeps the white page on screen until the
+    # new page first paints, so the clip shows the wait.
     # The dot's animation makes Chrome repaint, so the recorder captures red frames.
     await page.set_content(
         "<style>@keyframes b{to{opacity:0}}</style><body style='background:#f00;margin:0'>"
@@ -184,12 +190,15 @@ async def recorded_load(
     await asyncio.sleep(0.8)
     ready_ms = None
     try:
-        await page.evaluate(
-            "() => new Promise((r) => { document.getElementById('d').remove();"
-            " document.body.style.background = '#fff';"
-            " requestAnimationFrame(() => requestAnimationFrame(r)); })"
-        )
-        await page.goto(url, wait_until="commit", timeout=180_000)
+        # Turn the page white (the dot keeps repainting, in near-white, so the
+        # recorder captures the switch), then navigate exactly NAV_DELAY_S later.
+        async with page.expect_navigation(wait_until="commit", timeout=180_000):
+            await page.evaluate(
+                "([url, delay]) => { const d = document.getElementById('d');"
+                " d.style.background = '#fefefe'; document.body.style.background = '#fff';"
+                " setTimeout(() => { location.href = url; }, delay); }",
+                [url, NAV_DELAY_S * 1000],
+            )
         ready_ms = await (
             await page.wait_for_function(READY_JS[app], polling=5, timeout=180_000)
         ).json_value()
@@ -207,8 +216,33 @@ async def recorded_load(
     return {"video": final.name, "ready_ms": ready_ms}
 
 
+async def median_take(browser, url, video_dir, name, takes, size) -> dict | None:
+    """Records `takes` loads and keeps the one closest to their median, so the
+    video shows a typical load rather than a lucky or unlucky one."""
+    vs = []
+    for i in range(takes):
+        v = await recorded_load(browser, url, video_dir, f"{name}-take{i}", size=size)
+        if v:
+            vs.append(v)
+    if not vs:
+        return None
+    med = statistics.median(v["ready_ms"] for v in vs)
+    best = min(vs, key=lambda v: abs(v["ready_ms"] - med))
+    for v in vs:
+        if v is not best:
+            (video_dir / v["video"]).unlink()
+    final = video_dir / f"{name}.webm"
+    (video_dir / best["video"]).replace(final)
+    return {
+        **best,
+        "video": final.name,
+        "ready_ms_all": sorted(v["ready_ms"] for v in vs),
+    }
+
+
 def nav_start(video: Path) -> float:
-    """Seconds into the video of the first frame that isn't red."""
+    """Seconds into the video at which navigation starts: NAV_DELAY_S after the
+    first frame that isn't red."""
     raw = subprocess.run(
         ["ffmpeg", "-loglevel", "error", "-i", str(video)]
         + ["-vf", "fps=100,scale=4:4,format=rgb24", "-f", "rawvideo", "-"],
@@ -224,7 +258,7 @@ def nav_start(video: Path) -> float:
         if red:
             seen_red = True
         elif seen_red:
-            return i / 100
+            return i / 100 + NAV_DELAY_S
     raise RuntimeError(f"no red-to-white switch in {video}")
 
 
@@ -271,8 +305,13 @@ async def run(args):
                             inflight = load.inflight.value
                             video = None
                             if video_dir:
-                                video = await recorded_load(
-                                    browser, server.url, video_dir, f"{work}-k{k}-{arm}"
+                                video = await median_take(
+                                    browser,
+                                    server.url,
+                                    video_dir,
+                                    f"{work}-k{k}-{arm}",
+                                    args.video_takes,
+                                    args.video_size,
                                 )
                             errors = load.errors.value
                     finally:
@@ -422,6 +461,18 @@ def main():
     ap.add_argument("--port", type=int, default=18700)
     ap.add_argument("--out")
     ap.add_argument("--video-dir")
+    ap.add_argument(
+        "--video-takes",
+        type=int,
+        default=1,
+        help="recorded loads per cell; the one closest to the median is kept",
+    )
+    ap.add_argument(
+        "--video-size",
+        type=lambda v: tuple(int(x) for x in v.split("x")),
+        default=(640, 400),
+        help="browser viewport and video size, e.g. 860x538",
+    )
     ap.add_argument("--compose", help="results file: build comparison videos only")
     ap.add_argument(
         "--record",

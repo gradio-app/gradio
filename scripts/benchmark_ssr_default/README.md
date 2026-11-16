@@ -2,6 +2,12 @@
 
 Results are in [RESULTS.md](RESULTS.md). This folder holds the harness that produced them.
 
+![A new visitor opens the app while 50 users run CPU-heavy model calls: FastAPI becomes interactive in 1.60 s, Gradio 7.0-dev + SSR in 0.09 s](results/videos/hero/fastapi-vs-gradio7-ssr.gif)
+
+A new visitor opens the app while 50 users run CPU-heavy model calls: FastAPI vs
+Gradio 7.0-dev + SSR. [Full-resolution MP4](results/videos/hero/fastapi-vs-gradio7-ssr.mp4).
+How it's made: [Server full of model calls](#server-full-of-model-calls-bench_queuepy).
+
 ## Arms
 
 | Arm | Gradio | `GRADIO_SSR_MODE` | Renders with |
@@ -105,4 +111,14 @@ each clip starting at the frame where navigation starts.
   --record spaces-cold/base-csr/simple=https://<you>-bench-14016-base-csr.hf.space \
   --record spaces-cold/pr-default/simple=https://<you>-bench-14016-pr-default.hf.space
 .venvs/tools/bin/python bench_queue.py --compose results/recorded.json --video-dir results/videos/spaces --arms base-csr,pr-default
+```
+
+The video at the top of this file is made with `make_video.py`, which lays the
+two recordings into a styled frame (`video_frame.html`):
+
+```bash
+.venvs/tools/bin/python bench_queue.py --arms fastapi,pr-default --work cpu --levels 50 \
+  --video-takes 7 --video-size 860x538 --out results/queue-hero.json --video-dir results/videos/hero
+.venvs/tools/bin/python make_video.py results/queue-hero.json results/videos/hero --k 50 \
+  --out results/videos/hero/fastapi-vs-gradio7-ssr
 ```
