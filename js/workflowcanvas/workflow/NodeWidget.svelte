@@ -6,9 +6,11 @@
 		FileValue
 	} from "./workflow-types";
 	import { getContext } from "svelte";
+	import { is_secret } from "./workflow-types";
 	import { BaseTextbox } from "@gradio/textbox";
 	import { BaseStaticImage } from "@gradio/image";
 	import { BaseMarkdown } from "@gradio/markdown";
+	import { BaseModel3D } from "@gradio/model3d";
 	import DownloadIcon from "./icons/DownloadIcon.svelte";
 	import OpenLinkIcon from "./icons/OpenLinkIcon.svelte";
 	import ExpandIcon from "./icons/ExpandIcon.svelte";
@@ -96,6 +98,8 @@
 		})()
 	);
 	const multiselect = $derived(!!widgetPort?.multiselect);
+
+	const masked = $derived(is_secret(node));
 
 	let fileInputEl: HTMLInputElement | undefined = $state();
 	let dragActive = $state(false);
@@ -211,8 +215,15 @@
 		image: "image/*",
 		audio: "audio/*",
 		video: "video/*",
-		model3d: ".glb,.gltf,.obj,.stl"
+		model3d: ".glb,.gltf,.obj,.stl,.ply,.splat"
 	};
+
+	function model3dPath(f: FileValue): string | undefined {
+		const exts = ACCEPT.model3d!.split(",");
+		return [f.name, f.url].find((s) =>
+			exts.some((ext) => s?.toLowerCase().endsWith(ext))
+		);
+	}
 
 	function clearFile() {
 		revoke_old_blob();
@@ -357,7 +368,7 @@
 			{@render placeholder()}
 		{/if}
 	{:else if effectiveWidgetType === "text" || effectiveWidgetType === "json" || effectiveWidgetType === "markdown"}
-		<div class="widget-text-wrap">
+		<div class="widget-text-wrap" class:masked>
 			<div class="widget-gradio-wrap">
 				<BaseTextbox
 					value={getTextValue()}
@@ -367,11 +378,13 @@
 					max_lines={8}
 					placeholder={isReadonly
 						? "Waiting for output..."
-						: effectiveWidgetType === "json"
-							? '{"key": "value"}'
-							: effectiveWidgetType === "markdown"
-								? "Enter markdown..."
-								: "Enter text..."}
+						: masked
+							? "Paste your key"
+							: effectiveWidgetType === "json"
+								? '{"key": "value"}'
+								: effectiveWidgetType === "markdown"
+									? "Enter markdown..."
+									: "Enter text..."}
 					disabled={isReadonly}
 					onchange={(val) => {
 						if (node.data?.[widgetPortId] !== val)
@@ -468,6 +481,26 @@
 					</div>
 				{:else if effectiveWidgetType === "video"}
 					<video class="widget-video" controls src={fileVal.url}></video>
+				{:else if effectiveWidgetType === "model3d" && model3dPath(fileVal)}
+					<!-- Orbit and zoom belong to the viewer, not the canvas. -->
+					<div
+						class="widget-gradio-wrap widget-model3d nowheel"
+						role="presentation"
+						onpointerdown={(e) => e.stopPropagation()}
+						onmousedown={(e) => e.stopPropagation()}
+					>
+						<BaseModel3D
+							value={{
+								url: fileVal.url,
+								orig_name: fileVal.name,
+								path: model3dPath(fileVal)!,
+								mime_type: fileVal.mime,
+								meta: { _type: "gradio.FileData" }
+							}}
+							show_label={false}
+							{i18n}
+						/>
+					</div>
 				{:else}
 					<div class="widget-file-info">
 						<span class="widget-file-name">{fileVal.name}</span>
@@ -733,6 +766,12 @@
 		 * text inside textboxes / display zones. */
 		user-select: text;
 		-webkit-user-select: text;
+	}
+
+	/* textarea has no type=password */
+	.widget-text-wrap.masked :global(textarea) {
+		-webkit-text-security: disc;
+		text-security: disc;
 	}
 
 	.widget-zone.text-full {
@@ -1024,6 +1063,12 @@
 		max-height: 100px;
 		object-fit: contain;
 		border-radius: 5px;
+	}
+
+	.widget-model3d {
+		height: 180px;
+		overflow: hidden;
+		border-radius: 6px;
 	}
 
 	.widget-preview-actions {

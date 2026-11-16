@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/workflowcanvas",
-	"version": "0.14.0",
+	"version": "0.15.0",
 	"description": "Gradio Workflow Canvas component",
 	"type": "module",
 	"author": "",
@@ -21,6 +21,7 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/markdown": "workspace:^",
+		"@gradio/model3d": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@huggingface/hub": "^1.0.0",

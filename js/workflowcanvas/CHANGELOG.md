@@ -1,5 +1,19 @@
 # @gradio/workflowcanvas
 
+## 0.15.0
+
+### Features
+
+- [#14050](https://github.com/gradio-app/gradio/pull/14050) [`fda8037`](https://github.com/gradio-app/gradio/commit/fda8037b83f316454e96201dfad96e50944f8547) - Use the visitor's own HF token for run history buckets.  Thanks @dawoodkhan82!
+- [#14017](https://github.com/gradio-app/gradio/pull/14017) [`ebccfcf`](https://github.com/gradio-app/gradio/commit/ebccfcf3194dd3cd132491a6bc35968f1321611a) - workflows: handle depth estimation.  Thanks @hannahblair!
+- [#13972](https://github.com/gradio-app/gradio/pull/13972) [`d702b19`](https://github.com/gradio-app/gradio/commit/d702b19b8a6d7f2e8af6d7cd260c6e44af3e9433) - workflow: add masked setting on textboxes.  Thanks @hannahblair!
+- [#14057](https://github.com/gradio-app/gradio/pull/14057) [`ab27f92`](https://github.com/gradio-app/gradio/commit/ab27f920c293daeaec50fb1c3e21fac85e9fa308) - workflow: add 3d model node support.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@2.8.0
+- @gradio/model3d@0.20.0
+
 ## 0.14.0
 
 ### Features

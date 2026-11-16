@@ -88,7 +88,9 @@ export default defineConfig(({ mode, isSsrBuild }) => {
 			BACKEND_URL: production
 				? JSON.stringify("")
 				: JSON.stringify("http://localhost:7860/"),
-			GRADIO_VERSION: JSON.stringify(version)
+			GRADIO_VERSION: JSON.stringify(version),
+			// the dotted version for the gradio-console state reply
+			GRADIO_VERSION_RAW: JSON.stringify(version_raw)
 		},
 		css: {
 			postcss: {
