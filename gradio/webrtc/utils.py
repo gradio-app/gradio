@@ -31,6 +31,9 @@ AUDIO_PTIME = 0.020
 EMPTY_EMIT_WAIT = 0.005
 SLOW_EMIT_WARNING = 60
 GENERATOR_DONE = object()
+# A video frame the function left as it was (gr.skip()): the track sends its
+# last frame again
+SKIPPED_FRAME = object()
 # Frames of audio (20 ms each) a receive-mode generator may get ahead of
 # playback. Handlers' audio is not bounded: their clear_queue() drops what
 # emit() returned so far, and a bound would leave more of it in the handler.

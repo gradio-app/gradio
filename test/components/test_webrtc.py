@@ -3483,6 +3483,52 @@ class TestVideoTracks:
             await asyncio.gather(track.accept_input_task, return_exceptions=True)
 
     @pytest.mark.asyncio
+    async def test_a_skipped_video_output_repeats_the_functions_last_frame(self):
+        import numpy as np
+
+        from gradio.webrtc.tracks import VideoCallback
+        from gradio.webrtc.utils import Context
+
+        calls = []
+
+        def paint(frame, *args):
+            calls.append(frame)
+            if len(calls) > 1:
+                return gr.skip(), "skipped"
+            return np.full_like(frame, 200), "painted"
+
+        with gr.Blocks() as demo:
+            camera = webcam()
+            label = gr.Textbox()
+            camera.stream(paint, [camera], [camera, label], transport="webrtc")
+        handler = manager_of(demo, camera).handler.callable
+
+        class Camera(VideoStreamTrack):
+            """Grey frames."""
+
+            async def recv(self):
+                frame = await super().recv()
+                gray = np.full((480, 640, 3), 50, dtype=np.uint8)
+                gray_frame = type(frame).from_ndarray(gray, format="rgb24")
+                gray_frame.pts, gray_frame.time_base = frame.pts, frame.time_base
+                return gray_frame
+
+        camera_track = Camera()
+        track = VideoCallback(camera_track, event_handler=handler, context=Context("id"))
+        track.latest_args = []
+        track.channel_set.set()
+        try:
+            first = (await track.recv()).to_ndarray(format="rgb24")
+            second = (await track.recv()).to_ndarray(format="rgb24")
+        finally:
+            track.stop()
+            camera_track.stop()
+            await asyncio.gather(track.accept_input_task, return_exceptions=True)
+        assert first.mean() == pytest.approx(200, abs=2)
+        # Not the grey camera frame: the output stays as the function left it
+        assert second.mean() == pytest.approx(200, abs=2)
+
+    @pytest.mark.asyncio
     async def test_video_methods_of_audio_video_handlers_see_the_context(self):
         import numpy as np
 

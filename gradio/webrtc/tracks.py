@@ -41,6 +41,7 @@ from gradio.webrtc.utils import (
     EMPTY_EMIT_WAIT,
     GENERATOR_DONE,
     RECEIVE_AUDIO_BUFFER,
+    SKIPPED_FRAME,
     AdditionalOutputs,
     CloseStream,
     Context,
@@ -195,6 +196,8 @@ class VideoCallback(VideoStreamTrack):
         self.frame_ptime = 1.0 / fps
         self.skip_frames = skip_frames
         self.frame_queue: asyncio.Queue[Any] = asyncio.Queue()
+        # The last frame the function made, sent again for a gr.skip()
+        self.last_array: Any = None
         self.context = context
         self._clock_start: float | None = None
         self._clock_timestamp: int | None = None
@@ -333,9 +336,14 @@ class VideoCallback(VideoStreamTrack):
             if self.mode == "send":
                 # Nothing plays the output: only the AdditionalOutputs count
                 return
-            if array is None:
+            if array is SKIPPED_FRAME:
+                # gr.skip(): the output stays as the function last made it
+                array = frame_array if self.last_array is None else self.last_array
+            elif array is None:
                 # Only AdditionalOutputs (or nothing): the frame goes back as is
                 array = frame_array
+            else:
+                self.last_array = array
 
             new_frame = self.array_to_frame(array)
             new_frame.pts = frame.pts
