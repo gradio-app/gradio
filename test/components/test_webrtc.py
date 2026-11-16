@@ -515,6 +515,26 @@ class TestWebRTC:
                     outputs=[camera],
                     transport="http",  # type: ignore[arg-type]
                 )
+            # The page sends media, so the function takes one frame per call
+            # and returns its outputs; a generator would be its output
+
+            def frames(frame, *args):
+                yield frame
+
+            async def async_frames(frame, *args):
+                yield frame
+
+            for generator in (frames, async_frames):
+                with pytest.raises(ValueError, match="not a generator"):
+                    camera.stream(
+                        generator,
+                        inputs=[camera],
+                        outputs=[camera],
+                        transport="webrtc",
+                    )
+            # A gr.Video streams only over WebRTC
+            with pytest.raises(ValueError, match="transport="):
+                video.stream(flip, inputs=[video], outputs=[slider])
             # Settings a stream with transport= would otherwise drop silently
             for kwargs in (
                 {"queue": False},
@@ -3784,6 +3804,35 @@ class TestAudioArrays:
         assert array.dtype == np.int16
 
     @pytest.mark.asyncio
+    async def test_an_async_audio_function_is_awaited_in_its_context(self):
+        import contextvars
+
+        import numpy as np
+
+        from gradio.webrtc.transport import _chunked_audio_handler
+        from gradio.webrtc.utils import StreamInputs
+
+        page = contextvars.ContextVar("page")
+
+        async def transcribe(chunk):
+            await asyncio.sleep(0)
+            return f"{len(chunk[1])} samples for {page.get()}"
+
+        handler = _chunked_audio_handler(transcribe, 0, 0.02)()
+        handler._loop = asyncio.get_running_loop()
+        handler._use_inputs(StreamInputs())
+        handler.set_args([])
+        page.set("visitor")
+        await asyncio.to_thread(handler.receive, (48000, np.zeros(960, np.int16)))
+        result = None
+        for _ in range(200):
+            result = handler.emit()
+            if result is not None:
+                break
+            await asyncio.sleep(0.01)
+        assert result == "960 samples for visitor"
+
+    @pytest.mark.asyncio
     async def test_receive_gets_a_chunk_per_frame_at_its_own_rate(self):
         import fractions
 
@@ -4765,6 +4814,23 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         gr.Server().api(
             echo, name="echo", transport="webrtc", api_visibility="undocumented"
         )
+
+    class Both(AsyncAudioVideoStreamHandler):
+        async def receive(self, frame: gr.AudioChunk) -> None:
+            pass
+
+        async def emit(self) -> gr.AudioChunk | None:
+            return None
+
+        async def video_receive(self, frame: gr.VideoFrame) -> None:
+            pass
+
+        async def video_emit(self) -> gr.VideoFrame | None:
+            return None
+
+        def copy(self):
+            return Both()
+
     kwargs: dict[str, Any] = {
         "transport": "webrtc",
         "api_name": None,
@@ -4793,6 +4859,9 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         for fn in (unmarked, mixed, CaptionVideo):
             with pytest.raises(ValueError, match="one type hint"):
                 api_stream(fn, **kwargs)
+        # Audio and video together is not supported on gr.Server yet
+        with pytest.raises(ValueError, match="AudioVideoStreamHandler"):
+            api_stream(Both, **kwargs)
 
 
 def test_a_handler_class_gets_the_inputs_its_receive_declares():

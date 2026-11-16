@@ -11,6 +11,7 @@ Imports without the `webrtc` extra; aiortc is imported once a stream is added.
 
 from __future__ import annotations
 
+import asyncio
 import contextvars
 import copy
 import inspect
@@ -92,6 +93,16 @@ def _check_fn(fn: Any, mode: str, modality: Modality) -> None:
                 "A stream that only sends media to the page takes a generator "
                 "function (def ... yield) that yields one value per output."
             )
+    if (
+        mode != "receive"
+        and not handler
+        and (inspect.isgeneratorfunction(fn) or inspect.isasyncgenfunction(fn))
+    ):
+        raise ValueError(
+            "A stream that takes media from the page calls the function with "
+            "each frame (or chunk of audio), so it returns one value per "
+            "output and is not a generator."
+        )
     if (
         handler
         and modality == "audio"
@@ -290,7 +301,10 @@ def api_stream(
         receive = getattr(cls, "video_receive", None) or cls.receive
         emit = getattr(cls, "emit", None) or cls.video_emit
         if _is_a(fn, (AudioVideoStreamHandler, AsyncAudioVideoStreamHandler)):
-            receive, emit = cls.receive, cls.emit
+            raise ValueError(
+                "An AudioVideoStreamHandler is not supported on gr.Server yet; "
+                "use it with a gr.Video in Blocks."
+            )
         params = [p for p in utils.get_function_params(receive) if p[0] != "self"]
         returns = _return_types(emit)
     else:
@@ -383,6 +397,13 @@ def _receive_extras(cls: type) -> dict[str, int]:
     return extras
 
 
+async def _in_context(context: contextvars.Context, awaitable: Any) -> Any:
+    """Awaits `awaitable` with the variables of `context` set."""
+    for var, value in context.items():
+        var.set(value)
+    return await awaitable
+
+
 def _chunked_audio_handler(
     fn: Callable, media_in: int, seconds: float
 ) -> type[StreamHandler]:
@@ -431,7 +452,14 @@ def _chunked_audio_handler(
                 self.wait_for_args_sync()
                 args = list(self.latest_args)
                 args.insert(media_in, (rate, chunk))
-                self.results.put(self.call(*args))
+                result = self.call(*args)
+                if inspect.isawaitable(result):
+                    # On the loop, as async video functions run, with this
+                    # thread's context (gr.Info and the like reach the page)
+                    result = asyncio.run_coroutine_threadsafe(
+                        _in_context(contextvars.copy_context(), result), self.loop
+                    ).result()
+                self.results.put(result)
             except BaseException as e:  # raised from emit(), which reports it
                 self.results.put(e)
             finally:

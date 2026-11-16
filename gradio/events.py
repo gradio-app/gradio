@@ -782,6 +782,13 @@ class EventListener(str):
                 block if _has_trigger else None, _event_name
             )
 
+            if transport is None and _event_name == "stream":
+                from gradio.components.video import Video
+
+                if isinstance(block, Video):
+                    raise ValueError(
+                        'gr.Video streams only over WebRTC: pass transport="webrtc".'
+                    )
             if transport is not None:
                 unsupported = [
                     name
