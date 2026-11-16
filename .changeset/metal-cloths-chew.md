@@ -1,11 +1,13 @@
 ---
+"@gradio/audio": minor
 "@gradio/client": minor
 "@gradio/core": minor
+"@gradio/image": minor
 "@gradio/utils": minor
-"@gradio/webrtc": minor
-"@self/tootils": minor
+"@gradio/video": minor
 "gradio": minor
+"gradio_client": minor
 "website": minor
 ---
 
-feat:Add `gr.WebRTC` and WebRTC streams for `gr.Server`, each waiting its turn in the queue
+feat:Stream audio and video over WebRTC with `transport=`, each stream waiting its turn in the queue
