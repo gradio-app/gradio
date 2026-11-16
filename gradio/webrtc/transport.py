@@ -322,7 +322,14 @@ def api_stream(
     else:
         params = utils.get_function_params(fn)
         returns = _return_types(fn)
-    markers = {VideoFrame: "video", AudioChunk: "audio"}
+    # Optional too, as special_args takes `gr.Request | None`: returning None
+    # sends the frame back as it came
+    markers = {
+        VideoFrame: "video",
+        AudioChunk: "audio",
+        VideoFrame | None: "video",
+        AudioChunk | None: "audio",
+    }
     media_in = next((i for i, p in enumerate(params) if p[3] in markers), None)
     media_out = next((i for i, t in enumerate(returns) if t in markers), None)
     kinds = {markers[params[media_in][3]]} if media_in is not None else set()

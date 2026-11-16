@@ -4929,6 +4929,17 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         # Clients call it by name, with named arguments
         assert stream_fn.api_name == "echo"
         assert stream_fn.input_parameter_names == ["frame", "x"]
+
+        # Optional hints mark the media too
+        def maybe(
+            frame: gr.VideoFrame | None, x: float
+        ) -> tuple[gr.VideoFrame | None, float]:
+            return None, x
+
+        stream_fn, _ = api_stream(maybe, **kwargs)
+        assert stream_fn.transport is not None
+        assert stream_fn.transport["media_input"] == 0
+        assert stream_fn.transport["media_output"] == 0
         stream_fn, _ = api_stream(transcribe, **kwargs)
         assert stream_fn.transport is not None
         assert stream_fn.transport["modality"] == "audio"
