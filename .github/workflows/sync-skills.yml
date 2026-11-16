@@ -35,13 +35,17 @@ jobs:
 
       - name: Copy gradio skill files
         run: |
-          mkdir -p skills-repo/skills/gradio/references
-          cp -r .agents/skills/gradio/* skills-repo/skills/gradio/
+          rm -rf skills-repo/skills/huggingface-gradio
+          cp -r .agents/skills/gradio skills-repo/skills/huggingface-gradio
+          sed -i '0,/^name: gradio$/s//name: huggingface-gradio/' skills-repo/skills/huggingface-gradio/SKILL.md
 
       - name: Copy hf-gradio skill files
         run: |
-          mkdir -p skills-repo/skills/hf-gradio
-          cp -r .agents/skills/hf-gradio/* skills-repo/skills/hf-gradio/
+          rm -rf skills-repo/skills/hf-gradio
+          cp -r .agents/skills/hf-gradio skills-repo/skills/hf-gradio
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
 
       - name: Regenerate skills repo artifacts
         working-directory: skills-repo
@@ -51,7 +55,7 @@ jobs:
         id: check_changes
         working-directory: skills-repo
         run: |
-          git diff --quiet && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+          [ -z "$(git status --porcelain)" ] && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.changed == 'true'
@@ -59,7 +63,7 @@ jobs:
         with:
           token: ${{ secrets.GRADIO_PAT }}
           path: skills-repo
-          branch: sync/gradio-skills-${{ github.run_id }}
+          branch: sync/gradio-skills
           delete-branch: true
           title: ${{ steps.pr_title.outputs.title }}
           body: |
