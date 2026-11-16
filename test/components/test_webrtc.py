@@ -500,6 +500,15 @@ class TestWebRTC:
                     outputs=[webcam(), webcam()],
                     transport="webrtc",
                 )
+            # One that cannot show the stream's media
+            speaker = gr.Audio()
+            with pytest.raises(ValueError, match="must be a gr.Image or gr.Video"):
+                camera.stream(
+                    flip,
+                    inputs=[camera],
+                    outputs=[speaker],
+                    transport=gr.WebRTCOptions(media_output=speaker),
+                )
             # A set has no order to match the function's arguments by
             with pytest.raises(TypeError, match="list"):
                 camera.stream(

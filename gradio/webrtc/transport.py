@@ -194,20 +194,32 @@ def blocks_stream(
         modality = "audio-video"
         media.include_audio = True
     media_in = inputs.index(media) if media in inputs else None
+    # The components that can show the media: the same rule picks a separate
+    # output below and checks the one given as media_output
+    family = "video" if modality == "audio-video" else modality
+
+    def shows_media(c: Any) -> bool:
+        return kind(c) == family and (modality != "audio-video" or isinstance(c, Video))
+
     if options.media_output is not None:
         if options.media_output not in outputs:
             raise ValueError("WebRTCOptions.media_output must be one of the outputs.")
+        if not shows_media(options.media_output):
+            needed = {
+                "audio": "a gr.Audio",
+                "video": "a gr.Image or gr.Video",
+                "audio-video": "a gr.Video",
+            }[modality]
+            raise ValueError(
+                f"WebRTCOptions.media_output shows the stream's {modality}, so it "
+                f"must be {needed}."
+            )
         media_out: int | None = outputs.index(options.media_output)
     elif media in outputs:
         media_out = outputs.index(media)
     else:
         # A separate output shows the media only when exactly one could
-        family = "video" if modality == "audio-video" else modality
-        candidates = [
-            i
-            for i, c in enumerate(outputs)
-            if kind(c) == family and (modality != "audio-video" or isinstance(c, Video))
-        ]
+        candidates = [i for i, c in enumerate(outputs) if shows_media(c)]
         if len(candidates) > 1:
             raise ValueError(
                 "Several outputs could show the stream's media. Pick one with "
