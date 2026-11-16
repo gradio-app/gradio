@@ -1156,7 +1156,10 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         try:
             parts, reasoned, finish_reason = stream(chat_params)
         except Exception as e:
-            if not (defaulted and "context" in str(e).lower()):
+            # huggingface_hub keeps the provider's message on the response, not in str(e)
+            response = getattr(e, "response", None)
+            detail = f"{e} {getattr(response, 'text', '')}".lower()
+            if not (defaulted and "context" in detail):
                 raise
             chat_params.pop("max_tokens", None)
             parts, reasoned, finish_reason = stream(chat_params)

@@ -6,8 +6,10 @@ import warnings
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
 from gradio_client import utils as client_utils
+from huggingface_hub.errors import BadRequestError
 
 import gradio as gr
 import gradio.workflow as workflow_module
@@ -660,7 +662,15 @@ class TestDispatchModelEndpoint:
     def test_chat_completion_retries_without_max_tokens_past_the_context(self):
         client = MagicMock()
         client.chat_completion.side_effect = [
-            ValueError("exceeds the model's maximum context length of 16384 tokens"),
+            BadRequestError(
+                "Bad request:",
+                response=httpx.Response(
+                    400,
+                    text='{"message":"Requested token count exceeds the model\'s '
+                    'maximum context length of 16384 tokens."}',
+                    request=httpx.Request("POST", "https://router.huggingface.co"),
+                ),
+            ),
             self._chunks(content="ok"),
         ]
 
