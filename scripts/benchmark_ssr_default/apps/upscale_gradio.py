@@ -4,8 +4,9 @@ already in the slider. Gradio's defaults are kept: the queue, with
 concurrency_limit=1.
 """
 
-import gradio as gr
 from upscale_model import HIGH_PATH, LOW_PATH, enhance
+
+import gradio as gr
 
 with gr.Blocks(title="Enhance resolution") as demo:
     gr.Markdown("## Enhance resolution")
