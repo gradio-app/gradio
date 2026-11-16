@@ -742,7 +742,7 @@ def transport_event(
         if modality == "video":
             # stream_every is the shortest interval between calls (for a
             # generator, between frames); unset, every frame of the camera
-            fps = 30 if not stream_every else max(1, round(1 / stream_every))
+            fps = 30 if not stream_every else 1 / stream_every
             handler = VideoOptions(
                 callable=wrapper, fps=fps, skip_frames=options.skip_frames
             )

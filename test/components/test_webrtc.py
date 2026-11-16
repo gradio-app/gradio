@@ -5152,3 +5152,15 @@ def test_a_stream_puts_its_component_in_streaming_mode():
         mic.stream(echo, [mic], [mic], transport="webrtc")
     assert camera.get_config()["streaming"] is True
     assert mic.get_config()["streaming"] is True
+
+
+@pytest.mark.parametrize("seconds", [0.6, 2])
+def test_stream_every_is_the_interval_between_frame_calls(seconds):
+    with gr.Blocks() as demo:
+        camera = webcam()
+        camera.stream(
+            flip, [camera], [camera], transport="webrtc", stream_every=seconds
+        )
+    handler = manager_of(demo, camera).handler
+    # Not rounded to whole frames a second (0.6 s would become 0.5 s, 2 s 1 s)
+    assert handler.fps == pytest.approx(1 / seconds)

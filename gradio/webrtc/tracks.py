@@ -176,7 +176,7 @@ class VideoCallback(VideoStreamTrack):
         channel: DataChannel | None = None,
         set_additional_outputs: Callable | None = None,
         mode: Literal["send-receive", "send"] = "send-receive",
-        fps: int = 30,
+        fps: float = 30,
         skip_frames: bool = True,
         mirror: bool = False,
         inputs: StreamInputs | None = None,
@@ -717,7 +717,7 @@ class ServerToClientVideo(VideoStreamTrack):
         context: Context,
         channel: DataChannel | None = None,
         set_additional_outputs: Callable | None = None,
-        fps: int = 30,
+        fps: float = 30,
         inputs: StreamInputs | None = None,
     ) -> None:
         super().__init__()

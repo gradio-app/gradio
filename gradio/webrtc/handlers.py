@@ -73,7 +73,7 @@ class VideoOptions:
     """
 
     callable: VideoEventHandler
-    fps: int = 30
+    fps: float = 30
     skip_frames: bool = True
 
 
