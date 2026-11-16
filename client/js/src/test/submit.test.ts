@@ -171,6 +171,7 @@ describe("submit iterator", () => {
 			for (const component of [input, output]) {
 				component.type = "textbox";
 				component.props.type = "password";
+				component.props.value = "sk-default";
 			}
 			// A state output in front shifts what the client returns.
 			app.config!.components.push(
@@ -195,6 +196,7 @@ describe("submit iterator", () => {
 			expect(run.inputs).toEqual([null]);
 			expect(run.outputs).toEqual([null, "plain"]);
 			expect(JSON.stringify(run)).not.toContain("sk-secret");
+			expect(JSON.stringify(run)).not.toContain("sk-default");
 			await iterator.return();
 		}
 	);

@@ -108,7 +108,9 @@ export function submit(
 			return {
 				type: component.type,
 				component_class_id: component.component_class_id,
-				props: component.props
+				props: passwords.has(id)
+					? { ...component.props, value: null }
+					: component.props
 			};
 		};
 		// The run history covers the same endpoints the API page documents, which
