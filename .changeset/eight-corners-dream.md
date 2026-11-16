@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:workflow: handle max content length exceeding canvas token limit
+feat:workflow: handle max context length exceeding canvas token limit
