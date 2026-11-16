@@ -21,7 +21,13 @@ from playwright.async_api import async_playwright
 HERE = Path(__file__).parent
 W, H = 1920, 1080
 PREROLL = 0.6  # seconds of blank windows before the visitor navigates
-HOLD = 2.4  # seconds held after the slower page becomes interactive
+DEFAULT_TITLE = (
+    "A new visitor opens the app while {k} users run CPU&#8209;heavy model calls"
+)
+DEFAULT_SUBTITLE = (
+    "Same app on the same machine. Each model call is about 1&nbsp;s of Python "
+    "compute that holds the GIL."
+)
 MONO = "/System/Library/Fonts/SFNSMono.ttf"
 
 ARMS = {
@@ -81,18 +87,33 @@ def clock(t0: float, ready: float, x: int, y: int) -> str:
     return f"{run},{done}"
 
 
-def build(results: Path, video_dir: Path, left: str, right: str, out: Path, k: int):
+def build(
+    results: Path,
+    video_dir: Path,
+    left: str,
+    right: str,
+    out: Path,
+    k: int,
+    title: str = DEFAULT_TITLE,
+    subtitle: str = DEFAULT_SUBTITLE,
+    hold: float = 2.4,
+    wait_color: str = "#ffffff",
+):
+    """`hold` is how long the video runs on after the slower page becomes
+    interactive; `wait_color` is what a window shows before its page paints."""
     rows = {r["arm"]: r for r in json.loads(results.read_text())["queue"]}
     clips = [rows[left], rows[right]]
     ready = [c["video"]["ready_ms"] / 1000 for c in clips]
     medians = [c["ready"]["median"] / 1000 for c in clips]
     takes = len(clips[0]["video"].get("ready_ms_all", [1]))
-    duration = PREROLL + max(ready) + HOLD
+    duration = PREROLL + max(ready) + hold
     layers = out.parent / f"{out.name}-layers"
     layers.mkdir(parents=True, exist_ok=True)
     (ln, ld), (rn, rd) = ARMS[left], ARMS[right]
     spec = {
-        "k": k,
+        "title": title.format(k=k),
+        "subtitle": subtitle.format(k=k),
+        "wait_color": wait_color,
         "left_name": ln,
         "left_desc": ld,
         "right_name": rn,
@@ -127,7 +148,7 @@ def build(results: Path, video_dir: Path, left: str, right: str, out: Path, k: i
         start = nav_start(video_dir / c["video"]["video"])
         f.append(
             f"[{6 + i}:v]fps=100,trim=start={start:.2f},setpts=PTS-STARTPTS,fps=30,"
-            f"tpad=start_mode=add:color=white:start_duration={PREROLL}:stop_mode=clone:stop_duration={duration:.2f},"
+            f"tpad=start_mode=add:color=0x{wait_color.lstrip('#')}:start_duration={PREROLL}:stop_mode=clone:stop_duration={duration:.2f},"
             f"trim=duration={duration:.2f},scale={sw}:{sh}:flags=lanczos,setsar=1[c{i}]"
         )
     pill = lambda name: [round(v) for v in boxes[name][:2]]  # noqa: E731
@@ -186,6 +207,12 @@ def main():
     ap.add_argument("--right", default="pr-default")
     ap.add_argument("--k", type=int, default=50, help="model calls in flight")
     ap.add_argument("--out", required=True, help="output path without extension")
+    ap.add_argument("--title", default=DEFAULT_TITLE, help="HTML; {k} is filled in")
+    ap.add_argument(
+        "--subtitle", default=DEFAULT_SUBTITLE, help="HTML; {k} is filled in"
+    )
+    ap.add_argument("--hold", type=float, default=2.4)
+    ap.add_argument("--wait-color", default="#ffffff")
     args = ap.parse_args()
     build(
         Path(args.results),
@@ -194,6 +221,10 @@ def main():
         args.right,
         Path(args.out),
         args.k,
+        args.title,
+        args.subtitle,
+        args.hold,
+        args.wait_color,
     )
 
 

@@ -2,10 +2,12 @@
 
 Results are in [RESULTS.md](RESULTS.md). This folder holds the harness that produced them.
 
-![A new visitor opens the app while 50 users run CPU-heavy model calls: FastAPI becomes interactive in 1.60 s, Gradio 7.0-dev + SSR in 0.09 s](results/videos/hero/fastapi-vs-gradio7-ssr.gif)
+![A new visitor opens an image-enhancer app while 50 users run CPU-heavy model calls: FastAPI becomes interactive in 2.01 s, Gradio 7.0-dev + SSR in 0.15 s](results/videos/upscale/fastapi-vs-gradio7-ssr-upscale.gif)
 
-A new visitor opens the app while 50 users run CPU-heavy model calls: FastAPI vs
-Gradio 7.0-dev + SSR. [Full-resolution MP4](results/videos/hero/fastapi-vs-gradio7-ssr.mp4).
+A new visitor opens an image-enhancer app (`apps/upscale_*.py`: an input image, a
+before/after `gr.ImageSlider` and a button) while 50 users run CPU-heavy model calls:
+FastAPI vs Gradio 7.0-dev + SSR. [Full-resolution MP4](results/videos/upscale/fastapi-vs-gradio7-ssr-upscale.mp4);
+the same comparison with the plain `simple` app: [MP4](results/videos/hero/fastapi-vs-gradio7-ssr.mp4).
 How it's made: [Server full of model calls](#server-full-of-model-calls-bench_queuepy).
 
 ## Arms
@@ -117,6 +119,14 @@ The video at the top of this file is made with `make_video.py`, which lays the
 two recordings into a styled frame (`video_frame.html`):
 
 ```bash
+.venvs/tools/bin/python bench_queue.py --app upscale --arms fastapi,pr-default --work cpu --levels 50 \
+  --video-takes 7 --video-size 860x538 --out results/queue-upscale.json --video-dir results/videos/upscale
+.venvs/tools/bin/python make_video.py results/queue-upscale.json results/videos/upscale --k 50 --hold 2.8 \
+  --wait-color "#0b0f19" --title "A new visitor opens an image enhancer while {k} users run model calls" \
+  --subtitle "Same app on the same machine. Each model call is about 1&nbsp;s of CPU&#8209;heavy Python compute that holds the GIL." \
+  --out results/videos/upscale/fastapi-vs-gradio7-ssr-upscale
+
+# the plain simple-app version
 .venvs/tools/bin/python bench_queue.py --arms fastapi,pr-default --work cpu --levels 50 \
   --video-takes 7 --video-size 860x538 --out results/queue-hero.json --video-dir results/videos/hero
 .venvs/tools/bin/python make_video.py results/queue-hero.json results/videos/hero --k 50 \

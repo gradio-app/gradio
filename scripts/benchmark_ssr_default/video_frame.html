@@ -24,7 +24,7 @@
     font-size: 17px; font-weight: 650; letter-spacing: 0.16em; text-transform: uppercase;
     color: #fb923c;
   }
-  h1 { font-size: 46px; font-weight: 700; letter-spacing: -0.015em; margin: 12px 0 10px; }
+  h1 { font-size: 46px; font-weight: 700; letter-spacing: -0.015em; margin: 12px 0 10px; white-space: nowrap; }
   .sub { font-size: 22px; color: #94a3b8; margin: 0; }
   .col { position: absolute; top: 228px; width: 860px; }
   .col.l { left: 70px; } .col.r { left: 990px; }
@@ -49,7 +49,7 @@
     margin-left: 18px; flex: 1; height: 28px; border-radius: 8px; background: #0f172a;
     color: #94a3b8; font: 15px/28px ui-monospace, "SF Mono", Menlo, monospace; padding: 0 12px;
   }
-  .slot { width: 860px; height: 538px; background: #fff; }
+  .slot { width: 860px; height: 538px; background: {{wait_color}}; }
   .status { margin-top: 22px; height: 56px; position: relative; }
   .pill {
     position: absolute; left: 0; top: 4px; font-size: 21px; padding: 11px 20px; border-radius: 999px;
@@ -79,8 +79,8 @@
 <body>
   <header>
     <div class="eyebrow">Gradio 7.0 benchmark &middot; server under load</div>
-    <h1>A new visitor opens the app while {{k}} users run CPU&#8209;heavy model calls</h1>
-    <p class="sub">Same app on the same machine. Each model call is about 1&nbsp;s of Python compute that holds the GIL.</p>
+    <h1>{{title}}</h1>
+    <p class="sub">{{subtitle}}</p>
   </header>
 
   <div class="col l">

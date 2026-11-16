@@ -49,13 +49,40 @@ LABELS = {
 PAGE_KEYS = ("ttfb", "fcp", "lcp", "ready")
 NAV_DELAY_S = 0.2  # from the red-to-white switch to navigation, in recorded loads
 
+# The apps that can be benchmarked: their scripts, the API call the background
+# clients make, and, for recorded loads, how the page looks while it waits.
+QUEUE_APPS = {
+    "simple": {
+        "scripts": ("ml_gradio", "ml_fastapi"),
+        "gradio_api": ("greet", ["load"]),
+        "fastapi_api": ("/api/greet", {"data": ["load"]}),
+        "color_scheme": "light",
+        "wait_color": "#fff",
+    },
+    "upscale": {
+        "scripts": ("upscale_gradio", "upscale_fastapi"),
+        "gradio_api": ("enhance", [None]),
+        "fastapi_api": ("/api/enhance", None),
+        "color_scheme": "dark",
+        "wait_color": "#0b0f19",
+    },
+}
+# Interactive: the button is visible and all three images (the input, and the
+# slider's two) have loaded.
+READY_JS["upscale"] = """() => { const b = document.querySelector('#enhance');
+    const imgs = [...document.querySelectorAll('#input img, #slider img')];
+    return (b && b.getBoundingClientRect().width > 0 && imgs.length >= 3
+            && imgs.every((i) => i.complete && i.naturalWidth > 0)) ? performance.now() : false }"""
+SWEEP_S = 1.8  # the slider sweep after an upscale page becomes interactive
+
 
 class QueueServer(Server):
-    def __init__(self, arm, port, log_dir, work, iters):
+    def __init__(self, arm, port, log_dir, work, iters, app="simple"):
         super().__init__(arm, "simple", port, log_dir)
-        self.cmd[-1] = "ml_fastapi" if arm == "fastapi" else "ml_gradio"
+        gradio_script, fastapi_script = QUEUE_APPS[app]["scripts"]
+        self.cmd[-1] = fastapi_script if arm == "fastapi" else gradio_script
         self.env.update(BENCH_WORK=work, BENCH_WORK_ITERS=str(iters), BENCH_WORK_S="1")
-        self.log_path = log_dir / f"queue-{arm}-{work}-{port}.log"
+        self.log_path = log_dir / f"queue-{app}-{arm}-{work}-{port}.log"
 
 
 def calibrate(seconds: float = 1.0) -> int:
@@ -82,7 +109,7 @@ def calibrate(seconds: float = 1.0) -> int:
 # ------------------------------------------------------------- background load
 
 
-async def _load(base, kind, k, stop, done, errors, inflight):
+async def _load(base, kind, app, k, stop, done, errors, inflight):
     timeout = aiohttp.ClientTimeout(total=None)
     connector = aiohttp.TCPConnector(limit=0)
     async with aiohttp.ClientSession(
@@ -91,14 +118,17 @@ async def _load(base, kind, k, stop, done, errors, inflight):
 
         async def one():
             if kind == "fastapi":
-                async with s.post(base + "/api/greet", json={"data": ["load"]}) as r:
-                    return r.status == 200 and b"Hello load!" in await r.read()
+                path, body = QUEUE_APPS[app]["fastapi_api"]
+                async with s.post(base + path, json=body) as r:
+                    await r.read()
+                    return r.status == 200
+            api, data = QUEUE_APPS[app]["gradio_api"]
             async with s.post(
-                base + "/gradio_api/call/greet", json={"data": ["load"]}
+                f"{base}/gradio_api/call/{api}", json={"data": data}
             ) as r:
                 event_id = (await r.json())["event_id"]
-            async with s.get(f"{base}/gradio_api/call/greet/{event_id}") as r:
-                return b"Hello load!" in await r.read()
+            async with s.get(f"{base}/gradio_api/call/{api}/{event_id}") as r:
+                return b"event: complete" in await r.read()
 
         async def client():
             while not stop.is_set():
@@ -131,7 +161,7 @@ def _load_proc(*args):
 class Load:
     """K clients, each keeping one model call in flight, in a separate process."""
 
-    def __init__(self, base, kind, k):
+    def __init__(self, base, kind, k, app="simple"):
         self.stop = mp.Event()
         self.done, self.errors, self.inflight = (
             mp.Value("i", 0),
@@ -140,7 +170,7 @@ class Load:
         )
         self.proc = mp.Process(
             target=_load_proc,
-            args=(base, kind, k, self.stop, self.done, self.errors, self.inflight),
+            args=(base, kind, app, k, self.stop, self.done, self.errors, self.inflight),
             daemon=True,
         )
 
@@ -168,7 +198,9 @@ async def recorded_load(
     size=(640, 400),
 ) -> dict | None:
     """One cold page load recorded on video, in a fresh browser profile. Returns
-    the video's file name and when the page became interactive, in ms."""
+    the video's file name and when the page became interactive, in ms. On the
+    upscale app, it then sweeps the before/after slider, as a visitor would."""
+    look = QUEUE_APPS.get(app, QUEUE_APPS["simple"])
     tmp = video_dir / f"_{name}"
     shutil.rmtree(tmp, ignore_errors=True)
     ctx = await browser.new_context(
@@ -176,6 +208,7 @@ async def recorded_load(
         record_video_dir=str(tmp),
         record_video_size={"width": size[0], "height": size[1]},
         viewport={"width": size[0], "height": size[1]},
+        color_scheme=look["color_scheme"],
     )
     page = await ctx.new_page()
     # A red page, turned white NAV_DELAY_S before navigating: nav_start() finds
@@ -194,14 +227,17 @@ async def recorded_load(
         # recorder captures the switch), then navigate exactly NAV_DELAY_S later.
         async with page.expect_navigation(wait_until="commit", timeout=180_000):
             await page.evaluate(
-                "([url, delay]) => { const d = document.getElementById('d');"
-                " d.style.background = '#fefefe'; document.body.style.background = '#fff';"
+                "([url, delay, color]) => { const d = document.getElementById('d');"
+                " d.style.opacity = 0.99; d.style.background = color;"
+                " document.body.style.background = color;"
                 " setTimeout(() => { location.href = url; }, delay); }",
-                [url, NAV_DELAY_S * 1000],
+                [url, NAV_DELAY_S * 1000, look["wait_color"]],
             )
         ready_ms = await (
             await page.wait_for_function(READY_JS[app], polling=5, timeout=180_000)
         ).json_value()
+        if app == "upscale":
+            await sweep_slider(page)
         await asyncio.sleep(1.0)
     except Exception as e:
         print(f"recorded load failed: {name}: {e!r}", flush=True)
@@ -216,12 +252,32 @@ async def recorded_load(
     return {"video": final.name, "ready_ms": ready_ms}
 
 
-async def median_take(browser, url, video_dir, name, takes, size) -> dict | None:
+async def sweep_slider(page):
+    """Drags the before/after slider right, then left, then back to the middle,
+    over SWEEP_S seconds."""
+    box = await page.locator(
+        "#slider .slider-wrap, #slider .stage"
+    ).first.bounding_box()
+    y = box["y"] + box["height"] / 2
+    at = lambda f: box["x"] + box["width"] * f  # noqa: E731
+    await page.mouse.move(at(0.5), y)
+    await page.mouse.down()
+    for start, end, seconds in ((0.5, 0.88, 0.5), (0.88, 0.12, 0.8), (0.12, 0.5, 0.5)):
+        steps = int(seconds * 60)
+        for i in range(1, steps + 1):
+            await page.mouse.move(at(start + (end - start) * i / steps), y)
+            await asyncio.sleep(seconds / steps)
+    await page.mouse.up()
+
+
+async def median_take(browser, url, video_dir, name, takes, size, app) -> dict | None:
     """Records `takes` loads and keeps the one closest to their median, so the
     video shows a typical load rather than a lucky or unlucky one."""
     vs = []
     for i in range(takes):
-        v = await recorded_load(browser, url, video_dir, f"{name}-take{i}", size=size)
+        v = await recorded_load(
+            browser, url, video_dir, f"{name}-take{i}", app=app, size=size
+        )
         if v:
             vs.append(v)
     if not vs:
@@ -284,11 +340,11 @@ async def run(args):
         for work in args.work.split(","):
             for k in [int(x) for x in args.levels.split(",")]:
                 for arm in args.arms.split(","):
-                    server = QueueServer(arm, port, log_dir, work, iters)
+                    server = QueueServer(arm, port, log_dir, work, iters, args.app)
                     server.start()
                     kind = "fastapi" if arm == "fastapi" else "gradio"
                     try:
-                        with Load(server.url, kind, k) as load:
+                        with Load(server.url, kind, k, args.app) as load:
                             await asyncio.sleep(args.warmup if k else 1)
                             d0, t0 = load.done.value, time.perf_counter()
                             runs = []
@@ -296,7 +352,7 @@ async def run(args):
                                 ctx = await new_context(browser)
                                 runs.append(
                                     await load_page(
-                                        ctx, server.url, "simple", event=False
+                                        ctx, server.url, args.app, event=False
                                     )
                                 )
                                 await ctx.close()
@@ -312,6 +368,7 @@ async def run(args):
                                     f"{work}-k{k}-{arm}",
                                     args.video_takes,
                                     args.video_size,
+                                    args.app,
                                 )
                             errors = load.errors.value
                     finally:
@@ -319,6 +376,7 @@ async def run(args):
                     ok = [r for r in runs if r]
                     row = {
                         "arm": arm,
+                        "app": args.app,
                         "work": work,
                         "k": k,
                         "failures": len(runs) - len(ok),
@@ -454,6 +512,7 @@ def main():
     faulthandler.dump_traceback_later(900, repeat=True)
     ap = argparse.ArgumentParser()
     ap.add_argument("--arms", default="fastapi,main,base-csr,pr-default")
+    ap.add_argument("--app", default="simple", choices=list(QUEUE_APPS))
     ap.add_argument("--work", default="cpu,gpu")
     ap.add_argument("--levels", default="0,10,50", help="model calls kept in flight")
     ap.add_argument("--reps", type=int, default=10)
