@@ -5138,3 +5138,17 @@ class TestStateInStreams:
             finally:
                 await pc.close()
                 await h.http.aclose()
+
+
+def test_a_stream_puts_its_component_in_streaming_mode():
+    def echo(audio):
+        return audio
+
+    # Without streaming=True, as .stream() without transport= allows
+    with gr.Blocks():
+        camera = gr.Image(sources=["webcam"])
+        camera.stream(flip, [camera], [camera], transport="webrtc")
+        mic = gr.Audio(sources=["microphone"])
+        mic.stream(echo, [mic], [mic], transport="webrtc")
+    assert camera.get_config()["streaming"] is True
+    assert mic.get_config()["streaming"] is True

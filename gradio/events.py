@@ -831,6 +831,9 @@ class EventListener(str):
                     trigger_mode=trigger_mode,
                 )
                 set_cancel_events([event_target], cancels)
+                # e.g. .stream() puts its component in streaming mode
+                if _callback:
+                    _callback(block)
                 return Dependency(block, dep.get_config(), dep_index, fn)
 
             dep, dep_index = root_block.set_event_trigger(
