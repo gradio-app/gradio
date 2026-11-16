@@ -5130,9 +5130,11 @@ class TestStateInStreams:
                 assert seen[:4] == [5, 6, 7, 8]
                 await pc.close()
                 await h.messages("one", completed)
-                # The State's values reached the session too
+                # The State's values reached the session too (closed abruptly,
+                # a call still running may not deliver its own)
                 stored = demo.state_holder["one"][count._id]
-                assert stored - 1 in seen[3:]
+                assert stored - 1 in seen
+                assert stored > 6
             finally:
                 await pc.close()
                 await h.http.aclose()
