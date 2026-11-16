@@ -4982,6 +4982,21 @@ class TestStreamOutputs:
             assert len(values) == 1 and woken
 
     @pytest.mark.asyncio
+    async def test_component_updates_and_type_changes_are_delivered(self):
+        stream, event = self.stream(None)
+        skip = gr.skip()
+        stream.add_output(AdditionalOutputs(gr.update(visible=True), 1))
+        self.delivered(stream, event)
+        # A component update is always sent, and 1 -> True is a change
+        stream.add_output(AdditionalOutputs(gr.update(visible=True), True))
+        assert self.delivered(stream, event) == (
+            [(gr.update(visible=True), True)],
+            True,
+        )
+        stream.add_output(AdditionalOutputs(skip, 1.0))
+        assert self.delivered(stream, event) == ([(skip, 1.0)], True)
+
+    @pytest.mark.asyncio
     async def test_changes_go_out_at_most_once_every_output_every(self):
         stream, event = self.stream(0.1)
         skip = gr.skip()

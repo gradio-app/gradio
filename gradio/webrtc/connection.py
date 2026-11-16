@@ -123,7 +123,9 @@ def _comparable(value: Any) -> bool:
     if isinstance(value, list | tuple):
         return all(_comparable(v) for v in value)
     if isinstance(value, dict):
-        return all(_comparable(k) and _comparable(v) for k, v in value.items())
+        return value.get("__type__") != "update" and all(
+            _comparable(k) and _comparable(v) for k, v in value.items()
+        )
     return False
 
 
@@ -134,7 +136,18 @@ def _remembered(value: Any) -> Any:
 
 
 def _same(value: Any, shown: Any) -> bool:
-    return shown is not _UNSEEN and _comparable(value) and value == shown
+    return shown is not _UNSEEN and _comparable(value) and _identical(value, shown)
+
+
+def _identical(a: Any, b: Any) -> bool:
+    """== that also tells types apart (1, 1.0 and True are not the same output)."""
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, list | tuple):
+        return len(a) == len(b) and all(map(_identical, a, b))
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(_identical(v, b[k]) for k, v in a.items())
+    return a == b
 
 
 class StreamRegistry:
