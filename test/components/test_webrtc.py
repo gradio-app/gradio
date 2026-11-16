@@ -5083,3 +5083,56 @@ class TestStreamOutputs:
         stream.outputs.clear()
         stream.add_output(AdditionalOutputs("c"))
         assert [o.args for o in stream.outputs] == [("c",)]
+
+
+class TestStateInStreams:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("kind", ["video", "async video", "audio"])
+    async def test_a_state_the_function_returns_is_what_its_next_call_gets(
+        self, kind, monkeypatch
+    ):
+        monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+        forget_earlier_streams()
+        seen = []
+
+        def count_up(media, count):
+            seen.append(count)
+            return f"{count}", count + 1
+
+        async def count_up_async(media, count):
+            return count_up(media, count)
+
+        with gr.Blocks() as demo:
+            if kind == "audio":
+                media = gr.Audio(sources=["microphone"], streaming=True)
+            else:
+                media = webcam()
+            count = gr.State(5)
+            text = gr.Textbox()
+            media.stream(
+                count_up_async if kind == "async video" else count_up,
+                inputs=[media, count],
+                outputs=[text, count],
+                transport="webrtc",
+                # An audio call per 20 ms frame
+                stream_every=0.02 if kind == "audio" else None,
+            )
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            h = Harness(demo, local_url, media)
+            pc = await make_offer(audio=kind == "audio", video=kind != "audio")
+            try:
+                await h.start("one")
+                await h.connect(pc, "one")
+                # What the page sends for the State is not what the calls get
+                await h.push_inputs("one", None)
+                await h.wait_until(lambda: len(seen) >= 4)
+                assert seen[:4] == [5, 6, 7, 8]
+                await pc.close()
+                await h.messages("one", completed)
+                # The State's values reached the session too
+                stored = demo.state_holder["one"][count._id]
+                assert stored - 1 in seen[3:]
+            finally:
+                await pc.close()
+                await h.http.aclose()

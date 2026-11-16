@@ -397,6 +397,31 @@ def _receive_extras(cls: type) -> dict[str, int]:
     return extras
 
 
+class _Carried:
+    """The value of a gr.State that a plain function's stream takes and
+    returns, which the stream keeps: each call gets what the previous call
+    returned for it (see `transport_event`)."""
+
+    __slots__ = ("output", "value")
+
+    def __init__(self, value: Any, output: int) -> None:
+        self.value = value
+        # The State's position among the outputs
+        self.output = output
+
+
+def _unboxed(args: list[Any] | tuple[Any, ...]) -> list[Any]:
+    return [a.value if isinstance(a, _Carried) else a for a in args]
+
+
+def _copied(value: Any) -> Any:
+    """A deep copy, as gr.State values allow, or the value if it has none."""
+    try:
+        return copy.deepcopy(value)
+    except Exception:
+        return value
+
+
 async def _in_context(context: contextvars.Context, awaitable: Any) -> Any:
     """Awaits `awaitable` with the variables of `context` set."""
     for var, value in context.items():
@@ -405,14 +430,18 @@ async def _in_context(context: contextvars.Context, awaitable: Any) -> Any:
 
 
 def _chunked_audio_handler(
-    fn: Callable, media_in: int, seconds: float
+    fn: Callable,
+    media_in: int,
+    seconds: float,
+    write_back: Callable[[list[Any], Any], None] | None = None,
 ) -> type[StreamHandler]:
     """
     A handler class for a plain audio function, which gets at least `seconds`
     of audio per call, like an HTTP audio stream's `stream_every` chunks. The
     function runs in a thread of its own; audio that arrives meanwhile goes into
     the next call, so a function slower than real time gets longer chunks
-    instead of falling further behind.
+    instead of falling further behind. `write_back` is given each call's
+    arguments and result (it keeps the gr.State values the stream carries).
     """
     from gradio import routes
     from gradio.webrtc.utils import bind_special_args
@@ -452,13 +481,15 @@ def _chunked_audio_handler(
                 self.wait_for_args_sync()
                 args = list(self.latest_args)
                 args.insert(media_in, (rate, chunk))
-                result = self.call(*args)
+                result = self.call(*_unboxed(args))
                 if inspect.isawaitable(result):
                     # On the loop, as async video functions run, with this
                     # thread's context (gr.Info and the like reach the page)
                     result = asyncio.run_coroutine_threadsafe(
                         _in_context(contextvars.copy_context(), result), self.loop
                     ).result()
+                if write_back is not None:
+                    write_back(args, result)
                 self.results.put(result)
             except BaseException as e:  # raised from emit(), which reports it
                 self.results.put(e)
@@ -531,6 +562,27 @@ def transport_event(
         )
     is_handler_class = _is_a(fn, (StreamHandlerBase,))
     other_out = [i for i in range(len(outputs)) if i != media_out]
+
+    # A gr.State input gets its value as it is when the stream's turn comes,
+    # from the event's own inputs: the page holds the State, and what it sends
+    # over the data channel does not carry it. One that a plain function also
+    # returns is kept by the stream, so that each call gets what the previous
+    # call returned for it, as each chunk of an HTTP stream does. A handler
+    # class keeps its own state, and a receive-mode generator gets its inputs
+    # once. Each entry: the position among the event's inputs, among the
+    # extra inputs, and among the outputs (None if not kept).
+    from gradio.components import State
+
+    def position(blocks: list, block: Any) -> int | None:
+        return next((i for i, b in enumerate(blocks) if b is block), None)
+
+    keeps_state = not is_handler_class and mode != "receive"
+    carried_states: list[tuple[int, int, int | None]] = []
+    for j, block in enumerate(preprocessed_inputs or []):
+        k = position(inputs, block)
+        if isinstance(block, State) and k is not None:
+            out = position(outputs, block) if keeps_state else None
+            carried_states.append((k, j, out))
     repeats_frames = (
         modality == "video" and mode == "send-receive" and not is_handler_class
     )
@@ -564,6 +616,28 @@ def transport_event(
         if media_out is None or media is None:
             return AdditionalOutputs(*rest)
         return media, AdditionalOutputs(*rest)
+
+    def write_back(args: list[Any] | tuple[Any, ...], result: Any) -> None:
+        """Keeps what a call returned for the gr.State values it was given."""
+        boxes = [a for a in args if isinstance(a, _Carried)]
+        if (
+            not boxes
+            or result is None
+            or isinstance(result, CloseStream | AdditionalOutputs)
+        ):
+            return
+        values = (
+            list(result)
+            if len(outputs) > 1 and isinstance(result, tuple | list)
+            else [result]
+        )
+        if len(values) != len(outputs):
+            return  # to_stream_output reports it
+        for box in boxes:
+            if not is_skip(values[box.output]):
+                # A copy: the value also goes to the page, while the next
+                # call may change the one it gets in place
+                box.value = _copied(values[box.output])
 
     receive_extras = (
         _receive_extras(fn if inspect.isclass(fn) else type(fn))
@@ -621,7 +695,7 @@ def transport_event(
     var_args = [p for p in params if p.kind is p.VAR_POSITIONAL]
     fixed = [p for p in ordered if p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)]
 
-    def in_fn_order(args: tuple) -> list:
+    def in_fn_order(args: list[Any] | tuple[Any, ...]) -> list:
         by_name = dict(zip((p.name for p in fixed), args, strict=False))
         named = [by_name[p.name] for p in params if p.name in by_name]
         return named + list(args[len(fixed) :]) if var_args else named
@@ -637,18 +711,24 @@ def transport_event(
 
         handler = generate
     elif modality == "audio":
-        handler = _chunked_audio_handler(fn, cast(int, media_in), stream_every or 0.5)
+        handler = _chunked_audio_handler(
+            fn, cast(int, media_in), stream_every or 0.5, write_back
+        )
         is_handler_class = True
     elif is_async(fn):
 
         async def call_async(*args: Any) -> Any:
-            return to_stream_output(await fn(*in_fn_order(args)))
+            result = await fn(*in_fn_order(_unboxed(args)))
+            write_back(args, result)
+            return to_stream_output(result)
 
         handler = call_async
     else:
 
         def call(*args: Any) -> Any:
-            return to_stream_output(fn(*in_fn_order(args)))
+            result = fn(*in_fn_order(_unboxed(args)))
+            write_back(args, result)
+            return to_stream_output(result)
 
         handler = call
 
@@ -701,8 +781,19 @@ def transport_event(
                 "This endpoint streams media over WebRTC. Call it from the "
                 "JavaScript client (@gradio/client) with a MediaStream."
             )
+        # The event's own inputs hold the gr.State values as they are when
+        # the turn comes
+        carried = {
+            j: _copied(_inputs[k])
+            if out is None
+            else _Carried(_copied(_inputs[k]), out)
+            for k, j, out in carried_states
+            if k < len(_inputs)
+        }
         # The queue's close has to reach stream_run's finally now, not at GC
-        async with aclosing(connection.stream_run(manager, webrtc_id)) as steps:
+        async with aclosing(
+            connection.stream_run(manager, webrtc_id, carried)
+        ) as steps:
             async for step in steps:
                 values: list[Any] = [skip()] * len(outputs)
                 if step is not None:

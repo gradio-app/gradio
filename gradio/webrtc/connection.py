@@ -350,6 +350,10 @@ class Stream:
         self._delivery_timer: asyncio.TimerHandle | None = None
         self.errors: StreamErrors | None = None
         self.rtc_configuration: asyncio.Future | None = None
+        # Values the stream itself keeps for some of the extra inputs, by
+        # their position, in place of what the page sends (the gr.State
+        # inputs that are also outputs, see transport.transport_event)
+        self.carried: dict[int, Any] = {}
         # Set by the offer, and let go of when the stream ends. The stream
         # outlives them: an ended stream still delivers its pending outputs.
         self.pc: RTCPeerConnection | None = None
@@ -802,6 +806,8 @@ class ConnectionManager:
                 stream.errors.fail(e)
             return
         if getattr(stream, "_inputs_seq", 0) == seq:
+            for i, value in stream.carried.items():
+                prepared[i] = value
             stream.set_inputs(prepared)
 
     async def handle_offer(
@@ -1152,7 +1158,9 @@ async def _add_ice_candidate(
 
 
 async def stream_run(
-    manager: ConnectionManager, webrtc_id: str | None
+    manager: ConnectionManager,
+    webrtc_id: str | None,
+    carried: dict[int, Any] | None = None,
 ) -> AsyncGenerator[AdditionalOutputs | None, None]:
     """
     The run of a stream's queue event, a lease (`BlockFunction.lease`) that
@@ -1163,7 +1171,8 @@ async def stream_run(
     with a step that changes nothing: a run that just ran out would complete
     with empty outputs, which the page would apply. `manager` is the one that
     the event's function was created with; after a hot reload the run keeps
-    the stream it admitted.
+    the stream it admitted. `carried` are the values the stream keeps for
+    some of its extra inputs (see `Stream.carried`).
     """
     blocks = LocalContext.blocks.get(None)
     queue = blocks._queue if blocks is not None else None
@@ -1192,6 +1201,8 @@ async def stream_run(
         yield None
         return
     stream = registry.by_event[event.id]
+    # Set before the turn reaches the page, which only then sends the inputs
+    stream.carried = dict(carried or {})
     try:
         yield None
         while True:
