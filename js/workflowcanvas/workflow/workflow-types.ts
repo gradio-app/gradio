@@ -25,9 +25,30 @@ export type PortType =
  * tile and a markdown reference can prompt a text input. */
 const TEXTUAL = new Set<PortType>(["text", "markdown"]);
 
+export function is_textual(type: PortType): boolean {
+	return TEXTUAL.has(type);
+}
+
 export function ports_compatible(a: PortType, b: PortType): boolean {
 	if (a === "any" || b === "any" || a === b) return true;
 	return TEXTUAL.has(a) && TEXTUAL.has(b);
+}
+
+export type TextInputType = "text" | "password" | "email";
+
+export function is_secret(node: unknown): boolean {
+	return (node as { type?: string } | null)?.type === "password";
+}
+
+// The credential word must end the name; `max_token` etc. name a setting.
+const CREDENTIAL =
+	/((api|secret|access|private)[ _-]?key|token|secret|passw(or)?d)$/i;
+const SETTING = /(^|[^a-z])(max|min|num|use)[^a-z]/i;
+
+export function is_secret_port(port: { id?: string; label?: string }): boolean {
+	return [port.label, port.id].some(
+		(name) => !!name && CREDENTIAL.test(name) && !SETTING.test(name)
+	);
 }
 
 export interface Port {
@@ -64,6 +85,7 @@ export type NodeStatus = "idle" | "running" | "done" | "error";
 
 export interface WFNode {
 	id: string;
+	type?: TextInputType;
 	kind: "input" | "transform" | "output" | "component";
 	label: string;
 	source: "local" | "space" | "model" | "dataset" | "fn";
@@ -150,6 +172,7 @@ export interface BaseNode {
 export interface ReferenceNode extends BaseNode {
 	role: "reference";
 	asset_type: PortType;
+	type?: TextInputType;
 	/** Inline literal value, or in a later iteration an `hf://...` URI. */
 	value?: NodeDataValue;
 }

@@ -1,5 +1,24 @@
 # gradio
 
+## 6.32.0
+
+### Features
+
+- [#14050](https://github.com/gradio-app/gradio/pull/14050) [`fda8037`](https://github.com/gradio-app/gradio/commit/fda8037b83f316454e96201dfad96e50944f8547) - Use the visitor's own HF token for run history buckets.  Thanks @dawoodkhan82!
+- [#14034](https://github.com/gradio-app/gradio/pull/14034) [`1028366`](https://github.com/gradio-app/gradio/commit/1028366300f10b26f0b54a1d6cda6d520895acbb) - Allow Pillow 13 on 6.x and keep 32-bit integer PNG output working.  Thanks @abidlabs!
+- [#14042](https://github.com/gradio-app/gradio/pull/14042) [`2f8693a`](https://github.com/gradio-app/gradio/commit/2f8693aa4a07d1ad300be5e6c28e9bf15c600f4e) - Add GitHub-installed CLI extensions.  Thanks @abidlabs!
+- [#14059](https://github.com/gradio-app/gradio/pull/14059) [`5819440`](https://github.com/gradio-app/gradio/commit/5819440d425ff73d66ec7124289322c7333e4edd) - add console forwarding for embedded apps.  Thanks @pngwn!
+- [#14017](https://github.com/gradio-app/gradio/pull/14017) [`ebccfcf`](https://github.com/gradio-app/gradio/commit/ebccfcf3194dd3cd132491a6bc35968f1321611a) - workflows: handle depth estimation.  Thanks @hannahblair!
+- [#13972](https://github.com/gradio-app/gradio/pull/13972) [`d702b19`](https://github.com/gradio-app/gradio/commit/d702b19b8a6d7f2e8af6d7cd260c6e44af3e9433) - workflow: add masked setting on textboxes.  Thanks @hannahblair!
+- [#14057](https://github.com/gradio-app/gradio/pull/14057) [`ab27f92`](https://github.com/gradio-app/gradio/commit/ab27f920c293daeaec50fb1c3e21fac85e9fa308) - workflow: add 3d model node support.  Thanks @hannahblair!
+- [#14053](https://github.com/gradio-app/gradio/pull/14053) [`29ba706`](https://github.com/gradio-app/gradio/commit/29ba706b42dd2a86079568c141e557c8b888e0c8) - Require login for the MCP server when the app uses auth, and make queued MCP calls work with auth.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13991](https://github.com/gradio-app/gradio/pull/13991) [`fa3f296`](https://github.com/gradio-app/gradio/commit/fa3f29607c4b2ded9973970053af6c6b7971d9ba) - Run a deferred always_last event with its own event data.  Thanks @hysts!
+- [#14064](https://github.com/gradio-app/gradio/pull/14064) [`62e7c9e`](https://github.com/gradio-app/gradio/commit/62e7c9ebe7225ff443f2bf3138638d03c363ee4c) - Fix two Windows bugs: reused cached files deleted early, misleading reserved-port error.  Thanks @dawoodkhan82!
+- [#14027](https://github.com/gradio-app/gradio/pull/14027) [`f3bab14`](https://github.com/gradio-app/gradio/commit/f3bab14e9d5a46bb22866a3a9db498c02f4e7ad0) - Show an error when camera permission is denied for the webcam.  Thanks @hysts!
+
 ## 6.31.0
 
 ### Features

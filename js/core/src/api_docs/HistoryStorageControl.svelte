@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import {
 		connect_bucket,
+		disconnect_bucket,
 		list_user_buckets,
 		read_run_history_storage,
 		set_run_history_storage,
@@ -11,7 +12,7 @@
 
 	interface HistoryStorageScope extends RunHistoryScope {
 		title?: string;
-		components?: { type: string }[];
+		oauth_available?: boolean;
 	}
 
 	interface Props {
@@ -32,6 +33,10 @@
 	let buckets_loading = $state(false);
 	let buckets = $state<string[]>([]);
 	let bucket_input = $state("");
+	let token_input = $state("");
+	/** No token reaches the server for this browser yet (no OAuth session and
+	 * none kept from an earlier connect), so the dialog asks for one. */
+	let needs_token = $state(false);
 	/** Signing in is the next step, not a failure. Only `failure` gets the alert
 	 * treatment; `auth` is guidance and reads as such. */
 	let connect_error: { kind: "auth" | "failure"; message: string } | null =
@@ -39,54 +44,61 @@
 
 	const bucket_id = $derived(storage.bucket_id ?? "");
 	const using_bucket = $derived(storage.type === "bucket");
-	const oauth_available = $derived(
-		scope.components?.some((component) => component.type === "loginbutton") ??
-			false
-	);
-	const running_locally = $derived(
-		["localhost", "127.0.0.1", "::1", "[::1]"].includes(
-			window.location.hostname
-		)
-	);
-
+	const oauth_available = $derived(scope.oauth_available ?? false);
 	onMount(() => {
 		storage = read_run_history_storage(scope);
 	});
 
 	function authentication_error(): string {
-		if (running_locally) {
-			return "Log in locally with `hf auth login`, then try again.";
-		}
-		if (oauth_available) {
-			return "Sign in with Hugging Face to connect a bucket.";
-		}
-		return "This app must enable Hugging Face OAuth before visitors can connect buckets.";
+		return oauth_available
+			? "Sign in with Hugging Face, or add an access token, to connect a bucket."
+			: "Add a Hugging Face access token to connect a bucket.";
 	}
 
 	function use_browser(): void {
 		storage = { type: "browser", ...(bucket_id ? { bucket_id } : {}) };
 		set_run_history_storage(scope, storage);
 		menu_open = false;
+		// Forget any pasted token too, so the next person on this browser can't
+		// use it. Picking the bucket again asks for one.
+		void disconnect_bucket(root);
 	}
 
 	async function use_bucket(id: string): Promise<void> {
+		const token = needs_token ? token_input.trim() : "";
 		connecting = true;
 		connect_error = null;
-		const result = await connect_bucket(root, id);
+		const result = await connect_bucket(root, id, token || undefined);
 		connecting = false;
 		if (!result.ok) {
+			if (result.status === 401 && !token) {
+				// Picked from the menu with no token in this browser: ask for one.
+				needs_token = true;
+				bucket_input = id;
+				connect_open = true;
+				menu_open = false;
+			}
 			connect_error =
 				result.status === 401
-					? { kind: "auth", message: authentication_error() }
+					? token
+						? {
+								kind: "failure",
+								message: "Hugging Face did not accept this token."
+							}
+						: { kind: "auth", message: authentication_error() }
 					: {
 							kind: "failure",
 							message:
 								result.status === 403
-									? `You do not have write access to “${id}”.`
+									? token
+										? `This token cannot create or write to “${id}”.`
+										: `You do not have write access to “${id}”.`
 									: (result.detail ?? "Could not connect this bucket.")
 						};
 			return;
 		}
+		token_input = "";
+		needs_token = false;
 		storage = { type: "bucket", bucket_id: id };
 		set_run_history_storage(scope, storage);
 		connect_open = false;
@@ -102,15 +114,19 @@
 		buckets_loading = false;
 		if (!result.ok) {
 			buckets = [];
-			connect_error =
-				result.status === 401
+			needs_token = result.status === 401;
+			// The token field explains itself; signing in is the other way in.
+			connect_error = needs_token
+				? oauth_available
 					? { kind: "auth", message: authentication_error() }
-					: {
-							kind: "failure",
-							message: result.detail ?? "Could not load your buckets."
-						};
+					: null
+				: {
+						kind: "failure",
+						message: result.detail ?? "Could not load your buckets."
+					};
 			return;
 		}
+		needs_token = false;
 		buckets = result.data.slice(0, 50);
 		const namespace = buckets[0]?.split("/")[0] || scope.username || "";
 		const name = (scope.title || "gradio-app")
@@ -254,6 +270,32 @@
 					<div class="divider"><span>or use another bucket</span></div>
 				{/if}
 
+				{#if needs_token}
+					<label class="field-label" for="history-token"
+						>Hugging Face access token</label
+					>
+					<input
+						id="history-token"
+						class="token-input"
+						type="password"
+						autocomplete="off"
+						spellcheck="false"
+						bind:value={token_input}
+						placeholder="hf_…"
+						disabled={connecting}
+					/>
+					<p class="field-help token-help">
+						Create a <a
+							href="https://huggingface.co/settings/tokens/new?tokenType=fineGrained"
+							target="_blank"
+							rel="noopener noreferrer">fine-grained token</a
+						> with write access to this bucket, or to its namespace if the bucket
+						doesn't exist yet. This browser keeps it for this app until you close
+						it or the app restarts. The app's server uses it, so only add a token
+						to apps you trust.
+					</p>
+				{/if}
+
 				<label class="field-label" for="history-bucket-id">Bucket ID</label>
 				<div class="bucket-entry">
 					<input
@@ -262,14 +304,20 @@
 						placeholder="username/my-app-history"
 						disabled={connecting}
 						onkeydown={(event) => {
-							if (event.key === "Enter" && bucket_input.trim()) {
+							if (
+								event.key === "Enter" &&
+								bucket_input.trim() &&
+								!(needs_token && !token_input.trim())
+							) {
 								void use_bucket(bucket_input.trim());
 							}
 						}}
 					/>
 					<button
 						class="connect-button"
-						disabled={connecting || !bucket_input.trim()}
+						disabled={connecting ||
+							!bucket_input.trim() ||
+							(needs_token && !token_input.trim())}
 						onclick={() => use_bucket(bucket_input.trim())}
 					>
 						{connecting ? "Connecting…" : "Connect"}
@@ -571,7 +619,8 @@
 		display: flex;
 		gap: 8px;
 	}
-	.bucket-entry input {
+	.bucket-entry input,
+	.token-input {
 		box-sizing: border-box;
 		min-width: 0;
 		height: 40px;
@@ -585,7 +634,18 @@
 		font-size: 13px;
 		outline: none;
 	}
-	.bucket-entry input:focus {
+	.token-input {
+		width: 100%;
+	}
+	.field-help.token-help {
+		margin-bottom: 18px;
+		line-height: 1.45;
+	}
+	.token-help a {
+		color: var(--link-text-color, var(--color-accent, #ea580c));
+	}
+	.bucket-entry input:focus,
+	.token-input:focus {
 		border-color: var(--color-accent, #f97316);
 		box-shadow: 0 0 0 3px var(--color-accent-soft, #ffedd5);
 	}

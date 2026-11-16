@@ -65,6 +65,7 @@
 		onupload,
 		oninput,
 		ondownload_error,
+		onerror,
 		children
 	}: {
 		changeable?: boolean;
@@ -98,6 +99,7 @@
 		onupload?: () => void;
 		oninput?: () => void;
 		ondownload_error?: (error: string) => void;
+		onerror?: (error: string) => void;
 		children?: Snippet;
 	} = $props();
 
@@ -848,6 +850,7 @@
 						{upload}
 						{root}
 						oncapture={handle_capture}
+						{onerror}
 						streaming={false}
 						mode="image"
 						include_audio={false}

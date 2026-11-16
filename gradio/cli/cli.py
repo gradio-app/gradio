@@ -18,10 +18,12 @@ from .commands import (
     skills_app,
     upload_mcp,
 )
+from .commands.extensions import extensions_app, list_extensions, run_extension
 
 app = typer.Typer()
 app.add_typer(load_app, name="load")
 app.add_typer(skills_app, name="skills")
+app.add_typer(extensions_app, name="extensions")
 app.command("environment", help="Print Gradio environment information.")(
     print_environment_info
 )
@@ -44,7 +46,11 @@ def cli():
     args = sys.argv[1:]
     if len(args) == 0:
         raise ValueError("No file specified.")
-    if args[0] in {
+    if args == ["--help"]:
+        app(args=["--help"], prog_name="gradio", standalone_mode=False)
+        typer.echo("\nRun an app: gradio APP.py [OPTIONS]. See `gradio APP.py --help`.")
+        list_extensions()
+    elif args[0] in {
         "deploy",
         "environment",
         "deploy-discord",
@@ -53,6 +59,7 @@ def cli():
         "skills",
         "info",
         "predict",
+        "extensions",
     }:
         app()
     elif args[0] in {"cc", "component"}:
@@ -95,5 +102,5 @@ demo.launch()"""
 
         sys.argv = ["gradio", str(demo_path)]
         reload()
-    else:
+    elif not run_extension(args[0], args[1:]):
         reload()

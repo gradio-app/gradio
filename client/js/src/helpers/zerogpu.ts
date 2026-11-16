@@ -25,15 +25,19 @@ export function initialize_zerogpu_handshake(): void {
 		return;
 	}
 
+	const origin = get_zerogpu_origin(window.location.hostname);
 	window.addEventListener("message", (event) => {
-		if (event.data === ZEROGPU_HEADERS_MESSAGE) {
+		if (
+			event.data === ZEROGPU_HEADERS_MESSAGE &&
+			event.origin === origin &&
+			event.source === window.parent
+		) {
 			window.supports_zerogpu_headers = true;
 		}
 	});
 
 	zerogpu_handshake_initialized = true;
 
-	const origin = get_zerogpu_origin(window.location.hostname);
 	if (origin && window.parent !== window) {
 		window.parent.postMessage(ZEROGPU_HEADERS_MESSAGE, origin);
 	}
