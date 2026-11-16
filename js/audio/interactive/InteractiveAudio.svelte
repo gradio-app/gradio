@@ -202,6 +202,8 @@
 
 	onDestroy(() => {
 		destroyed = true;
+		// A transport stream would otherwise keep its place until time_limit
+		if (streaming && stream_transport && recording) onclose_stream?.();
 		if (streaming && recorder && recorder.state !== "inactive") {
 			recorder.stop();
 		}

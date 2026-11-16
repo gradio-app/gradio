@@ -269,9 +269,14 @@
 		destroy
 	}: { destroy?: boolean } = {}): void {
 		if (streaming && stream_transport) {
+			if (destroy) {
+				// A running stream would otherwise keep its place until time_limit
+				if (recording) onclose_stream?.();
+				recording = false;
+				return;
+			}
 			// The media goes over the stream's own connection, handed over once
 			recording = !recording;
-			if (destroy) return;
 			if (recording && stream) {
 				onlivestream?.({ media: stream, mirror: mirrored });
 			} else {

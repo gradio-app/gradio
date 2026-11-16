@@ -809,6 +809,23 @@ describe("Events: streaming microphone recording", () => {
 		expect(start_recording).toHaveBeenCalledTimes(2);
 	});
 
+	test("unmounting during a transport stream ends the stream", async () => {
+		const { getByRole, listen, unmount } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true,
+			stream_transport: "webrtc"
+		} as any);
+		const stream = listen("stream");
+		const close_stream = listen("close_stream");
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
+		unmount();
+
+		expect(close_stream).toHaveBeenCalledTimes(1);
+	});
+
 	test("stopping while waiting for the stream also releases the microphone", async () => {
 		const { getByRole } = await render(Audio, {
 			...default_props,

@@ -650,6 +650,49 @@ describe("Webcam recording", () => {
 	setupi18n();
 	afterEach(() => cleanup());
 
+	test("unmounting during a transport stream ends the stream", async () => {
+		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
+			navigator,
+			"mediaDevices"
+		);
+		const canvas = document.createElement("canvas");
+		canvas.getContext("2d")!.fillRect(0, 0, 10, 10);
+		try {
+			Object.defineProperty(navigator, "mediaDevices", {
+				configurable: true,
+				value: {
+					getUserMedia: async () => canvas.captureStream(30),
+					enumerateDevices: async () => []
+				}
+			});
+			const { getByRole, listen, unmount } = await render(Video, {
+				...default_props,
+				sources: ["webcam"],
+				stream_transport: "webrtc",
+				client: mock_client()
+			} as any);
+			const stream = listen("stream");
+			const close_stream = listen("close_stream");
+
+			await fireEvent.click(
+				getByRole("button", { name: "Click to Access Webcam" })
+			);
+			await fireEvent.click(
+				await waitFor(() => getByRole("button", { name: "start recording" }))
+			);
+			await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
+			unmount();
+
+			expect(close_stream).toHaveBeenCalledTimes(1);
+		} finally {
+			if (media_devices_descriptor) {
+				Object.defineProperty(navigator, "mediaDevices", media_devices_descriptor);
+			} else {
+				Reflect.deleteProperty(navigator, "mediaDevices");
+			}
+		}
+	});
+
 	test.each([
 		["user", true],
 		["environment", false]
