@@ -149,9 +149,20 @@ export function submit(
 			event.type === "data" && Array.isArray(event.data)
 				? {
 						...event,
-						data: event.data.map((value, index) =>
-							passwords.has(output_ids[index]) ? null : value
-						)
+						data: event.data.map((value, index) => {
+							const id = output_ids[index];
+							const component = config.components.find((c) => c.id === id);
+							if (
+								component?.type === "textbox" &&
+								(value as any)?.__type__ === "update" &&
+								"type" in (value as object)
+							) {
+								component.props.type = (value as any).type;
+								if (component.props.type === "password") passwords.add(id);
+								else passwords.delete(id);
+							}
+							return passwords.has(id) ? null : value;
+						})
 					}
 				: event;
 		// Either side may opt out: the app for everyone who uses it, and this

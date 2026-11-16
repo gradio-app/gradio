@@ -468,9 +468,9 @@ class TestServerSideRecording:
         monkeypatch.delenv("GRADIO_HISTORY_BUCKET", raising=False)
         hub = FakeHub()
         io = gr.Interface(
-            lambda prompt, key: (prompt, key),
+            lambda prompt, key: (prompt, key, gr.Textbox(type="password", value=key)),
             ["text", gr.Textbox(type="password")],
-            ["text", gr.Textbox(type="password")],
+            ["text", gr.Textbox(type="password"), "text"],
             api_name="ask",
         )
         app, _, _ = io.launch(prevent_thread_lock=True)
@@ -489,7 +489,8 @@ class TestServerSideRecording:
                 assert _wait_for(lambda: len(hub.files) == 1)
                 (record,) = [json.loads(v) for v in hub.files.values()]
                 assert record["inputs"] == ["hi", None]
-                assert record["outputs"] == ["hi", None]
+                assert record["outputs"] == ["hi", None, None]
+                assert "sk-secret" not in json.dumps(record)
         finally:
             io.close()
             close_all()
