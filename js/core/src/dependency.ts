@@ -487,12 +487,19 @@ export class DependencyManager {
 				// rather than replay it after this run finishes.
 				this.deferred_events.delete(dep.id);
 
+				// A WebRTC stream's camera or microphone hears about the run only
+				// through stream_state, so it waits from the start: a run that fails
+				// before its turn comes still closes it
+				const live_stream =
+					!!dep.transport &&
+					dep.connection_type === "stream" &&
+					!this.submissions.has(dep.id);
 				// No loading status for js-only deps
 				if (dep.functions.backend) {
 					this.update_loading_status({
 						status: "pending",
 						fn_index: dep.id,
-						stream_state: null
+						stream_state: live_stream ? "waiting" : null
 					});
 					this.update_loading_stati_state();
 				}
@@ -578,8 +585,10 @@ export class DependencyManager {
 						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
-							if (index === 0) {
-								// Clear out previously set validation errors
+							// Clear out previously set validation errors. A WebRTC stream
+							// has no validator, and this partial status would drop the
+							// stream_state its inputs go by.
+							if (index === 0 && !dep.transport) {
 								dep.inputs.forEach((input_id) => {
 									this.update_state_cb(
 										input_id,
@@ -665,7 +674,7 @@ export class DependencyManager {
 										update_status({
 											status: "complete",
 											fn_index: dep.id,
-											stream_state: null
+											stream_state: live_stream ? "closed" : null
 										});
 										this.update_loading_stati_state();
 										break submit_loop;
@@ -798,7 +807,7 @@ export class DependencyManager {
 						fn_index: dep.id,
 						eta: 0,
 						queue: false,
-						stream_state: null
+						stream_state: live_stream ? "closed" : null
 					});
 					this.update_loading_stati_state();
 					if (active_submission) {

@@ -876,6 +876,72 @@ describe("DependencyManager: WebRTC streams", () => {
 		return stream;
 	}
 
+	// The webcam or microphone streams to a textbox: its component only hears
+	// about the run through stream_state, so a run that fails, even before its
+	// turn comes, must still close it, or the control stays in its recording state
+	test.each([
+		["the submission fails to start", null],
+		[
+			"the first message is an error",
+			[{ type: "status", stage: "error", queue: true, message: "refused" }]
+		],
+		[
+			"the connection is lost",
+			[{ type: "status", stage: "error", queue: true, broken: true }]
+		],
+		[
+			"it fails while running",
+			[
+				{ type: "status", stage: "pending", queue: true },
+				{
+					type: "status",
+					stage: "streaming",
+					queue: true,
+					original_msg: "process_starts"
+				},
+				{ type: "status", stage: "error", queue: true, message: "boom" }
+			]
+		]
+	])(
+		"a send-only stream closes its input component when %s",
+		async (_, messages: unknown[] | null) => {
+			const stream = dependency(0, "stream", [10]);
+			stream.inputs = [5];
+			stream.connection = "stream";
+			stream.targets = [[5, "stream"]];
+			(stream as any).transport = { type: "webrtc", media_output: null };
+			const client = {
+				submit: () => {
+					if (messages === null) throw new Error("no connection");
+					return submission(
+						(async function* () {
+							yield* messages;
+						})()
+					);
+				}
+			} as unknown as Client;
+			const update_state = vi.fn().mockResolvedValue(undefined);
+			const dependency_manager = manager([stream], client, update_state);
+
+			await dependency_manager.dispatch({
+				type: "event",
+				event_name: "stream",
+				target_id: 5,
+				event_data: null
+			});
+			await new Promise((resolve) => setTimeout(resolve, 0));
+
+			const states = update_state.mock.calls
+				.filter(([id, state]) => id === 5 && "loading_status" in state)
+				.map(([, state]) => state.loading_status.stream_state);
+			expect(states.slice(0, -1)).toContain("waiting");
+			expect(states.at(-1)).toBe("closed");
+			// A status without stream_state in between would end the stream on
+			// the page while it runs
+			expect(states.every((state) => state !== undefined)).toBe(true);
+		}
+	);
+
 	test("the end of an older run leaves a newer run's live media", () => {
 		const stream = webrtc_stream();
 		const update_state = vi.fn().mockResolvedValue(undefined);
