@@ -357,24 +357,17 @@ export async function executeWorkflow(
 		for (const port of node.outputs) dataMap[node.id][port.id] = null;
 	}
 
-	function fed_by_failed_node(node: WFNode, port: Port): boolean {
-		return edges.some(
-			(e) =>
-				e.to_node_id === node.id &&
-				e.to_port_id === port.id &&
-				failed_nodes.has(e.from_node_id)
-		);
-	}
-
-	function missing_input_message(node: WFNode, port: Port): string {
+	function failed_upstream(node: WFNode, port: Port): string | undefined {
 		const edge = edges.find(
 			(e) => e.to_node_id === node.id && e.to_port_id === port.id
 		);
-		if (edge) {
-			const upstream = nodes.find((n) => n.id === edge.from_node_id);
-			if (upstream && failed_nodes.has(upstream.id)) {
-				return `"${port.label}" is missing — upstream node "${upstream.label}" failed`;
-			}
+		return edge && failed_nodes.get(edge.from_node_id);
+	}
+
+	function missing_input_message(node: WFNode, port: Port): string {
+		const failed = failed_upstream(node, port);
+		if (failed) {
+			return `"${port.label}" is missing — upstream node "${failed}" failed`;
 		}
 		return `"${port.label}" is missing — an upstream node may have failed`;
 	}
@@ -481,6 +474,8 @@ export async function executeWorkflow(
 				const value = inputs[inputPort.id];
 				dataMap[node.id] = { [inputPort.id]: value };
 				onOutput(node.id, inputPort.id, value);
+				const failed = failed_upstream(node, inputPort);
+				if (value === null && failed) failed_nodes.set(node.id, failed);
 				const outputPort = node.outputs[0];
 				if (outputPort) {
 					dataMap[node.id][outputPort.id] = value;
@@ -500,7 +495,7 @@ export async function executeWorkflow(
 				for (const port of node.inputs) {
 					if (
 						inputs[port.id] === null &&
-						(port.required || fed_by_failed_node(node, port))
+						(port.required || failed_upstream(node, port))
 					) {
 						throw new Error(missing_input_message(node, port));
 					}
@@ -545,7 +540,7 @@ export async function executeWorkflow(
 				for (const port of node.inputs) {
 					if (
 						inputs[port.id] === null &&
-						(port.required || fed_by_failed_node(node, port))
+						(port.required || failed_upstream(node, port))
 					) {
 						throw new Error(missing_input_message(node, port));
 					}

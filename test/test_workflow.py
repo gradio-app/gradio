@@ -681,6 +681,16 @@ class TestDispatchModelEndpoint:
         assert first.kwargs["max_tokens"] == workflow_module._CHAT_MAX_TOKENS
         assert "max_tokens" not in second.kwargs
 
+    def test_chat_completion_after_context_retry_does_not_blame_our_limit(self):
+        client = MagicMock()
+        client.chat_completion.side_effect = [
+            ValueError("maximum context length exceeded"),
+            self._chunks(reasoning="thinking", finish_reason="length"),
+        ]
+        with pytest.raises(ValueError, match="provider-token limit") as exc:
+            _dispatch_model_endpoint(client, "chat_completion", {"text": "hello"})
+        assert "_CHAT_MAX_TOKENS" not in str(exc.value)
+
     def test_chat_completion_reports_finish_reason_when_empty(self):
         client = MagicMock()
         client.chat_completion.return_value = self._chunks(

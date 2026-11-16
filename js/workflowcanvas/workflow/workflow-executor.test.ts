@@ -769,6 +769,93 @@ describe("executeWorkflow — cascading failure messages", () => {
 		expect(errors.d).toContain('"Prompt" is missing');
 		expect(errors.d).toContain("moondream2");
 	});
+
+	const fnOp = (id: string, fn: string): OperatorNode => ({
+		id,
+		role: "operator",
+		kind: "fn",
+		label: id,
+		fn,
+		inputs: [{ id: "in", label: "Prompt", type: "text" }],
+		outputs: [{ id: "out", label: "Text", type: "text" }],
+		data: {},
+		x: 0,
+		y: 0,
+		width: 200,
+		height: 80,
+		runtime: "client"
+	});
+	const link = (id: string, from: string, to: string): WFEdge => ({
+		id,
+		from_node_id: from,
+		from_port_id: "out",
+		to_node_id: to,
+		to_port_id: "in",
+		type: "text"
+	});
+	const runWith = async (wf: Workflow) => {
+		const callFn = vi.fn(async (name: string) =>
+			name === "boom"
+				? JSON.stringify({ error: "Upstream raised", error_type: "unknown" })
+				: JSON.stringify([null])
+		);
+		const { onStatus, errors } = statusBag();
+		await executeWorkflow(
+			wf,
+			onStatus,
+			() => {},
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			callFn as unknown as Parameters<typeof executeWorkflow>[7],
+			undefined
+		);
+		return { errors, callFn };
+	};
+
+	test("blames the failed node through a relay component", async () => {
+		const relay: ReferenceNode = {
+			id: "r",
+			role: "reference",
+			label: "Text",
+			asset_type: "text",
+			inputs: [{ id: "in", label: "Text", type: "text" }],
+			outputs: [{ id: "out", label: "Text", type: "text" }],
+			data: {},
+			x: 0,
+			y: 0,
+			width: 200,
+			height: 80
+		};
+		const { errors, callFn } = await runWith(
+			emptyV2(
+				[fnOp("upstream", "boom"), fnOp("downstream", "consumer")],
+				[relay],
+				[link("e1", "upstream", "r"), link("e2", "r", "downstream")]
+			)
+		);
+
+		expect(errors.downstream).toContain('upstream node "upstream" failed');
+		expect(callFn).not.toHaveBeenCalledWith("consumer", expect.anything());
+	});
+
+	test("ignores a failed node on an edge the input doesn't read from", async () => {
+		const { errors, callFn } = await runWith(
+			emptyV2(
+				[
+					fnOp("used", "empty"),
+					fnOp("unused", "boom"),
+					fnOp("downstream", "consumer")
+				],
+				[],
+				[link("e1", "used", "downstream"), link("e2", "unused", "downstream")]
+			)
+		);
+
+		expect(errors.downstream).toBeUndefined();
+		expect(callFn).toHaveBeenCalledWith("consumer", expect.anything());
+	});
 });
 
 describe("executeWorkflow — reuse", () => {

@@ -1156,7 +1156,6 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         try:
             parts, reasoned, finish_reason = stream(chat_params)
         except Exception as e:
-            # huggingface_hub keeps the provider's message on the response, not in str(e)
             response = getattr(e, "response", None)
             detail = f"{e} {getattr(response, 'text', '')}".lower()
             if not (defaulted and "context" in detail):
@@ -1169,11 +1168,12 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
             if finish_reason == "length":
                 # Reasoning is billed against max_tokens, so a model can hit the
                 # cap while still thinking and return no visible answer at all.
+                limit = chat_params.get("max_tokens")
                 raise ValueError(
-                    f"{model_name} hit the {_CHAT_MAX_TOKENS}-token limit "
+                    f"{model_name} hit the {limit or 'provider'}-token limit "
                     f"({reasoned} characters of reasoning) before producing an "
-                    "answer. Simplify the prompt or use a smaller image, or "
-                    "raise gradio.workflow._CHAT_MAX_TOKENS."
+                    "answer. Simplify the prompt or use a smaller image"
+                    + (", or raise gradio.workflow._CHAT_MAX_TOKENS." if limit else ".")
                 )
             raise ValueError(
                 f"{model_name} returned no text (finish_reason={finish_reason})."
