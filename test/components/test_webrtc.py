@@ -1422,6 +1422,26 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    async def test_inputs_that_fail_preprocessing_fail_the_stream(
+        self, launched, monkeypatch
+    ):
+        h = launched
+        await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+
+        async def refuse(values, session_hash):
+            raise gr.Error("Not one of the choices")
+
+        monkeypatch.setattr(h.manager, "prepare_inputs", refuse)
+        await h.push_inputs("one", 21)
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m["msg"] == "process_completed")
+        assert completion["success"] is False
+        assert completion["output"]["error"] == "Not one of the choices"
+        await pc.close()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("duration", [3, None])
     async def test_a_handler_error_before_the_data_channel_opens_is_shown(
         self, launched, duration

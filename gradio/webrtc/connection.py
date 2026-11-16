@@ -781,8 +781,12 @@ class ConnectionManager:
             prepared = await cast(Callable, self.prepare_inputs)(
                 values, stream.event.session_hash
             )
-        except Exception:
+        except Exception as e:
+            # Fails the stream's event with the error, as preprocessing does
+            # for any event
             logger.exception("Could not preprocess the inputs of stream %s", stream.id)
+            if stream.errors is not None:
+                stream.errors.fail(e)
             return
         if getattr(stream, "_inputs_seq", 0) == seq:
             stream.set_inputs(prepared)
