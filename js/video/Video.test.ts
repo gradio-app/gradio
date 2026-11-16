@@ -686,7 +686,11 @@ describe("Webcam recording", () => {
 			expect(close_stream).toHaveBeenCalledTimes(1);
 		} finally {
 			if (media_devices_descriptor) {
-				Object.defineProperty(navigator, "mediaDevices", media_devices_descriptor);
+				Object.defineProperty(
+					navigator,
+					"mediaDevices",
+					media_devices_descriptor
+				);
 			} else {
 				Reflect.deleteProperty(navigator, "mediaDevices");
 			}

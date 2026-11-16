@@ -3484,6 +3484,7 @@ class TestVideoTracks:
 
     @pytest.mark.asyncio
     async def test_a_skipped_video_output_repeats_the_functions_last_frame(self):
+        import av
         import numpy as np
 
         from gradio.webrtc.tracks import VideoCallback
@@ -3509,12 +3510,14 @@ class TestVideoTracks:
             async def recv(self):
                 frame = await super().recv()
                 gray = np.full((480, 640, 3), 50, dtype=np.uint8)
-                gray_frame = type(frame).from_ndarray(gray, format="rgb24")
+                gray_frame = av.VideoFrame.from_ndarray(gray, format="rgb24")
                 gray_frame.pts, gray_frame.time_base = frame.pts, frame.time_base
                 return gray_frame
 
         camera_track = Camera()
-        track = VideoCallback(camera_track, event_handler=handler, context=Context("id"))
+        track = VideoCallback(
+            camera_track, event_handler=handler, context=Context("id")
+        )
         track.latest_args = []
         track.channel_set.set()
         try:
@@ -4882,16 +4885,16 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         )
 
     class Both(AsyncAudioVideoStreamHandler):
-        async def receive(self, frame: gr.AudioChunk) -> None:
+        async def receive(self, frame) -> None:
             pass
 
-        async def emit(self) -> gr.AudioChunk | None:
+        async def emit(self):
             return None
 
-        async def video_receive(self, frame: gr.VideoFrame) -> None:
+        async def video_receive(self, frame) -> None:
             pass
 
-        async def video_emit(self) -> gr.VideoFrame | None:
+        async def video_emit(self):
             return None
 
         def copy(self):

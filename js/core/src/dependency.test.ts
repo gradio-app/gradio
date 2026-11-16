@@ -907,8 +907,8 @@ describe("DependencyManager: WebRTC streams", () => {
 			new Promise<unknown[]>((resolve) => (release_older = resolve)),
 			Promise.resolve(["newer"])
 		];
-		vi.spyOn(dependency_manager as any, "gather_state").mockImplementation(
-			() => gathered.shift()
+		vi.spyOn(dependency_manager as any, "gather_state").mockImplementation(() =>
+			gathered.shift()
 		);
 
 		dependency_manager.push_stream_inputs(5);
