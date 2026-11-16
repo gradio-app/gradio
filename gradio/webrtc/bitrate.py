@@ -1,4 +1,4 @@
-"""The bitrate range of gr.WebRTC video (the component's `video_bitrate`).
+"""The bitrate range of WebRTC video (`gr.WebRTCOptions.video_bitrate`).
 
 WebRTC starts video at a low bitrate and raises it as it finds bandwidth, so
 the first seconds of a stream are blurry, and the browser may send a smaller

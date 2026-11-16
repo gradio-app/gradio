@@ -31,6 +31,7 @@ import { events } from "fetch-event-stream";
 import { apply_diff_stream, close_stream, streams_per_event } from "./stream";
 import { is_streaming_webcam } from "./browser_storage";
 import { clear_resumable_event, track_resumable_event } from "./session";
+import { submit_over_webrtc } from "./webrtc";
 import type { StatePayload } from "./session_store";
 import { Client } from "../client";
 import {
@@ -89,6 +90,37 @@ export function submit(
 			api_map,
 			config
 		);
+
+		// A WebRTC stream sends its media over its own connection
+		// Named arguments (a gr.Server endpoint) in the endpoint's order
+		const transport_data =
+			dependency.transport?.type === "webrtc" && !Array.isArray(data)
+				? map_data_to_params(data, endpoint_info)
+				: data;
+		if (
+			dependency.transport?.type === "webrtc" &&
+			Array.isArray(transport_data) &&
+			typeof MediaStream !== "undefined" &&
+			// The job submit_over_webrtc() itself submits carries the stream id
+			!(
+				event_data &&
+				typeof event_data === "object" &&
+				"webrtc_id" in event_data
+			) &&
+			(dependency.transport.mode === "receive" ||
+				(event_data as any)?.media instanceof MediaStream ||
+				transport_data.some((value) => value instanceof MediaStream))
+		) {
+			return submit_over_webrtc.call(
+				this,
+				endpoint,
+				transport_data,
+				dependency.transport,
+				event_data,
+				trigger_id,
+				all_events
+			);
+		}
 
 		// The gr.State values the server keeps in this client, for this event
 		const state_ids = new Set([...dependency.inputs, ...dependency.outputs]);

@@ -820,7 +820,7 @@ describe("Events: streaming microphone recording", () => {
 		await fireEvent.click(getByRole("button", { name: "audio.record" }));
 		await waitFor(() => expect(streams).toHaveLength(1));
 
-		await fireEvent.click(getByRole("button", { name: "audio.waiting" }));
+		await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
 		expect(stop_mic).toHaveBeenCalledTimes(1);
 	});
 

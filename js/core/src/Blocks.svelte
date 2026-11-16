@@ -18,12 +18,7 @@
 	import type { ThemeMode, Payload } from "./types";
 	import { LiveStatus, Toast } from "@gradio/statustracker";
 	import type { LoadingStatusArgs, ToastMessage } from "@gradio/statustracker";
-	import {
-		type DispatchObserver,
-		type ShareData,
-		GRADIO_ROOT,
-		on_page_info
-	} from "@gradio/utils";
+	import { type ShareData, GRADIO_ROOT, on_page_info } from "@gradio/utils";
 
 	import MountComponents from "./MountComponents.svelte";
 	import { prefix_css } from "./css";
@@ -130,8 +125,7 @@
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
-		data: unknown,
-		observer?: DispatchObserver
+		data: unknown
 	): void {
 		if (event === "share") {
 			const { title, description } = data as ShareData;
@@ -171,13 +165,9 @@
 				type: "event",
 				event_name: event,
 				target_id: id,
-				event_data: data,
-				observer
+				event_data: data
 			});
-			return;
 		}
-		// The events handled here run no event function
-		observer?.on_end?.("not_started");
 	}
 
 	let app_tree = new AppTree(

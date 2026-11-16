@@ -17,8 +17,8 @@ queue. Signalling and input updates find a stream there by its id, not by
 component id: every session's copy of a component has the same id, so the id
 alone could lead to another session's handler.
 
-A `ConnectionManager` is what one `WebRTC.stream()` call or `Server.webrtc()`
-endpoint configures: the handler, mode, modality and limits. It admits the
+A `ConnectionManager` is what one stream with `transport=` (an event
+listener's or a `Server.api()` endpoint's) configures: the handler, mode, modality and limits. It admits the
 streams of its queue event and builds each one's peer connection from the
 offer. It is not kept on the component, because Gradio copies components into
 each session and every copy has to see the same streams.
@@ -27,14 +27,16 @@ each session and every copy has to see the same streams.
 from __future__ import annotations
 
 import asyncio
+import copy
 import enum
 import inspect
 import json
 import logging
+import math
 import time
 import weakref
 from collections import Counter, OrderedDict, deque
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import anyio
@@ -51,7 +53,7 @@ from aiortc.sdp import candidate_from_sdp
 
 from gradio.context import LocalContext
 from gradio.exceptions import Error
-from gradio.helpers import special_args
+from gradio.helpers import skip, special_args
 from gradio.utils import error_payload
 from gradio.webrtc.bitrate import add_bitrate_hints, limit_video_encoders
 from gradio.webrtc.handlers import (
@@ -103,6 +105,36 @@ MAX_PENDING_CANDIDATES = 128
 MAX_PENDING_CANDIDATE_IDS = 256
 # Seconds a new stream waits for the handlers of ended streams to shut down
 SHUTDOWN_WAIT = 5
+
+# An output whose value the page does not have, or that is not compared
+_UNSEEN = object()
+
+
+def _is_skip(value: Any) -> bool:
+    return isinstance(value, dict) and value == skip()
+
+
+def _comparable(value: Any) -> bool:
+    """Whether a value is plain data that == compares (str, numbers, None and
+    lists, tuples and dicts of them). Arrays, images and component updates are
+    not: they are always sent."""
+    if value is None or isinstance(value, str | int | float):
+        return True
+    if isinstance(value, list | tuple):
+        return all(_comparable(v) for v in value)
+    if isinstance(value, dict):
+        return all(_comparable(k) and _comparable(v) for k, v in value.items())
+    return False
+
+
+def _remembered(value: Any) -> Any:
+    """What `_same` compares the next value of an output with: a copy, since a
+    function may change the list or dict it returned and return it again."""
+    return copy.deepcopy(value) if _comparable(value) else _UNSEEN
+
+
+def _same(value: Any, shown: Any) -> bool:
+    return shown is not _UNSEEN and _comparable(value) and value == shown
 
 
 class StreamRegistry:
@@ -296,6 +328,13 @@ class Stream:
         self.context = Context(webrtc_id=webrtc_id)
         self.inputs = StreamInputs()
         self.outputs: deque[AdditionalOutputs] = deque(maxlen=MAX_PENDING_OUTPUTS)
+        # What the page shows of the outputs besides the media, or will once
+        # the queued ones go out; and the changes waiting for output_every
+        # (see add_output)
+        self._shown: list[Any] | None = None
+        self._pending: list[Any] | None = None
+        self._last_delivery = -math.inf
+        self._delivery_timer: asyncio.TimerHandle | None = None
         self.errors: StreamErrors | None = None
         self.rtc_configuration: asyncio.Future | None = None
         # Set by the offer, and let go of when the stream ends. The stream
@@ -339,7 +378,61 @@ class Stream:
             self.inputs.set(values)
 
     def add_output(self, outputs: AdditionalOutputs) -> None:
-        self.outputs.append(outputs)
+        """
+        Hands the queue event the outputs besides the media, as the handler
+        returns them. Each delivery is a step of the queue event, so values
+        equal to what the page already has are left out, and the rest go out
+        at most once every `manager.output_every` seconds: a change after a
+        quiet moment at once, later ones together when the interval is up,
+        newer values replacing older ones. Called on the event loop.
+        """
+        values = list(outputs.args)
+        if self._shown is None or len(self._shown) != len(values):
+            self._shown = [_UNSEEN] * len(values)
+        pending = self._pending or [skip()] * len(values)
+        changed = False
+        for i, value in enumerate(values):
+            if _is_skip(value) or _same(value, self._shown[i]):
+                continue
+            pending[i] = value
+            self._shown[i] = _remembered(value)
+            changed = True
+        if not changed:
+            return
+        self._pending = pending
+        if self._delivery_timer is not None:
+            return
+        wait = (self.manager.output_every or 0) - (
+            time.monotonic() - self._last_delivery
+        )
+        if wait <= 0 or self.ended:
+            self._deliver_pending()
+            return
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            self._deliver_pending()
+            return
+        self._delivery_timer = loop.call_later(wait, self._deliver_pending)
+
+    def _deliver_pending(self) -> None:
+        """Queues the pending outputs for the queue event. Outputs it has not
+        taken yet are merged into, so that one step delivers the newest."""
+        if self._delivery_timer is not None:
+            self._delivery_timer.cancel()
+            self._delivery_timer = None
+        pending, self._pending = self._pending, None
+        if pending is None:
+            return
+        self._last_delivery = time.monotonic()
+        if self.outputs:
+            merged = list(self.outputs[-1].args)
+            for i, value in enumerate(pending):
+                if not _is_skip(value):
+                    merged[i] = value
+            self.outputs[-1] = AdditionalOutputs(*merged)
+            return
+        self.outputs.append(AdditionalOutputs(*pending))
         self.lease.wake()
 
     def add_track(self, track: Track) -> bool:
@@ -383,6 +476,8 @@ class Stream:
         first = not self.ended
         if first:
             self.state = StreamState.ENDING
+            # The last values go out with the event's end, without waiting
+            self._deliver_pending()
         self._release()
         if first:
             self.lease.wake()
@@ -512,8 +607,8 @@ def _parse_ice_candidate(candidate: dict[str, Any]) -> RTCIceCandidate | None:
 
 
 class ConnectionManager:
-    """The handler and settings of one `WebRTC.stream()` call or
-    `Server.webrtc()` endpoint (see the module docstring)."""
+    """The handler and settings of one stream with `transport=` (see the
+    module docstring and `transport.transport_event`)."""
 
     def __init__(
         self,
@@ -526,19 +621,31 @@ class ConnectionManager:
         server_rtc_configuration: dict[str, Any] | None,
         video_bitrate: dict[str, int] | None = None,
         rtc_configuration: dict[str, Any] | Callable | None = None,
+        output_every: float | None = None,
         inputs_over_channel: bool = False,
+        adapt_handler: Callable[[Any], None] | None = None,
+        prepare_inputs: Callable[[list[Any], str | None], Awaitable[list[Any]]]
+        | None = None,
     ) -> None:
         self.handler = handler
+        # Adapts each connection's handler instance (see transport.transport_event)
+        self.adapt_handler = adapt_handler
+        # Preprocesses the input values a page sends over the data channel, as
+        # an event's inputs are (given the values and the stream's session)
+        self.prepare_inputs = prepare_inputs
         self.mode = mode
         self.modality = modality
         self.time_limit = time_limit
         self.allow_extra_tracks = allow_extra_tracks
         self.rtc_configuration = rtc_configuration
-        # gr.Server clients send raw input values over the data channel;
-        # gr.WebRTC sends them through events, which run preprocess
+        # Pages send the values of the other inputs over the data channel
+        # (prepare_inputs preprocesses them for an event listener's stream)
         self.inputs_over_channel = inputs_over_channel
         self.server_rtc_configuration = to_rtc_configuration(server_rtc_configuration)
         self.video_bitrate = video_bitrate
+        # The shortest interval between deliveries of a stream's outputs
+        # besides the media (see Stream.add_output)
+        self.output_every = output_every
         self.tasks: set[asyncio.Task] = set()
         self.shutdowns: set[asyncio.Task] = set()
 
@@ -665,6 +772,21 @@ class ConnectionManager:
             payload = error_payload(e, bool(blocks and blocks.show_error))
             return {"error": payload["error"] or "An error occurred."}
 
+    async def _prepare_and_set_inputs(self, stream: Stream, values: list[Any]) -> None:
+        """Preprocesses the input values a page sent and pushes them into the
+        stream, unless newer values arrived meanwhile."""
+        seq = getattr(stream, "_inputs_seq", 0) + 1
+        stream._inputs_seq = seq  # type: ignore[attr-defined]
+        try:
+            prepared = await cast(Callable, self.prepare_inputs)(
+                values, stream.event.session_hash
+            )
+        except Exception:
+            logger.exception("Could not preprocess the inputs of stream %s", stream.id)
+            return
+        if getattr(stream, "_inputs_seq", 0) == seq:
+            stream.set_inputs(prepared)
+
     async def handle_offer(
         self, stream: Stream, body: dict[str, Any], request: Any = None
     ) -> dict[str, Any]:
@@ -736,6 +858,8 @@ class ConnectionManager:
         session_hash = getattr(request, "session_hash", None)
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
         handler = instantiate_handler(self.handler, request)
+        if self.adapt_handler is not None:
+            self.adapt_handler(handler)
         set_outputs = stream.add_output
         context = stream.context
         inputs = stream.inputs
@@ -908,7 +1032,14 @@ class ConnectionManager:
                         and data.get("type") == "input"
                         and isinstance(data.get("data"), list)
                     ):
-                        stream.set_inputs(list(data["data"]))
+                        if self.prepare_inputs is None:
+                            stream.set_inputs(list(data["data"]))
+                        else:
+                            task = asyncio.ensure_future(
+                                self._prepare_and_set_inputs(stream, list(data["data"]))
+                            )
+                            self.tasks.add(task)
+                            task.add_done_callback(self.tasks.discard)
 
             async def set_channel():
                 while not stream.tracks:

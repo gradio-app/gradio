@@ -1,5 +1,10 @@
 import type { Client } from "../client";
-import type { StatusMessage } from "../types";
+import type {
+	GradioEvent,
+	StatusMessage,
+	StreamTransport,
+	SubmitIterable
+} from "../types";
 
 /** A data channel control message, or a handler toast (gr.Info, gr.Warning, its error). */
 export interface WebRTCControlMessage {
@@ -233,80 +238,63 @@ export function webrtc_rejection_message(
 	}
 }
 
-export interface WebRTCStreamOptions {
-	/** Local media to send, for mode "send" and "send-receive". */
-	media?: MediaStream | null;
-	/** What to receive when no media is sent (mode "receive"). */
-	modality?: "video" | "audio";
-	/** The values of the endpoint's extra inputs; update with `set_inputs()`. */
-	inputs?: unknown[];
-	rtp_params?: Record<string, any>;
-	/** Whether the server should mirror the frames, as a webcam preview is. */
-	mirror?: boolean;
-	/** The remote media, once it arrives. */
-	on_track?: (event: RTCTrackEvent) => void;
-	/** The values of each AdditionalOutputs the handler emits. */
-	on_output?: (values: unknown[]) => void;
-	/** Messages from the handler: gr.Info, gr.Warning, its errors. */
-	on_message?: (msg: WebRTCControlMessage) => void;
-	/** Queue statuses (place in line, ETA). */
-	on_status?: (status: StatusMessage) => void;
-}
-
-export interface WebRTCStream {
-	readonly webrtc_id: string;
-	/** The peer connection, once the stream's turn has come. */
-	readonly pc: RTCPeerConnection | null;
-	/** Resolves once the media flows; rejects if the stream fails before. */
-	readonly connected: Promise<void>;
-	/** Resolves when the stream is over; rejects with its error. */
-	readonly done: Promise<void>;
-	/** Sends new values of the extra inputs. */
-	set_inputs(values: unknown[]): void;
-	/** Ends the stream; outputs emitted until then still arrive. */
-	stop(): Promise<void>;
-}
-
 /**
- * Streams media to and from a WebRTC endpoint of a gr.Server app
- * (`server.webrtc()`). The stream waits its turn in the endpoint's queue,
- * then connects. Returns at once; await `connected` or `done`.
+ * `submit()` of a `.stream(transport="webrtc")` event given a
+ * MediaStream. The event's queue job carries the stream id in the media
+ * slot; once its turn comes the media goes over a peer connection. The
+ * remote media arrives as a data message with a MediaStream in the media
+ * output's slot, the handler's toasts as log messages, and `send_chunk()`
+ * sends new values of the other inputs over the data channel.
  */
-export function webrtc(
+export function submit_over_webrtc(
 	this: Client,
-	endpoint: string,
-	options: WebRTCStreamOptions = {}
-): WebRTCStream {
-	const {
-		media = null,
-		modality = "video",
-		rtp_params,
-		mirror,
-		on_track,
-		on_output = () => {},
-		on_message = () => {},
-		on_status = () => {}
-	} = options;
+	endpoint: string | number,
+	data: unknown[],
+	transport: StreamTransport,
+	_event_data?: unknown,
+	trigger_id?: number | null,
+	all_events?: boolean
+): SubmitIterable<GradioEvent> {
+	// The media comes in its input slot (gr.Server callers) or in the event
+	// data (Blocks components, whose value stays theirs); -1 in receive mode
+	const in_data = data.findIndex((value) => value instanceof MediaStream);
+	const media_index = in_data >= 0 ? in_data : (transport.media_input ?? -1);
+	const event_media = (_event_data as any)?.media;
+	// Replaced by a MediaStream in the media slot of send_chunk()
+	let media: MediaStream | null =
+		in_data >= 0
+			? (data[in_data] as MediaStream)
+			: event_media instanceof MediaStream
+				? event_media
+				: null;
 	const webrtc_id = new_webrtc_id();
-	let inputs: unknown[] = options.inputs ?? [];
+	const others = (values: unknown[]): unknown[] =>
+		values.filter((_, i) => i !== media_index);
+	let inputs = others(data);
 	let channel: RTCDataChannel | null = null;
 	let pc: RTCPeerConnection | null = null;
 	let stopped = false;
-	let stopped_by_caller = false;
-	let was_connected = false;
-	let failure: Error | null = null;
 
-	let resolve_connected!: () => void;
-	let reject_connected!: (error: Error) => void;
-	const connected = new Promise<void>((resolve, reject) => {
-		resolve_connected = () => {
-			was_connected = true;
-			resolve();
-		};
-		reject_connected = reject;
-	});
-	// No unhandled rejection for a caller that only awaits `done`
-	connected.catch(() => {});
+	// The media slot holds no value; the stream id travels in the event data
+	const payload = [...data];
+	if (media_index >= 0) payload[media_index] = null;
+	const job = this.submit(
+		endpoint,
+		payload,
+		{ webrtc_id },
+		trigger_id,
+		all_events
+	);
+
+	// Messages of the job, plus the ones the connection adds
+	const queue: GradioEvent[] = [];
+	let wake: (() => void) | null = null;
+	let finished = false;
+	const push = (msg: GradioEvent): void => {
+		queue.push(msg);
+		wake?.();
+	};
+	let fn_index = 0;
 
 	const send_inputs = (): void => {
 		if (channel?.readyState === "open") {
@@ -314,12 +302,38 @@ export function webrtc(
 		}
 	};
 
-	const fail = (error: Error): void => {
-		// After the caller's stop(), a refusal from the server is that stop
-		if (stopped_by_caller) return;
-		failure ??= error;
-		reject_connected(error);
-		job.close_stream({ read_to_end: true });
+	// Another camera or microphone for a running stream: its tracks take the
+	// place of the old ones in the connection, so the stream keeps its turn.
+	// Before the stream connects, the new media is the one it connects with.
+	const replace_media = (next: MediaStream): void => {
+		media = next;
+		if (!pc) return;
+		for (const sender of pc.getSenders()) {
+			const kind = sender.track?.kind;
+			const track = next.getTracks().find((t) => t.kind === kind);
+			if (!kind || !track) continue;
+			sender.replaceTrack(track).catch((error) =>
+				push({
+					type: "log",
+					level: "warning",
+					log: `Could not switch to the new ${kind}: ${error}`,
+					title: null,
+					duration: null,
+					visible: true,
+					time: new Date(),
+					endpoint: String(endpoint),
+					fn_index
+				} as unknown as GradioEvent)
+			);
+		}
+	};
+
+	const close = (options?: { read_to_end?: boolean }): void => {
+		stopped = true;
+		// The component opened `media` and decides when to stop it
+		close_webrtc(pc, { stop_tracks: false });
+		pc = null;
+		job.close_stream(options ?? { read_to_end: true });
 	};
 
 	const connect = async (): Promise<void> => {
@@ -333,29 +347,86 @@ export function webrtc(
 		if (stopped) return;
 		const connection = new RTCPeerConnection(rtc_configuration);
 		pc = connection;
-		if (on_track) connection.addEventListener("track", on_track);
+		if (transport.media_output !== null) {
+			connection.addEventListener("track", (event) => {
+				const remote = event.streams[0] ?? new MediaStream([event.track]);
+				const values: unknown[] = [];
+				values[transport.media_output!] = remote;
+				push({
+					type: "data",
+					data: values,
+					time: new Date(),
+					endpoint: String(endpoint),
+					fn_index
+				} as unknown as GradioEvent);
+			});
+		}
 		on_webrtc_connection_state(connection, {
-			connected: resolve_connected,
-			ended: () => job.close_stream({ read_to_end: true }),
-			failed: () => fail(new Error("The connection failed."))
+			connected: () => {},
+			ended: () => close(),
+			failed: () => fail("The connection failed."),
+			// e.g. a VPN or a strict NAT without a TURN server in the way
+			slow: () =>
+				push({
+					type: "log",
+					level: "warning",
+					log: "Taking a while to connect. Are you on a VPN?",
+					title: null,
+					duration: null,
+					visible: true,
+					time: new Date(),
+					endpoint: String(endpoint),
+					fn_index
+				} as unknown as GradioEvent)
 		});
 		await negotiate_webrtc({
 			pc: connection,
 			offer: (body) => this.webrtc_offer(body),
 			webrtc_id,
-			stream: media,
-			modality,
-			rtp_params,
-			mirror,
-			// Plain functions and receive-mode generators do not ask for their
-			// inputs: they start with the values sent once the channel opens
+			// Only the kinds the stream takes (a gr.Video camera may also
+			// record the microphone for a video-only stream)
+			stream:
+				media &&
+				new MediaStream(
+					media
+						.getTracks()
+						.filter(
+							(t) =>
+								transport.modality === "audio-video" ||
+								t.kind === transport.modality
+						)
+				),
+			modality: transport.modality as "video" | "audio",
+			rtp_params: transport.rtp_params,
+			// The frames reach the function as the mirrored preview showed them
+			mirror: (_event_data as any)?.mirror === true,
 			on_open: (opened) => {
 				channel = opened;
 				send_inputs();
 			},
 			on_message: (msg) => {
-				if (msg.type === "send_input") send_inputs();
-				else on_message(msg);
+				if (msg.type === "send_input") {
+					send_inputs();
+				} else if (
+					["info", "warning", "error"].includes(msg.type) ||
+					// CloseStream("reason"): the server ended the stream and says why
+					(msg.type === "end_stream" &&
+						typeof msg.data === "string" &&
+						msg.data)
+				) {
+					const ended = msg.type === "end_stream";
+					push({
+						type: "log",
+						level: ended ? "warning" : msg.type,
+						log: ended ? String(msg.data) : (msg.message ?? ""),
+						title: msg.title ?? null,
+						duration: msg.duration ?? null,
+						visible: msg.visible ?? true,
+						time: new Date(),
+						endpoint: String(endpoint),
+						fn_index
+					} as unknown as GradioEvent);
+				}
 			},
 			on_reject: (response) => {
 				throw new Error(webrtc_rejection_message(response));
@@ -363,91 +434,103 @@ export function webrtc(
 		});
 	};
 
-	// All events, whatever the client publishes: the helper needs the
-	// statuses to tell a failed stream from one that ended
-	const job = this.submit(endpoint, [webrtc_id], undefined, undefined, true);
-	// Close at once on pagehide so the server ends the stream (and frees its
-	// GPU) without waiting for the queue to notice
-	const on_pagehide = (): void => {
-		pc?.close();
-		job.close_stream();
+	// Reported like any event's error, then the stream ends
+	const fail = (message: string): void => {
+		if (stopped) return;
+		push({
+			type: "status",
+			stage: "error",
+			message,
+			queue: false,
+			visible: true,
+			time: new Date(),
+			endpoint: String(endpoint),
+			fn_index
+		} as unknown as GradioEvent);
+		close();
 	};
+
+	// Leaving the page ends the stream at once, so that the server frees its
+	// slot (and GPU) without waiting for the connection to time out
+	const on_pagehide = (): void => close();
 	if (typeof window !== "undefined") {
 		window.addEventListener("pagehide", on_pagehide);
 	}
-	const done = (async () => {
-		let turn = false;
+
+	let turn = false;
+	(async () => {
 		try {
 			for await (const msg of job) {
-				if (msg.type === "status") {
-					on_status(msg);
-					if (msg.stage === "error") {
-						const message = String(msg.message ?? "The stream failed.");
-						if (msg.visible !== false) {
-							on_message({ type: "error", message, title: msg.title });
-						}
-						fail(new Error(message));
-					}
-				} else if (msg.type === "log") {
-					on_message({
-						type: msg.level,
-						message: msg.log,
-						title: msg.title,
-						duration: msg.duration,
-						visible: msg.visible
-					});
-				} else if (msg.type === "data") {
-					// No data: the stream left the line before its turn
-					if (msg.data === undefined) continue;
-					// The first data message means the stream's turn has come
-					if (!turn) {
-						turn = true;
-						if (!stopped) {
-							connect().catch((error: Error) => fail(error));
-						}
-					}
-					const value = msg.data?.[0];
-					if (Array.isArray(value)) on_output(value);
+				fn_index = (msg as any).fn_index ?? fn_index;
+				if (msg.type === "data" && Array.isArray((msg as any).data)) {
+					// An output the stream did not update this time
+					(msg as any).data = (msg as any).data.map((value: any) =>
+						value &&
+						typeof value === "object" &&
+						value.__type__ === "update" &&
+						Object.keys(value).length === 1
+							? undefined
+							: value
+					);
 				}
+				if (msg.type === "data" && !turn && (msg as any).data !== undefined) {
+					// The first data message means the stream's turn has come
+					turn = true;
+					if (!stopped) {
+						connect().catch((error: Error) => fail(error.message));
+					}
+				}
+				// No data: the stream left the line, or ended, without outputs
+				if (msg.type === "data" && (msg as any).data === undefined) continue;
+				push(msg);
 			}
 		} finally {
 			stopped = true;
-			// The caller has no job to acknowledge; an unacknowledged event would
-			// come back on resume_jobs() after a reload
-			job.acknowledge().catch(() => {});
 			if (typeof window !== "undefined") {
 				window.removeEventListener("pagehide", on_pagehide);
 			}
-			// The caller opened `media` and decides when to stop it
 			close_webrtc(pc, { stop_tracks: false });
-			if (!was_connected && !stopped_by_caller) {
-				failure ??= new Error("The stream ended before it connected.");
-			}
-			reject_connected(failure ?? new Error("The stream was stopped."));
+			finished = true;
+			(wake as (() => void) | null)?.();
 		}
-		if (failure) throw failure;
 	})();
-	// No unhandled rejection for a caller that only awaits `connected`
-	done.catch(() => {});
 
-	return {
-		webrtc_id,
-		get pc() {
-			return pc;
+	const iterator: SubmitIterable<GradioEvent> = {
+		[Symbol.asyncIterator]: () => iterator,
+		async next() {
+			while (!queue.length && !finished) {
+				await new Promise<void>((resolve) => (wake = resolve));
+				wake = null;
+			}
+			if (queue.length) return { value: queue.shift()!, done: false };
+			return { value: undefined, done: true };
 		},
-		connected,
-		done,
-		set_inputs(values: unknown[]) {
-			inputs = values;
+		async throw(value: unknown) {
+			close();
+			return job.throw(value);
+		},
+		async return() {
+			close();
+			return job.return();
+		},
+		cancel: async () => {
+			close_webrtc(pc, { stop_tracks: false });
+			pc = null;
+			stopped = true;
+			await job.cancel();
+		},
+		event_id: () => job.event_id(),
+		wait_for_id: () => job.wait_for_id(),
+		acknowledge: () => job.acknowledge(),
+		send_chunk: (chunk: Record<string, unknown>) => {
+			const values = chunk?.data;
+			if (!Array.isArray(values)) return;
+			const next = media_index >= 0 ? values[media_index] : undefined;
+			if (next instanceof MediaStream) replace_media(next);
+			inputs = others(values);
 			send_inputs();
 		},
-		async stop() {
-			if (!stopped) {
-				stopped = true;
-				stopped_by_caller = true;
-				job.close_stream({ read_to_end: true });
-			}
-			await done.catch(() => {});
-		}
+		close_stream: (options) => close(options)
 	};
+	return iterator;
 }

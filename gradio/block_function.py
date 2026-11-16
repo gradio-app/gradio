@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Awaitable, Callable, Sequence
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from . import utils
 
@@ -111,10 +111,12 @@ class BlockFunction:
         # Ends a running stream when the page closes it, given the queue event's
         # id; returns False to leave that to the queue
         self.close_stream: Callable[[str], bool | Awaitable[bool]] | None = None
-        # A stream (gr.WebRTC) that keeps its place in the queue while it runs:
+        # A WebRTC stream that keeps its place in the queue while it runs:
         # its wake wait has no timeout, and the function enforces its own time
         # limit and ends the run itself.
         self.lease = False
+        # A stream with transport=: how the page connects (see webrtc.transport)
+        self.transport: dict[str, Any] | None = None
         self.event_specific_args = event_specific_args
         self.component_prop_inputs = component_prop_inputs or []
         self.input_keyword_names = input_keyword_names or []
@@ -167,6 +169,7 @@ class BlockFunction:
             "connection": self.connection,
             "time_limit": self.time_limit,
             "stream_every": self.stream_every,
+            "transport": self.transport,
             "event_specific_args": self.event_specific_args,
             "component_prop_inputs": self.component_prop_inputs,
             "js_implementation": getattr(self.fn, "__js_implementation__", None),

@@ -1,4 +1,4 @@
-"""Handler classes for gr.WebRTC audio, video and audio-video streams.
+"""Handler classes for WebRTC audio, video and audio-video streams (transport="webrtc").
 
 This module must import without aiortc or av installed, so av is imported
 inside `StreamHandlerBase.resample()`.
@@ -36,8 +36,12 @@ VideoNDArray: TypeAlias = (
     | np.ndarray[Any, np.dtype[np.float32]]
 )
 
+# What a handler's emit() returns: one value per output (a tuple with several
+# outputs). AdditionalOutputs is what the stream turns the outputs other than
+# the media into before its tracks see them.
 VideoEmitType = (
     VideoNDArray
+    | tuple[Any, ...]
     | tuple[VideoNDArray, AdditionalOutputs]
     | tuple[VideoNDArray, CloseStream]
     | AdditionalOutputs
@@ -49,6 +53,7 @@ VideoEventHandler = Callable[..., VideoEmitType | VideoEventGenerator]
 
 AudioEmitType: TypeAlias = (
     tuple[int, npt.NDArray[np.integer | np.floating]]
+    | tuple[Any, ...]
     | AdditionalOutputs
     | tuple[tuple[int, npt.NDArray[np.integer | np.floating]], AdditionalOutputs]
     | CloseStream
@@ -197,7 +202,7 @@ class StreamHandlerBase:
         """Returns a new handler for a new connection."""
         raise NotImplementedError(
             f"{type(self).__name__} must implement copy() when an instance is "
-            "passed to WebRTC.stream(). Pass the class instead to create a new "
+            "passed as a stream's function. Pass the class instead to create a new "
             "handler per connection."
         )
 
@@ -228,7 +233,7 @@ class StreamHandler(StreamHandlerBase, ABC):
     Base class for synchronous audio stream handlers. Subclasses implement
     `receive()`, which is called with every incoming audio frame, and `emit()`,
     which is polled for the next outgoing frame. One handler instance serves
-    one connection; pass the class to `WebRTC.stream()` to get a fresh instance
+    one connection; pass the class as the stream's function to get a fresh instance
     per connection, or pass an instance and implement `copy()`.
     """
 
@@ -237,17 +242,23 @@ class StreamHandler(StreamHandlerBase, ABC):
         """
         Called with each incoming audio frame as a `(sample_rate, array)` tuple
         like the numpy value of `gr.Audio`: an int16 array of shape (samples,)
-        for `expected_layout="mono"` or (samples, 2) for "stereo".
+        for `expected_layout="mono"` or (samples, 2) for "stereo". Parameters
+        declared after `frame` get the latest values of the stream's other
+        inputs, in order; they need defaults, which are used until the page
+        has sent the values.
         """
         pass
 
     @abstractmethod
     def emit(self) -> AudioEmitType:
         """
-        Returns the next audio frame to send, as a `(sample_rate, array)` tuple
-        like the numpy value of `gr.Audio` (shape (samples,) for mono or
-        (samples, 2) for stereo), an `AdditionalOutputs`, a `CloseStream`, or
-        None when nothing is ready. Integer arrays are scaled as in `gr.Audio`;
+        Returns the next value of the stream's outputs, or None when nothing is
+        ready: the value itself with one output, or one value per output in
+        their order, where `gr.skip()` leaves an output unchanged (for example
+        `(gr.skip(), transcript)` to update only a text output). Audio is a
+        `(sample_rate, array)` tuple like the numpy value of `gr.Audio` (shape
+        (samples,) for mono or (samples, 2) for stereo). Return a `CloseStream`
+        to end the stream. Integer arrays are scaled as in `gr.Audio`;
         float arrays are played as values in [-1, 1], without `gr.Audio`'s
         scaling of each array to its own peak, so that chunks keep their
         loudness. Must not block; use `wait_for_item()` on a queue instead.
@@ -289,12 +300,12 @@ class AudioVideoStreamHandler(StreamHandler):
 
     @abstractmethod
     def video_receive(self, frame: npt.NDArray[np.uint8]) -> None:
-        """Called with each incoming video frame as an RGB uint8 array. Frames that arrive while it runs are dropped except the newest."""
+        """Called with each incoming video frame as an RGB uint8 array. Frames that arrive while it runs are dropped except the newest. Parameters declared after `frame` get the latest values of the stream's other inputs, as in `receive()`."""
         pass
 
     @abstractmethod
     def video_emit(self) -> VideoEmitType:
-        """Returns the next video frame to send, as an RGB uint8 array, or None when none is ready yet."""
+        """Returns the next value of the stream's outputs, as `emit()` does: the video frame (an RGB uint8 array) in the video output's place, `gr.skip()` for an output to leave unchanged, or None when nothing is ready yet."""
         pass
 
 
@@ -316,10 +327,10 @@ class AsyncAudioVideoStreamHandler(AsyncStreamHandler):
 
 class VideoStreamHandler(StreamHandlerBase, ABC):
     """
-    Base class for synchronous handlers of video-only streams that need state or resources for the whole stream, for example one GPU allocation per stream on ZeroGPU. `video_receive()` is called with every incoming frame (or, when it is slower than the camera, with the newest one that arrived while it ran) and `video_emit()` is polled for the next outgoing frame; `start_up()` is called once when the connection is established (frames may already arrive while it runs) and `shutdown()` when it closes. Works in mode="send-receive" and in mode="send", where `video_emit()` is still called and only its `AdditionalOutputs` are used (it can return them without a frame). For a function called once per frame, pass the function (or a `VideoOptions`) to `WebRTC.stream()` instead.
+    Base class for synchronous handlers of video-only streams that need state or resources for the whole stream, for example one GPU allocation per stream on ZeroGPU. `video_receive()` is called with every incoming frame (or, when it is slower than the camera, with the newest one that arrived while it ran) and `video_emit()` is polled for the next outgoing frame; `start_up()` is called once when the connection is established (frames may already arrive while it runs) and `shutdown()` when it closes. Works when the video component is among both the inputs and the outputs, and when it is only among the inputs, where `video_emit()` is still called and returns only the other outputs. For a function called once per frame, pass the function itself.
 
     Parameters:
-        fps: the frame rate at which frames are sent to the client; in mode="send", how often `video_emit()` is called.
+        fps: the frame rate at which frames are sent to the client; when the video component is only among the inputs, how often `video_emit()` is called.
     """
 
     def __init__(self, fps: int = 30) -> None:
@@ -327,12 +338,12 @@ class VideoStreamHandler(StreamHandlerBase, ABC):
 
     @abstractmethod
     def video_receive(self, frame: npt.NDArray[np.uint8]) -> None:
-        """Called with each incoming video frame as an RGB uint8 array. Frames that arrive while it runs are dropped except the newest."""
+        """Called with each incoming video frame as an RGB uint8 array. Frames that arrive while it runs are dropped except the newest. Parameters declared after `frame` get the latest values of the stream's other inputs, as in `receive()`."""
         pass
 
     @abstractmethod
     def video_emit(self) -> VideoEmitType:
-        """Returns the next video frame to send, as an RGB uint8 array, or None when none is ready yet."""
+        """Returns the next value of the stream's outputs, as `emit()` does: the video frame (an RGB uint8 array) in the video output's place, `gr.skip()` for an output to leave unchanged, or None when nothing is ready yet."""
         pass
 
     def start_up(self) -> None:

@@ -13,11 +13,13 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import MinimalAudioPlayer from "../shared/MinimalAudioPlayer.svelte";
+	import LiveAudio from "../shared/LiveAudio.svelte";
 	import type { FileData } from "@gradio/client";
 	import type { WaveformOptions, SubtitleData } from "../shared/types";
 
 	let {
 		value = null,
+		live_stream = null,
 		subtitles = null,
 		label,
 		show_label = true,
@@ -39,6 +41,7 @@
 		onerror
 	}: {
 		value?: null | FileData;
+		live_stream?: MediaStream | null;
 		subtitles?: null | FileData | SubtitleData[];
 		label: string;
 		show_label?: boolean;
@@ -60,9 +63,13 @@
 		onerror?: (detail: any) => void;
 	} = $props();
 
+	// The live audio of a WebRTC stream
+	const live = $derived(live_stream);
+	const file_value = $derived(value);
+
 	$effect(() => {
-		if (value) {
-			onchange?.(value);
+		if (file_value) {
+			onchange?.(file_value);
 		}
 	});
 </script>
@@ -74,9 +81,15 @@
 	label={label || i18n("audio.audio")}
 />
 
-{#if value !== null}
+{#if live}
+	<LiveAudio stream={live} />
+{:else if file_value !== null}
 	{#if minimal}
-		<MinimalAudioPlayer {value} label={label || i18n("audio.audio")} {loop} />
+		<MinimalAudioPlayer
+			value={file_value}
+			label={label || i18n("audio.audio")}
+			{loop}
+		/>
 	{:else}
 		<IconButtonWrapper
 			display_top_corner={display_icon_button_wrapper_top_corner}
@@ -85,10 +98,10 @@
 		>
 			{#if buttons.some((btn) => typeof btn === "string" && btn === "download")}
 				<DownloadLink
-					href={value.is_stream
-						? value.url?.replace("playlist.m3u8", "playlist-file")
-						: value.url}
-					download={value.orig_name || value.path}
+					href={file_value.is_stream
+						? file_value.url?.replace("playlist.m3u8", "playlist-file")
+						: file_value.url}
+					download={file_value.orig_name || file_value.path}
 				>
 					<IconButton Icon={Download} label={i18n("common.download")} />
 				</DownloadLink>
@@ -103,13 +116,13 @@
 						let url = await uploadToHuggingFace(fileData.url, "url");
 						return `<audio controls src="${url}"></audio>`;
 					}}
-					{value}
+					value={file_value}
 				/>
 			{/if}
 		</IconButtonWrapper>
 
 		<AudioPlayer
-			{value}
+			value={file_value}
 			subtitles={Array.isArray(subtitles) ? subtitles : subtitles?.url}
 			{label}
 			{i18n}

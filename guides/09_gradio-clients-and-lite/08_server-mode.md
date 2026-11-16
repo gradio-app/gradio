@@ -169,20 +169,19 @@ Generator functions automatically stream results via SSE, just like in a regular
 
 ## WebRTC Streams
 
-To stream a webcam or microphone to your model and back with low latency, register a handler with `app.webrtc()` and connect to it from the page with `client.webrtc()`. The handler is the same as for [`gr.WebRTC`](/guides/object-detection-from-webcam-with-webrtc): a function that gets each frame and returns the frame to show, a handler class for audio, or a generator for a stream that only plays media from the server (`mode="receive"`). This needs the `webrtc` extra: `pip install "gradio[webrtc]"`.
+To stream a webcam or microphone to your model and back with low latency, pass `transport="webrtc"` to `app.api()` and call the endpoint from the page with `client.submit()` of the JavaScript client, passing a `MediaStream`. The `gr.VideoFrame` or `gr.AudioChunk` type hint marks the media among the function's parameters (sent by the page) and its return values (sent back). The function is called with each frame, as in a [`.stream()` event with `transport="webrtc"`](/guides/object-detection-from-webcam-with-webrtc), takes one value per parameter, and returns one value for each type in its return hint. A generator (return hint `Iterator[...]`) with no media parameter only sends media to the page, which then calls `submit()` without a `MediaStream`. For full-duplex audio, decorate a handler class from `gradio.webrtc` (such as `AsyncStreamHandler`) instead of a function: the hints on its `receive()` and `emit()` mark the media. This needs the `webrtc` extra: `pip install "gradio[webrtc]"`.
 
 ```python
 import numpy as np
 from fastapi.responses import HTMLResponse
-from gradio import Server
-from gradio.webrtc import AdditionalOutputs
+import gradio as gr
 
-app = Server()
+app = gr.Server()
 
-@app.webrtc(name="flip", time_limit=60)
-def flip(frame, brightness):
+@app.api(name="flip", transport="webrtc", time_limit=60)
+def flip(frame: gr.VideoFrame, brightness: float) -> tuple[gr.VideoFrame, float]:
     frame = np.clip(frame[::-1] * brightness, 0, 255).astype(np.uint8)
-    return frame, AdditionalOutputs(float(frame.mean()))
+    return frame, float(frame.mean())
 
 @app.get("/", response_class=HTMLResponse)
 async def homepage():
@@ -193,29 +192,34 @@ async def homepage():
 <p id="info"></p>
 <script type="module">
   import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
-  const app = await Client.connect(location.origin);
+  const app = await Client.connect(location.origin, { events: ["data", "status"] });
   const slider = document.getElementById("brightness");
   const info = document.getElementById("info");
-  let stream;
+  let job;
   document.getElementById("start").onclick = async () => {
     const media = await navigator.mediaDevices.getUserMedia({ video: true });
-    stream = app.webrtc("/flip", {
-      media,
-      inputs: [Number(slider.value)],
-      on_track: (event) => {
-        document.getElementById("out").srcObject = event.streams[0];
-      },
-      on_output: ([mean]) => {
-        info.textContent = `Mean brightness: ${mean.toFixed(1)}`;
+    job = app.submit("/flip", { frame: media, brightness: Number(slider.value) });
+    try {
+      for await (const msg of job) {
+        if (msg.type === "data") {
+          const [video, mean] = msg.data;
+          if (video instanceof MediaStream) {
+            document.getElementById("out").srcObject = video;
+          }
+          if (mean !== undefined) {
+            info.textContent = `Mean brightness: ${mean.toFixed(1)}`;
+          }
+        } else if (msg.type === "status" && msg.stage === "error") {
+          info.textContent = msg.message;
+        }
       }
-    });
-    stream.done
-      .catch((error) => (info.textContent = error.message))
+    } finally {
       // The page opened the camera, so the page turns it off
-      .finally(() => media.getTracks().forEach((track) => track.stop()));
+      media.getTracks().forEach((track) => track.stop());
+    }
   };
-  slider.oninput = () => stream?.set_inputs([Number(slider.value)]);
-  document.getElementById("stop").onclick = () => stream?.stop();
+  slider.oninput = () => job?.send_chunk({ data: [null, Number(slider.value)] });
+  document.getElementById("stop").onclick = () => job?.close_stream();
 </script>
 """
 
@@ -224,17 +228,19 @@ app.launch()
 
 A few things to know:
 
-- Each stream waits its turn in the queue like any other call, so `concurrency_limit` (1 by default) is the number of streams that run at once, and `time_limit` ends a stream after that many seconds, counted from its turn. `stream.connected` resolves once the media flows, and `stream.done` once the stream is over.
-- The values after the frame are the stream's inputs: the page sets them with `inputs` and changes them with `set_inputs()`. They are plain JSON values, since there are no components to process them.
-- Each `AdditionalOutputs(...)` the handler returns arrives in `on_output` as the list of its values.
-- On Hugging Face Spaces, many visitors' browsers reach the app only through a TURN server, so pass `rtc_configuration=` to `app.webrtc()`, as described in the [WebRTC guide](/guides/object-detection-from-webcam-with-webrtc#deploying-to-hugging-face-spaces). The recommended way there is a function that issues the credentials with each visitor's `gr.OAuthToken`, which works the same with `app.webrtc()`; for signing in, see [Sign in with Hugging Face](#sign-in-with-hugging-face) below. With ZeroGPU, `client.webrtc()` sends the visitor's ZeroGPU headers with the connection, so the GPU time counts against the visitor's quota.
-- WebRTC endpoints are left out of the API page and the Python client, which cannot send media.
+- Each stream waits its turn in the queue like any other call, so `concurrency_limit` (1 by default) is the number of streams that run at once, and `time_limit` ends a stream after that many seconds, counted from its turn. The `"status"` messages report the place in line while it waits.
+- The remote media arrives as a data message with a `MediaStream` in the media output's slot of `msg.data`. In each data message, the outputs it does not update are `undefined`; return `gr.skip()` from the function to leave an output as it is.
+- The other parameters are the stream's inputs. They are plain JSON values, since there are no components to process them. Change them while the stream runs with `job.send_chunk({ data: [...] })`, which takes one value per parameter in order (`null` in the media slot keeps the media; another `MediaStream` there switches to it, for example to the other camera, without a new turn in line).
+- `job.close_stream()` stops the stream after the outputs emitted until then have arrived, and `job.cancel()` stops it at once. The `MediaStream` stays the page's: the stream does not stop its tracks.
+- `stream_every` is the shortest interval between calls of a video function (unset: every frame). A function that takes a `gr.AudioChunk` gets `stream_every` seconds of audio per call (0.5 by default).
+- On Hugging Face Spaces, many visitors' browsers reach the app only through a TURN server, so pass `transport=gr.WebRTCOptions(rtc_configuration=...)`, as described in the [WebRTC guide](/guides/object-detection-from-webcam-with-webrtc#deploying-to-hugging-face-spaces). The recommended way there is a function that issues the credentials with each visitor's `gr.OAuthToken`; for signing in, see [Sign in with Hugging Face](#sign-in-with-hugging-face) below. With ZeroGPU, `client.submit()` sends the visitor's ZeroGPU headers with the connection, so the GPU time counts against the visitor's quota.
+- The endpoint is documented in the app's API info like any other, but only the JavaScript client in a browser can stream to it, with a `MediaStream`. Calling it from the Python client or with curl returns an error that says so, and it is not exposed as an MCP tool.
 
-`client.webrtc()` handles the protocol for you, so you only need the following if you write your own client. The client joins the queue with `[webrtc_id]` as the data, where `webrtc_id` is a random id of its own. Once its turn comes (the event's first data message), it gets the RTCPeerConnection configuration from `/gradio_api/webrtc/rtc_configuration` and sends its offer and ICE candidates to `/gradio_api/webrtc/offer`, both with the `webrtc_id` and the client's session hash. Each `AdditionalOutputs` arrives as a data message of the event whose value is the list of its values; messages with `{"__type__": "update"}` carry nothing. The client sends the values of the extra inputs over the stream's data channel as `{"type": "input", "data": [...]}`: once the channel opens (an empty list if there are none; a `mode="receive"` stream starts only then), whenever they change, and when the handler asks for them with a `send_input` message.
+`client.submit()` handles the protocol for you, so you only need the following if you write your own client. The client joins the queue like any call of the endpoint, with `null` in the media parameter's slot of the data and `{"webrtc_id": ...}` as the `event_data`, where `webrtc_id` is a random id of its own. Once its turn comes (the event's first data message), it gets the RTCPeerConnection configuration from `/gradio_api/webrtc/rtc_configuration` and sends its offer and ICE candidates to `/gradio_api/webrtc/offer`, both with the `webrtc_id` and the client's session hash. The data messages of the event carry one value per output; an output they do not update holds `{"__type__": "update"}`. The client sends the values of the other inputs (without the media) over the stream's data channel as `{"type": "input", "data": [...]}`: once the channel opens (an empty list if there are none; a stream that only sends media to the page starts only then), whenever they change, and when the server asks for them with a `send_input` message.
 
 ## Sign in with Hugging Face
 
-When an `app.webrtc()` handler or its `rtc_configuration` function takes the visitor's `gr.OAuthProfile` or `gr.OAuthToken`, the app gets the sign-in routes that a `gr.LoginButton` brings to a `gr.Blocks` app, so the page signs in with a link instead of the button. The app's `app.api()` functions then get the signed-in visitor's values as well:
+When the function of an `app.api(transport=...)` endpoint or its `rtc_configuration` function takes the visitor's `gr.OAuthProfile` or `gr.OAuthToken`, the app gets the sign-in routes that a `gr.LoginButton` brings to a `gr.Blocks` app, so the page signs in with a link instead of the button. The app's other `app.api()` functions then get the signed-in visitor's values as well:
 
 ```python
 import gradio as gr
@@ -242,8 +248,11 @@ import gradio as gr
 async def turn_credentials(token: gr.OAuthToken | None) -> dict:
     ...  # issue TURN credentials with the visitor's token
 
-@app.webrtc(name="flip", rtc_configuration=turn_credentials)
-def flip(frame):
+@app.api(
+    name="flip",
+    transport=gr.WebRTCOptions(rtc_configuration=turn_credentials),
+)
+def flip(frame: gr.VideoFrame) -> gr.VideoFrame:
     return frame[::-1]
 
 @app.api(name="whoami")
@@ -257,6 +266,6 @@ def whoami(profile: gr.OAuthProfile | None) -> str:
 
 As for a `gr.Blocks` app, add `hf_oauth: true` to the metadata of your Space's `README.md` and install `gradio[oauth]`. Outside of Spaces, signing in uses a mocked profile of the account your machine is logged in to, so the app starts only when your machine is logged in to Hugging Face.
 
-An `app.api()` function that takes a `gr.OAuthToken` does not bring the sign-in routes by itself. Callers of such an endpoint pass their own token with `Client(..., oauth_token=...)`, which needs none of the setup above.
+An `app.api()` function without `transport=` that takes a `gr.OAuthToken` does not bring the sign-in routes by itself. Callers of such an endpoint pass their own token with `Client(..., oauth_token=...)`, which needs none of the setup above.
 
 For the full API reference, see the [`Server` documentation](/docs/gradio/server).

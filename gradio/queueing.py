@@ -105,7 +105,7 @@ class Event:
 
 class EventHandle:
     """A queued event as the function running in it sees it, for work that
-    outlives a single call of the event (a gr.WebRTC stream). With
+    outlives a single call of the event (a WebRTC stream). With
     executor="process", the app's process gets a stand-in with the same
     methods, which relays them to the gateway's queue."""
 

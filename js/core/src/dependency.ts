@@ -19,7 +19,6 @@ import type {
 	LogMessage
 } from "@gradio/client";
 import { settled } from "svelte";
-import type { DispatchObserver } from "@gradio/utils";
 const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
 
 const NOVALUE = Symbol("NOVALUE");
@@ -39,6 +38,8 @@ export class Dependency {
 	event_args: Record<string, unknown> = {};
 	targets: [number, string][] = [];
 	connection_type: "stream" | "sse";
+	/** Set by .stream(transport=...) */
+	transport: IDependency["transport"];
 
 	// if this dependency has any then, success or failure triggers
 	triggers: [number, "success" | "failure" | "all"][] = [];
@@ -61,6 +62,7 @@ export class Dependency {
 		this.inputs = dep_config.inputs;
 		this.outputs = dep_config.outputs;
 		this.connection_type = dep_config.connection;
+		this.transport = dep_config.transport ?? null;
 		this.show_progress = dep_config.show_progress;
 		this.functions = {
 			frontend:
@@ -172,7 +174,6 @@ interface DispatchEvent {
 	event_name?: string;
 	target_id?: number;
 	event_data: unknown;
-	observer?: DispatchObserver;
 }
 
 type UpdateStateCallback = (
@@ -393,6 +394,28 @@ export class DependencyManager {
 		}
 	}
 
+	/** Clears the live media a WebRTC stream showed in its output */
+	end_live_stream(dep: Dependency): void {
+		const index = dep.transport?.media_output;
+		if (index === null || index === undefined) return;
+		const output_id = dep.outputs[index];
+		if (output_id !== undefined) {
+			this.update_state_cb(output_id, { live_stream: null }, false);
+		}
+	}
+
+	/** Sends the inputs of each running WebRTC stream that `target_id` is one of */
+	push_stream_inputs(target_id: number | undefined): void {
+		if (target_id === undefined) return;
+		for (const [dep_id, submission] of this.submissions) {
+			const dep = this.dependencies_by_fn.get(dep_id);
+			if (!dep?.transport || !dep.inputs.includes(target_id)) continue;
+			this.gather_state(dep.inputs, dep.component_prop_inputs).then((data) =>
+				submission.send_chunk({ fn_index: dep.id, data } as any)
+			);
+		}
+	}
+
 	/** Runs the always_last event that was deferred while the dependency was running, if any */
 	dispatch_deferred(dep_id: number): void {
 		const deferred = this.deferred_events.get(dep_id);
@@ -413,12 +436,13 @@ export class DependencyManager {
 	 * @returns a value if there is no backend fn, a 'submission' if there is a backend fn, or null if there is no dependency
 	 */
 	async dispatch(event_meta: DispatchFunction | DispatchEvent): Promise<void> {
-		// Observes the first function's run and hears its outcome exactly once
-		let observer =
-			event_meta.type === "event" ? event_meta.observer : undefined;
-		if (this.connection_lost) {
-			observer?.on_end?.("not_started");
-			return;
+		if (this.connection_lost) return;
+		if (
+			event_meta.type === "event" &&
+			(event_meta.event_name === "change" || event_meta.event_name === "input")
+		) {
+			// A WebRTC stream gets its other inputs as they change
+			this.push_stream_inputs(event_meta.target_id);
 		}
 		let deps: Dependency[] | undefined;
 		if (event_meta.type === "fn") {
@@ -429,14 +453,9 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-		if (!deps?.length) observer?.on_end?.("not_started");
 		for (let i = 0; i < (deps?.length || 0); i++) {
 			const dep = deps ? deps[i] : undefined;
-			if (!dep) continue;
-			const dep_observer = observer;
-			observer = undefined;
-			let outcome: "not_started" | "ended" | "error" = "not_started";
-			try {
+			if (dep) {
 				this.cancel(dep.cancels);
 
 				const dispatch_status = should_dispatch(
@@ -483,13 +502,6 @@ export class DependencyManager {
 						return;
 					}
 					this.update_loading_status(status);
-					dep_observer?.on_status?.({
-						status: status.status,
-						stream_state: status.stream_state,
-						queue_position: status.position ?? null,
-						queue_size: status.size,
-						eta: status.eta ?? null
-					});
 				};
 				const target_id = event_meta.target_id ?? null;
 
@@ -523,7 +535,6 @@ export class DependencyManager {
 					);
 
 					if (dep_submission.type !== "submit") {
-						outcome = "ended";
 						if (dep_submission.type === "data") {
 							await this.handle_data(dep.outputs, dep_submission.data);
 						}
@@ -550,11 +561,6 @@ export class DependencyManager {
 						this.submission_trigger_ids.set(dep.id, target_id);
 						this.active_dependencies.set(dep_submission.data, dep);
 						active_submission = dep_submission.data;
-						outcome = "ended";
-						const run = dep_submission.data;
-						dep_observer?.on_start?.({
-							close: () => this.end_run(dep, run)
-						});
 						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
@@ -638,7 +644,6 @@ export class DependencyManager {
 									this.update_loading_stati_state();
 								} else if (result.stage === "error") {
 									if (result.broken || result.session_not_found) {
-										outcome = "error";
 										if (!this.connection_lost) {
 											this.connection_lost = true;
 											this.on_connection_lost_cb();
@@ -652,7 +657,6 @@ export class DependencyManager {
 										break submit_loop;
 									}
 									if (Array.isArray(result?.message)) {
-										outcome = "error";
 										// Settle this run's status: a pending entry left behind
 										// here is repainted by the next event, and since it
 										// keeps its time_start the spinner resumes from the
@@ -708,6 +712,7 @@ export class DependencyManager {
 										unset_args.forEach((fn) => fn());
 										await dep_submission.data.acknowledge();
 										this.clear_submission(dep.id, dep_submission.data);
+										this.end_live_stream(dep);
 										this.dispatch_deferred(dep.id);
 										return;
 									}
@@ -767,10 +772,10 @@ export class DependencyManager {
 						}
 						unset_args.forEach((fn) => fn());
 						this.clear_submission(dep.id, dep_submission.data);
+						this.end_live_stream(dep);
 						this.dispatch_deferred(dep.id);
 					}
 				} catch (error) {
-					outcome = "error";
 					// This run's own: with trigger_mode="multiple" the latest one
 					// may be another run, which acknowledging would close
 					await active_submission?.acknowledge();
@@ -784,6 +789,7 @@ export class DependencyManager {
 					this.update_loading_stati_state();
 					if (active_submission) {
 						this.clear_submission(dep.id, active_submission);
+						this.end_live_stream(dep);
 					}
 					failure.forEach((dep_id) => {
 						this.dispatch({
@@ -795,8 +801,6 @@ export class DependencyManager {
 					});
 					this.dispatch_deferred(dep.id);
 				}
-			} finally {
-				dep_observer?.on_end?.(outcome);
 			}
 		}
 		return;
@@ -1088,6 +1092,12 @@ export class DependencyManager {
 							true
 						);
 					}
+				} else if (
+					typeof MediaStream !== "undefined" &&
+					_data instanceof MediaStream
+				) {
+					// Live media of a WebRTC stream; the value stays as is
+					await this.update_state_cb(output_id, { live_stream: _data }, false);
 				} else {
 					await this.update_state_cb(output_id, { value: _data }, false);
 				}
@@ -1260,25 +1270,6 @@ export class DependencyManager {
 		this.page_ended.add(submission);
 		submission.close_stream({ read_to_end: true });
 		this.clear_submission(fn_id, submission);
-	}
-
-	/** Ends one run a component started (see `EventRun.close`): a stream is closed, any other run cancelled. */
-	end_run(dep: Dependency, submission: ReturnType<Client["submit"]>): void {
-		const current = this.submissions.get(dep.id) === submission;
-		if (dep.connection_type !== "stream") {
-			if (current) this.cancel([dep.id]);
-			return;
-		}
-		this.end_stream_run(dep.id, submission);
-		if (!current) return;
-		this.update_loading_status({
-			status: "complete",
-			fn_index: dep.id,
-			eta: 0,
-			queue: false,
-			stream_state: "closed"
-		});
-		this.update_loading_stati_state();
 	}
 
 	clear_submission(

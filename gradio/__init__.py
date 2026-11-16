@@ -67,7 +67,6 @@ from gradio.components import (
     Timer,
     UploadButton,
     Video,
-    WebRTC,
     WorkflowCanvas,
     component,
 )
@@ -79,7 +78,6 @@ from gradio.components.image_editor import (
     WatermarkOptions,
     WebcamOptions,
 )
-from gradio.components.webrtc import StreamOptions
 from gradio.data_classes import FileData
 from gradio.events import (
     CopyData,
@@ -141,6 +139,7 @@ from gradio.templates import (
 )
 from gradio.themes import Base as Theme
 from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
+from gradio.webrtc.options import AudioChunk, VideoFrame, WebRTCOptions
 from gradio.workflow import Workflow
 
 # this is the version:
@@ -263,9 +262,10 @@ __all__ = [
     "Step",
     "Warning",
     "WaveformOptions",
-    "StreamOptions",
-    "WebRTC",
     "WebcamOptions",
+    "WebRTCOptions",
+    "VideoFrame",
+    "AudioChunk",
     "WatermarkOptions",
     "__version__",
     "close_all",

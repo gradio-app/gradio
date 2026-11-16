@@ -1,4 +1,4 @@
-"""Helpers shared by the gr.WebRTC backend: handler return types, data channel
+"""Helpers shared by the WebRTC backend: handler return types, data channel
 messages, audio conversions and the audio frame encoder.
 
 This module must import without aiortc or av installed; both are imported
@@ -42,17 +42,16 @@ class _DecoderStoppedError(Exception):
 
 
 WEBRTC_EXTRA_HINT = (
-    "The `aiortc` package is required to stream with gr.WebRTC. "
+    'The `aiortc` package is required to stream over WebRTC (transport="webrtc"). '
     'Install it with the `webrtc` extra: pip install "gradio[webrtc]"'
 )
 
 
 class AdditionalOutputs:
     """
-    Wraps values that a stream handler wants to send to the extra output
-    components listed in `outputs` of `WebRTC.stream()`. Return or yield it
-    on its own, or as the second element of a `(media, AdditionalOutputs(...))`
-    tuple next to a media frame.
+    The values of a stream's outputs besides the media, which
+    `transport.transport_event` builds from the function's one value per
+    output. Internal: stream functions return one value per output.
     """
 
     def __init__(self, *args: Any) -> None:
@@ -279,15 +278,12 @@ def split_output(
         # on so that check_audio() rejects it with a clear message
         if 2 <= len(data) <= 3 and isinstance(data[1], np.ndarray):
             return data, None
-        if len(data) != 2:
+        # The stream turns a function's values into (media, AdditionalOutputs),
+        # so any other tuple is more values than the stream has outputs
+        if len(data) != 2 or not isinstance(data[1], AdditionalOutputs | CloseStream):
             raise ValueError(
-                "A handler must return a media frame, or a tuple of a media frame "
-                "and an instance of AdditionalOutputs or CloseStream."
-            )
-        if not isinstance(data[1], AdditionalOutputs | CloseStream):
-            raise ValueError(
-                "The second element of the returned tuple must be an instance of "
-                "AdditionalOutputs or CloseStream."
+                f"The stream function returned {len(data)} values where the "
+                "stream has one output. Return one value per output."
             )
         return data[0], cast(AdditionalOutputs | CloseStream, data[1])
     return data, None

@@ -305,10 +305,23 @@ export interface Dependency {
 	connection: "stream" | "sse";
 	time_limit: number;
 	stream_every: number;
+	/** Set by .stream(transport=...) */
+	transport?: StreamTransport | null;
 	like_user_message: boolean;
 	event_specific_args: string[];
 	component_prop_inputs: number[];
 	js_implementation: string | null;
+}
+
+/** How a WebRTC stream connects (see .stream(transport=...)). */
+export interface StreamTransport {
+	type: "webrtc";
+	modality: "video" | "audio" | "audio-video";
+	mode: "send-receive" | "send" | "receive";
+	media_output: number | null;
+	media_input?: number | null;
+	/** Passed to `RTCRtpSender.setParameters` for the tracks the page sends. */
+	rtp_params?: Record<string, any>;
 }
 
 export interface DependencyTypes {

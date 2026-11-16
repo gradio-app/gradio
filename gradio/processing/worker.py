@@ -372,7 +372,7 @@ class Worker:
             self.app.reopen_session(session_hash)
             return
         self.app.mark_session_closed(session_hash)
-        # A lease (a gr.WebRTC stream) ends only when the gateway says that its
+        # A lease (a WebRTC stream) ends only when the gateway says that its
         # event ended, as with threads: a page whose heartbeat dropped may
         # still be streaming, and its event would keep its place forever
         for event in self.running.values():

@@ -64,7 +64,7 @@ class Link:
         self.running = 0
         self.slots: dict[str, asyncio.Semaphore] = {}
         self.held: dict[str, asyncio.Semaphore] = {}
-        # Events still working here between calls (gr.WebRTC media)
+        # Events still working here between calls (WebRTC media)
         self.serving_events: set[str] = set()
         self.started: dict[str, float] = {}
         self.completed = 0
@@ -219,7 +219,7 @@ class Link:
 class Placement:
     """A stream event's process: the one its first call went to. Its later
     calls go there too when its function keeps working there between calls
-    (`works_here`, gr.WebRTC) or holds a slot there between chunks."""
+    (`works_here`, WebRTC streams) or holds a slot there between chunks."""
 
     link: Link
     works_here: bool
@@ -288,7 +288,7 @@ class Pool:
             self.autoscaler.replica_lost(link)
 
     def wake_streams_of(self, link: Link) -> None:
-        """`link`'s process exited: the gr.WebRTC streams that ran there get
+        """`link`'s process exited: the WebRTC streams that ran there get
         their next step now, which fails them (see `placed`). Nothing else
         would wake them: their wakes came from that process."""
         queue = self.blocks._queue
@@ -336,7 +336,7 @@ class Pool:
     def _holder(self, session_hash: str | None) -> Link | None:
         """The process that holds `session_hash`. Each process keeps as many
         sessions as its state holder does, so a session is forgotten here when
-        its process has let go of its state. A session with a gr.WebRTC stream
+        its process has let go of its state. A session with a WebRTC stream
         stays with the stream's process until the stream ends, even through a
         drain: its inputs and signalling must reach the stream."""
         if not session_hash:

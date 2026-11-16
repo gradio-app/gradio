@@ -1552,7 +1552,7 @@ class App(FastAPI):
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
             event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            # A lease (gr.WebRTC) gets its media over its peer connection
+            # A lease (a WebRTC stream) gets its media over its peer connection
             if event is None or not event.streaming or event.fn.lease:
                 return Response(status_code=404)
             new_body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore

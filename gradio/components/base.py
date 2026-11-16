@@ -233,6 +233,11 @@ class Component(ComponentBase, Block):
         if len(self.server_fns):
             config["server_fns"] = [fn.__name__ for fn in self.server_fns]
         config.pop("render", None)
+        # A component that streams with transport= (see webrtc.transport)
+        if getattr(self, "stream_transport", None):
+            config["stream_transport"] = self.stream_transport
+            # The live media of a running stream, set by the page only
+            config["live_stream"] = None
         return config
 
     @property

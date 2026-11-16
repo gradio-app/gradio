@@ -1,4 +1,4 @@
-"""aiortc media tracks that connect one gr.WebRTC connection to its handler.
+"""aiortc media tracks that connect one WebRTC stream to its handler.
 
 Incoming tracks are wrapped so that every frame reaches the handler, and the
 same objects act as outgoing tracks that the peer connection pulls frames from.
@@ -314,9 +314,14 @@ class VideoCallback(VideoStreamTrack):
                 unprocessed.time_base = frame.time_base
                 return unprocessed
 
-            array, outputs = split_output(
-                await run_in_thread(self.event_handler, frame_array, *self.latest_args)
-            )
+            # An async frame function runs on the loop, a sync one in a thread
+            if inspect.iscoroutinefunction(self.event_handler):
+                result = await self.event_handler(frame_array, *self.latest_args)
+            else:
+                result = await run_in_thread(
+                    self.event_handler, frame_array, *self.latest_args
+                )
+            array, outputs = split_output(result)
             if isinstance(outputs, CloseStream):
                 send_to_page(self.channel, create_message("end_stream", outputs.msg))
                 self.stop()

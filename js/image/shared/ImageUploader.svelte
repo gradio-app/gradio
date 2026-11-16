@@ -26,6 +26,9 @@
 		show_label,
 		sources = ["upload", "clipboard", "webcam"],
 		streaming = false,
+		stream_transport = null,
+		live_stream = null,
+		queue_detail = null,
 		pending = $bindable(false),
 		webcam_options,
 		selectable = false,
@@ -46,6 +49,7 @@
 		dragging = $bindable(false),
 		onchange,
 		onstream,
+		onlivestream,
 		onclear,
 		ondrag,
 		onupload,
@@ -60,6 +64,9 @@
 		show_label: boolean;
 		sources?: source_type[];
 		streaming?: boolean;
+		stream_transport?: string | null;
+		live_stream?: MediaStream | null;
+		queue_detail?: string | null;
 		pending?: boolean;
 		webcam_options: WebcamOptions;
 		selectable?: boolean;
@@ -80,6 +87,7 @@
 		dragging?: boolean;
 		onchange?: (value?: null | FileData | Base64File) => void;
 		onstream?: (value: ValueData) => void;
+		onlivestream?: (detail: { media: MediaStream; mirror?: boolean }) => void;
 		onclear?: () => void;
 		ondrag?: (dragging: boolean) => void;
 		onupload?: () => void;
@@ -274,12 +282,16 @@
 				{value}
 				oncapture={(detail) => handle_save(detail, "change")}
 				onstream={(detail) => handle_save(detail, "stream")}
+				{onlivestream}
 				{onerror}
 				{onclose_stream}
 				{stream_state}
 				mirror_webcam={webcam_options.mirror}
 				{stream_every}
 				{streaming}
+				{stream_transport}
+				{live_stream}
+				{queue_detail}
 				mode="image"
 				include_audio={false}
 				{i18n}

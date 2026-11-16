@@ -235,38 +235,31 @@ const submission = app
 submission.cancel();
 ```
 
-#### `webrtc`
+##### Streaming media over WebRTC
 
-The `webrtc` method streams media to and from a WebRTC endpoint of a `gradio.Server` app (one registered with `app.webrtc()`), in the browser. It waits for the stream's turn in the endpoint's queue, connects, and returns a handle at once:
+In the browser, `submit` also streams media to an endpoint of a `gradio.Server` app registered with `transport="webrtc"` (for example `@app.api(name="flip", transport="webrtc")`). Pass a `MediaStream` for the media parameter. The stream waits for its turn in the endpoint's queue like any submission, then connects:
 
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.connect("user/space-name");
-const media = await navigator.mediaDevices.getUserMedia({ video: true });
-const stream = app.webrtc("/flip", {
-	media,
-	inputs: [1.0],
-	on_track: (event) => (video.srcObject = event.streams[0]),
-	on_output: (values) => console.log(values)
+const app = await Client.connect("user/space-name", {
+	events: ["data", "status"]
 });
+const media = await navigator.mediaDevices.getUserMedia({ video: true });
+const job = app.submit("/flip", { frame: media, brightness: 1.0 });
 
-await stream.connected; // the media flows
-stream.set_inputs([1.5]);
-await stream.stop(); // outputs emitted until then still arrive
+for await (const msg of job) {
+	if (msg.type === "data") {
+		const [video, mean] = msg.data;
+		if (video instanceof MediaStream) videoElement.srcObject = video;
+		if (mean !== undefined) console.log(mean);
+	}
+}
 ```
 
-The options are:
+The media the server sends back arrives as a data message with a `MediaStream` in the media output's slot. Outputs that a data message does not update are `undefined`. Errors, including a connection that fails, arrive as `"status"` messages with `stage: "error"`, and the function's `gr.Info` and `gr.Warning` as `"log"` messages.
 
-- `media`: the local `MediaStream` to send, if the endpoint takes media. It stays yours: the stream does not stop its tracks when it ends.
-- `modality`: `"video"` or `"audio"`, what to receive when no media is sent.
-- `inputs`: the values of the endpoint's extra inputs. Change them later with `set_inputs()`.
-- `on_track`: called with the `RTCTrackEvent` of the media the server sends back.
-- `on_output`: called with the values of each `AdditionalOutputs` the handler emits.
-- `on_message`: called with the messages of the handler (`gr.Info`, `gr.Warning`, its errors).
-- `on_status`: called with the queue statuses, such as the place in line.
-
-The handle has the stream's `webrtc_id`, its `pc` (the `RTCPeerConnection`, once the turn has come), `connected` (resolves once the media flows), `done` (resolves when the stream is over, or rejects with its error), `set_inputs()` and `stop()`. The connection closes when the page goes away.
+While the stream runs, `job.send_chunk({ data: [null, 1.5] })` changes the other inputs (one value per parameter; `null` in the media slot keeps the media, and another `MediaStream` there, say from the other camera, replaces its tracks without leaving the stream), `job.close_stream()` stops it once the outputs emitted until then have arrived, and `job.cancel()` stops it at once. The `MediaStream` stays yours: the stream does not stop its tracks. The connection closes when the page goes away.
 
 #### `view_api`
 

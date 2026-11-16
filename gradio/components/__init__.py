@@ -52,7 +52,6 @@ from gradio.components.textbox import InputHTMLAttributes, Textbox
 from gradio.components.timer import Timer
 from gradio.components.upload_button import UploadButton
 from gradio.components.video import Video
-from gradio.components.webrtc import WebRTC
 from gradio.components.workflowcanvas import WorkflowCanvas
 from gradio.layouts import Form
 
@@ -122,7 +121,6 @@ __all__ = [
     "Timer",
     "UploadButton",
     "Video",
-    "WebRTC",
     "StreamingInput",
     "StreamingOutput",
     "ImageEditor",

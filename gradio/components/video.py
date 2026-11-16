@@ -210,6 +210,7 @@ class Video(StreamingOutput, Component):
         Events.end,
         Events.upload,
         Events.input,
+        Events.stream,
     ]
 
     def __init__(

@@ -5,8 +5,10 @@
 		Circle,
 		Square,
 		DropdownArrow,
-		Spinner
+		Spinner,
+		Clear
 	} from "@gradio/icons";
+	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { StreamingBar } from "@gradio/statustracker";
 	import { type FileData, type Client, prepare_files } from "@gradio/client";
@@ -27,6 +29,9 @@
 	let {
 		stream_state = "closed",
 		streaming = false,
+		stream_transport = null,
+		live_stream = null,
+		queue_detail = null,
 		pending = false,
 		root = "",
 		stream_every = 1,
@@ -39,6 +44,7 @@
 		value = null,
 		time_limit = null,
 		onstream,
+		onlivestream,
 		oncapture,
 		onerror,
 		onstart_recording,
@@ -47,6 +53,9 @@
 	}: {
 		stream_state?: "open" | "waiting" | "closed";
 		streaming?: boolean;
+		stream_transport?: string | null;
+		live_stream?: MediaStream | null;
+		queue_detail?: string | null;
 		pending?: boolean;
 		root?: string;
 		stream_every?: number;
@@ -59,6 +68,8 @@
 		value?: FileData | null | Base64File;
 		time_limit?: number | null;
 		onstream?: (value: Blob | string) => void;
+		/** A WebRTC stream starts: the camera's media, sent over its own connection */
+		onlivestream?: (detail: { media: MediaStream; mirror?: boolean }) => void;
 		oncapture?: (value: FileData | Blob | null) => void;
 		onerror?: (error: string) => void;
 		onstart_recording?: () => void;
@@ -78,7 +89,7 @@
 
 	onMount(() => {
 		canvas = document.createElement("canvas");
-		if (streaming && mode === "image") {
+		if (streaming && mode === "image" && !stream_transport) {
 			window.setInterval(() => {
 				if (video_source && !pending) {
 					take_picture();
@@ -186,6 +197,19 @@
 	}
 
 	let recording = $state(false);
+
+	// A WebRTC stream that ended on the server (error, time limit)
+	// leaves the camera ready to start again, not "recording"
+	let stream_started = false;
+	$effect(() => {
+		if (!stream_transport) return;
+		if (stream_state === "open" || stream_state === "waiting") {
+			stream_started = true;
+		} else if (stream_started) {
+			stream_started = false;
+			recording = false;
+		}
+	});
 	let recorded_blobs: BlobPart[] = [];
 	let stream: MediaStream;
 	let mimeType: string;
@@ -244,6 +268,17 @@
 	function record_video_or_photo({
 		destroy
 	}: { destroy?: boolean } = {}): void {
+		if (streaming && stream_transport) {
+			// The media goes over the stream's own connection, handed over once
+			recording = !recording;
+			if (destroy) return;
+			if (recording && stream) {
+				onlivestream?.({ media: stream, mirror: mirrored });
+			} else {
+				onclose_stream?.();
+			}
+			return;
+		}
 		if (mode === "image" && streaming) {
 			recording = !recording;
 		}
@@ -261,7 +296,24 @@
 		}
 	}
 
+	function turn_off_camera(): void {
+		stream?.getTracks().forEach((track) => track.stop());
+		if (video_source) video_source.srcObject = null;
+		webcam_accessed = false;
+	}
+
 	let options_open = $state(false);
+
+	// The media a WebRTC stream sends back
+	let remote_video: HTMLVideoElement | undefined = $state();
+	const remote = $derived(live_stream);
+	const image_value = $derived(value);
+	$effect(() => {
+		if (remote_video && remote_video.srcObject !== remote) {
+			remote_video.srcObject = remote;
+			if (remote) remote_video.play().catch(() => {});
+		}
+	});
 
 	export function click_outside(node: Node, cb: any): any {
 		const handle_click = (event: MouseEvent): void => {
@@ -305,12 +357,21 @@
 		data-testid="webcam-video"
 		playsinline
 		class:flip={mirrored}
-		class:hide={!webcam_accessed || (webcam_accessed && !!value)}
+		class:hide={!webcam_accessed || !!value || !!remote}
+	/>
+	<!-- svelte-ignore a11y-media-has-caption -->
+	<video
+		bind:this={remote_video}
+		data-testid="remote-video"
+		autoplay
+		muted={!remote?.getAudioTracks().length}
+		playsinline
+		class:hide={!webcam_accessed || !remote}
 	/>
 	<!-- svelte-ignore a11y-missing-attribute -->
 	<img
-		src={value?.url}
-		class:hide={!webcam_accessed || (webcam_accessed && !value)}
+		src={image_value?.url}
+		class:hide={!webcam_accessed || (webcam_accessed && !image_value)}
 	/>
 	{#if !webcam_accessed}
 		<div
@@ -321,20 +382,45 @@
 			<WebcamPermissions onclick={async () => access_webcam()} />
 		</div>
 	{:else}
+		{#if streaming && !recording}
+			<IconButtonWrapper>
+				<IconButton
+					Icon={Clear}
+					label="Turn off the camera"
+					onclick={turn_off_camera}
+				/>
+			</IconButtonWrapper>
+		{/if}
 		<div class="button-wrap">
+			{#if streaming && stream_state === "waiting"}
+				<div class="icon-with-text queue-status" role="status">
+					<div class="icon color-primary" title="spinner">
+						<Spinner />
+					</div>
+					<span data-testid="waiting-label"
+						>{i18n("audio.waiting")}{queue_detail
+							? ` · ${queue_detail}`
+							: ""}</span
+					>
+				</div>
+			{/if}
 			<button
 				class="capture-button"
 				class:photo-capture={mode === "image" && !streaming}
 				onclick={() => record_video_or_photo()}
-				aria-label={mode === "image" ? "capture photo" : "start recording"}
+				aria-label={streaming && stream_state === "waiting"
+					? "cancel waiting"
+					: mode === "image"
+						? "capture photo"
+						: "start recording"}
 			>
 				{#if mode === "video" || streaming}
 					{#if streaming && stream_state === "waiting"}
-						<div class="icon-with-text" style="width:var(--size-24);">
-							<div class="icon color-primary" title="spinner">
-								<Spinner />
+						<div class="icon-with-text">
+							<div class="icon color-primary" title="cancel waiting">
+								<Clear />
 							</div>
-							{i18n("audio.waiting")}
+							{i18n("chatbot.cancel")}
 						</div>
 					{:else if (streaming && stream_state === "open") || (!streaming && recording)}
 						<div class="icon-with-text">
@@ -464,7 +550,9 @@
 	}
 
 	.icon-with-text {
-		width: var(--size-20);
+		min-width: var(--size-20);
+		gap: var(--size-2);
+		white-space: nowrap;
 		align-items: center;
 		margin: 0 var(--spacing-xl);
 		display: flex;

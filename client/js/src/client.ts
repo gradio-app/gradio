@@ -23,11 +23,6 @@ import { predict } from "./utils/predict";
 import { duplicate } from "./utils/duplicate";
 import { submit } from "./utils/submit";
 import {
-	webrtc,
-	type WebRTCStream,
-	type WebRTCStreamOptions
-} from "./utils/webrtc";
-import {
 	forget_session,
 	session_user,
 	get_resumable_events,
@@ -231,7 +226,6 @@ export class Client {
 		all_events?: boolean
 	) => SubmitIterable<GradioEvent>;
 	resume_jobs: (jobs?: ResumableJob[]) => SubmitIterable<GradioEvent>[];
-	webrtc: (endpoint: string, options?: WebRTCStreamOptions) => WebRTCStream;
 	predict: <T = unknown>(
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
@@ -267,7 +261,6 @@ export class Client {
 		this.handle_blob = handle_blob.bind(this);
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
-		this.webrtc = webrtc.bind(this);
 		this.resume_jobs = (jobs = this.get_resumable_events()) => {
 			this.options.resume_sessions = true;
 			return jobs.map(({ fn_index, event_id }) =>
@@ -790,6 +783,7 @@ export class Client {
 	/**
 	 * Sends a WebRTC stream's SDP offer or a trickled ICE candidate (`type: "ice-candidate"`).
 	 * Resolves with the server's answer, or undefined if the request failed.
+	 * @internal Used by `submit()` for endpoints with `transport="webrtc"`.
 	 */
 	public async webrtc_offer(
 		body: Record<string, unknown>
@@ -810,6 +804,7 @@ export class Client {
 	/**
 	 * ICE server configuration for a WebRTC stream whose queue turn has come;
 	 * `{ error }` if it was not admitted, undefined if the request failed.
+	 * @internal Used by `submit()` for endpoints with `transport="webrtc"`.
 	 */
 	public async webrtc_rtc_configuration(
 		webrtc_id: string

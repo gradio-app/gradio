@@ -1629,6 +1629,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 ]
                 dependency.pop("status_tracker", None)
                 dependency.pop("zerogpu", None)
+                # A stream with transport= needs its handler, which a loaded
+                # config does not have
+                dependency.pop("transport", None)
                 dependency.pop("id", None)
                 dependency.pop("rendered_in", None)
                 dependency.pop("render_id", None)

@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Awaitable, Callable, Sequence
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import fastapi
 from gradio_client.documentation import document
@@ -14,6 +14,9 @@ from gradio import mcp
 from gradio.i18n import I18n
 from gradio.routes import App
 from gradio.themes import ThemeClass as Theme
+
+if TYPE_CHECKING:
+    from gradio.webrtc.options import WebRTCOptions
 
 
 class _MCPNamespace:
@@ -52,7 +55,7 @@ def import_gateway(path: str) -> tuple[fastapi.APIRouter, list]:
     return router, list(getattr(module, "middleware", None) or [])
 
 
-@document("api", "webrtc", "launch")
+@document("api", "launch")
 class Server(App):
     """
     Server is the Gradio API engine exposed on a FastAPI application (Server mode),
@@ -201,7 +204,6 @@ class Server(App):
             init_kwargs["generate_unique_id_function"] = generate_unique_id_function
         super().__init__(**init_kwargs)
         self._deferred_apis: list[tuple[Callable, dict[str, Any]]] = []
-        self._deferred_webrtc: list[dict[str, Any]] = []
         self.gateway = [gateway] if isinstance(gateway, str) else list(gateway or [])
         for path in self.gateway:
             if path.count(":") != 1:
@@ -228,13 +230,33 @@ class Server(App):
         max_batch_size: int = 4,
         api_visibility: Literal["public", "private", "undocumented"] = "public",
         time_limit: int | None = None,
-        stream_every: float = 0.5,
+        stream_every: float | None = None,
+        transport: Literal["webrtc"] | WebRTCOptions | None = None,
     ):
         """Decorator to register a function as a Gradio API endpoint.
 
         Goes through Gradio's queue with concurrency control and SSE streaming.
         `api()` is the same decorator.
+
+        With `transport="webrtc"` (or a `gr.WebRTCOptions`), the endpoint streams
+        media over WebRTC: the `gr.VideoFrame` or `gr.AudioChunk` type hint marks
+        the media among the function's parameters (sent by the client) and its
+        return values (sent back), and the function is called with each frame
+        (or chunk of audio). In the browser, call it with `client.submit()` of
+        `@gradio/client`, passing a MediaStream for the media parameter. Each
+        stream waits its turn in the queue like any call, and `time_limit` caps
+        its duration. `stream_every` is the shortest interval between calls
+        (unset: every frame).
         """
+        if transport is not None and (batch or not queue):
+            raise ValueError(
+                "An endpoint with transport= runs in the queue and does not batch."
+            )
+        if transport is not None and api_visibility != "public":
+            raise ValueError(
+                "An endpoint with transport= is called by name from the browser, "
+                "so it does not support api_visibility."
+            )
         kwargs = {
             "api_name": name,
             "api_description": description,
@@ -246,6 +268,7 @@ class Server(App):
             "api_visibility": api_visibility,
             "time_limit": time_limit,
             "stream_every": stream_every,
+            "transport": transport,
         }
         if fn is not None:
             self._deferred_apis.append((fn, kwargs))
@@ -258,93 +281,6 @@ class Server(App):
         return wrapper
 
     api = queue
-
-    def webrtc(
-        self,
-        fn: Any = None,
-        *,
-        name: str | None = None,
-        modality: Literal["video", "audio", "audio-video"] = "video",
-        mode: Literal["send-receive", "receive", "send"] = "send-receive",
-        rtc_configuration: dict[str, Any] | Callable | None = None,
-        server_rtc_configuration: dict[str, Any] | None = None,
-        video_bitrate: dict[str, int] | None = None,
-        allow_extra_tracks: bool = False,
-        time_limit: float | None = None,
-        concurrency_limit: int | None | Literal["default"] = "default",
-    ):
-        """Decorator to register a WebRTC stream endpoint, which streams media
-        between the browser and `fn` like `gr.WebRTC`, for an app with its own
-        frontend. Needs the `webrtc` extra (`pip install "gradio[webrtc]"`).
-
-        `fn` is what `gr.WebRTC.stream()` takes for the same modality and mode:
-        a function, a `VideoOptions`, or a handler class or instance from
-        `gradio.webrtc`. Each stream waits its turn in the queue, like a
-        queued endpoint. In the browser, connect with `client.webrtc(name,
-        {media, inputs, on_track, on_output})` of the `@gradio/client`
-        JavaScript client.
-
-        Parameters:
-            fn: the function or handler that processes each stream.
-            name: the endpoint's name. Defaults to the name of `fn`.
-            modality: "video", "audio" or "audio-video".
-            mode: "send-receive", "send" or "receive", as in `gr.WebRTC`.
-            rtc_configuration: the browser's RTCPeerConnection configuration, or a function that returns it, as in `gr.WebRTC`. Required on Hugging Face Spaces and Colab.
-            server_rtc_configuration: the configuration of the server's side of the connection.
-            video_bitrate: the video bitrate range in kbps, as in `gr.WebRTC`.
-            allow_extra_tracks: whether the client may send tracks the stream does not use (beyond the modality, a second track of a kind, or any track in mode="receive"); they are read and dropped. If False, such connections are rejected.
-            time_limit: the maximum duration of a stream in seconds, from when its turn comes.
-            concurrency_limit: how many streams run at once; the others wait in the queue. "default" uses the queue's default (1).
-        """
-        try:
-            import gradio.webrtc.connection  # noqa: F401
-        except ImportError as e:
-            from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
-
-            raise ImportError(WEBRTC_EXTRA_HINT) from e
-        from gradio.webrtc.endpoint import (
-            check_handler,
-            check_mode,
-            check_turn,
-            check_video_bitrate,
-        )
-
-        check_mode(mode, modality)
-        check_video_bitrate(video_bitrate)
-        check_turn(rtc_configuration, "server.webrtc()")
-
-        def register(func: Any) -> Any:
-            check_handler(func, mode, modality)
-            named = getattr(func, "callable", func)
-            endpoint = name or getattr(named, "__name__", None) or type(named).__name__
-            taken = {
-                kwargs.get("api_name") or getattr(api_fn, "__name__", None)
-                for api_fn, kwargs in self._deferred_apis
-            } | {entry["name"] for entry in self._deferred_webrtc}
-            if endpoint in taken:
-                # Blocks would quietly rename it, and clients would reach the
-                # other endpoint by this name
-                raise ValueError(
-                    f"An endpoint named {endpoint!r} already exists. Pass a "
-                    "different name to server.webrtc(name=...)."
-                )
-            self._deferred_webrtc.append(
-                {
-                    "fn": func,
-                    "name": endpoint,
-                    "modality": modality,
-                    "mode": mode,
-                    "rtc_configuration": rtc_configuration,
-                    "server_rtc_configuration": server_rtc_configuration,
-                    "video_bitrate": video_bitrate,
-                    "allow_extra_tracks": allow_extra_tracks,
-                    "time_limit": time_limit,
-                    "concurrency_limit": concurrency_limit,
-                }
-            )
-            return func
-
-        return register if fn is None else register(fn)
 
     def launch(
         self,
@@ -426,12 +362,31 @@ class Server(App):
 
         with Blocks(mode="server") as blocks:
             for fn, api_kwargs in self._deferred_apis:
-                gr_api(fn=fn, **api_kwargs)
-            if self._deferred_webrtc:
-                from gradio.webrtc.endpoint import server_stream
+                kwargs = dict(api_kwargs)
+                transport = kwargs.pop("transport", None)
+                if transport is None:
+                    if kwargs["stream_every"] is None:
+                        kwargs["stream_every"] = 0.5
+                    gr_api(fn=fn, **kwargs)
+                    continue
+                try:
+                    from gradio.webrtc import connection  # noqa: F401
+                except ImportError as e:
+                    from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
 
-                for webrtc_kwargs in self._deferred_webrtc:
-                    server_stream(**webrtc_kwargs)
+                    raise ImportError(WEBRTC_EXTRA_HINT) from e
+                from gradio.webrtc.transport import api_stream
+
+                api_stream(
+                    fn,
+                    transport=transport,
+                    api_name=kwargs["api_name"],
+                    api_description=kwargs["api_description"],
+                    time_limit=kwargs["time_limit"],
+                    stream_every=kwargs["stream_every"],
+                    concurrency_limit=kwargs["concurrency_limit"],
+                    concurrency_id=kwargs["concurrency_id"],
+                )
         if any(map(_takes_oauth, self._oauth_candidates())):
             blocks._expects_oauth = True  # type: ignore[attr-defined]
 
@@ -492,13 +447,21 @@ class Server(App):
         )
 
     def _oauth_candidates(self) -> list[Any]:
-        """The `webrtc()` functions, whose OAuth hints add the login routes. An
-        `api()` hint does not: its callers pass their own token, so such an app
-        must be able to start without `gradio[oauth]`, `hf_oauth`, or an HF
-        login."""
+        """The functions of `api(transport=...)` endpoints (and their TURN
+        configuration functions), whose OAuth hints add the login routes: a page
+        streams to them with the visitor's session. A plain `api()` hint does
+        not: its callers pass their own token, so such an app must be able to
+        start without `gradio[oauth]`, `hf_oauth`, or an HF login."""
+        from gradio.webrtc.options import WebRTCOptions
+
         candidates: list[Any] = []
-        for webrtc_kwargs in self._deferred_webrtc:
-            candidates += [webrtc_kwargs["fn"], webrtc_kwargs["rtc_configuration"]]
+        for fn, api_kwargs in self._deferred_apis:
+            transport = api_kwargs.get("transport")
+            if transport is None:
+                continue
+            candidates.append(fn)
+            if isinstance(transport, WebRTCOptions):
+                candidates.append(transport.rtc_configuration)
         return candidates
 
     def _check_process_executor(self) -> None:

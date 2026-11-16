@@ -22,6 +22,7 @@ from gradio.data_classes import FileData, FileDataDict
 if TYPE_CHECKING:
     from gradio.blocks import Block, BlockContext, Component
     from gradio.components import Timer
+    from gradio.webrtc.options import WebRTCOptions
 
 from gradio_client.utils import python_type_to_json_schema
 
@@ -642,10 +643,11 @@ class EventListener(str):
             concurrency_id: str | None = None,
             api_visibility: Literal["public", "private", "undocumented"] = "public",
             time_limit: int | None = None,
-            stream_every: float = 0.5,
+            stream_every: float | None = None,
             key: int | str | tuple[int | str, ...] | None = None,
             validator: Callable | None = None,
             inputs_kwargs: dict[str, Component | BlockContext] | None = None,
+            transport: Literal["webrtc"] | WebRTCOptions | None = None,
         ) -> Dependency:
             """
             Parameters:
@@ -671,6 +673,7 @@ class EventListener(str):
                 api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
                 key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
                 validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names. It should return a `gr.validate()` for each input value.
+                transport: how the media of a stream travels. None (default) sends it through the queue. "webrtc" (or a `gr.WebRTCOptions` with its settings) streams it over a WebRTC peer connection, for real-time audio and video: `.stream()` of a gr.Image, gr.Audio or gr.Video with the component among the inputs sends the camera or microphone to `fn` (and plays what `fn` returns when it is among the outputs too), and any event whose outputs include one of them streams the media that the generator `fn` yields. The function still takes one value per input and returns one value per output. Requires the `webrtc` extra: `pip install "gradio[webrtc]"`.
             """
 
             if fn == "decorator":
@@ -748,6 +751,7 @@ class EventListener(str):
                         stream_every=stream_every,
                         key=key,
                         validator=validator,
+                        transport=transport,
                     )
 
                     @wraps(func)
@@ -778,6 +782,50 @@ class EventListener(str):
                 block if _has_trigger else None, _event_name
             )
 
+            if transport is not None:
+                unsupported = [
+                    name
+                    for name, given in (
+                        ("queue", not queue),
+                        ("batch", batch),
+                        ("preprocess", not preprocess),
+                        ("postprocess", not postprocess),
+                        ("js", js is not None),
+                        ("validator", validator is not None),
+                        ("inputs_kwargs", bool(inputs_kwargs)),
+                    )
+                    if given
+                ]
+                if unsupported:
+                    raise ValueError(
+                        "A stream with transport= does not support "
+                        f"{', '.join(unsupported)}."
+                    )
+                try:
+                    from gradio.webrtc import connection  # noqa: F401
+                except ImportError as e:
+                    from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
+
+                    raise ImportError(WEBRTC_EXTRA_HINT) from e
+                from gradio.webrtc.transport import blocks_stream
+
+                dep, dep_index = blocks_stream(
+                    block,
+                    cast(Callable, fn),
+                    _ordered_blocks(inputs),
+                    _ordered_blocks(outputs),
+                    transport=transport,
+                    trigger=event_target,
+                    time_limit=time_limit,
+                    stream_every=stream_every,
+                    concurrency_limit=concurrency_limit,
+                    concurrency_id=concurrency_id,
+                    show_progress=show_progress,
+                    trigger_mode=trigger_mode,
+                )
+                set_cancel_events([event_target], cancels)
+                return Dependency(block, dep.get_config(), dep_index, fn)
+
             dep, dep_index = root_block.set_event_trigger(
                 [event_target],
                 fn,
@@ -804,7 +852,7 @@ class EventListener(str):
                 api_visibility=api_visibility,
                 connection=_connection,
                 time_limit=time_limit,
-                stream_every=stream_every,
+                stream_every=0.5 if stream_every is None else stream_every,
                 event_specific_args=[
                     d["name"]
                     for d in _event_specific_args
@@ -838,6 +886,20 @@ class EventListener(str):
         )
         event_trigger.event_specific_args = event_specific_args  # type: ignore
         return event_trigger
+
+
+def _ordered_blocks(blocks: Any) -> list:
+    """The inputs or outputs of a WebRTC stream as a list: their order matches
+    the function's parameters and return values."""
+    if blocks is None:
+        return []
+    if isinstance(blocks, set | frozenset):
+        raise TypeError(
+            "Pass the inputs and outputs of a stream with transport= as a list."
+        )
+    if isinstance(blocks, Sequence):
+        return list(blocks)
+    return [blocks]
 
 
 @document()

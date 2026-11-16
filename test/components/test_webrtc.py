@@ -1,6 +1,5 @@
 import asyncio
 import json
-import pickle
 import time
 from collections.abc import Callable
 from contextlib import asynccontextmanager, closing
@@ -24,29 +23,39 @@ import gradio as gr
 from gradio.context import LocalContext
 from gradio.route_utils import API_PREFIX
 from gradio.webrtc import (
-    AdditionalOutputs,
     AsyncAudioVideoStreamHandler,
     AsyncStreamHandler,
     AsyncVideoStreamHandler,
     CloseStream,
     StreamHandler,
-    VideoOptions,
     VideoStreamHandler,
 )
 from gradio.webrtc import connection as webrtc_connection
+from gradio.webrtc.handlers import VideoOptions
+from gradio.webrtc.utils import AdditionalOutputs, split_output
 
 
-def manager_of(blocks, webrtc):
-    """The ConnectionManager that `webrtc.stream()` created, which the function
-    of its stream event holds."""
-    import inspect
-
-    stream_fn = next(
+def stream_fn_of(blocks, media):
+    """The event of the stream with `transport=` that `media` (its gr.Image,
+    gr.Audio or gr.Video) sends or shows."""
+    return next(
         fn
         for fn in blocks.fns.values()
-        if (webrtc._id, "stream") in [tuple(t) for t in fn.targets]
+        if fn.transport is not None and media in [*fn.inputs, *fn.outputs]
     )
+
+
+def manager_of(blocks, media):
+    """The ConnectionManager of the stream of `media`, which the function of
+    its stream event holds."""
+    import inspect
+
+    stream_fn = stream_fn_of(blocks, media)
     return inspect.getclosurevars(stream_fn.fn).nonlocals["manager"]
+
+
+def webcam():
+    return gr.Image(sources=["webcam"], streaming=True)
 
 
 def queue_event(event_id="event", session_hash=None):
@@ -70,6 +79,11 @@ def queue_event(event_id="event", session_hash=None):
 
 def flip(frame, *args):
     return frame
+
+
+def flip_and_skip(frame, *args):
+    """`flip` for a stream with another output, which it leaves as it is."""
+    return frame, gr.skip()
 
 
 def admitted_anyway(managers):
@@ -116,7 +130,7 @@ seen_requests: list = []
 
 def needs_request(frame, value, request: gr.Request):
     seen_requests.append(request)
-    return frame
+    return frame, gr.skip()
 
 
 def fail_with_gr_error(frame, *args):
@@ -129,7 +143,7 @@ def fail_with_value_error(frame, *args):
 
 def warn(frame, *args):
     gr.Warning("Careful")
-    return frame
+    return frame, gr.skip()
 
 
 def three_frames(*args):
@@ -256,8 +270,8 @@ class RecordingVideo(VideoStreamHandler):
         time.sleep(0.02)
         frame = np.zeros((16, 16, 3), dtype=np.uint8)
         if not self.latest_args:
-            return frame
-        return frame, AdditionalOutputs(self.latest_args[0] * 2)
+            return frame, gr.skip()
+        return frame, self.latest_args[0] * 2
 
     def shutdown(self):
         self.events.append("shutdown on the loop" if on_event_loop() else "shutdown")
@@ -281,8 +295,8 @@ class AsyncRecordingVideo(AsyncVideoStreamHandler):
         await asyncio.sleep(0.02)
         frame = np.zeros((16, 16, 3), dtype=np.uint8)
         if not self.latest_args:
-            return frame
-        return frame, AdditionalOutputs(self.latest_args[0] * 2)
+            return frame, gr.skip()
+        return frame, self.latest_args[0] * 2
 
     def shutdown(self):
         self.events.append("shutdown on the loop" if on_event_loop() else "shutdown")
@@ -306,7 +320,7 @@ class CaptionVideo(VideoStreamHandler):
         time.sleep(0.02)
         if not self.latest_args:
             return None
-        return AdditionalOutputs(self.latest_args[0] * 2)
+        return self.latest_args[0] * 2
 
     def shutdown(self):
         self.events.append("shutdown on the loop" if on_event_loop() else "shutdown")
@@ -339,7 +353,7 @@ class RecordingAudioVideo(AsyncAudioVideoStreamHandler):
         import numpy as np
 
         await asyncio.sleep(0.02)
-        return np.zeros((16, 16, 3), dtype=np.uint8)
+        return np.zeros((16, 16, 3), dtype=np.uint8), gr.skip()
 
     def shutdown(self):
         self.events.append("shutdown on the loop" if on_event_loop() else "shutdown")
@@ -364,148 +378,20 @@ class TestWebRTC:
         assert (candidate.sdpMid, candidate.sdpMLineIndex) == ("0", 0)
         assert webrtc_connection._parse_ice_candidate({"candidate": "nonsense"}) is None
 
-    def test_component_functions(self):
-        webrtc = gr.WebRTC(
-            rtc_configuration=lambda: {"iceServers": []},
-            server_rtc_configuration={
-                "iceServers": [{"urls": "turn:example.com", "credential": "secret"}]
-            },
-        )
-        config = webrtc.get_config()
-        assert "rtc_configuration" not in config
-        assert "server_rtc_configuration" not in config
-        # Nor in an update, which sends the named attributes as they are
-        from gradio.blocks import postprocess_update_dict
-
-        update = postprocess_update_dict(
-            webrtc, {"server_rtc_configuration": {"iceServers": []}}
-        )
-        assert "server_rtc_configuration" not in update
-        assert config["mode"] == "send-receive"
-        assert config["modality"] == "video"
-        assert config["track_constraints"]["facingMode"] == "user"
-        assert config["mirror_webcam"] == "auto"
-        assert config["time_limit"] is None
-        assert "server_fns" not in config
-        assert webrtc.preprocess(gr.WebRTC.data_model(root="abc")) == "abc"
-        assert webrtc.preprocess(None) is None
-        assert webrtc.postprocess("abc") == "abc"
-        assert webrtc.api_info()["type"] == "string"
-
-        plain = gr.WebRTC()
-        assert pickle.loads(pickle.dumps(plain)).get_config() == plain.get_config()
-
-    def test_media_constraints(self):
-        from gradio.components.webrtc import (
-            DEFAULT_AUDIO_CONSTRAINTS,
-            DEFAULT_VIDEO_CONSTRAINTS,
-        )
-
-        assert gr.WebRTC(modality="audio").get_config()["track_constraints"] == (
-            DEFAULT_AUDIO_CONSTRAINTS
-        )
-        assert gr.WebRTC(modality="video").get_config()["track_constraints"] == (
-            DEFAULT_VIDEO_CONSTRAINTS
-        )
-
-        # User constraints are merged over the defaults
-        expected_audio = {**DEFAULT_AUDIO_CONSTRAINTS, "echoCancellation": False}
-        for options in (
-            gr.MicrophoneOptions(constraints={"echoCancellation": False}),
-            {"constraints": {"echoCancellation": False}},
-        ):
-            audio = gr.WebRTC(modality="audio", microphone_options=options)
-            assert isinstance(audio.microphone_options, gr.MicrophoneOptions)
-            assert audio.get_config()["track_constraints"] == expected_audio
-
-        both = gr.WebRTC(
-            modality="audio-video",
-            webcam_options=gr.WebcamOptions(
-                mirror=False, constraints={"video": {"width": 640}}
-            ),
-        )
-        config = both.get_config()
-        assert config["track_constraints"]["video"] == {
-            **DEFAULT_VIDEO_CONSTRAINTS,
-            "width": 640,
-        }
-        assert config["track_constraints"]["audio"] == DEFAULT_AUDIO_CONSTRAINTS
-        assert config["mirror_webcam"] is False
-
-    def test_invalid_mode_and_modality(self):
-        with pytest.raises(ValueError, match="mode must be"):
-            gr.WebRTC(mode="duplex")  # type: ignore
-        with pytest.raises(ValueError, match="modality must be"):
-            gr.WebRTC(modality="text")  # type: ignore
-        with pytest.raises(ValueError, match="audio-video"):
-            gr.WebRTC(modality="audio-video", mode="send")
-
-    def test_stream_options(self):
-        i18n = gr.I18n(en={"talk": "Start talking"})
-        webrtc = gr.WebRTC(
-            modality="audio",
-            stream_options={
-                "button_labels": {"start": i18n("talk"), "stop": "Done"},
-                "pulse_color": "red",
-            },
-        )
-        options = webrtc.get_config()["stream_options"]
-        assert options["button_labels"]["stop"] == "Done"
-        # Translated in the frontend
-        assert options["button_labels"]["start"].startswith("__i18n__")
-        assert options["pulse_color"] == "red"
-        assert options["icon"] is None
-        assert "button_labels" not in webrtc.get_config()
-        with pytest.raises(ValueError, match="button_labels"):
-            gr.StreamOptions(button_labels={"begin": "Go"})
-        # A label left as None keeps the default
-        webrtc = gr.WebRTC(
-            stream_options={"button_labels": {"start": None, "stop": "Done"}}
-        )
-        assert webrtc.get_config()["stream_options"]["button_labels"] == {
-            "stop": "Done"
-        }
-
-    @pytest.mark.asyncio
-    async def test_stream_options_update_like_the_config(self):
-        from gradio.routes import ORJSONResponse
-
-        i18n = gr.I18n(en={"talk": "Start talking"})
-        options = gr.StreamOptions(
-            button_labels={"start": i18n("talk")},
-            icon="test/test_files/bus.png",
-            pulse_color="red",
-        )
-        with gr.Blocks() as demo:
-            webrtc = gr.WebRTC(modality="audio")
-            button = gr.Button()
-            button.click(lambda: gr.update(stream_options=options), None, webrtc)
-
-        output = await demo.process_api(0, [], state=None)
-        sent = json.loads(ORJSONResponse._render_str(output["data"][0]))
-        config = gr.WebRTC(modality="audio", stream_options=options).get_config()
-        assert sent["stream_options"] == json.loads(
-            ORJSONResponse._render_str(config["stream_options"])
-        )
-        assert sent["stream_options"]["button_labels"]["start"].startswith("__i18n__")
-        icon_url = sent["stream_options"]["icon"]["url"]
-        assert icon_url.endswith("bus.png")
-        assert "test/test_files" not in icon_url
-        # Served file data, so an app mounted under a path gets its root added
-        from gradio.processing_utils import add_root_url
-
-        mounted = add_root_url(sent, "https://example.com/app", None)
-        assert mounted["stream_options"]["icon"]["url"] == (
-            f"https://example.com/app{icon_url}"
-        )
-
     @pytest.mark.parametrize(
         "video_bitrate",
         [{"maximum": 4000}, {"min": 0}, {"start": 1.5}, {"min": 2000, "max": 1000}],
     )
     def test_invalid_video_bitrate(self, video_bitrate):
-        with pytest.raises(ValueError, match="video_bitrate"):
-            gr.WebRTC(video_bitrate=video_bitrate)
+        with gr.Blocks():
+            camera = webcam()
+            with pytest.raises(ValueError, match="video_bitrate"):
+                camera.stream(
+                    flip,
+                    inputs=[camera],
+                    outputs=[camera],
+                    transport=gr.WebRTCOptions(video_bitrate=video_bitrate),
+                )
 
     def test_video_bitrate_is_skipped_when_aiortc_internals_change(
         self, monkeypatch, caplog
@@ -561,105 +447,114 @@ class TestWebRTC:
     def test_stream_validation(self):
         with gr.Blocks() as demo:
             slider = gr.Slider()
-            audio = gr.WebRTC(modality="audio")
-            with pytest.raises(ValueError, match="StreamHandler"):
-                audio.stream(flip, inputs=[audio], outputs=[audio])
-            with pytest.raises(ValueError, match="copy"):
-                audio.stream(SyncHandler(), inputs=[audio], outputs=[audio])
-            video = gr.WebRTC()
-            with pytest.raises(ValueError, match="first element"):
-                video.stream(flip, inputs=[slider], outputs=[video])
-            # A set has no order to match the handler's arguments by
-            with pytest.raises(TypeError, match="list"):
-                video.stream(flip, inputs={video, slider}, outputs=[video])  # type: ignore[arg-type]
-            with pytest.raises(TypeError, match="list"):
-                video.stream(flip, inputs=[video], outputs={video, slider})  # type: ignore[arg-type]
+            button = gr.Button()
+            camera = webcam()
+            microphone = gr.Audio(sources=["microphone"], streaming=True)
+            video = gr.Video(sources=["webcam"])
+            # A handler class takes the media of the component
             with pytest.raises(ValueError, match="VideoStreamHandler"):
-                video.stream(EchoHandler, inputs=[video], outputs=[video])
-            with pytest.raises(ValueError, match="StreamHandler or AsyncStreamHandler"):
-                audio.stream(RecordingVideo, inputs=[audio], outputs=[audio])
+                camera.stream(
+                    EchoHandler, inputs=[camera], outputs=[camera], transport="webrtc"
+                )
+            with pytest.raises(ValueError, match="StreamHandler / AsyncStreamHandler"):
+                microphone.stream(
+                    RecordingVideo,
+                    inputs=[microphone],
+                    outputs=[microphone],
+                    transport="webrtc",
+                )
             with pytest.raises(ValueError, match="copy"):
-                video.stream(RecordingVideo(), inputs=[video], outputs=[video])
-            receive = gr.WebRTC(mode="receive")
-            # Nothing comes from the page for video_receive() to take
-            with pytest.raises(ValueError, match='"send" and "send-receive"'):
-                receive.stream(RecordingVideo, outputs=[receive], trigger=slider.change)
-            with pytest.raises(ValueError, match="trigger"):
-                receive.stream(flip, inputs=[slider], outputs=[receive])
-            with pytest.raises(ValueError, match="cannot be one of"):
-                receive.stream(flip, inputs=[receive], outputs=[receive])
-            receive_audio = gr.WebRTC(mode="receive", modality="audio")
-            with pytest.raises(
-                ValueError, match='VideoOptions is for modality="video"'
-            ):
-                receive_audio.stream(
-                    VideoOptions(three_frames),
-                    outputs=[receive_audio],
-                    trigger=slider.change,
+                camera.stream(
+                    RecordingVideo(),
+                    inputs=[camera],
+                    outputs=[camera],
+                    transport="webrtc",
+                )
+            with pytest.raises(ValueError, match="both the inputs and the outputs"):
+                video.stream(
+                    RecordingAudioVideo,
+                    inputs=[video],
+                    outputs=[slider],
+                    transport="webrtc",
+                )
+            # Nothing comes from the page for a stream it only receives
+            with pytest.raises(ValueError, match="handler classes take media"):
+                button.click(
+                    RecordingVideo,
+                    inputs=[slider],
+                    outputs=[camera],
+                    transport="webrtc",
                 )
             with pytest.raises(ValueError, match="generator function"):
-                receive_audio.stream(
-                    EchoHandler, outputs=[receive_audio], trigger=slider.change
+                button.click(
+                    flip, inputs=[slider], outputs=[camera], transport="webrtc"
                 )
-            stream = video.stream(flip, inputs=[video], outputs=[video])
+            with pytest.raises(ValueError, match="gr.Image, gr.Audio or gr.Video"):
+                button.click(
+                    three_frames, inputs=[slider], outputs=[slider], transport="webrtc"
+                )
+            with pytest.raises(ValueError, match="media_output"):
+                camera.stream(
+                    flip,
+                    inputs=[camera],
+                    outputs=[webcam(), webcam()],
+                    transport="webrtc",
+                )
+            # A set has no order to match the function's arguments by
+            with pytest.raises(TypeError, match="list"):
+                camera.stream(
+                    flip,
+                    inputs={camera, slider},  # type: ignore[arg-type]
+                    outputs=[camera],
+                    transport="webrtc",
+                )
+            with pytest.raises(ValueError, match="transport="):
+                camera.stream(
+                    flip,
+                    inputs=[camera],
+                    outputs=[camera],
+                    transport="http",  # type: ignore[arg-type]
+                )
+            # Settings a stream with transport= would otherwise drop silently
+            for kwargs in (
+                {"queue": False},
+                {"batch": True},
+                {"preprocess": False},
+                {"postprocess": False},
+                {"js": "(x) => x"},
+                {"validator": lambda x: None},
+                {"inputs_kwargs": {"x": slider}},
+            ):
+                with pytest.raises(ValueError, match=next(iter(kwargs))):
+                    camera.stream(
+                        flip,
+                        inputs=[camera],
+                        outputs=[camera],
+                        transport="webrtc",
+                        **kwargs,
+                    )
+            stream = camera.stream(
+                flip, inputs=[camera], outputs=[camera], transport="webrtc"
+            )
             # What another event's `cancels=` takes to stop the stream
             assert demo.fns[stream["id"]].connection == "stream"
-            # Calling it calls the handler, as for any event listener
+            # Calling it calls the function, as for any event listener
             assert stream.fn is flip
-            with pytest.raises(ValueError, match="once per WebRTC component"):
-                video.stream(flip, inputs=[video], outputs=[video, slider])
         with pytest.raises(AttributeError, match="Blocks context"):
-            gr.WebRTC().stream(flip, inputs=[], outputs=[])
+            camera.stream(flip, inputs=[camera], outputs=[camera], transport="webrtc")
 
     def test_an_rtc_configuration_that_yields_is_refused(self):
         async def credentials():
             yield {"iceServers": []}
 
         with gr.Blocks():
-            webrtc = gr.WebRTC(rtc_configuration=credentials)
+            camera = webcam()
             with pytest.raises(ValueError, match="must return a dict"):
-                webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
-        with pytest.raises(ValueError, match="must return a dict"):
-            gr.Server().webrtc(flip, rtc_configuration=credentials)
-
-    @pytest.mark.parametrize(
-        "mode, wrapped, as_object",
-        [
-            ("send-receive", False, False),
-            ("send-receive", True, True),
-            ("receive", False, True),
-            ("receive", True, False),
-        ],
-    )
-    def test_stream_rejects_async_functions(self, mode, wrapped, as_object):
-        async def process(frame):
-            return frame
-
-        async def generate():
-            yield None
-
-        class Process:
-            async def __call__(self, frame):
-                return frame
-
-        class Generate:
-            async def __call__(self):
-                yield None
-
-        if as_object:
-            fn = Process() if mode == "send-receive" else Generate()
-        else:
-            fn = process if mode == "send-receive" else generate
-        with gr.Blocks():
-            button = gr.Button()
-            webrtc = gr.WebRTC(mode=mode)
-            # The tracks call the function in a worker thread
-            with pytest.raises(ValueError, match="AsyncVideoStreamHandler"):
-                webrtc.stream(
-                    VideoOptions(fn) if wrapped else fn,
-                    inputs=[webrtc] if mode == "send-receive" else None,
-                    outputs=[webrtc],
-                    trigger=button.click if mode == "receive" else None,
+                camera.stream(
+                    flip,
+                    inputs=[camera],
+                    outputs=[camera],
+                    transport=gr.WebRTCOptions(rtc_configuration=credentials),
                 )
 
     @pytest.mark.parametrize("modality", ["video", "audio"])
@@ -679,155 +574,141 @@ class TestWebRTC:
                 pass
 
         with gr.Blocks():
-            webrtc = gr.WebRTC(modality=modality)
+            media = webcam() if modality == "video" else gr.Audio(streaming=True)
             # It would run on the event loop, holding up every other stream
             with pytest.raises(ValueError, match="start_up must be a coroutine"):
-                webrtc.stream(Handler, inputs=[webrtc], outputs=[webrtc])
+                media.stream(
+                    Handler, inputs=[media], outputs=[media], transport="webrtc"
+                )
 
     def test_stream_requires_turn_on_spaces(self, monkeypatch):
         monkeypatch.setenv("SYSTEM", "spaces")
         monkeypatch.setenv("SPACE_ID", "user/space")
         with gr.Blocks():
-            webrtc = gr.WebRTC()
+            camera = webcam()
             with pytest.raises(ValueError, match="rtc_configuration"):
-                webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
-            configured = gr.WebRTC(rtc_configuration={"iceServers": []})
-            configured.stream(flip, inputs=[configured], outputs=[configured])
+                camera.stream(
+                    flip, inputs=[camera], outputs=[camera], transport="webrtc"
+                )
+            camera.stream(
+                flip,
+                inputs=[camera],
+                outputs=[camera],
+                transport=gr.WebRTCOptions(rtc_configuration={"iceServers": []}),
+            )
 
-    def test_stream_registers_events(self):
+    def test_rtp_params_go_to_the_page(self):
+        rtp_params = {"degradationPreference": "maintain-framerate"}
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC()
+            camera = webcam()
+            camera.stream(
+                flip,
+                inputs=[camera],
+                outputs=[camera],
+                transport=gr.WebRTCOptions(rtp_params=rtp_params),
+            )
+        (config,) = [
+            d for d in demo.get_config_file()["dependencies"] if d.get("transport")
+        ]
+        # The browser applies them to the tracks it sends
+        assert config["transport"]["rtp_params"] == rtp_params
+
+    def test_stream_registers_one_event(self):
+        with gr.Blocks() as demo:
+            camera = webcam()
             slider = gr.Slider()
             number = gr.Number()
-            webrtc.stream(
-                flip,
-                inputs=[webrtc, slider],
-                outputs=[webrtc, number],
+            camera.stream(
+                flip_and_skip,
+                inputs=[camera, slider],
+                outputs=[camera, number],
                 time_limit=30,
+                stream_every=0.1,
                 concurrency_limit=None,
+                transport=gr.WebRTCOptions(
+                    server_rtc_configuration={
+                        "iceServers": [{"urls": "turn:x", "credential": "secret"}]
+                    }
+                ),
             )
+            # Another component shows what the camera sends
+            sent = webcam()
+            shown = gr.Image()
+            sent.stream(flip, inputs=[sent], outputs=[shown], transport="webrtc")
             button = gr.Button()
-            receive = gr.WebRTC(mode="receive")
-            receive.stream(
-                VideoOptions(flip, fps=10),
-                inputs=[slider],
-                outputs=[receive],
-                trigger=button.click,
+            speaker = gr.Audio()
+            button.click(
+                info_then_audio, inputs=[slider], outputs=[speaker], transport="webrtc"
             )
 
-        triggers = {
-            (target[0], target[1]): fn
-            for fn in demo.fns.values()
-            for target in fn.targets
-        }
-        stream = triggers[(webrtc._id, "stream")]
+        # The other inputs come over the data channel: no events of their own
+        assert len(demo.fns) == 3
+        stream = stream_fn_of(demo, camera)
+        assert [tuple(t) for t in stream.targets] == [(camera._id, "stream")]
         assert stream.connection == "stream"
         assert stream.api_visibility == "private"
         assert stream.time_limit == 30
         assert stream.concurrency_limit is None
         assert stream.trigger_mode == "multiple"
-        # The component shows the place in line itself, next to its cancel
-        # button, rather than a second status in the corner
-        assert stream.show_progress == "hidden"
-        # The other inputs reach the handler through "tick" and "change"
-        assert [i._id for i in stream.inputs] == [webrtc._id]
-        assert [o._id for o in stream.outputs] == [webrtc._id, number._id]
-        push = triggers[(webrtc._id, "tick")]
-        assert push.api_visibility == "private"
-        assert push.concurrency_limit is None
-        assert [i._id for i in push.inputs] == [webrtc._id, slider._id]
-        change = triggers[(slider._id, "change")]
-        assert change.name == push.name == "_push_inputs"
-        assert change.api_visibility == "private"
-        # They only hand values to a running stream, so they take no worker slot
-        assert push.queue is False
-        assert change.queue is False
-        assert (webrtc._id, "state_change") not in triggers
-
-        # In mode="receive" the stream event still carries the connection id
-        receive_stream = triggers[(receive._id, "stream")]
-        assert [i._id for i in receive_stream.inputs] == [receive._id]
-        assert receive_stream.concurrency_limit == "default"
-        assert (receive._id, "tick") in triggers
-        start = triggers[(button._id, "click")]
-        assert start.api_visibility == "private"
-        # Only sets the value that starts the stream, so it takes no worker slot
-        assert start.queue is False
-
-        assert webrtc.get_config()["time_limit"] == 30
-        manager = manager_of(demo, webrtc)
+        assert [i._id for i in stream.inputs] == [camera._id, slider._id]
+        assert [o._id for o in stream.outputs] == [camera._id, number._id]
+        # Only how the page connects goes to it, none of the settings
+        (config,) = [
+            d for d in demo.get_config_file()["dependencies"] if d["id"] == stream._id
+        ]
+        assert config["transport"] == {
+            "type": "webrtc",
+            "modality": "video",
+            "mode": "send-receive",
+            "media_input": 0,
+            "media_output": 0,
+        }
+        assert camera.get_config()["stream_transport"] == "webrtc"
+        manager = manager_of(demo, camera)
         assert manager.time_limit == 30
-        assert manager_of(demo, receive).mode == "receive"
+        assert manager.handler.fps == 10
+        assert stream_fn_of(demo, sent).transport["media_output"] == 0
 
-    def test_config_has_stream_only_for_a_component_with_one(self):
-        import copy
-
-        with gr.Blocks() as demo:
-            webrtc = gr.WebRTC()
-            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc], time_limit=30)
-            # As when a keyed @gr.render component gets the same id in another
-            # session, whose render does not call stream()
-            other = gr.WebRTC()
-        other._id = webrtc._id
-        config = webrtc.get_config()
-        assert config["has_stream"]
-        assert config["time_limit"] == 30
-        config = other.get_config()
-        assert not config["has_stream"]
-        assert config["time_limit"] is None
-
-        # gr.update() gives the session a new instance, with its own id, stored
-        # under the original id in the session's blocks
-        updated = gr.WebRTC(**cast(Any, {**webrtc.constructor_args, "render": False}))
-        assert updated._id != webrtc._id
-        session_config = copy.copy(demo.default_config)
-        session_config.blocks = {**session_config.blocks, webrtc._id: updated}
-        token = LocalContext.blocks_config.set(session_config)
-        try:
-            config = updated.get_config()
-        finally:
-            LocalContext.blocks_config.reset(token)
-        assert config["has_stream"]
-        assert config["time_limit"] == 30
-        # Without the session's blocks, the copy knows of no stream
-        assert not updated.get_config()["has_stream"]
-
-    @pytest.mark.parametrize("created", ["inside", "outside"])
-    def test_stream_is_refused_inside_a_render(self, created):
-        import copy
-
-        from gradio.context import LocalContext
-
-        with gr.Blocks() as demo:
-            outside = gr.WebRTC()
-            count = gr.Number(0)
-
-            @gr.render(inputs=[count])
-            def _(n):
-                webrtc = gr.WebRTC(key="camera") if created == "inside" else outside
-                webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
-
-        token = LocalContext.blocks_config.set(copy.copy(demo.default_config))
-        try:
-            # A render runs again whenever its inputs change, which would
-            # replace a running stream's event; a page has no use for streams
-            # it makes and remakes, since each holds a camera or microphone
-            with pytest.raises(ValueError, match="inside a @gr.render"):
-                demo.renderables[0].apply(0)
-        finally:
-            LocalContext.blocks_config.reset(token)
+        start = stream_fn_of(demo, speaker)
+        assert [tuple(t) for t in start.targets] == [(button._id, "click")]
+        assert start.transport["mode"] == "receive"
+        assert start.transport["media_input"] is None
+        assert "rtp_params" not in start.transport
+        # A button that starts a stream ignores clicks while it runs
+        assert start.trigger_mode == "once"
+        assert start.concurrency_limit == "default"
 
     @pytest.mark.asyncio
     async def test_run_stream_refuses_a_taken_id_and_mismatched_outputs(self):
+        import numpy as np
+
         from gradio.context import LocalContext
         from gradio.queueing import Queue
 
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC()
+            camera = webcam()
             number = gr.Number()
             text = gr.Textbox()
-            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc, number, text])
-        manager = manager_of(demo, webrtc)
+            camera.stream(
+                lambda frame: (frame, 1),
+                inputs=[camera],
+                outputs=[camera, number, text],
+                transport="webrtc",
+            )
+        manager = manager_of(demo, camera)
+        run_stream = stream_fn_of(demo, camera).fn
+        # The function returns one value per output
+        with pytest.raises(ValueError, match="returned 2 values for 3 outputs"):
+            manager.handler.callable(np.zeros((16, 16, 3), dtype=np.uint8))
+        # With one output, extra values reach the track as one tuple
+        frame = np.zeros((16, 16, 3), dtype=np.uint8)
+        with pytest.raises(ValueError, match="returned 2 values where the stream"):
+            split_output((frame, "text"))
+
+        def joined(webrtc_id):
+            # The event data that the page joins the queue with
+            return run_stream(SimpleNamespace(_data={"webrtc_id": webrtc_id}))
+
         event = queue_event("event")[0]
         # Keys the app's stream registry, so not a SimpleNamespace
         queue = cast(Any, UnitQueue())
@@ -842,7 +723,7 @@ class TestWebRTC:
             skip = gr.skip()
             # The queue steps the event's run each time the stream wakes it.
             # Its first step admits the stream.
-            run = webrtc._run_stream(manager, "abc")
+            run = joined("abc")
             assert await anext(run) == (skip, skip, skip)
             assert stream_of(manager, "abc").event.id == "event"
 
@@ -852,7 +733,7 @@ class TestWebRTC:
             queue.event_ids_to_events["other"] = other
             other_token = LocalContext.event_id.set("other")
             try:
-                values = [x async for x in webrtc._run_stream(manager, "abc")]
+                values = [x async for x in joined("abc")]
                 assert values == [(skip, skip, skip)]
             finally:
                 LocalContext.event_id.reset(other_token)
@@ -860,12 +741,11 @@ class TestWebRTC:
             assert stream_of(manager, "abc").event.id == "event"
 
             # The step with an ended stream's last outputs ends the run, so
-            # that they go out with the event's completion
+            # that they go out with the event's completion. Outputs not taken
+            # yet are replaced by newer ones.
             add_outputs(manager, "abc", AdditionalOutputs(5, "e"))
             add_outputs(manager, "abc", AdditionalOutputs(6, "f"))
             end_stream(manager, "abc")
-            assert await anext(run) == (skip, 5, "e")
-            assert not event.closed
             assert await anext(run) == (skip, 6, "f")
             assert event.closed
 
@@ -875,19 +755,6 @@ class TestWebRTC:
             event.closed = False
             assert await anext(run) == (skip, skip, skip)
             assert event.closed
-
-            # The AdditionalOutputs of a handler must match stream()'s outputs
-            third = queue_event("third")[0]
-            queue.event_ids_to_events["third"] = third
-            third_token = LocalContext.event_id.set("third")
-            try:
-                mismatched = webrtc._run_stream(manager, "def")
-                assert await anext(mismatched) == (skip, skip, skip)
-                add_outputs(manager, "def", AdditionalOutputs(4))
-                with pytest.raises(ValueError, match="2 outputs besides"):
-                    await anext(mismatched)
-            finally:
-                LocalContext.event_id.reset(third_token)
         finally:
             LocalContext.blocks.reset(blocks_token)
             LocalContext.event_id.reset(event_token)
@@ -901,6 +768,7 @@ async def make_offer(audio=False, video=False, receive=None):
     """`audio` and `video` are a flag or a number of tracks."""
     pc = RTCPeerConnection()
     channel = pc.createDataChannel("text")
+    pc.channel = channel  # type: ignore[attr-defined]
     # What the server says over the data channel, decoded
     pc.messages = []  # type: ignore[attr-defined]
     channel.on("message", lambda m: pc.messages.append(json.loads(m)))  # type: ignore[attr-defined]
@@ -918,54 +786,51 @@ class Harness:
     """Drives a launched app the way the browser does: join the queue with the
     stream event, wait for the turn, then negotiate the peer connection."""
 
-    def __init__(self, demo, local_url, webrtc):
+    def __init__(self, demo, local_url, media):
         self.demo = demo
         self.api = f"{local_url.rstrip('/')}{API_PREFIX}"
-        self.webrtc = webrtc
-        self.manager = manager_of(demo, webrtc)
-        self.stream_fn = next(
-            fn
-            for fn in demo.fns.values()
-            if (webrtc._id, "stream") in [tuple(t) for t in fn.targets]
-        )
+        # The gr.Image, gr.Audio or gr.Video of the stream
+        self.media = media
+        self.manager = manager_of(demo, media)
+        self.stream_fn = stream_fn_of(demo, media)
         self.http = httpx2.AsyncClient(timeout=10)
         # The browser session each stream joined from, which the stream's
-        # signalling and inputs then come from too
+        # signalling then comes from too
         self.sessions = {}
-        # Another streaming gr.WebRTC in the same app, if the test asked for one
-        self.second: gr.WebRTC | None = None
+
+    def join_body(self, webrtc_id, session_hash):
+        """What the page joins the queue with: no value in the media's slot
+        and the stream id in the event data. The event ignores the values of
+        the other inputs, which reach the stream over its data channel, so
+        these are None too."""
+        return {
+            "data": [None] * len(self.stream_fn.inputs),
+            "event_data": {"webrtc_id": webrtc_id},
+            "fn_index": self.stream_fn._id,
+            "session_hash": session_hash,
+        }
 
     async def join(self, webrtc_id, session_hash=None):
         session_hash = session_hash or webrtc_id
         self.sessions[webrtc_id] = session_hash
         response = await self.http.post(
-            f"{self.api}/queue/join",
-            json={
-                "data": [webrtc_id],
-                "fn_index": self.stream_fn._id,
-                "session_hash": session_hash,
-            },
+            f"{self.api}/queue/join", json=self.join_body(webrtc_id, session_hash)
         )
         return response.json()["event_id"]
 
-    async def push_inputs(self, webrtc_id, *args, session_hash=None):
+    async def push_inputs(self, webrtc_id, *values):
         """
-        Runs the input event that the page fires, from the stream's session.
-        It runs on the test's event loop rather than the server's, which is
-        fine for reading `latest_args` but cannot wake a track that awaits its
+        Hands the stream the values of its other inputs as they arrive over
+        its data channel, preprocessed with the stream's session state. It
+        runs on the test's event loop rather than the server's, which is fine
+        for reading `latest_args` but cannot wake a track that awaits its
         inputs on an asyncio.Event (receive-mode audio).
         """
-        session_hash = session_hash or self.sessions.get(webrtc_id, webrtc_id)
-        token = LocalContext.request.set(
-            cast(gr.Request, SimpleNamespace(session_hash=session_hash))
-        )
-        # As in the app's events, which find the app's streams through it
-        blocks_token = LocalContext.blocks.set(self.demo)
-        try:
-            await self.webrtc._push_inputs(webrtc_id, *args)
-        finally:
-            LocalContext.blocks.reset(blocks_token)
-            LocalContext.request.reset(token)
+        stream = stream_of(self.manager, webrtc_id)
+        if self.manager.prepare_inputs is None:
+            stream.set_inputs(list(values))
+        else:
+            await self.manager._prepare_and_set_inputs(stream, list(values))
 
     async def wait_until(self, condition, timeout=5.0):
         deadline = time.monotonic() + timeout
@@ -1159,40 +1024,54 @@ class TestStreams:
         monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
         forget_earlier_streams()
         params = dict(getattr(request, "param", {}))
-        handler = params.pop("handler", flip)
+        handler = params.pop("handler", flip_and_skip)
         stream_kwargs = params.pop("stream_kwargs", {})
         second_kwargs = params.pop("second", None)
+        mode = params.pop("mode", "send-receive")
+        modality = params.pop("modality", "video")
+        # The rest are the stream's gr.WebRTCOptions
+        transport = gr.WebRTCOptions(**params)
         executor = getattr(request.cls, "executor", "thread")
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC(**params)
+            if modality == "audio":
+                media = gr.Audio(sources=["microphone"], streaming=True)
+            elif modality == "audio-video":
+                # With an AudioVideoStreamHandler
+                media = gr.Video(sources=["webcam"])
+            else:
+                media = webcam()
             slider = gr.Slider()
             number = gr.Number()
-            if webrtc.mode == "receive":
+            if mode == "receive":
                 button = gr.Button()
-                webrtc.stream(
+                button.click(
                     handler,
                     inputs=[slider],
-                    outputs=[webrtc],
-                    trigger=button.click,
+                    outputs=[media],
+                    transport=transport,
                     **stream_kwargs,
                 )
             else:
-                webrtc.stream(
+                media.stream(
                     handler,
-                    inputs=[webrtc, slider],
-                    outputs=[webrtc, number],
+                    inputs=[media, slider],
+                    outputs=[media, number] if mode == "send-receive" else [number],
+                    transport=transport,
                     **stream_kwargs,
                 )
             if second_kwargs is not None:
-                second = gr.WebRTC(**second_kwargs)
-                second.stream(flip, inputs=[second], outputs=[second])
+                second = webcam()
+                second.stream(
+                    flip,
+                    inputs=[second],
+                    outputs=[second],
+                    transport=gr.WebRTCOptions(**second_kwargs),
+                )
         with closing(demo):
             # Most tests read the queue's events, which are in this process
             # only with threads (see TestStreamsWithProcesses)
             _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
-            harness = Harness(demo, local_url, webrtc)
-            if second_kwargs is not None:
-                harness.second = second
+            harness = Harness(demo, local_url, media)
             try:
                 yield harness
             finally:
@@ -1236,7 +1115,7 @@ class TestStreams:
         original = anyio.to_thread.run_sync
 
         async def counting(fn, *args, **kwargs):
-            if isinstance(getattr(fn, "__self__", None), gr.WebRTC):
+            if isinstance(getattr(fn, "__self__", None), gr.components.Component):
                 thread_calls.append(fn.__name__)
             return await original(fn, *args, **kwargs)
 
@@ -1593,7 +1472,7 @@ class TestStreams:
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched",
-        [{"handler": lambda frame, x: (frame, AdditionalOutputs(x * 2))}],
+        [{"handler": lambda frame, x: (frame, x * 2)}],
         indirect=True,
     )
     async def test_additional_outputs_reach_the_other_outputs(self, launched):
@@ -1618,18 +1497,13 @@ class TestStreams:
     async def test_the_chunk_route_refuses_a_webrtc_stream(self, launched):
         h = launched
         event_id = await h.start("one")
-        # Media comes over the peer connection and inputs by their own
-        # events: a chunk would only wake a step that ignores it. Nor can a
+        # Media comes over the peer connection and inputs over its data
+        # channel: a chunk would only wake a step that ignores it. Nor can a
         # chunk with a new stream id get a second stream through one place in
         # the concurrency limit.
         response = await h.http.post(
             f"{h.api}/stream/{event_id}",
-            json={
-                "data": ["two"],
-                "fn_index": h.stream_fn._id,
-                "session_hash": "one",
-                "event_id": event_id,
-            },
+            json={**h.join_body("two", "one"), "event_id": event_id},
         )
         assert response.status_code == 404
         assert h.event_running(event_id)
@@ -1697,11 +1571,8 @@ class TestStreams:
             ({"modality": "audio", "handler": EchoHandler}, {"video": True}),
             # A second track of a kind: one handler takes one track of each
             ({}, {"video": 2}),
-            # E.g. client.webrtc() given media for a receive-only endpoint
-            (
-                {"mode": "receive", "handler": VideoOptions(flip, fps=5)},
-                {"video": True},
-            ),
+            # E.g. a client given media for a receive-only endpoint
+            ({"mode": "receive", "handler": three_frames}, {"video": True}),
         ],
         indirect=["launched"],
     )
@@ -1788,11 +1659,11 @@ class TestStreams:
             session_hash="intruder",
         )
         assert candidate["meta"]["error"] == "unknown_connection"
-        # ...nor feed its handler, which has nothing from the time the user
-        # clicked: it asks the page
+        # ...nor feed its handler: the inputs come over this connection's
+        # data channel only. The handler has nothing from the time the user
+        # clicked: it asks the page.
         assert tracks_of(h.manager, "one")[0].latest_args is None
         await h.push_inputs("one", 0.2)
-        await h.push_inputs("one", 0.9, session_hash="intruder")
         assert tracks_of(h.manager, "one")[0].latest_args == [0.2]
         for connection in (intruder, pc):
             await connection.close()
@@ -1865,9 +1736,9 @@ class TestStreams:
     ):
         monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.3)
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC()
-            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
-        manager = manager_of(demo, webrtc)
+            camera = webcam()
+            camera.stream(flip, inputs=[camera], outputs=[camera], transport="webrtc")
+        manager = manager_of(demo, camera)
         registry = unit_registry()
         wait = registry.wait_for_admission
         # Both the offer and get_rtc_configuration may wait for the turn
@@ -2036,14 +1907,14 @@ class TestStreams:
         # A gr.update() on the component gives the session a new instance with
         # its own id, stored under the original id (see
         # Blocks.postprocess_data). The stream still finds its manager.
-        webrtc = h.webrtc
+        media = h.media
         session = h.demo.server_app.state_holder["one"]
-        session[webrtc._id] = webrtc.__class__(
-            **{**webrtc.constructor_args, "render": False}
+        session[media._id] = media.__class__(
+            **{**media.constructor_args, "render": False}
         )
-        replacement = session[webrtc._id]
-        assert replacement is not webrtc
-        assert replacement._id != webrtc._id
+        replacement = session[media._id]
+        assert replacement is not media
+        assert replacement._id != media._id
         await h.start("one")
         assert await h.signal("rtc_configuration", {"webrtc_id": "one"}, "one") == {}
         pc = await make_offer(video=True)
@@ -2081,7 +1952,13 @@ class TestStreams:
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched",
-        [{"mode": "receive", "handler": VideoOptions(flip, fps=5)}],
+        [
+            {
+                "mode": "receive",
+                "handler": three_frames,
+                "stream_kwargs": {"stream_every": 0.2},
+            }
+        ],
         indirect=True,
     )
     async def test_receive_mode_adds_server_track(self, launched):
@@ -2170,7 +2047,7 @@ class TestStreams:
         "launched",
         [
             {"handler": AsyncRecordingVideo},
-            {"mode": "send", "handler": RecordingVideo},
+            {"handler": RecordingVideo},
             {"mode": "send", "handler": CaptionVideo},
         ],
         indirect=True,
@@ -2182,7 +2059,7 @@ class TestStreams:
         answer = await h.connect(pc, "one")
         # Video only: the page does not have to send (or ask for) a microphone
         assert "m=audio" not in answer["sdp"]
-        if h.webrtc.mode == "send":
+        if h.manager.mode == "send":
             # No video goes back to the page, only the values
             assert "a=recvonly" in answer["sdp"]
         handler = h.handler("one")
@@ -2190,15 +2067,16 @@ class TestStreams:
         await h.wait_until(lambda: handler.events == ["start_up"])
         await h.wait_until(lambda: handler.frames > 0)
         assert handler.channel is not None
-        # The other inputs reach the handler, and its AdditionalOutputs the
-        # page. In "send" nothing reads video_emit()'s frames, so the server
-        # calls it itself.
+        # The other inputs reach the handler, and its other outputs the page.
+        # In "send" nothing reads video_emit()'s values, so the server calls
+        # it itself.
         await h.push_inputs("one", 21)
         assert handler.latest_args == [21]
 
         def got_output(ms):
+            # The number is the last output
             return any(
-                m.get("msg") == "process_streaming" and m["output"]["data"][1] == 42
+                m.get("msg") == "process_streaming" and m["output"]["data"][-1] == 42
                 for m in ms
             )
 
@@ -2338,16 +2216,19 @@ class TestStreams:
             raise gr.Error("Sign in first.")
 
         with gr.Blocks() as demo:
-            broken_webrtc = gr.WebRTC(rtc_configuration=broken)
-            broken_webrtc.stream(flip, inputs=[broken_webrtc], outputs=[broken_webrtc])
-            signed_in_webrtc = gr.WebRTC(rtc_configuration=not_signed_in)
-            signed_in_webrtc.stream(
-                flip, inputs=[signed_in_webrtc], outputs=[signed_in_webrtc]
-            )
-        managers = {
-            "broken": manager_of(demo, broken_webrtc),
-            "signed_in": manager_of(demo, signed_in_webrtc),
-        }
+            cameras = {"broken": webcam(), "signed_in": webcam()}
+            for name, rtc_configuration in [
+                ("broken", broken),
+                ("signed_in", not_signed_in),
+            ]:
+                camera = cameras[name]
+                camera.stream(
+                    flip,
+                    inputs=[camera],
+                    outputs=[camera],
+                    transport=gr.WebRTCOptions(rtc_configuration=rtc_configuration),
+                )
+        managers = {name: manager_of(demo, camera) for name, camera in cameras.items()}
         monkeypatch.setattr(
             webrtc_connection, "stream_admitted", admitted_anyway(managers)
         )
@@ -2382,12 +2263,17 @@ class TestStreams:
             }
 
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC(rtc_configuration=issue_credentials)
-            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+            camera = webcam()
+            camera.stream(
+                flip,
+                inputs=[camera],
+                outputs=[camera],
+                transport=gr.WebRTCOptions(rtc_configuration=issue_credentials),
+            )
         monkeypatch.setattr(
             webrtc_connection,
             "stream_admitted",
-            admitted_anyway({"one": manager_of(demo, webrtc)}),
+            admitted_anyway({"one": manager_of(demo, camera)}),
         )
         with closing(demo):
             _, local_url, _ = demo.launch(
@@ -2414,8 +2300,13 @@ class TestStreams:
     @pytest.mark.asyncio
     async def test_signalling_that_names_no_stream_of_the_session_is_refused(self):
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC(rtc_configuration={"iceServers": []})
-            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+            camera = webcam()
+            camera.stream(
+                flip,
+                inputs=[camera],
+                outputs=[camera],
+                transport=gr.WebRTCOptions(rtc_configuration={"iceServers": []}),
+            )
         with closing(demo):
             _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
             async with httpx2.AsyncClient(timeout=10, base_url=local_url) as http:
@@ -2470,8 +2361,8 @@ class TestStreams:
         forget_earlier_streams()
         # A page built as an app of its own, as the multipage guide does
         with gr.Blocks() as page:
-            webrtc = gr.WebRTC()
-            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+            camera = webcam()
+            camera.stream(flip, inputs=[camera], outputs=[camera], transport="webrtc")
         if compose == "render":
             with gr.Blocks() as demo:
                 page.render()
@@ -2479,7 +2370,7 @@ class TestStreams:
             demo = gr.TabbedInterface([page, gr.Interface(lambda x: x, "text", "text")])
         with closing(demo):
             _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
-            h = Harness(demo, local_url, webrtc)
+            h = Harness(demo, local_url, camera)
             await h.start("one")
             pc = await make_offer(video=True)
             answer = await h.connect(pc, "one")
@@ -2498,11 +2389,11 @@ class TestStreams:
         monkeypatch.setenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "0.2")
         forget_earlier_streams()
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC()
-            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+            camera = webcam()
+            camera.stream(flip, inputs=[camera], outputs=[camera], transport="webrtc")
         with closing(demo):
             _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
-            h = Harness(demo, local_url, webrtc)
+            h = Harness(demo, local_url, camera)
             event_id = await h.start("one")
             pc = await make_offer(video=True)
             await h.connect(pc, "one")
@@ -2539,11 +2430,11 @@ class TestStreams:
         monkeypatch.setenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "0.2")
         forget_earlier_streams()
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC()
-            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+            camera = webcam()
+            camera.stream(flip, inputs=[camera], outputs=[camera], transport="webrtc")
         with closing(demo):
             _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
-            h = Harness(demo, local_url, webrtc)
+            h = Harness(demo, local_url, camera)
             messages: list[dict] = []
 
             async def read_own_stream():
@@ -2552,11 +2443,7 @@ class TestStreams:
                 async with h.http.stream(
                     "POST",
                     f"{h.api}/queue/join",
-                    json={
-                        "data": ["one"],
-                        "fn_index": h.stream_fn._id,
-                        "session_hash": "one",
-                    },
+                    json=h.join_body("one", "one"),
                     headers={"accept": "text/event-stream"},
                 ) as response:
                     async for line in response.aiter_lines():
@@ -2593,11 +2480,11 @@ class TestStreams:
         monkeypatch.setenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "0.2")
         forget_earlier_streams()
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC()
-            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+            camera = webcam()
+            camera.stream(flip, inputs=[camera], outputs=[camera], transport="webrtc")
         with closing(demo):
             _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
-            h = Harness(demo, local_url, webrtc)
+            h = Harness(demo, local_url, camera)
             await h.start("one")
             pc = await make_offer(video=True)
             await h.connect(pc, "one")
@@ -2906,7 +2793,7 @@ REPLICA_APP = """
 import os
 
 import gradio as gr
-from gradio.webrtc import AdditionalOutputs, get_current_context
+from gradio.webrtc import get_current_context
 
 reported = set()
 
@@ -2916,15 +2803,21 @@ def handler(frame):
     # afterwards, until the next wake
     webrtc_id = get_current_context().webrtc_id
     if webrtc_id in reported:
-        return frame
+        return frame, gr.skip()
     reported.add(webrtc_id)
-    return frame, AdditionalOutputs(os.getpid())
+    return frame, os.getpid()
 
 
 with gr.Blocks() as demo:
-    webrtc = gr.WebRTC()
+    camera = gr.Image(sources=["webcam"], streaming=True)
     pid = gr.Number()
-    webrtc.stream(handler, inputs=[webrtc], outputs=[webrtc, pid], concurrency_limit=1)
+    camera.stream(
+        handler,
+        inputs=[camera],
+        outputs=[camera, pid],
+        concurrency_limit=1,
+        transport="webrtc",
+    )
 
 demo.launch(server_port=int(os.environ["PORT"]))
 """
@@ -2933,11 +2826,10 @@ demo.launch(server_port=int(os.environ["PORT"]))
 class ReplicaApp:
     """REPLICA_APP launched with two processes, as a page would use it."""
 
-    def __init__(self, http, api: str, stream_fn: int, tick_fn: int, pids):
+    def __init__(self, http, api: str, stream_fn: int, pids):
         self.http = http
         self.api = api
         self.stream_fn = stream_fn
-        self.tick_fn = tick_fn
         # The app's processes, the primary first
         self.pids = pids
         self.received: dict[str, list] = {}
@@ -2961,10 +2853,15 @@ class ReplicaApp:
             await asyncio.sleep(0.05)
         return found
 
-    async def join(self, fn_index, data, session_hash):
+    async def join(self, webrtc_id, session_hash):
         response = await self.http.post(
             f"{self.api}/queue/join",
-            json={"data": data, "fn_index": fn_index, "session_hash": session_hash},
+            json={
+                "data": [None],
+                "event_data": {"webrtc_id": webrtc_id},
+                "fn_index": self.stream_fn,
+                "session_hash": session_hash,
+            },
         )
         return response.json()["event_id"]
 
@@ -2983,7 +2880,7 @@ class ReplicaApp:
     async def stream(self, session):
         """Starts a stream for `session`: its event id, its connection, and
         the pid of the process that runs it."""
-        event_id = await self.join(self.stream_fn, [session], session)
+        event_id = await self.join(session, session)
         self.received[session] = []
         self.readers.append(asyncio.create_task(self.read(session)))
         pc = await make_offer(video=True)
@@ -3003,12 +2900,17 @@ class ReplicaApp:
         await pc.setRemoteDescription(
             RTCSessionDescription(answer["sdp"], answer["type"])
         )
-        # The handler runs once the page has sent the inputs
-        await self.join(self.tick_fn, [session], session)
+        # The handler runs once the page has sent the inputs (none besides
+        # the camera) over the data channel
+        deadline = time.monotonic() + 15
+        while pc.channel.readyState != "open":
+            assert time.monotonic() < deadline, pc.channel.readyState
+            await asyncio.sleep(0.05)
+        pc.channel.send(json.dumps({"type": "input", "data": []}))
         return event_id, pc, await self.wait_for(session, self.streamed_pid)
 
     def completion(self, session, event_id):
-        """The stream event's completion, not that of the session's ticks."""
+        """The completion of the stream event `event_id`, or None."""
         return next(
             (
                 m
@@ -3060,20 +2962,8 @@ async def replica_app(tmp_path):
                 await asyncio.sleep(0.5)
             assert len(processes) == 2, processes
             config = (await http.get(f"http://127.0.0.1:{port}/config")).json()
-            webrtc_id = next(
-                c["id"] for c in config["components"] if c["type"] == "webrtc"
-            )
-            stream_fn, tick_fn = (
-                next(
-                    d["id"]
-                    for d in config["dependencies"]
-                    if [webrtc_id, event] in d["targets"]
-                )
-                for event in ("stream", "tick")
-            )
-            app = ReplicaApp(
-                http, api, stream_fn, tick_fn, [p["pid"] for p in processes]
-            )
+            stream_fn = next(d["id"] for d in config["dependencies"] if d["transport"])
+            app = ReplicaApp(http, api, stream_fn, [p["pid"] for p in processes])
             yield app
         passed = True
     finally:
@@ -3131,17 +3021,18 @@ async def test_streams_on_two_replicas_each_stay_with_their_process(tmp_path):
 async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
     monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
     with gr.Blocks() as demo:
-        webrtc = gr.WebRTC()
+        camera = webcam()
         number = gr.Number()
         # Outputs on every frame keep waking the stream's event, which then
         # waits for the worker slot the long job holds
-        webrtc.stream(
-            lambda frame, *args: (frame, AdditionalOutputs(1)),
-            inputs=[webrtc],
-            outputs=[webrtc, number],
+        camera.stream(
+            lambda frame: (frame, 1),
+            inputs=[camera],
+            outputs=[camera, number],
             # Leaves time to connect on a loaded CI runner before the limit
             # ends the stream, and still ends it well before the busy job
             time_limit=2,
+            transport="webrtc",
         )
         busy = gr.Button()
         busy.click(lambda: time.sleep(6), None, None, concurrency_limit=None)
@@ -3154,7 +3045,7 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         _, local_url, _ = demo.launch(
             prevent_thread_lock=True, max_threads=1, executor="thread"
         )
-        h = Harness(demo, local_url, webrtc)
+        h = Harness(demo, local_url, camera)
         # Made first: gathering its candidates can take longer than the time
         # limit, which counts from the admission
         pc = await make_offer(video=True)
@@ -4451,8 +4342,8 @@ class TestCleanUp:
         from gradio.state_holder import StateHolder
 
         with gr.Blocks() as demo:
-            webrtc = gr.WebRTC()
-            webrtc.stream(flip, inputs=[webrtc], outputs=[webrtc])
+            camera = webcam()
+            camera.stream(flip, inputs=[camera], outputs=[camera], transport="webrtc")
         state_holder = StateHolder()
         state_holder.set_blocks(demo)
         worker = SimpleNamespace(
@@ -4664,17 +4555,20 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
     server = gr.Server()
 
     if mode == "send":
-        # Camera in, values out, with a handler class that keeps state for the
-        # stream (like a captioner with one GPU allocation per stream)
-        server.webrtc(CaptionVideo, name="echo", mode="send", time_limit=30)
+        # Camera in, values out (like a captioner)
+        @server.api(name="echo", time_limit=30, transport="webrtc")
+        def caption(frame: gr.VideoFrame, x: float) -> float:
+            return x * 2
+
         expected = [1.0]
     else:
 
-        @server.webrtc(name="echo", time_limit=30)
-        def echo(frame, *args):
-            return (frame, AdditionalOutputs(*args)) if args else frame
+        @server.api(name="echo", time_limit=30, transport="webrtc")
+        def echo(frame: gr.VideoFrame, x: float) -> tuple[gr.VideoFrame, float]:
+            return frame, x
 
-        expected = [0.5]
+        # The media's slot is left as it is
+        expected = [{"__type__": "update"}, 0.5]
 
     session = "visitor"
     _, local_url, _ = server.launch(prevent_thread_lock=True, executor=executor)
@@ -4698,7 +4592,12 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
 
             join = await http.post(
                 f"{api}/queue/join",
-                json={"data": ["one"], "fn_index": fn_index, "session_hash": session},
+                json={
+                    "data": [None, None],
+                    "event_data": {"webrtc_id": "one"},
+                    "fn_index": fn_index,
+                    "session_hash": session,
+                },
             )
             event_id = join.json()["event_id"]
             # After the join, as clients do: a message stream opened before the
@@ -4744,7 +4643,7 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
 
             def streamed():
                 return [
-                    m["output"]["data"][0]
+                    m["output"]["data"]
                     for m in messages
                     if m.get("event_id") == event_id
                     and m.get("msg") == "process_streaming"
@@ -4754,9 +4653,10 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
             while expected not in streamed():
                 assert time.monotonic() < deadline, messages
                 await asyncio.sleep(0.05)
-            # Each AdditionalOutputs arrives as the list of its values; the
-            # other messages (the turn) carry a no-op update
-            assert all(o in (expected, {"__type__": "update"}) for o in streamed())
+            # One value per output; the other messages (the turn) leave every
+            # output as it is
+            idle = [{"__type__": "update"}] * len(expected)
+            assert all(o in (expected, idle) for o in streamed())
 
             await http.post(f"{api}/stream/{event_id}/close")
             deadline = time.monotonic() + 10
@@ -4775,20 +4675,13 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
 def test_a_server_webrtc_handler_that_takes_the_token_asks_for_sign_in():
     from gradio.server import _takes_oauth
 
-    def with_token(frame, token: gr.OAuthToken | None):
+    def with_token(frame: gr.VideoFrame, token: gr.OAuthToken | None) -> gr.VideoFrame:
         return frame
 
-    class WithProfile(EchoHandler):
-        async def start_up(self, profile: gr.OAuthProfile | None):  # type: ignore[override]
-            pass
-
-    # A handler function, a handler class (in its start_up) and VideoOptions
     assert _takes_oauth(with_token)
-    assert _takes_oauth(WithProfile)
-    assert _takes_oauth(VideoOptions(with_token))
     assert not _takes_oauth(flip)
     server = gr.Server()
-    server.webrtc(with_token, name="echo")
+    server.api(with_token, name="echo", transport="webrtc")
     assert with_token in server._oauth_candidates()
 
 
@@ -4803,8 +4696,11 @@ async def test_a_server_webrtc_stream_gets_the_visitor_oauth_token(executor):
 
     server = gr.Server()
 
-    @server.webrtc(name="echo", rtc_configuration=issue_credentials)
-    def echo(frame):
+    @server.api(
+        name="echo",
+        transport=gr.WebRTCOptions(rtc_configuration=issue_credentials),
+    )
+    def echo(frame: gr.VideoFrame) -> gr.VideoFrame:
         return frame
 
     @server.api(name="whoami")
@@ -4832,7 +4728,12 @@ async def test_a_server_webrtc_stream_gets_the_visitor_oauth_token(executor):
             )
             await http.post(
                 f"{API_PREFIX.lstrip('/')}/queue/join",
-                json={"data": ["one"], "fn_index": fn_index, "session_hash": "s"},
+                json={
+                    "data": [None],
+                    "event_data": {"webrtc_id": "one"},
+                    "fn_index": fn_index,
+                    "session_hash": "s",
+                },
             )
             rtc = await http.post(
                 f"{API_PREFIX.lstrip('/')}/webrtc/rtc_configuration",
@@ -4843,42 +4744,184 @@ async def test_a_server_webrtc_stream_gets_the_visitor_oauth_token(executor):
         gr.close_all()
 
 
-def test_server_webrtc_checks_the_handler_when_it_is_declared():
-    server = gr.Server()
-    with pytest.raises(ValueError, match="StreamHandler"):
+def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
+    from gradio.webrtc.transport import api_stream
 
-        @server.webrtc(modality="audio")
-        def not_a_handler(audio):
-            return audio
+    def echo(frame: gr.VideoFrame, x: float) -> tuple[gr.VideoFrame, float]:
+        return frame, x
 
-    with pytest.raises(ValueError, match="mode must be"):
-        server.webrtc(flip, mode="both")  # type: ignore[arg-type]
-    assert server._deferred_webrtc == []
+    def transcribe(audio: gr.AudioChunk) -> str:
+        return ""
 
+    def unmarked(frame: Any) -> Any:
+        return frame
 
-@pytest.mark.parametrize("other", ["api", "webrtc"])
-def test_a_server_webrtc_endpoint_needs_a_name_of_its_own(other):
-    from gradio.events import api as gr_api
-    from gradio.webrtc.endpoint import server_stream
+    def mixed(frame: gr.VideoFrame) -> gr.AudioChunk:
+        return cast(Any, frame)
 
-    def flip_text(text: str) -> str:  # an endpoint that is not a stream
-        return text[::-1]
-
-    server = gr.Server()
-    if other == "api":
-        server.api(flip_text, name="flip")
-    else:
-        server.webrtc(flip)
-    # Found where the clash is written
-    with pytest.raises(ValueError, match="'flip' already exists"):
-        server.webrtc(flip)
-    # An endpoint declared after the stream is found when the app is built
-    late = gr.Server()
-    late.webrtc(flip)
-    late.api(flip_text, name="flip")
+    with pytest.raises(ValueError, match="does not batch"):
+        gr.Server().api(echo, name="echo", transport="webrtc", batch=True)
+    with pytest.raises(ValueError, match="api_visibility"):
+        gr.Server().api(
+            echo, name="echo", transport="webrtc", api_visibility="undocumented"
+        )
+    kwargs: Any = {
+        "transport": "webrtc",
+        "api_name": None,
+        "time_limit": None,
+        "stream_every": None,
+        "concurrency_limit": "default",
+        "concurrency_id": None,
+    }
     with gr.Blocks(mode="server"):
-        for fn, api_kwargs in late._deferred_apis:
-            gr_api(fn=fn, **api_kwargs)
-        with pytest.raises(ValueError, match="'flip' already exists"):
-            for webrtc_kwargs in late._deferred_webrtc:
-                server_stream(**webrtc_kwargs)
+        stream_fn, _ = api_stream(echo, **kwargs)
+        assert stream_fn.transport == {
+            "type": "webrtc",
+            "modality": "video",
+            "mode": "send-receive",
+            "media_input": 0,
+            "media_output": 0,
+        }
+        # Clients call it by name, with named arguments
+        assert stream_fn.api_name == "echo"
+        assert stream_fn.input_parameter_names == ["frame", "x"]
+        stream_fn, _ = api_stream(transcribe, **kwargs)
+        assert stream_fn.transport["modality"] == "audio"
+        assert stream_fn.transport["mode"] == "send"
+        # A handler class has no type hints to mark its media with
+        for fn in (unmarked, mixed, CaptionVideo):
+            with pytest.raises(ValueError, match="one type hint"):
+                api_stream(fn, **kwargs)
+
+
+def test_a_handler_class_gets_the_inputs_its_receive_declares():
+    import inspect
+
+    from gradio.webrtc.transport import api_stream
+    from gradio.webrtc.utils import StreamInputs
+
+    class Tap(VideoStreamHandler):
+        def __init__(self):
+            super().__init__()
+            self.seen: list = []
+
+        def video_receive(
+            self, frame: gr.VideoFrame, model: str = "small", taps: list | None = None
+        ) -> None:
+            self.seen.append((model, taps))
+
+        def video_emit(self) -> gr.VideoFrame | None:
+            return None
+
+        def copy(self):
+            return Tap()
+
+    class NoDefault(Tap):
+        def video_receive(self, frame: gr.VideoFrame, model: str) -> None:  # type: ignore[override]
+            pass
+
+    kwargs: Any = {
+        "transport": "webrtc",
+        "api_name": None,
+        "time_limit": None,
+        "stream_every": None,
+        "concurrency_limit": "default",
+        "concurrency_id": None,
+    }
+    with gr.Blocks(mode="server"):
+        stream_fn, _ = api_stream(Tap, **kwargs)
+        with pytest.raises(ValueError, match="needs defaults for model"):
+            api_stream(NoDefault, **kwargs)
+    assert stream_fn.input_parameter_names == ["frame", "model", "taps"]
+    manager = inspect.getclosurevars(stream_fn.fn).nonlocals["manager"]
+    handler = Tap()
+    handler._use_inputs(StreamInputs())
+    manager.adapt_handler(handler)
+    handler.video_receive(None)
+    handler.set_args(["large", [{"x": 0.5}]])
+    handler.video_receive(None)
+    assert handler.seen == [("small", None), ("large", [{"x": 0.5}])]
+
+
+class TestStreamOutputs:
+    """The outputs besides the media: each delivery is a step of the stream's
+    queue event, so only changes go out, at most once every output_every."""
+
+    def stream(self, output_every):
+        forget_earlier_streams()
+        manager = rtc_manager()
+        manager.output_every = output_every
+        event, handle = queue_event()
+        return unit_stream(manager, "outputs", handle), event
+
+    def delivered(self, stream, event):
+        """The outputs queued for the event since the last call, and whether
+        it was woken for them."""
+        woken = event.signal.is_set()
+        event.signal.clear()
+        values = [o.args for o in stream.outputs]
+        stream.outputs.clear()
+        return values, woken
+
+    @pytest.mark.asyncio
+    async def test_only_changes_are_delivered(self):
+        import numpy as np
+
+        stream, event = self.stream(None)
+        skip = gr.skip()
+        stream.add_output(AdditionalOutputs("a", 1))
+        assert self.delivered(stream, event) == ([("a", 1)], True)
+        # Nothing changed: the queue is not woken
+        stream.add_output(AdditionalOutputs("a", 1))
+        assert self.delivered(stream, event) == ([], False)
+        stream.add_output(AdditionalOutputs("a", 2))
+        assert self.delivered(stream, event) == ([(skip, 2)], True)
+        # A list changed in place and returned again is a change
+        values = [1]
+        stream.add_output(AdditionalOutputs(skip, values))
+        self.delivered(stream, event)
+        values.append(2)
+        stream.add_output(AdditionalOutputs(skip, values))
+        assert self.delivered(stream, event) == ([(skip, [1, 2])], True)
+        # Arrays are not compared: always sent
+        frame = np.zeros((2, 2), dtype=np.uint8)
+        for _ in range(2):
+            stream.add_output(AdditionalOutputs(frame, skip))
+            values, woken = self.delivered(stream, event)
+            assert len(values) == 1 and woken
+
+    @pytest.mark.asyncio
+    async def test_changes_go_out_at_most_once_every_output_every(self):
+        stream, event = self.stream(0.1)
+        skip = gr.skip()
+        # After a quiet moment: at once
+        stream.add_output(AdditionalOutputs("a", 1))
+        assert self.delivered(stream, event) == ([("a", 1)], True)
+        # Within the interval: held, newer values replacing older ones, and an
+        # output left as it is keeps its last change
+        stream.add_output(AdditionalOutputs("b", 1))
+        stream.add_output(AdditionalOutputs(skip, 2))
+        stream.add_output(AdditionalOutputs("c", 2))
+        assert self.delivered(stream, event) == ([], False)
+        await asyncio.sleep(0.15)
+        assert self.delivered(stream, event) == ([("c", 2)], True)
+        # Outputs the event has not taken yet are merged into, so one step
+        # delivers the newest
+        await asyncio.sleep(0.15)
+        stream.add_output(AdditionalOutputs("d", 2))
+        stream.add_output(AdditionalOutputs(skip, 3))
+        await asyncio.sleep(0.15)
+        assert self.delivered(stream, event) == ([("d", 3)], True)
+
+    @pytest.mark.asyncio
+    async def test_the_last_values_go_out_when_the_stream_ends(self):
+        stream, event = self.stream(10)
+        stream.add_output(AdditionalOutputs("a"))
+        stream.add_output(AdditionalOutputs("b"))
+        assert [o.args for o in stream.outputs] == [("a",)]
+        stream.close()
+        assert [o.args for o in stream.outputs] == [("b",)]
+        # A change after the end is not held either
+        stream.outputs.clear()
+        stream.add_output(AdditionalOutputs("c"))
+        assert [o.args for o in stream.outputs] == [("c",)]

@@ -1,6 +1,6 @@
 # Streaming inputs
 
-Tip: For the lowest latency, stream over WebRTC with the `gr.WebRTC` component instead. See the [object detection from a webcam guide](/guides/object-detection-from-webcam-with-webrtc).
+Tip: For the lowest latency, pass `transport="webrtc"` to the same `stream` event to send the media over WebRTC. See the [object detection from a webcam guide](/guides/object-detection-from-webcam-with-webrtc).
 
 In the previous guide, we covered how to stream a sequence of outputs from an event handler. Gradio also allows you to stream images from a user's camera or audio chunks from their microphone **into** your event handler. This can be used to create real-time object detection apps or conversational chat applications with Gradio.
 
