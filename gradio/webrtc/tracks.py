@@ -686,9 +686,9 @@ class HandlerGenerator:
                 return GENERATOR_DONE
             if not isinstance(self.generator, Iterator):
                 raise TypeError(
-                    'In mode="receive", `fn` must be a generator that yields '
-                    "the frames to send, but it returned a "
-                    f"{type(self.generator).__name__}."
+                    "A stream that only sends media to the page takes a "
+                    "generator function that yields it, but the function "
+                    f"returned a {type(self.generator).__name__}."
                 )
             try:
                 return next(self.generator)

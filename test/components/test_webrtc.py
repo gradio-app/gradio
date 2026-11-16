@@ -3375,7 +3375,7 @@ class TestVideoTracks:
 
         track = ServerToClientVideo(frame, context=Context("id"))
         track.set_args([])
-        with pytest.raises(HandlerFailedError, match="must be a generator"):
+        with pytest.raises(HandlerFailedError, match="takes a generator function"):
             await asyncio.wait_for(track.recv(), 2)
 
     @pytest.mark.asyncio
