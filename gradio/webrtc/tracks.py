@@ -15,7 +15,7 @@ import math
 import threading
 import time
 import weakref
-from collections.abc import Callable, Generator, Iterator
+from collections.abc import Awaitable, Callable, Generator, Iterator
 from typing import Any, Literal, cast
 
 import anyio
@@ -316,7 +316,9 @@ class VideoCallback(VideoStreamTrack):
 
             # An async frame function runs on the loop, a sync one in a thread
             if inspect.iscoroutinefunction(self.event_handler):
-                result = await self.event_handler(frame_array, *self.latest_args)
+                result = await cast(Callable[..., Awaitable[Any]], self.event_handler)(
+                    frame_array, *self.latest_args
+                )
             else:
                 result = await run_in_thread(
                     self.event_handler, frame_array, *self.latest_args

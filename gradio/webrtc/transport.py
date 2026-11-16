@@ -43,6 +43,7 @@ if TYPE_CHECKING:
     from gradio.block_function import BlockFunction
 
 Modality = Literal["video", "audio", "audio-video"]
+Mode = Literal["send-receive", "receive", "send"]
 
 
 def to_options(transport: Any) -> WebRTCOptions:
@@ -55,7 +56,7 @@ def to_options(transport: Any) -> WebRTCOptions:
     )
 
 
-def _mode(media_in: int | None, media_out: int | None) -> str:
+def _mode(media_in: int | None, media_out: int | None) -> Mode:
     if media_in is not None and media_out is not None:
         return "send-receive"
     if media_in is not None:
@@ -597,35 +598,40 @@ def transport_event(
         handler = fn
     elif mode == "receive":
 
-        def handler(*args: Any) -> Any:
+        def generate(*args: Any) -> Any:
             for item in fn(*in_fn_order(args)):
                 yield to_stream_output(item)
 
+        handler = generate
     elif modality == "audio":
         handler = _chunked_audio_handler(fn, cast(int, media_in), stream_every or 0.5)
         is_handler_class = True
     elif is_async(fn):
 
-        async def handler(*args: Any) -> Any:
+        async def call_async(*args: Any) -> Any:
             return to_stream_output(await fn(*in_fn_order(args)))
 
+        handler = call_async
     else:
 
-        def handler(*args: Any) -> Any:
+        def call(*args: Any) -> Any:
             return to_stream_output(fn(*in_fn_order(args)))
 
+        handler = call
+
     if not is_handler_class:
-        handler.__signature__ = inspect.Signature(
+        wrapper = cast(Any, handler)
+        wrapper.__signature__ = inspect.Signature(
             [p.replace(kind=p.POSITIONAL_ONLY, default=p.empty) for p in fixed]
             + var_args
         )
-        handler.__annotations__ = utils.get_type_hints(fn)
+        wrapper.__annotations__ = utils.get_type_hints(fn)
         if modality == "video":
             # stream_every is the shortest interval between calls (for a
             # generator, between frames); unset, every frame of the camera
             fps = 30 if not stream_every else max(1, round(1 / stream_every))
             handler = VideoOptions(
-                callable=handler, fps=fps, skip_frames=options.skip_frames
+                callable=wrapper, fps=fps, skip_frames=options.skip_frames
             )
 
     # The event's own function reads only the stream id, so the queue does not
@@ -639,7 +645,7 @@ def transport_event(
         return await blocks.preprocess_data(inputs_fn["fn"], list(values), state)
 
     manager = connection.ConnectionManager(
-        handler=handler,
+        handler=cast(Any, handler),
         mode=mode,
         modality=modality,
         time_limit=time_limit,

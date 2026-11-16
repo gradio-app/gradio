@@ -4765,7 +4765,7 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         gr.Server().api(
             echo, name="echo", transport="webrtc", api_visibility="undocumented"
         )
-    kwargs: Any = {
+    kwargs: dict[str, Any] = {
         "transport": "webrtc",
         "api_name": None,
         "time_limit": None,
@@ -4786,6 +4786,7 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         assert stream_fn.api_name == "echo"
         assert stream_fn.input_parameter_names == ["frame", "x"]
         stream_fn, _ = api_stream(transcribe, **kwargs)
+        assert stream_fn.transport is not None
         assert stream_fn.transport["modality"] == "audio"
         assert stream_fn.transport["mode"] == "send"
         # A handler class has no type hints to mark its media with
@@ -4805,7 +4806,7 @@ def test_a_handler_class_gets_the_inputs_its_receive_declares():
             super().__init__()
             self.seen: list = []
 
-        def video_receive(
+        def video_receive(  # type: ignore[override]  # extra inputs after the frame
             self, frame: gr.VideoFrame, model: str = "small", taps: list | None = None
         ) -> None:
             self.seen.append((model, taps))
@@ -4820,7 +4821,7 @@ def test_a_handler_class_gets_the_inputs_its_receive_declares():
         def video_receive(self, frame: gr.VideoFrame, model: str) -> None:  # type: ignore[override]
             pass
 
-    kwargs: Any = {
+    kwargs: dict[str, Any] = {
         "transport": "webrtc",
         "api_name": None,
         "time_limit": None,
@@ -4833,13 +4834,14 @@ def test_a_handler_class_gets_the_inputs_its_receive_declares():
         with pytest.raises(ValueError, match="needs defaults for model"):
             api_stream(NoDefault, **kwargs)
     assert stream_fn.input_parameter_names == ["frame", "model", "taps"]
-    manager = inspect.getclosurevars(stream_fn.fn).nonlocals["manager"]
+    manager = inspect.getclosurevars(cast(Any, stream_fn.fn)).nonlocals["manager"]
     handler = Tap()
     handler._use_inputs(StreamInputs())
     manager.adapt_handler(handler)
-    handler.video_receive(None)
+    frame = cast(Any, None)
+    handler.video_receive(frame)
     handler.set_args(["large", [{"x": 0.5}]])
-    handler.video_receive(None)
+    handler.video_receive(frame)
     assert handler.seen == [("small", None), ("large", [{"x": 0.5}])]
 
 

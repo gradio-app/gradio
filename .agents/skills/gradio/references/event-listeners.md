@@ -127,8 +127,6 @@ component.event_name(
 
 - **UploadButton**: change, click, upload
 
-- **Video**: change, clear, start_recording, stop_recording, stop, play, pause, end, upload, input
-
-- **WebRTC**: change, start_recording, stop_recording
+- **Video**: change, clear, start_recording, stop_recording, stop, play, pause, end, upload, input, stream
 
 - **WorkflowCanvas**: change
