@@ -1,6 +1,6 @@
 ---
-"@gradio/workflowcanvas": minor
-"gradio": minor
+"@gradio/workflowcanvas": patch
+"gradio": patch
 ---
 
-feat:workflow: handle max context length exceeding canvas token limit
+fix:workflow: handle max context length exceeding canvas token limit
