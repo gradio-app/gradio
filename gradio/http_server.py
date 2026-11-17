@@ -90,6 +90,7 @@ def start_server(
     ssl_keyfile: str | None = None,
     ssl_certfile: str | None = None,
     ssl_keyfile_password: str | None = None,
+    forwarded_allow_ips: list[str] | None = None,
 ) -> tuple[str, int, str, Server]:
     """Launches a local server running the provided Interface
     Parameters:
@@ -100,6 +101,7 @@ def start_server(
         ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
         ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
+        forwarded_allow_ips: The proxies trusted for X-Forwarded-For and X-Forwarded-Proto. If None, uvicorn uses the FORWARDED_ALLOW_IPS environment variable, or loopback.
 
     Returns:
         server_name: the name of the server (default is "localhost")
@@ -149,6 +151,7 @@ def start_server(
                 ssl_keyfile=ssl_keyfile,
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
+                forwarded_allow_ips=forwarded_allow_ips,
             )
             if get_space() is not None and not os.environ.get("GRADIO_PROCESS_GATEWAY"):
                 reloader = SpacesReloader(
