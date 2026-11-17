@@ -8,6 +8,7 @@ export { upload_files } from "./utils/upload_files";
 export { FileData, upload, prepare_files } from "./upload";
 export { handle_file } from "./helpers/data";
 export type { ResumableJob } from "./utils/session";
+export { get_zerogpu_origin } from "./helpers/zerogpu";
 export {
 	initialize_console_forwarding,
 	is_console_forward_origin_allowed
