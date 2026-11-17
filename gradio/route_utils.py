@@ -274,7 +274,6 @@ class Header(str):
     """
 
 
-
 class FnIndexInferError(Exception):
     pass
 
@@ -646,9 +645,7 @@ def get_api_call_path(request: fastapi.Request) -> str:
     if start_index >= 0:
         return request_path[start_index : len(request_path)]
 
-    raise ValueError(
-        f"Request url '{request.url!s}' has an unknown api call pattern."
-    )
+    raise ValueError(f"Request url '{request.url!s}' has an unknown api call pattern.")
 
 
 def get_root_url(
