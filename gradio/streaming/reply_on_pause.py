@@ -193,7 +193,8 @@ class ReplyOnPause(StreamHandler):
         self.vad.reset()
 
     def copy(self) -> ReplyOnPause:
-        return ReplyOnPause(
+        # The same class, so that a subclass's overrides serve each stream
+        return type(self)(
             self.fn,
             can_interrupt=self.can_interrupt,
             pause_seconds=self.pause_seconds,

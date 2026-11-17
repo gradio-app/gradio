@@ -127,6 +127,29 @@ def test_talking_over_a_reply(can_interrupt):
         assert closed == [1]
 
 
+def test_a_subclass_serves_each_stream():
+    # Each stream gets a copy(), which must keep the subclass's overrides:
+    # here, the pause comes from the stream's other input
+    class Tunable(ReplyOnPause):
+        def receive(self, frame):
+            if self.latest_args:
+                self.pause_seconds = float(self.latest_args[0])
+            super().receive(frame)
+
+    def reply(audio, pause):
+        yield f"after a {pause} s pause"
+
+    handler = Tunable(reply, vad=LoudnessVAD()).copy()
+    assert type(handler) is Tunable
+    handler.set_args([2.0])
+    handler.start_up()
+    say(handler, 0.5)
+    say(handler, 1.0, loud=False)
+    assert outputs(handler, 1, timeout=0.2) == []
+    say(handler, 1.2, loud=False)
+    assert outputs(handler, 1) == ["after a 2.0 s pause"]
+
+
 @pytest.mark.asyncio
 async def test_an_async_generator_replies_too():
     async def reply(audio, name):
