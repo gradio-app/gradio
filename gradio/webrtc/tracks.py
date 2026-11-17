@@ -26,35 +26,37 @@ from aiortc.contrib.media import AudioFrame, VideoFrame
 from aiortc.mediastreams import VIDEO_CLOCK_RATE, VIDEO_TIME_BASE, MediaStreamError
 
 from gradio import processing_utils
-from gradio.webrtc.handlers import (
+from gradio.streaming.handlers import (
     AsyncAudioVideoStreamHandler,
     AsyncHandler,
     AsyncVideoStreamHandler,
     AudioEmitType,
     StreamHandlerBase,
     StreamHandlerImpl,
-    VideoEventHandler,
     VideoStreamHandler,
     VideoTrackHandler,
 )
+from gradio.streaming.utils import (
+    AdditionalOutputs,
+    CloseStream,
+    Context,
+    DataChannel,
+    StreamInputs,
+    create_message,
+    current_context,
+    send_to_page,
+)
+from gradio.webrtc.handlers import VideoEventHandler
 from gradio.webrtc.utils import (
     EMPTY_EMIT_WAIT,
     GENERATOR_DONE,
     RECEIVE_AUDIO_BUFFER,
     SKIPPED_FRAME,
-    AdditionalOutputs,
-    CloseStream,
-    Context,
-    DataChannel,
     HandlerContext,
     HandlerFailedError,
-    StreamInputs,
-    create_message,
     current_channel,
-    current_context,
     handler_failed,
     player_worker_decode,
-    send_to_page,
     split_output,
 )
 
@@ -532,11 +534,29 @@ class AudioCallback(AudioStreamTrack):
         self.set_additional_outputs = set_additional_outputs
         self.context = context
         self.handler_context = HandlerContext.capture()
+        self._resampler = None
 
     def clear_queue(self):
         while not self.queue.empty():
             self.queue.get_nowait()
         self._clock_start = None
+
+    def resample(self, frame: AudioFrame) -> Generator[AudioFrame, None, None]:
+        """Converts `frame` to the handler's input layout and sample rate."""
+        import av
+
+        if self._resampler is None:
+            handler = self.event_handler
+            self._resampler = av.AudioResampler(
+                format="s16",
+                layout=handler.expected_layout,
+                rate=handler.input_sample_rate,
+                # As long as the incoming frame, at the handler's rate
+                frame_size=frame.samples
+                * handler.input_sample_rate
+                // frame.sample_rate,
+            )
+        yield from self._resampler.resample(frame)
 
     async def wait_for_channel(self):
         current_context.set(self.context)
@@ -565,7 +585,7 @@ class AudioCallback(AudioStreamTrack):
         while not self.thread_quit.is_set():
             try:
                 frame = cast(AudioFrame, await self.track.recv())
-                for resampled in self.event_handler.resample(frame):
+                for resampled in self.resample(frame):
                     numpy_array = audio_frame_to_array(resampled)
                     if isinstance(self.event_handler, AsyncHandler):
                         await self.event_handler.receive(

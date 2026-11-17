@@ -22,7 +22,7 @@ from aiortc.mediastreams import MediaStreamError
 import gradio as gr
 from gradio.context import LocalContext
 from gradio.route_utils import API_PREFIX
-from gradio.webrtc import (
+from gradio.streaming import (
     AsyncAudioVideoStreamHandler,
     AsyncStreamHandler,
     AsyncVideoStreamHandler,
@@ -30,9 +30,10 @@ from gradio.webrtc import (
     StreamHandler,
     VideoStreamHandler,
 )
+from gradio.streaming.utils import AdditionalOutputs
 from gradio.webrtc import connection as webrtc_connection
 from gradio.webrtc.handlers import VideoOptions
-from gradio.webrtc.utils import AdditionalOutputs, split_output
+from gradio.webrtc.utils import split_output
 
 
 def stream_fn_of(blocks, media):
@@ -588,7 +589,7 @@ class TestWebRTC:
 
     @pytest.mark.parametrize("modality", ["video", "audio"])
     def test_stream_rejects_a_sync_start_up_in_an_async_handler(self, modality):
-        from gradio.webrtc import AsyncStreamHandler
+        from gradio.streaming import AsyncStreamHandler
 
         base = AsyncRecordingVideo if modality == "video" else AsyncStreamHandler
 
@@ -2842,7 +2843,7 @@ REPLICA_APP = """
 import os
 
 import gradio as gr
-from gradio.webrtc import get_current_context
+from gradio.streaming import get_current_context
 
 reported = set()
 
@@ -2850,7 +2851,7 @@ reported = set()
 def handler(frame):
     # The pid once per stream: no step of the stream's event is under way
     # afterwards, until the next wake
-    webrtc_id = get_current_context().webrtc_id
+    webrtc_id = get_current_context().stream_id
     if webrtc_id in reported:
         return frame, gr.skip()
     reported.add(webrtc_id)
@@ -3194,8 +3195,8 @@ async def count_ticks_while(coro):
 class TestVideoTracks:
     @staticmethod
     def callback(handler, **kwargs):
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import VideoCallback
-        from gradio.webrtc.utils import Context
 
         cb = VideoCallback(
             VideoStreamTrack(), event_handler=handler, context=Context("id"), **kwargs
@@ -3283,8 +3284,8 @@ class TestVideoTracks:
 
     @pytest.mark.asyncio
     async def test_mirrored_webcam_gives_video_receive_mirrored_frames(self):
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import HandlerVideoTrack
-        from gradio.webrtc.utils import Context
 
         released = asyncio.Event()
         received = []
@@ -3340,8 +3341,9 @@ class TestVideoTracks:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("kind", ["video", "receive-video", "audio"])
     async def test_a_failed_handler_ends_the_track_for_aiortc(self, kind):
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import AudioCallback, ServerToClientVideo
-        from gradio.webrtc.utils import Context, HandlerFailedError
+        from gradio.webrtc.utils import HandlerFailedError
 
         def broken(*args):
             raise ValueError("broken")
@@ -3376,8 +3378,9 @@ class TestVideoTracks:
     async def test_a_receive_function_that_returns_a_frame_says_so(self):
         import numpy as np
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import ServerToClientVideo
-        from gradio.webrtc.utils import Context, HandlerFailedError
+        from gradio.webrtc.utils import HandlerFailedError
 
         def frame():
             return np.zeros((16, 16, 3), dtype=np.uint8)
@@ -3395,8 +3398,8 @@ class TestVideoTracks:
         from aiortc.mediastreams import MediaStreamError
         from av import VideoFrame
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import HandlerVideoTrack
-        from gradio.webrtc.utils import Context
 
         sent = 0
         done = asyncio.Event()
@@ -3446,8 +3449,8 @@ class TestVideoTracks:
     async def test_frames_that_will_be_skipped_are_not_kept(self, handler_class):
         import threading
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import HandlerVideoTrack, VideoCallback
-        from gradio.webrtc.utils import Context
 
         busy = threading.Event()
         release = threading.Event()
@@ -3496,8 +3499,8 @@ class TestVideoTracks:
         import av
         import numpy as np
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import VideoCallback
-        from gradio.webrtc.utils import Context
 
         calls = []
 
@@ -3544,9 +3547,9 @@ class TestVideoTracks:
     async def test_video_methods_of_audio_video_handlers_see_the_context(self):
         import numpy as np
 
-        from gradio.webrtc import AudioVideoStreamHandler, get_current_context
+        from gradio.streaming import AudioVideoStreamHandler, get_current_context
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import HandlerVideoTrack
-        from gradio.webrtc.utils import Context
 
         released = asyncio.Event()
 
@@ -3560,10 +3563,10 @@ class TestVideoTracks:
                 pass
 
             def video_receive(self, frame):
-                self.seen.append(("receive", get_current_context().webrtc_id))
+                self.seen.append(("receive", get_current_context().stream_id))
 
             def video_emit(self):
-                self.seen.append(("emit", get_current_context().webrtc_id))
+                self.seen.append(("emit", get_current_context().stream_id))
                 return np.zeros((16, 16, 3), dtype=np.uint8)
 
         track = HandlerVideoTrack(
@@ -3585,8 +3588,8 @@ class TestVideoTracks:
     async def test_video_emit_may_have_no_frame_yet(self):
         import numpy as np
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import HandlerVideoTrack
-        from gradio.webrtc.utils import Context
 
         # e.g. while the model starts up, or between two outputs
         returns = [None, AdditionalOutputs(1), np.zeros((16, 16, 3), dtype=np.uint8)]
@@ -3620,8 +3623,8 @@ class TestVideoTracks:
         import numpy as np
         from av import VideoFrame
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import ServerToClientVideo
-        from gradio.webrtc.utils import Context
 
         red = np.zeros((16, 16, 3), dtype=np.uint8)
         red[..., 0] = 255
@@ -3665,8 +3668,8 @@ class TestVideoTracks:
         import numpy as np
         from aiortc.mediastreams import MediaStreamError
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import ServerToClientVideo
-        from gradio.webrtc.utils import Context
 
         def generate():
             for _ in range(2):
@@ -3689,13 +3692,13 @@ class TestVideoTracks:
         import numpy as np
         from aiortc.mediastreams import MediaStreamError
 
-        from gradio.webrtc import AudioVideoStreamHandler
+        from gradio.streaming import AudioVideoStreamHandler
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import (
             HandlerVideoTrack,
             ServerToClientAudio,
             ServerToClientVideo,
         )
-        from gradio.webrtc.utils import Context
 
         class Handler(AudioVideoStreamHandler):
             def receive(self, frame):
@@ -3756,12 +3759,12 @@ class TestVideoTracks:
         import numpy as np
         from aiortc.mediastreams import MediaStreamError
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import (
             HandlerVideoTrack,
             ServerToClientAudio,
             ServerToClientVideo,
         )
-        from gradio.webrtc.utils import Context
 
         media = (
             (24000, np.zeros(4800, dtype=np.int16))
@@ -3806,8 +3809,8 @@ class TestVideoTracks:
     async def test_receive_generator_can_yield_without_media(self, kind):
         import numpy as np
 
+        from gradio.streaming.utils import AdditionalOutputs, Context
         from gradio.webrtc.tracks import ServerToClientAudio, ServerToClientVideo
-        from gradio.webrtc.utils import AdditionalOutputs, Context
 
         media = (
             np.zeros((16, 16, 3), dtype=np.uint8)
@@ -3843,8 +3846,8 @@ class TestAudioArrays:
         import numpy as np
         from aiortc.mediastreams import MediaStreamError
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import AudioCallback
-        from gradio.webrtc.utils import Context
 
         incoming = av.AudioFrame.from_ndarray(
             np.zeros((1, 960), dtype=np.int16), format="s16", layout="mono"
@@ -3887,8 +3890,8 @@ class TestAudioArrays:
 
         import numpy as np
 
+        from gradio.streaming.utils import StreamInputs
         from gradio.webrtc.transport import _chunked_audio_handler
-        from gradio.webrtc.utils import StreamInputs
 
         page = contextvars.ContextVar("page")
 
@@ -3918,8 +3921,8 @@ class TestAudioArrays:
         import numpy as np
         from aiortc.mediastreams import MediaStreamError
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import AudioCallback
-        from gradio.webrtc.utils import Context
 
         def frame(i):
             incoming = av.AudioFrame.from_ndarray(
@@ -3976,12 +3979,13 @@ class TestAudioArrays:
         import numpy as np
         from aiortc.mediastreams import MediaStreamError
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import (
             AudioCallback,
             HandlerVideoTrack,
             VideoCallback,
         )
-        from gradio.webrtc.utils import Context, StreamErrors, current_errors
+        from gradio.webrtc.utils import StreamErrors, current_errors
 
         released = asyncio.Event()
 
@@ -4008,9 +4012,6 @@ class TestAudioArrays:
                 raise MediaStreamError
 
         class Audio(AsyncStreamHandler):
-            def resample(self, frame):  # e.g. a frame the resampler cannot take
-                raise ValueError("cannot read the input")
-
             async def receive(self, frame):
                 pass
 
@@ -4024,6 +4025,9 @@ class TestAudioArrays:
             def video_emit(self):
                 return None
 
+        def unreadable(frame):  # e.g. a frame the track cannot convert
+            raise ValueError("cannot read the input")
+
         errors = StreamErrors(
             asyncio.get_running_loop(), end_stream=lambda: None, show_error=True
         )
@@ -4032,6 +4036,7 @@ class TestAudioArrays:
             track: Any = AudioCallback(
                 Input(), event_handler=Audio(), context=Context("id")
             )
+            monkeypatch.setattr(track, "resample", unreadable)
             reading = track.process_input_frames()
         elif kind == "video recv":
             track = VideoCallback(
@@ -4044,10 +4049,6 @@ class TestAudioArrays:
                 Input(), event_handler=cast(Callable, Video()), context=Context("id")
             )
             track.channel_set.set()
-
-            def unreadable(frame):  # e.g. a frame in a format it cannot convert
-                raise ValueError("cannot read the input")
-
             if kind == "video frame":
                 monkeypatch.setattr(track, "frame_to_array", unreadable)
             reading = track.process_frames()
@@ -4139,8 +4140,9 @@ class TestAudioArrays:
     async def test_receive_audio_buffers_a_bounded_amount_ahead(self):
         import numpy as np
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import ServerToClientAudio
-        from gradio.webrtc.utils import RECEIVE_AUDIO_BUFFER, Context
+        from gradio.webrtc.utils import RECEIVE_AUDIO_BUFFER
 
         def generate():
             # Much faster than real time, and endless
@@ -4160,8 +4162,8 @@ class TestAudioArrays:
     async def test_receive_audio_keeps_its_pace_after_a_pause(self):
         import numpy as np
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import ServerToClientAudio
-        from gradio.webrtc.utils import Context
 
         def generate():
             for i in range(10):
@@ -4185,8 +4187,8 @@ class TestAudioArrays:
     async def test_receive_video_starts_its_pace_once_the_inputs_arrive(self):
         import numpy as np
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import ServerToClientVideo
-        from gradio.webrtc.utils import Context
 
         def generate():
             while True:
@@ -4295,7 +4297,7 @@ class TestAudioArrays:
         import numpy as np
 
         from gradio.processing_utils import convert_to_16_bit_audio
-        from gradio.webrtc import audio_to_float32, audio_to_int16
+        from gradio.streaming import audio_to_float32, audio_to_int16
 
         info = np.iinfo(dtype)
         audio = np.array([info.min, 0, info.max // 2, info.max], dtype=dtype)
@@ -4308,7 +4310,7 @@ class TestAudioArrays:
     def test_float_arrays_keep_their_level(self):
         import numpy as np
 
-        from gradio.webrtc import audio_to_float32, audio_to_int16
+        from gradio.streaming import audio_to_float32, audio_to_int16
 
         # gr.Audio scales each numpy value to its own peak; a stream keeps the
         # level of every chunk
@@ -4530,8 +4532,8 @@ class TestCleanUp:
 
     @pytest.mark.asyncio
     async def test_clean_up_releases_a_handler_waiting_for_its_inputs(self):
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import AudioCallback
-        from gradio.webrtc.utils import Context
 
         handler = EchoHandler()
         handler._loop = asyncio.get_running_loop()
@@ -4559,8 +4561,8 @@ class TestCleanUp:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("kind", ["audio", "video", "video handler"])
     async def test_a_send_mode_reader_ends_with_its_track(self, kind):
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import AudioCallback, HandlerVideoTrack
-        from gradio.webrtc.utils import Context
 
         # In mode="send" nothing plays the output, so the server reads the
         # track itself; that reader must not outlive the stream
@@ -4598,8 +4600,8 @@ class TestCleanUp:
     async def test_receive_audio_waits_for_its_inputs_outside_a_thread(self):
         import numpy as np
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import ServerToClientAudio
-        from gradio.webrtc.utils import Context
 
         def generate():
             yield (24000, np.zeros(480, dtype=np.int16))
@@ -4625,8 +4627,8 @@ class TestCleanUp:
 
         import numpy as np
 
+        from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import ServerToClientAudio, ServerToClientVideo
-        from gradio.webrtc.utils import Context
 
         def frame():
             if modality == "video":
@@ -4959,8 +4961,8 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
 def test_a_handler_class_gets_the_inputs_its_receive_declares():
     import inspect
 
+    from gradio.streaming.utils import StreamInputs
     from gradio.webrtc.transport import api_stream
-    from gradio.webrtc.utils import StreamInputs
 
     class Tap(VideoStreamHandler):
         def __init__(self):

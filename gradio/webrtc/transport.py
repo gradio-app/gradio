@@ -26,17 +26,17 @@ import numpy as np
 from gradio import utils
 from gradio.context import get_blocks_context
 from gradio.helpers import skip
-from gradio.webrtc.endpoint import add_stream_event, check_turn, check_video_bitrate
-from gradio.webrtc.handlers import (
+from gradio.streaming.handlers import (
     AsyncAudioVideoStreamHandler,
     AsyncStreamHandler,
     AsyncVideoStreamHandler,
     AudioVideoStreamHandler,
     StreamHandler,
     StreamHandlerBase,
-    VideoOptions,
     VideoStreamHandler,
 )
+from gradio.webrtc.endpoint import add_stream_event, check_turn, check_video_bitrate
+from gradio.webrtc.handlers import VideoOptions
 from gradio.webrtc.options import AudioChunk, VideoFrame, WebRTCOptions
 from gradio.webrtc.utils import SKIPPED_FRAME, is_async
 
@@ -310,7 +310,7 @@ def api_stream(
     if _is_a(fn, (StreamHandlerBase,)):
         # A handler class: the media is the parameter of receive() /
         # video_receive(), the outputs what emit() / video_emit() return
-        cls = fn if inspect.isclass(fn) else type(fn)
+        cls = cast(Any, fn if inspect.isclass(fn) else type(fn))
         receive = getattr(cls, "video_receive", None) or cls.receive
         emit = getattr(cls, "emit", None) or cls.video_emit
         if audio_video:
@@ -560,8 +560,8 @@ def transport_event(
     """
     from gradio.events import EventData
     from gradio.exceptions import Error
+    from gradio.streaming.utils import AdditionalOutputs, CloseStream
     from gradio.webrtc import connection
-    from gradio.webrtc.utils import AdditionalOutputs, CloseStream
 
     root_block = get_blocks_context()
     if root_block is None:

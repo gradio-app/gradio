@@ -54,17 +54,17 @@ from aiortc.sdp import candidate_from_sdp
 from gradio.context import LocalContext
 from gradio.exceptions import Error
 from gradio.helpers import skip, special_args
-from gradio.utils import error_payload
-from gradio.webrtc.bitrate import add_bitrate_hints, limit_video_encoders
-from gradio.webrtc.handlers import (
+from gradio.streaming.handlers import (
     AsyncVideoStreamHandler,
     AudioVideoStreamHandlerImpl,
-    HandlerType,
     StreamHandlerBase,
     StreamHandlerImpl,
-    VideoOptions,
     VideoStreamHandler,
 )
+from gradio.streaming.utils import AdditionalOutputs, Context, StreamInputs
+from gradio.utils import error_payload
+from gradio.webrtc.bitrate import add_bitrate_hints, limit_video_encoders
+from gradio.webrtc.handlers import HandlerType, VideoOptions
 from gradio.webrtc.tracks import (
     AudioCallback,
     HandlerVideoTrack,
@@ -75,11 +75,8 @@ from gradio.webrtc.tracks import (
     run_in_thread,
 )
 from gradio.webrtc.utils import (
-    AdditionalOutputs,
-    Context,
     HandlerFailedError,
     StreamErrors,
-    StreamInputs,
     bind_special_args,
     current_errors,
     is_async,
@@ -338,7 +335,7 @@ class Stream:
         self.lease = QueueLease(event, manager.time_limit)
         self.state = StreamState.ADMITTED
         self.connected_at: float | None = None
-        self.context = Context(webrtc_id=webrtc_id)
+        self.context = Context(stream_id=webrtc_id)
         self.inputs = StreamInputs()
         self.outputs: deque[AdditionalOutputs] = deque(maxlen=MAX_PENDING_OUTPUTS)
         # What the page shows of the outputs besides the media, or will once
