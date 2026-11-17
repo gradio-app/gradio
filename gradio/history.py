@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import ipaddress
 import json
 import logging
 import mimetypes
@@ -28,7 +27,7 @@ from huggingface_hub import HfApi
 from pydantic import BaseModel
 
 from gradio import oauth, processing_utils
-from gradio.utils import get_upload_folder, is_in_or_equal
+from gradio.utils import get_space, get_upload_folder, is_in_or_equal
 
 logger = logging.getLogger(__name__)
 
@@ -238,12 +237,38 @@ def ensure_bucket(target: HistoryTarget) -> None:
             _api(target).create_bucket(target.bucket, private=True, exist_ok=True)
         except Exception as e:
             status = getattr(getattr(e, "response", None), "status_code", None)
+            if status == 401:
+                raise HistoryError("invalid token", 401) from e
             if status == 403:
                 raise HistoryError(
                     f"missing manage-repos scope for {target.bucket}", 403
                 ) from e
             raise HistoryError(f"bucket create failed: {e}", 502) from e
         _ensured.add(key)
+
+
+def verify_writable(target: HistoryTarget) -> None:
+    """Confirm the token can write to the bucket, by writing and deleting a file.
+
+    `create_bucket(exist_ok=True)` succeeds for an existing bucket even when the
+    token can only read it, so it can't tell a read-only token from one that can
+    save runs.
+    """
+    path = f".gradio/write-check-{secrets.token_hex(8)}"
+    api = _api(target)
+    try:
+        api.batch_bucket_files(bucket_id=target.bucket, add=[(b"", path)])
+    except Exception as e:
+        status = getattr(getattr(e, "response", None), "status_code", None)
+        if status == 401:
+            raise HistoryError("invalid token", 401) from e
+        if status == 403:
+            raise HistoryError(f"token cannot write to {target.bucket}", 403) from e
+        raise HistoryError(f"write check failed: {e}", 502) from e
+    try:
+        api.batch_bucket_files(bucket_id=target.bucket, delete=[path])
+    except Exception:
+        logger.debug("history: write check cleanup failed", exc_info=True)
 
 
 def save_record(
@@ -507,55 +532,100 @@ def app_from_request(request) -> Any | None:
     return getattr(raw, "app", None) if raw is not None else None
 
 
-def _is_loopback_host(value: str | None) -> bool:
-    if not value:
-        return False
-    if value.lower() == "localhost":
-        return True
-    try:
-        return ipaddress.ip_address(value).is_loopback
-    except ValueError:
-        return False
+HISTORY_TOKEN_COOKIE = "gradio-history-token"
 
 
-def _is_direct_local_request(request) -> bool:
-    """Whether the browser reached a local-only Gradio URL directly.
+def token_cookie_names(app) -> tuple[str, str]:
+    """The cookies holding a visitor's own HF token for run history.
 
-    Check both the public Host and the network peer. A share tunnel may connect
-    to the server from loopback, while a LAN client can forge ``Host:
-    localhost``; requiring both prevents either from inheriting the host's
-    locally saved Hugging Face credential.
+    The same pair the login cookies use: one for HTTPS, which also reaches an
+    app embedded in another site's iframe, and one for plain-HTTP local use.
+    Both are named for this app instance, so no other app on the host gets them.
     """
+    return (
+        f"{HISTORY_TOKEN_COOKIE}-{app.cookie_id}",
+        f"{HISTORY_TOKEN_COOKIE}-unsecure-{app.cookie_id}",
+    )
+
+
+def set_token_cookies(response: fastapi.Response, app, token: str) -> None:
+    """Keep *token* in this browser for the rest of its session."""
+    secure_name, unsecure_name = token_cookie_names(app)
+    response.set_cookie(
+        key=secure_name, value=token, httponly=True, samesite="none", secure=True
+    )
+    response.set_cookie(key=unsecure_name, value=token, httponly=True)
+
+
+def delete_token_cookies(response: fastapi.Response, app) -> None:
+    """Forget this browser's token, on disconnect or sign-out."""
+    secure_name, unsecure_name = token_cookie_names(app)
+    response.delete_cookie(
+        key=secure_name, path="/", httponly=True, samesite="none", secure=True
+    )
+    response.delete_cookie(key=unsecure_name, path="/", httponly=True)
+
+
+def check_same_origin(request: Request) -> None:
+    """Refuse a cross-site request to a route that sets or clears the token.
+
+    Gradio's CORS lets other origins call its API with the visitor's cookies, so
+    without this another site could plant its own token in a visitor's browser
+    and have their runs saved to its bucket. Browsers always send Origin on these
+    POSTs; clients that aren't browsers send none and carry no visitor cookies.
+    """
+    origin = request.headers.get("origin")
+    if origin is None:
+        return
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host")
+    host = (host or "").split(",")[0].strip().lower()
+    if not host or urlparse(origin).netloc.lower() != host:
+        raise fastapi.HTTPException(403, "cross-origin request")
+    content_type = request.headers.get("content-type", "")
+    if content_type.split(";")[0].strip().lower() != "application/json":
+        raise fastapi.HTTPException(415, "expected application/json")
+
+
+def _token_from_cookies(raw, app) -> str | None:
+    if app is None or not getattr(app, "cookie_id", None):
+        return None
     try:
-        return _is_loopback_host(request.url.hostname) and _is_loopback_host(
-            request.client.host
-        )
-    except (AttributeError, ValueError):
-        return False
+        for name in token_cookie_names(app):
+            token = raw.cookies.get(name)
+            if isinstance(token, str) and token:
+                return token
+    except Exception:
+        pass
+    return None
 
 
-def resolve_token(request) -> str | None:
-    """The caller's HF token: their OAuth token, else the host's own local one.
+def resolve_token(request, app=None) -> str | None:
+    """The caller's own HF token, for reading and writing their bucket.
 
-    The local credential is limited to Workflow's write-token holder or a
-    browser connected directly over loopback. Imported lazily because
-    `gradio.workflow` imports this module.
+    Their OAuth token on a Space (elsewhere OAuth is mocked, with a token the
+    Hub rejects), else the token they gave the app for run history. Signing in
+    wins, so a revoked or expired pasted token can't block it. The host's
+    locally saved token is only for Workflow's write-token holder; a request's
+    origin never grants it. Imported lazily because `gradio.workflow`
+    imports this module.
     """
     from gradio.workflow import _get_locally_saved_hf_token, _request_has_write_token
 
     raw = _fastapi_request(request)
     if raw is None:
         return None
-    try:
-        info = oauth._get_valid_oauth_info_from_session(raw.session)
-    except Exception:
-        info = None
-    token = (info or {}).get("access_token")
-    if isinstance(token, str) and token:
+    if get_space() is not None:
+        try:
+            info = oauth._get_valid_oauth_info_from_session(raw.session)
+        except Exception:
+            info = None
+        token = (info or {}).get("access_token")
+        if isinstance(token, str) and token:
+            return token
+    token = _token_from_cookies(raw, app or getattr(raw, "app", None))
+    if token:
         return token
-    if raw is not None and (
-        _request_has_write_token(raw) or _is_direct_local_request(raw)
-    ):
+    if _request_has_write_token(raw):
         return _get_locally_saved_hf_token()
     return None
 
@@ -564,7 +634,9 @@ def require_token(request: Request) -> str:
     """The caller's HF token, or 401."""
     token = resolve_token(request)
     if not token:
-        raise fastapi.HTTPException(401, "sign in to use run history")
+        raise fastapi.HTTPException(
+            401, "sign in or add an access token to use run history"
+        )
     return token
 
 
@@ -598,7 +670,7 @@ def resolve_target(
     bucket = resolve_bucket_id(blocks, request, bucket_id)
     if not bucket:
         return None
-    token = resolve_token(request)
+    token = resolve_token(request, app)
     if token is None:
         return None
     try:
@@ -718,3 +790,5 @@ Segment = Annotated[str, Path(pattern=SEGMENT_PATTERN)]
 
 class ConnectBody(BaseModel):
     bucket_id: str
+    # The caller's own HF token, kept in a cookie once the bucket connects.
+    token: str | None = None

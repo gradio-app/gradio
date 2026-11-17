@@ -6,12 +6,6 @@ from typing import TYPE_CHECKING, Literal
 
 from . import utils
 
-try:
-    import spaces  # type: ignore
-except Exception:
-    spaces = None  # type: ignore[assignment]
-
-
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
     from gradio.renderable import Renderable
@@ -119,15 +113,6 @@ class BlockFunction:
         self.input_keyword_names = input_keyword_names or []
         self.input_parameter_names = input_parameter_names or []
         self.key = key
-
-        self.spaces_auto_wrap()
-
-    def spaces_auto_wrap(self):
-        if spaces is None:
-            return
-        if utils.get_space() is None:
-            return
-        self.fn = spaces.gradio_auto_wrap(self.fn)
 
     def __str__(self):
         return str(

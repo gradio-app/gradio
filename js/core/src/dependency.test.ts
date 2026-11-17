@@ -384,14 +384,16 @@ describe("DependencyManager.dispatch", () => {
 				) => {
 					calls.push([fn_index, event_data, trigger_id]);
 					const is_first_run = calls_to(0).length === 1 && fn_index === 0;
-					return (async function* () {
-						if (is_first_run) {
-							await first_run;
-							yield first_run_result;
-						} else {
-							yield { type: "status", stage: "complete", queue: true };
-						}
-					})();
+					return submission(
+						(async function* () {
+							if (is_first_run) {
+								await first_run;
+								yield first_run_result;
+							} else {
+								yield { type: "status", stage: "complete", queue: true };
+							}
+						})()
+					);
 				}
 			} as unknown as Client;
 			const dependency_manager = manager(
@@ -445,14 +447,16 @@ describe("DependencyManager.dispatch", () => {
 		const client = {
 			submit: (fn_index: number, _data: unknown, event_data: unknown) => {
 				calls.push([fn_index, event_data]);
-				const submission = (async function* () {
-					await runs_finished;
-					// What the client yields for the empty output the backend sends
-					// to finish a cancelled job
-					yield { type: "data", data: undefined };
-					yield { type: "status", stage: "complete", queue: true };
-				})();
-				return Object.assign(submission, {
+				const run = submission(
+					(async function* () {
+						await runs_finished;
+						// What the client yields for the empty output the backend sends
+						// to finish a cancelled job
+						yield { type: "data", data: undefined };
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				);
+				return Object.assign(run, {
 					// Both runs end while the first cancel request is in flight
 					cancel: async () => {
 						finish_runs();
