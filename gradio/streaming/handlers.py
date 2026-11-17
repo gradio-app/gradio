@@ -8,6 +8,7 @@ there (e.g. `transport="webrtc"`) is up to the transport that runs it.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable
@@ -343,3 +344,22 @@ VideoStreamHandlerImpl = VideoStreamHandler | AsyncVideoStreamHandler
 # Handlers with video_receive() and video_emit()
 VideoTrackHandler = AudioVideoStreamHandlerImpl | VideoStreamHandlerImpl
 AsyncHandler = AsyncStreamHandler | AsyncAudioVideoStreamHandler
+
+
+def is_handler(fn: Any) -> bool:
+    """Whether `fn` is a handler class or an instance of one."""
+    return (inspect.isclass(fn) and issubclass(fn, StreamHandlerBase)) or isinstance(
+        fn, StreamHandlerBase
+    )
+
+
+def check_transport(fn: Any, transport: Any) -> None:
+    """Raises for a handler class without `transport=`: it needs a transport
+    that runs it for the whole stream."""
+    if transport is None and is_handler(fn):
+        name = getattr(fn, "__name__", type(fn).__name__)
+        raise ValueError(
+            f"{name} is a stream handler class, which runs only on a stream "
+            'with transport="webrtc". Pass transport="webrtc", or pass a '
+            "function instead."
+        )

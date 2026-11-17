@@ -545,6 +545,23 @@ class TestWebRTC:
             # A gr.Video streams only over WebRTC
             with pytest.raises(ValueError, match="transport="):
                 video.stream(flip, inputs=[video], outputs=[slider])
+
+            # A handler class runs only with transport=; without it, each
+            # chunk would construct one
+            class Handler(VideoStreamHandler):
+                def video_receive(self, frame):
+                    pass
+
+                def video_emit(self):
+                    return None
+
+            for handler in (Handler, Handler()):
+                with pytest.raises(ValueError, match='transport="webrtc"'):
+                    camera.stream(handler, inputs=[camera], outputs=[camera])
+            with pytest.raises(ValueError, match='transport="webrtc"'):
+                gr.on([camera.change], Handler, inputs=[camera], outputs=[camera])
+            with pytest.raises(ValueError, match='transport="webrtc"'):
+                gr.Server().api(name="handler")(Handler)
             # Settings a stream with transport= would otherwise drop silently
             for kwargs in (
                 {"queue": False},

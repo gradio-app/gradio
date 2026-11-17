@@ -789,6 +789,9 @@ class EventListener(str):
                     raise ValueError(
                         'gr.Video streams only over WebRTC: pass transport="webrtc".'
                     )
+            from gradio.streaming.handlers import check_transport
+
+            check_transport(fn, transport)
             if transport is not None:
                 unsupported = [
                     name
@@ -1093,6 +1096,9 @@ def on(
     root_block = get_blocks_context()
     if root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
+    from gradio.streaming.handlers import check_transport
+
+    check_transport(fn, None)
     # Checked here as well as in set_event_trigger, because trigger inference below
     # would otherwise iterate a dict's keys first.
     from gradio.blocks import reject_dict_inputs
@@ -1233,6 +1239,9 @@ def api(
     root_block = get_blocks_context()
     if root_block is None:
         raise Exception("Cannot call api() outside of a gradio.Blocks context.")
+    from gradio.streaming.handlers import check_transport
+
+    check_transport(fn, None)
 
     from gradio.components.api_component import Api
 

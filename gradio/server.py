@@ -270,14 +270,16 @@ class Server(App):
             "stream_every": stream_every,
             "transport": transport,
         }
-        if fn is not None:
-            self._deferred_apis.append((fn, kwargs))
-            return fn
 
         def wrapper(func):
+            from gradio.streaming.handlers import check_transport
+
+            check_transport(func, transport)
             self._deferred_apis.append((func, kwargs))
             return func
 
+        if fn is not None:
+            return wrapper(fn)
         return wrapper
 
     api = queue
