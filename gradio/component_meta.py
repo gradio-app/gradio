@@ -19,11 +19,12 @@ INTERFACE_TEMPLATE = '''
     if TYPE_CHECKING:
         from gradio.components import Timer
         from gradio.components.base import Component
+        from gradio.streaming.handlers import StreamHandlerBase
         from gradio.webrtc.options import WebRTCOptions
 
     {% for event in events %}
     def {{ event.event_name }}(self,
-        fn: Callable[..., Any] | None = None,
+        fn: Callable[..., Any] | StreamHandlerBase | None = None,
         inputs: Block | Sequence[Block] | set[Block] | None = None,
         outputs: Block | Sequence[Block] | None = None,
         api_name: str | None = None,
@@ -53,7 +54,7 @@ INTERFACE_TEMPLATE = '''
         ) -> Dependency:
         """
         Parameters:
-            fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
+            fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component. With `transport=`, it can also be a handler class from `gradio.streaming` or an instance of one, such as `ReplyOnPause(fn)`.
             inputs: list of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             inputs_kwargs: dictionary mapping function parameter names to gradio.components. The component values are passed to the function as keyword arguments.
             outputs: list of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.

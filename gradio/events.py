@@ -22,6 +22,7 @@ from gradio.data_classes import FileData, FileDataDict
 if TYPE_CHECKING:
     from gradio.blocks import Block, BlockContext, Component
     from gradio.components import Timer
+    from gradio.streaming.handlers import StreamHandlerBase
     from gradio.webrtc.options import WebRTCOptions
 
 from gradio_client.utils import python_type_to_json_schema
@@ -615,7 +616,10 @@ class EventListener(str):
     ):
         def event_trigger(
             block: Block | None,
-            fn: Callable | None | Literal["decorator"] = "decorator",
+            fn: Callable
+            | StreamHandlerBase
+            | None
+            | Literal["decorator"] = "decorator",
             inputs: Component
             | BlockContext
             | Sequence[Component | BlockContext]
@@ -651,7 +655,7 @@ class EventListener(str):
         ) -> Dependency:
             """
             Parameters:
-                fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
+                fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component. With `transport=`, it can also be a handler class from `gradio.streaming` or an instance of one, such as `ReplyOnPause(fn)`.
                 inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
                 inputs_kwargs: Dictionary mapping function parameter names to gradio.components. The component values are passed to the function as keyword arguments.
                 outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
@@ -841,7 +845,8 @@ class EventListener(str):
 
             dep, dep_index = root_block.set_event_trigger(
                 [event_target],
-                fn,
+                # Not a handler: check_transport refused one without transport=
+                cast(Callable | None, fn),
                 inputs,
                 outputs,
                 inputs_kwargs=inputs_kwargs,

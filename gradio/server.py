@@ -16,6 +16,7 @@ from gradio.routes import App
 from gradio.themes import ThemeClass as Theme
 
 if TYPE_CHECKING:
+    from gradio.streaming.handlers import StreamHandlerBase
     from gradio.webrtc.options import WebRTCOptions
 
 
@@ -219,7 +220,7 @@ class Server(App):
 
     def queue(
         self,
-        fn: Callable | None = None,
+        fn: Callable | StreamHandlerBase | None = None,
         *,
         name: str | None = None,
         description: str | None = None,
@@ -247,6 +248,8 @@ class Server(App):
         stream waits its turn in the queue like any call, and `time_limit` caps
         its duration. `stream_every` is the shortest interval between calls
         (unset: every frame).
+        Instead of a function, such an endpoint can take a handler class from
+        `gradio.streaming` or an instance of one, such as `ReplyOnPause(fn)`.
         """
         if transport is not None and (batch or not queue):
             raise ValueError(

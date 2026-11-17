@@ -5,6 +5,7 @@ import time
 import numpy as np
 import pytest
 
+import gradio as gr
 from gradio.streaming import ReplyOnPause, SileroVAD
 
 RATE = 16000
@@ -150,3 +151,23 @@ def test_needs_a_generator_and_the_vad_extra(monkeypatch):
     monkeypatch.setattr(importlib.util, "find_spec", lambda name: None)
     with pytest.raises(ImportError, match=r"gradio\[vad\]"):
         SileroVAD()
+
+
+def test_a_handler_instance_is_accepted_where_functions_are():
+    # Also checked statically: the type checker runs on this file
+    def reply(audio, name):
+        yield audio
+
+    with gr.Blocks() as demo:
+        mic = gr.Audio(sources=["microphone"], streaming=True)
+        name = gr.Textbox()
+        mic.stream(
+            ReplyOnPause(reply, vad=LoudnessVAD()),
+            inputs=[mic, name],
+            outputs=[mic],
+            transport="webrtc",
+        )
+    assert len(demo.fns) == 1
+    gr.Server().api(
+        ReplyOnPause(reply, vad=LoudnessVAD()), name="talk", transport="webrtc"
+    )
