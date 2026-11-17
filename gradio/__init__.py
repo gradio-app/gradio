@@ -4,7 +4,7 @@ import gradio._simple_templates
 import gradio.image_utils
 import gradio.processing_utils
 import gradio.templates
-from gradio import components, layouts, mcp, themes, validators
+from gradio import components, layouts, mcp, streaming, themes, validators
 from gradio.blocks import Blocks
 from gradio.caching import Cache, cache
 from gradio.chat_interface import ChatInterface
