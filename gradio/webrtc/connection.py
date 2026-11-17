@@ -61,7 +61,12 @@ from gradio.streaming.handlers import (
     StreamHandlerImpl,
     VideoStreamHandler,
 )
-from gradio.streaming.utils import AdditionalOutputs, Context, StreamInputs
+from gradio.streaming.utils import (
+    AdditionalOutputs,
+    Context,
+    StreamInputs,
+    bind_special_args,
+)
 from gradio.utils import error_payload
 from gradio.webrtc.bitrate import add_bitrate_hints, limit_video_encoders
 from gradio.webrtc.handlers import HandlerType, VideoOptions
@@ -77,7 +82,6 @@ from gradio.webrtc.tracks import (
 from gradio.webrtc.utils import (
     HandlerFailedError,
     StreamErrors,
-    bind_special_args,
     current_errors,
     is_async,
     webrtc_error_handler,

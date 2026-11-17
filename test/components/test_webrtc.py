@@ -1,7 +1,7 @@
 import asyncio
 import json
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from contextlib import asynccontextmanager, closing
 from types import SimpleNamespace
 from typing import Any, cast
@@ -4973,6 +4973,40 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         assert stream_fn.transport["modality"] == "audio-video"
         assert stream_fn.transport["mode"] == "send-receive"
         assert len(stream_fn.outputs) == 2
+
+        # ReplyOnPause: the hints of its generator function
+        class Quiet:
+            sample_rate, window_size = 16000, 512
+
+            def is_speech(self, window):
+                return False
+
+            def reset(self):
+                pass
+
+            def copy(self):
+                return Quiet()
+
+        def talk(
+            audio: gr.AudioChunk, name: str = ""
+        ) -> Iterator[tuple[gr.AudioChunk, str]]:
+            yield audio, name
+
+        def late(name: str, audio: gr.AudioChunk) -> Iterator[gr.AudioChunk]:
+            yield audio
+
+        # An instance, not a function, so the hint of api_stream does not fit
+        stream_fn, _ = api_stream(
+            cast(Any, gr.streaming.ReplyOnPause(talk, vad=Quiet())), **kwargs
+        )
+        assert stream_fn.transport is not None
+        assert stream_fn.transport["mode"] == "send-receive"
+        assert stream_fn.api_name == "talk"
+        assert stream_fn.input_parameter_names == ["audio", "name"]
+        with pytest.raises(ValueError, match="first parameter"):
+            api_stream(
+                cast(Any, gr.streaming.ReplyOnPause(late, vad=Quiet())), **kwargs
+            )
 
 
 def test_a_handler_class_gets_the_inputs_its_receive_declares():

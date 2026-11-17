@@ -305,9 +305,16 @@ def api_stream(
     from gradio_client.utils import python_type_to_json_schema
 
     from gradio.components.api_component import Api
+    from gradio.streaming.reply_on_pause import ReplyOnPause
 
     audio_video = _is_a(fn, (AudioVideoStreamHandler, AsyncAudioVideoStreamHandler))
-    if _is_a(fn, (StreamHandlerBase,)):
+    # What the endpoint is named after and its hints are read from
+    hinted = fn.fn if isinstance(fn, ReplyOnPause) else fn
+    if isinstance(fn, ReplyOnPause):
+        # Its generator function takes the audio, then the other inputs
+        params = utils.get_function_params(fn.fn)
+        returns = _return_types(fn.fn)
+    elif _is_a(fn, (StreamHandlerBase,)):
         # A handler class: the media is the parameter of receive() /
         # video_receive(), the outputs what emit() / video_emit() return
         cls = cast(Any, fn if inspect.isclass(fn) else type(fn))
@@ -341,6 +348,11 @@ def api_stream(
             "or gr.AudioChunk, among its parameters and/or return values."
         )
     modality = cast(Modality, "audio-video" if audio_video else kinds.pop())
+    if isinstance(fn, ReplyOnPause) and (modality != "audio" or media_in != 0):
+        raise ValueError(
+            "The function of ReplyOnPause takes the audio (gr.AudioChunk) as its "
+            "first parameter."
+        )
     media_schema = {
         "type": "object",
         "description": f"live {modality} over WebRTC (a MediaStream in @gradio/client)",
@@ -377,7 +389,7 @@ def api_stream(
         show_progress="hidden",
         preprocess=False,
         postprocess=False,
-        api_name=api_name or getattr(fn, "__name__", None),
+        api_name=api_name or getattr(hinted, "__name__", None),
         api_description=api_description,
         # Documented so that clients can call it with named arguments; it is
         # left out of the MCP tools, which could not send media
@@ -463,7 +475,7 @@ def _chunked_audio_handler(
     arguments and result (it keeps the gr.State values the stream carries).
     """
     from gradio import routes
-    from gradio.webrtc.utils import bind_special_args
+    from gradio.streaming.utils import bind_special_args
 
     class ChunkedAudio(StreamHandler):
         def __init__(self) -> None:
