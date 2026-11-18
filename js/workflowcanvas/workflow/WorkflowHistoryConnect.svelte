@@ -246,7 +246,7 @@
 	}
 
 	.connect-hint code {
-		font-family: monospace;
+		font-family: var(--font-mono);
 		font-size: 11.5px;
 		background: #0c0d10;
 		border: 1px solid #2a2b38;
@@ -375,7 +375,7 @@
 	}
 
 	.bucket-id {
-		font-family: monospace;
+		font-family: var(--font-mono);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -443,7 +443,7 @@
 		color: #e8e9f0;
 		font-size: 12px;
 		padding: 7px 10px;
-		font-family: monospace;
+		font-family: var(--font-mono);
 		min-width: 0;
 	}
 
