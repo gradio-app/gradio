@@ -82,6 +82,20 @@ class TestDisableFlagging:
         io.close()
 
 
+class TestFlagMethod:
+    def test_failed_flag_re_enables_the_button(self):
+        callback = MagicMock()
+        callback.flag.side_effect = OSError("not writable")
+        flag_method = flagging.FlagMethod(callback, "Flag", None)
+        request = MagicMock(username=None)
+
+        button = flag_method(request, "input", "output")
+
+        assert isinstance(button, gr.Button)
+        assert button.value == "Error!"
+        assert button.interactive is True
+
+
 class TestInterfaceSetsUpFlagging:
     @pytest.mark.parametrize(
         "flagging_mode, called",

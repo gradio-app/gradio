@@ -48,7 +48,7 @@
     "@gradio/label": "0.7.3",
     "@gradio/markdown": "0.14.3",
     "@gradio/markdown-code": "0.10.3",
-    "@gradio/model3d": "0.19.2",
+    "@gradio/model3d": "0.20.0",
     "@gradio/multimodaltextbox": "0.14.4",
     "@gradio/nativeplot": "0.14.1",
     "@gradio/navbar": "0.3.3",

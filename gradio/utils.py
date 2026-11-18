@@ -757,6 +757,11 @@ def assert_configs_are_equivalent_besides_ids(
             config1["dependencies"], config2["dependencies"], strict=False
         ):
             for t1, t2 in zip(d1.pop("targets"), d2.pop("targets"), strict=False):
+                # Steps chained with .then() / .success() have no target component
+                if t1[0] is None or t2[0] is None:
+                    if t1 != t2:
+                        raise ValueError(f"{t1} does not match {t2}")
+                    continue
                 assert_same_components(t1[0], t2[0])
             for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs"), strict=False):
                 assert_same_components(i1, i2)
@@ -1059,7 +1064,8 @@ def function_wrapper(
 
         @functools.wraps(f)
         async def asyncgen_wrapper(*args, **kwargs):
-            iterator = f(*args, **kwargs)
+            with context_factory():
+                iterator = f(*args, **kwargs)
             while True:
                 try:
                     with context_factory():
@@ -1083,7 +1089,8 @@ def function_wrapper(
 
         @functools.wraps(f)
         def gen_wrapper(*args, **kwargs):
-            iterator = f(*args, **kwargs)
+            with context_factory():
+                iterator = f(*args, **kwargs)
             while True:
                 try:
                     with context_factory():

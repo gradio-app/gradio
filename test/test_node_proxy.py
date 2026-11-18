@@ -369,7 +369,6 @@ def _ssr_app_reporting_client_address():
     import socket
 
     import gradio as gr
-    from gradio.history import _is_direct_local_request
 
     # A port the OS picks, rather than the next free one after 7860: parallel
     # test workers search that range too, and could take the port before Node
@@ -395,7 +394,6 @@ def _ssr_app_reporting_client_address():
             return {
                 "forwarded_for": request.headers.get("x-forwarded-for"),
                 "host": request.client.host if request.client else None,
-                "direct_local": _is_direct_local_request(request),
             }
 
         yield f"http://127.0.0.1:{demo.node_port}/gradio_api/test_client_address"
@@ -411,11 +409,10 @@ class TestNodeProxyClientAddress:
         monkeypatch.delenv("FORWARDED_ALLOW_IPS", raising=False)
         with _ssr_app_reporting_client_address() as url:
             # Node appends the address of whoever connected to it, here a
-            # local browser, which is still treated as local.
+            # local browser.
             assert httpx2.get(url).json() == {
                 "forwarded_for": "127.0.0.1",
                 "host": "127.0.0.1",
-                "direct_local": True,
             }
 
             # Python reads the client's address from what Node forwards, so a
@@ -427,7 +424,6 @@ class TestNodeProxyClientAddress:
             ).json() == {
                 "forwarded_for": "203.0.113.7, 127.0.0.1",
                 "host": "203.0.113.7",
-                "direct_local": False,
             }
 
     @pytest.mark.parametrize("configured", ["*", "192.168.1.100", ""])
@@ -447,7 +443,6 @@ class TestNodeProxyClientAddress:
                 },
             ).json()
         assert response["host"] == "203.0.113.7"
-        assert response["direct_local"] is False
 
     def test_spaces_proxy_header_is_passed_through(self, monkeypatch):
         """On Spaces, Hugging Face's proxy appends the visitor's address and is
@@ -476,7 +471,6 @@ class TestNodeProxyClientAddress:
             ).json() == {
                 "forwarded_for": "6.6.6.6, 203.0.113.7",
                 "host": "203.0.113.7",
-                "direct_local": False,
             }
 
 

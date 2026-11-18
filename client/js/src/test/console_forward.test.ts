@@ -829,7 +829,6 @@ describe("existing message listeners ignore a gradio-console get", () => {
 		window.dispatchEvent(
 			new MessageEvent("message", { data: "supports-zerogpu-headers" })
 		);
-		expect(window.supports_zerogpu_headers).toBe(true);
-		delete window.supports_zerogpu_headers;
+		expect(window.supports_zerogpu_headers).toBeUndefined();
 	});
 });
