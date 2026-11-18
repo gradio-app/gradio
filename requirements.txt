@@ -1,6 +1,5 @@
 anyio>=4.10,<5.0
 brotli>=1.2.1
-cryptography>=41.0
 fastapi>=0.115.2,<1.0
 groovy~=0.1
 gradio_client==2.8.0-dev.0

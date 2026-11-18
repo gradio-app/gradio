@@ -1,14 +1,19 @@
 """Keeps `gr.State` values in the browser, with the server's memory as a cache.
 
 After an event changes a `gr.State`, the server serializes the value, seals it
-into an encrypted, authenticated token and sends the token to the browser along
-with a short reference to it. The browser stores both and sends the reference
+into a signed token and sends the token to the browser along with a short
+reference to it. The browser stores both and sends the reference
 (or, for small values, the token itself) with every event that reads or writes
 that `gr.State`. The server looks the reference up in its cache and, if it is
 not there (another replica served the last event, the server restarted, or the
 entry was evicted), answers 409 so that the browser retries with the token.
 
-Tokens are sealed with a key derived from `GRADIO_SECRET_KEY`, so every replica
+Tokens are signed, not encrypted: a user cannot change the value or make one
+up, but can read it (the token is the serialized value, at most compressed,
+next to its signature). A value the user must not see belongs in a `gr.State`
+with `storage="server"`.
+
+Tokens are signed with a key derived from `GRADIO_SECRET_KEY`, so every replica
 of an app must share it. Without it each process makes a random key, which is
 fine for a single process but means tokens do not survive a restart.
 
@@ -42,7 +47,8 @@ if TYPE_CHECKING:
     from gradio.components import State
     from gradio.state_holder import SessionState
 
-TOKEN_PREFIX = "v1."
+TOKEN_PREFIX = "v2."
+_TAG_SIZE = hashlib.sha256().digest_size
 _FLAG_COMPRESSED = 1
 _COMPRESS_ABOVE = 1024
 _HEADER = struct.Struct(">Bd")  # flags, issued_at
@@ -69,23 +75,27 @@ def _b64decode(data: str) -> bytes:
 
 
 class StateSealer:
-    """Seals serialized values into tokens, and computes their references."""
+    """Seals serialized values into signed tokens, and computes their references."""
 
     def __init__(self, secret: bytes):
-        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
-        self._aead = AESGCM(
-            hmac.new(secret, b"gradio-state-encryption", hashlib.sha256).digest()
-        )
+        self._sign_key = hmac.new(
+            secret, b"gradio-state-signing", hashlib.sha256
+        ).digest()
         self._ref_key = hmac.new(
             secret, b"gradio-state-reference", hashlib.sha256
         ).digest()
 
     def ref(self, scope: bytes, serialized: bytes) -> str:
-        # Keyed, so that a reference reveals nothing about the value (a plain
-        # hash would let a user confirm a guess at a hidden value).
+        # Keyed, so that a reference cannot be computed for a value the server
+        # never issued.
         mac = hmac.new(self._ref_key, scope + b"\0" + serialized, hashlib.sha256)
         return _b64encode(mac.digest()[:16])
+
+    def _tag(self, scope: bytes, body: bytes) -> bytes:
+        # The length prefix keeps the boundary between scope and body fixed, so
+        # bytes cannot be moved from one to the other under the same signature.
+        message = len(scope).to_bytes(4, "big") + scope + body
+        return hmac.new(self._sign_key, message, hashlib.sha256).digest()
 
     def seal(self, scope: bytes, serialized: bytes, issued_at: float) -> str:
         flags = 0
@@ -95,24 +105,24 @@ class StateSealer:
             if len(compressed) < len(serialized):
                 flags |= _FLAG_COMPRESSED
                 payload = compressed
-        nonce = secrets.token_bytes(12)
-        ciphertext = self._aead.encrypt(
-            nonce, _HEADER.pack(flags, issued_at) + payload, scope
-        )
-        return TOKEN_PREFIX + _b64encode(nonce + ciphertext)
+        body = _HEADER.pack(flags, issued_at) + payload
+        return TOKEN_PREFIX + _b64encode(self._tag(scope, body) + body)
 
     def open(self, scope: bytes, token: str) -> tuple[bytes, float]:
-        from cryptography.exceptions import InvalidTag
-
         if not token.startswith(TOKEN_PREFIX):
             raise InvalidStateTokenError("Unknown token version")
         try:
             raw = _b64decode(token[len(TOKEN_PREFIX) :])
-            plaintext = self._aead.decrypt(raw[:12], raw[12:], scope)
-        except (InvalidTag, ValueError) as err:
+        except ValueError as err:
             raise InvalidStateTokenError("Token could not be verified") from err
-        flags, issued_at = _HEADER.unpack_from(plaintext)
-        payload = plaintext[_HEADER.size :]
+        tag, body = raw[:_TAG_SIZE], raw[_TAG_SIZE:]
+        # The signature is checked before anything in the body is parsed
+        if len(body) < _HEADER.size or not hmac.compare_digest(
+            tag, self._tag(scope, body)
+        ):
+            raise InvalidStateTokenError("Token could not be verified")
+        flags, issued_at = _HEADER.unpack_from(body)
+        payload = body[_HEADER.size :]
         if flags & _FLAG_COMPRESSED:
             payload = zlib.decompress(payload)
         return payload, issued_at

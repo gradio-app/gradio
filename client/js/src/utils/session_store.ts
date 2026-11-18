@@ -3,7 +3,7 @@
  * sealed, and the values its components were last given.
  *
  * `gr.State`: after an event changes a `gr.State`, the server sends an
- * encrypted token for the new value and a short reference to it. The client
+ * signed token for the new value and a short reference to it. The client
  * sends the reference (or the token itself, when it is small) with every event
  * that reads or writes that state. If the server answering the event does not
  * have the value cached, it responds with 409 and the ids it is missing, and
