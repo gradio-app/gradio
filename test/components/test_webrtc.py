@@ -11,6 +11,9 @@ import anyio
 import httpx2
 import pytest
 import pytest_asyncio
+
+pytest.importorskip("aiortc")
+
 from aiortc import (
     AudioStreamTrack,
     RTCPeerConnection,
