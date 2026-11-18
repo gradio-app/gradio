@@ -5,13 +5,12 @@ import shutil
 from pathlib import Path
 
 import click
-from tomlkit import dump, parse
 
 import gradio
 from gradio.analytics import custom_component_analytics
 
 from ..display import LivePanelDisplay, ask, confirm, print_box
-from . import _create_utils
+from . import _create_utils, _pyproject
 from .install_component import _get_npm, _install_command
 
 
@@ -95,16 +94,15 @@ def _create(
 
             answer_qs = confirm("\nDo you want to answer them now?")
 
-            pyproject_toml = parse((directory / "pyproject.toml").read_text())
-
             if answer_qs:
-                name = pyproject_toml["project"]["name"]  # type: ignore
+                project = _pyproject.load(directory / "pyproject.toml")["project"]
+                changes: dict[str, str | list[str]] = {}
 
                 description = ask(
                     "\n📝 Please enter a one sentence description for your component"
                 )
                 if description:
-                    pyproject_toml["project"]["description"] = description  # type: ignore
+                    changes["description"] = description
 
                 license_ = (
                     ask(
@@ -113,16 +111,16 @@ def _create(
                     or "apache-2.0"
                 )
                 print(f"📑 Using license {license_}")
-                pyproject_toml["project"]["license"] = license_  # type: ignore
+                changes["license"] = license_
 
-                requires_python = ask(
-                    "\n🐍 Please enter the allowed python versions for your component. Leave blank for '>=3.11'"
+                requires_python = (
+                    ask(
+                        "\n🐍 Please enter the allowed python versions for your component. Leave blank for '>=3.11'"
+                    )
+                    or ">=3.11"
                 )
-                requires_python = requires_python or ">=3.11"
                 print(f"🐍 Using requires-python of {requires_python}")
-                pyproject_toml["project"]["requires-python"] = (  # type: ignore
-                    requires_python or ">=3.11"
-                )
+                changes["requires-python"] = requires_python
 
                 print(
                     "\n🏷 Please add some keywords to help others discover your component."
@@ -133,10 +131,8 @@ def _create(
                         keywords.append(keyword)
                     else:
                         break
-                current_keywords = pyproject_toml["project"].get("keywords", [])  # type: ignore
-                pyproject_toml["project"]["keywords"] = current_keywords + keywords  # type: ignore
-                with open(directory / "pyproject.toml", "w", encoding="utf-8") as f:
-                    dump(pyproject_toml, f)
+                changes["keywords"] = project.get("keywords", []) + keywords
+                _pyproject.set_project_values(directory / "pyproject.toml", changes)
 
         (directory / "demo" / "requirements.txt").write_text(package_name)
         readme_path = Path(__file__).parent / "files" / "README.md"

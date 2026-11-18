@@ -104,3 +104,9 @@ If you use the Hugging Face CLI, `hf extensions install gradio-app/hf-gradio` gi
 ## `typer`, `rich` and `hf-gradio` are no longer installed with Gradio
 
 The `gradio` command line is now built on `click`, and prints plain text instead of `rich` panels and tables. Every command and option keeps its name. If your app imports `typer` or `rich` itself, add them to your app's requirements.
+
+## `pytz` and `tomlkit` are no longer installed with Gradio
+
+`gr.DateTime` now uses the standard library's `zoneinfo` for its `timezone` parameter. With `type="datetime"`, the `tzinfo` of the value passed to your function is a `zoneinfo.ZoneInfo` instead of a `pytz` timezone, and an unknown timezone name raises `zoneinfo.ZoneInfoNotFoundError`. The resulting times are the same.
+
+If your app imports `pytz` or `tomlkit` itself, add them to your app's requirements.

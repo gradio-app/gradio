@@ -7,11 +7,11 @@ from typing import Any
 
 import click
 import httpx2
-import tomlkit as toml
 
 from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.display import LivePanelDisplay
 
+from . import _pyproject
 from ._docs_assets import css
 from ._docs_utils import (
     RUFF_INSTALLED,
@@ -64,8 +64,7 @@ def _docs(
         if not (_component_dir / "pyproject.toml").exists():
             raise ValueError(f"Cannot find pyproject.toml file in {_component_dir}")
 
-        with open(_component_dir / "pyproject.toml", encoding="utf-8") as f:
-            data = toml.loads(f.read())
+        data = _pyproject.load(_component_dir / "pyproject.toml")
 
         name = get_deep(data, ["project", "name"])
 

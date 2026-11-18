@@ -7,10 +7,10 @@ from pathlib import Path
 
 import click
 from packaging.version import Version
-from tomlkit import dump, parse
 
 import gradio
 from gradio.analytics import custom_component_analytics
+from gradio.cli.commands.components import _pyproject
 from gradio.cli.commands.components._docs_utils import (
     get_deep,
 )
@@ -46,7 +46,7 @@ def _build(
 
     with LivePanelDisplay() as live:
         live.update(f"📦 Building package in {str(name.name)}", add_sleep=0.2)
-        pyproject_toml = parse((path / "pyproject.toml").read_text())
+        pyproject_toml = _pyproject.load(path / "pyproject.toml")
         package_name = get_deep(pyproject_toml, ["project", "name"])
 
         python_path = _get_executable_path(
@@ -65,18 +65,16 @@ def _build(
                 "Please install it with the gradio cc install command before building it."
             ) from e
         if bump_version:
-            pyproject_toml = parse((path / "pyproject.toml").read_text())
-            current = Version(str(pyproject_toml["project"]["version"]))  # type: ignore
+            current = Version(str(pyproject_toml["project"]["version"]))
             version = f"{current.major}.{current.minor}.{current.micro + 1}"
             live.update(
                 f"🔢 Using version {version}. "
                 "Set --no-bump-version to use the version in pyproject.toml file."
             )
-            pyproject_toml["project"]["version"] = version  # type: ignore
-            with open(path / "pyproject.toml", "w", encoding="utf-8") as f:
-                dump(pyproject_toml, f)
+            _pyproject.set_project_values(path / "pyproject.toml", {"version": version})
+            pyproject_toml["project"]["version"] = version
         else:
-            version = pyproject_toml["project"]["version"]  # type: ignore
+            version = pyproject_toml["project"]["version"]
             live.update(
                 f"🔢 Package will use version {version} defined in pyproject.toml file. "
                 "Set --bump-version to automatically bump the version number."

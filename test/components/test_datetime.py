@@ -1,5 +1,5 @@
-from datetime import UTC, datetime
-from typing import cast
+from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -162,12 +162,27 @@ class TestGetDatetimeFromStr:
         assert result.day == 1
 
     def test_applies_timezone_to_parsed_string(self):
-        import pytz
-
         dt = gr.DateTime(timezone="US/Pacific")
         result = dt.get_datetime_from_str("2020-02-01 08:10:25")
-        assert result.tzinfo is not None
-        assert cast(pytz.BaseTzInfo, result.tzinfo).zone == "US/Pacific"
+        assert result.tzinfo == ZoneInfo("US/Pacific")
+        assert result.utcoffset() == timedelta(hours=-8)
+
+    @pytest.mark.parametrize(
+        "date, utc_hour",
+        [
+            # 01:30 happens twice when clocks go back; it is read as standard time.
+            ("2024-11-03 01:30:00", 9),
+            # 02:30 does not exist when clocks go forward; also read as standard time.
+            ("2024-03-10 02:30:00", 10),
+            ("2024-07-01 12:00:00", 19),
+        ],
+    )
+    def test_ambiguous_and_missing_times_are_read_as_standard_time(
+        self, date, utc_hour
+    ):
+        dt = gr.DateTime(timezone="US/Pacific")
+        result = dt.get_datetime_from_str(date)
+        assert result.astimezone(ZoneInfo("UTC")).hour == utc_hour
 
     def test_now_returns_current_time(self):
         dt = gr.DateTime(timezone="US/Pacific")

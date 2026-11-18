@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from gradio.cli.commands.components import _pyproject
 from gradio.cli.commands.components.build import _build
 from gradio.cli.commands.components.create import _create, _create_utils
 from gradio.cli.commands.components.install_component import (
@@ -324,3 +325,69 @@ def test_get_version_from_wheel():
         _get_version_from_file(Path("gradio_textwithattachments-1.0.3b12-py3-none.whl"))
         == "1.0.3b12"
     )
+
+
+class TestPyproject:
+    @pytest.fixture
+    def pyproject(self, tmp_path):
+        template = (
+            Path(_create_utils.__file__).parent / "files" / "pyproject_.toml"
+        ).read_text()
+        path = tmp_path / "pyproject.toml"
+        path.write_text(template.replace("<<name>>", "gradio_mybox"))
+        return path
+
+    def test_load_reads_the_project_table(self, pyproject):
+        project = _pyproject.load(pyproject)["project"]
+        assert project["name"] == "gradio_mybox"
+        assert project["version"] == "0.0.1"
+
+    def test_setting_a_value_changes_only_that_line(self, pyproject):
+        before = pyproject.read_text().split("\n")
+        _pyproject.set_project_values(pyproject, {"version": "0.0.2"})
+        after = pyproject.read_text().split("\n")
+        changed = [(b, a) for b, a in zip(before, after, strict=True) if b != a]
+        assert changed == [('version = "0.0.1"', 'version = "0.0.2"')]
+
+    def test_multiline_value_is_replaced_and_new_key_is_added(self, pyproject):
+        _pyproject.set_project_values(
+            pyproject,
+            {
+                "keywords": ["a", 'quo"te', "ünï"],
+                "description": 'Says "hi" \\ bye',
+                "maintainer": "someone",
+            },
+        )
+        text = pyproject.read_text()
+        loaded = _pyproject.load(pyproject)
+        assert loaded["project"]["keywords"] == ["a", 'quo"te', "ünï"]
+        assert loaded["project"]["description"] == 'Says "hi" \\ bye'
+        assert loaded["project"]["maintainer"] == "someone"
+        assert "<<template>>" not in text
+        # Everything outside the edited keys is untouched.
+        assert "# Add dependencies here" in text
+        assert "# [project.urls]" in text
+        assert loaded["project"]["optional-dependencies"] == {"dev": ["build", "twine"]}
+        assert loaded["tool"]["hatch"]["build"]["artifacts"][1] == "*.pyi"
+
+    def test_keys_of_other_tables_are_not_touched(self, tmp_path):
+        path = tmp_path / "pyproject.toml"
+        path.write_text(
+            '[tool.x]\nversion = "9"\n\n[project]\nname = "a"\nversion = "1"\n'
+            'authors = [\n  { name = "[x]" },\n]\n\n[tool.y]\nversion = "8"\n'
+        )
+        _pyproject.set_project_values(path, {"version": "2", "license": "MIT"})
+        loaded = _pyproject.load(path)
+        assert loaded["project"] == {
+            "name": "a",
+            "version": "2",
+            "authors": [{"name": "[x]"}],
+            "license": "MIT",
+        }
+        assert loaded["tool"] == {"x": {"version": "9"}, "y": {"version": "8"}}
+
+    def test_missing_project_table_is_an_error(self, tmp_path):
+        path = tmp_path / "pyproject.toml"
+        path.write_text('[tool.x]\nversion = "9"\n')
+        with pytest.raises(ValueError, match="does not have a \\[project\\] table"):
+            _pyproject.set_project_values(path, {"version": "2"})

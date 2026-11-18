@@ -9,9 +9,9 @@ from pathlib import Path
 import click
 from huggingface_hub import HfApi
 from packaging.version import InvalidVersion, Version
-from tomlkit import parse
 
 from gradio.analytics import custom_component_analytics
+from gradio.cli.commands.components import _pyproject
 from gradio.cli.commands.display import ask, confirm, print_box
 
 colors = ["red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"]
@@ -195,7 +195,7 @@ def _publish(
         pyproject_toml_path = source_dir / "pyproject.toml"
 
         try:
-            pyproject_toml = parse(pyproject_toml_path.read_text())
+            pyproject_toml = _pyproject.load(pyproject_toml_path)
             package_name = pyproject_toml["project"]["name"]  # type: ignore
         except Exception:
             (package_name, _) = wheel_file.name.split("-")[:2]

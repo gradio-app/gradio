@@ -8,8 +8,8 @@ import subprocess
 from pathlib import Path
 
 import click
-from tomlkit import parse
 
+from gradio.cli.commands.components import _pyproject
 from gradio.cli.commands.display import LivePanelDisplay
 from gradio.utils import set_directory
 
@@ -67,7 +67,7 @@ def _get_frontend_dir(directory: Path) -> Path:
     """
     default_frontend_dir = directory / "frontend"
     try:
-        pyproject_toml = parse((directory / "pyproject.toml").read_text())
+        pyproject_toml = _pyproject.load(directory / "pyproject.toml")
         package_name = pyproject_toml["project"]["name"]  # type: ignore
     except Exception:
         return default_frontend_dir
