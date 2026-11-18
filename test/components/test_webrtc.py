@@ -584,6 +584,21 @@ class TestWebRTC:
                         **kwargs,
                     )
 
+            label = gr.Textbox()
+            shown = camera.stream(
+                flip,
+                inputs=[camera],
+                outputs=[camera, label],
+                transport="webrtc",
+                show_progress_on=[label],
+                scroll_to_output=True,
+                key="shown",
+            )
+            shown_fn = demo.fns[shown["id"]]
+            assert shown_fn.show_progress_on == [label]
+            assert shown_fn.scroll_to_output
+            assert shown_fn.key == "shown"
+
             # A stream cannot be chained after another event
             def frames():
                 yield None

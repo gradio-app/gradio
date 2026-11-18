@@ -841,6 +841,9 @@ class EventListener(str):
                     concurrency_id=concurrency_id,
                     show_progress=show_progress,
                     trigger_mode=trigger_mode,
+                    show_progress_on=show_progress_on,
+                    scroll_to_output=scroll_to_output,
+                    key=key,
                 )
                 set_cancel_events([event_target], cancels)
                 # e.g. .stream() puts its component in streaming mode

@@ -155,6 +155,9 @@ def blocks_stream(
     concurrency_id: str | None,
     show_progress: Any,
     trigger_mode: Literal["once", "multiple", "always_last"] | None,
+    show_progress_on: Any = None,
+    scroll_to_output: bool = False,
+    key: Any = None,
 ) -> tuple[BlockFunction, int]:
     """
     The event of an event listener called with `transport=`. The media
@@ -240,6 +243,9 @@ def blocks_stream(
         concurrency_limit=concurrency_limit,
         concurrency_id=concurrency_id,
         show_progress=show_progress,
+        show_progress_on=show_progress_on,
+        scroll_to_output=scroll_to_output,
+        key=key,
         preprocessed_inputs=[c for c in inputs if c is not media],
         preprocess=False,
         # Only the page can call it: it needs the page's media
