@@ -1051,7 +1051,7 @@ def test_a_recorded_run_uses_the_browsers_token():
     hub = FakeHub()
     history_mod._ensured.clear()
     io = gr.Interface(lambda x: x, "text", "text", api_name="echo")
-    app, _, _ = io.launch(prevent_thread_lock=True)
+    app, _, _ = io.launch(prevent_thread_lock=True, executor="thread")
     tokens, hf_api = _hub_tokens(hub)
     secure_name, _ = history_mod.token_cookie_names(app)
 

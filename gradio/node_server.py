@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 import os
 import signal
 import socket
@@ -85,6 +86,46 @@ def start_node_server(
     )
 
     return server_name, node_process, node_port
+
+
+def node_proxy_forwarded_allow_ips(python_host: str) -> list[str]:
+    """The proxies Python trusts for X-Forwarded-For while Node is in front of it.
+
+    Node appends the address of whoever connected to it, and Python reads the
+    client's address from that, so Python must always trust the address Node
+    connects from, whatever FORWARDED_ALLOW_IPS says: if it didn't, every request
+    would come from Node's own address, often 127.0.0.1. Proxies listed in
+    FORWARDED_ALLOW_IPS, such as a load balancer in front of Node, are trusted
+    too, but not "*": with it, uvicorn takes the leftmost entry, which the client
+    writes.
+    """
+    trusted = ["127.0.0.1", "::1"]
+    host = python_host.strip("[]")
+    try:
+        unspecified = ipaddress.ip_address(host).is_unspecified
+    except ValueError:
+        unspecified = False
+    if not unspecified:
+        # Node connects to python_host, so from that address when it isn't
+        # loopback (a server_name of one of this machine's LAN addresses).
+        try:
+            trusted += [info[4][0] for info in socket.getaddrinfo(host, None)]
+        except OSError:
+            pass
+    configured = [
+        entry.strip()
+        for entry in os.environ.get("FORWARDED_ALLOW_IPS", "").split(",")
+        if entry.strip()
+    ]
+    if "*" in configured:
+        warnings.warn(
+            "FORWARDED_ALLOW_IPS='*' is ignored while the Node proxy serves SSR: "
+            "with it, a client could choose the address the app sees for it. List "
+            "the addresses of your proxies instead.",
+            stacklevel=2,
+        )
+    trusted += [entry for entry in configured if entry != "*"]
+    return list(dict.fromkeys(trusted))
 
 
 GRADIO_LOCAL_DEV_MODE = os.getenv("GRADIO_LOCAL_DEV_MODE") is not None

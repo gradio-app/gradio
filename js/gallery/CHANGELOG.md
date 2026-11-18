@@ -18,6 +18,17 @@
 - @gradio/video@0.24.0-dev.0
 - @gradio/file@0.16.4-dev.0
 
+## 0.19.5
+
+### Fixes
+
+- [#14027](https://github.com/gradio-app/gradio/pull/14027) [`f3bab14`](https://github.com/gradio-app/gradio/commit/f3bab14e9d5a46bb22866a3a9db498c02f4e7ad0) - Show an error when camera permission is denied for the webcam.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.8.0
+- @gradio/image@0.28.6
+
 ## 0.19.4
 
 ### Dependency updates
