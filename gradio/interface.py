@@ -890,8 +890,7 @@ class Interface(Blocks):
                 flag_btn,
                 queue=False,
                 api_visibility="undocumented",
-            )
-            flag_btn.click(
+            ).then(
                 flag_method,
                 inputs=flag_components,
                 outputs=flag_btn,

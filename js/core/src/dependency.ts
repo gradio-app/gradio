@@ -221,6 +221,14 @@ export class DependencyManager {
 		new Map();
 	client: Client;
 	deferred_events: Map<number, DispatchFunction | DispatchEvent> = new Map();
+	event_args_holds = new Map<
+		number,
+		{
+			count: number;
+			original: Record<string, unknown>;
+			applied: Record<string, unknown>;
+		}
+	>();
 	add_to_api_calls: (payload: Payload) => void;
 
 	update_state_cb: UpdateStateCallback;
@@ -328,7 +336,7 @@ export class DependencyManager {
 		this.rerender_cb = rerender;
 		for (const [dep_id, dep] of this.dependencies_by_fn) {
 			for (const [output_id] of dep.targets) {
-				this.set_event_args(output_id, dep.event_args);
+				this.write_event_args(output_id, dep.event_args);
 			}
 		}
 		// Wait for remounted components to register before pushing status, so
@@ -467,9 +475,9 @@ export class DependencyManager {
 				`${event_meta.event_name}-${event_meta.target_id}`
 			);
 		}
-		for (let i = 0; i < (deps?.length || 0); i++) {
-			const dep = deps ? deps[i] : undefined;
-			if (dep) {
+		// The listeners of an event are independent, so start them all at once
+		const results = await Promise.allSettled(
+			(deps ?? []).map(async (dep) => {
 				this.cancel(dep.cancels);
 
 				const dispatch_status = should_dispatch(
@@ -478,41 +486,54 @@ export class DependencyManager {
 				);
 
 				if (dispatch_status === "skip") {
-					continue;
+					return;
 				} else if (dispatch_status === "defer") {
 					this.deferred_events.set(dep.id, event_meta);
-					continue;
+					return;
 				}
 				// Anything deferred before this run is older than it, so drop it
 				// rather than replay it after this run finishes.
 				this.deferred_events.delete(dep.id);
+				// A chunk for a stream that is already open starts no new run
+				const sends_chunk =
+					dep.connection_type === "stream" && this.submissions.has(dep.id);
 
 				// A WebRTC stream's camera or microphone hears about the run only
 				// through stream_state, so it waits from the start: a run that fails
 				// before its turn comes still closes it
 				const live_stream =
-					!!dep.transport &&
-					dep.connection_type === "stream" &&
-					!this.submissions.has(dep.id);
-				// No loading status for js-only deps
+					!!dep.transport && dep.connection_type === "stream" && !sends_chunk;
+				// No loading status or validation errors for js-only deps
 				if (dep.functions.backend) {
-					this.update_loading_status({
-						status: "pending",
-						fn_index: dep.id,
-						stream_state: live_stream ? "waiting" : null
-					});
-					this.update_loading_stati_state();
+					// Clear previously set validation errors before any listener of
+					// this event awaits, so a sibling cannot clear a rejection that
+					// arrived ahead of its own first message. Skip chunks: replacing
+					// loading_status would drop the input's stream_state. A WebRTC
+					// stream has no validator, and its inputs go by stream_state.
+					if (!sends_chunk && !dep.transport) {
+						dep.inputs.forEach((input_id) => {
+							this.update_state_cb(
+								input_id,
+								{
+									loading_status: {
+										validation_error: null
+									}
+								},
+								false
+							);
+						});
+					}
+					// A chunk that arrives after its stream has finished would
+					// otherwise leave a pending status that nothing ends
+					if (!sends_chunk || this.loading_stati.is_running(dep.id)) {
+						this.update_loading_status({
+							status: "pending",
+							fn_index: dep.id,
+							stream_state: live_stream ? "waiting" : null
+						});
+						this.update_loading_stati_state();
+					}
 				}
-
-				const data_payload = await this.gather_state(
-					dep.inputs,
-					dep.component_prop_inputs
-				);
-				const unset_args = await Promise.all(
-					dep.targets.map(([output_id]) =>
-						this.set_event_args(output_id, dep.event_args)
-					)
-				);
 
 				const { success, failure, all } = dep.get_triggers();
 				let active_submission: ReturnType<Client["submit"]> | undefined;
@@ -525,21 +546,34 @@ export class DependencyManager {
 					this.update_loading_status(status);
 				};
 				const target_id = event_meta.target_id ?? null;
+				const unset_args: (() => void)[] = [];
 
 				try {
-					if (
-						dep.connection_type === "stream" &&
-						this.submissions.has(dep.id)
-					) {
-						const submission = this.submissions.get(dep.id);
+					const data_payload = await this.gather_state(
+						dep.inputs,
+						dep.component_prop_inputs
+					);
+					const holds = await Promise.allSettled(
+						dep.targets.map(([output_id]) =>
+							this.set_event_args(output_id, dep.event_args)
+						)
+					);
+					for (const hold of holds) {
+						if (hold.status === "fulfilled") unset_args.push(hold.value);
+					}
+					const failed_hold = holds.find((hold) => hold.status === "rejected");
+					if (failed_hold) throw failed_hold.reason;
+
+					if (sends_chunk) {
+						// Dropped if its stream ended meanwhile; the next chunk starts a
+						// new run
 						let payload: Payload = {
 							fn_index: dep.id,
 							data: data_payload,
 							event_data: event_meta.event_data
 						};
-						submission!.send_chunk(payload as any);
-						unset_args.forEach((fn) => fn());
-						continue;
+						this.submissions.get(dep.id)?.send_chunk(payload as any);
+						return;
 					}
 
 					this.add_to_api_calls({
@@ -559,7 +593,15 @@ export class DependencyManager {
 						if (dep_submission.type === "data") {
 							await this.handle_data(dep.outputs, dep_submission.data);
 						}
-						unset_args.forEach((fn) => fn());
+						if (dep.functions.backend) {
+							// A transpiled js=True fn runs here, but was marked pending above
+							this.update_loading_status({
+								status: "complete",
+								fn_index: dep.id,
+								stream_state: null
+							});
+							this.update_loading_stati_state();
+						}
 						[...success, ...all].forEach((dep_id) => {
 							this.dispatch({
 								type: "fn",
@@ -582,26 +624,8 @@ export class DependencyManager {
 						this.submission_trigger_ids.set(dep.id, target_id);
 						this.active_dependencies.set(dep_submission.data, dep);
 						active_submission = dep_submission.data;
-						let index = 0;
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
-							// Clear out previously set validation errors. A WebRTC stream
-							// has no validator, and this partial status would drop the
-							// stream_state its inputs go by.
-							if (index === 0 && !dep.transport) {
-								dep.inputs.forEach((input_id) => {
-									this.update_state_cb(
-										input_id,
-										{
-											loading_status: {
-												validation_error: null
-											}
-										},
-										false
-									);
-								});
-							}
-							index += 1;
 							if (result === null) continue;
 							if (result.type === "data") {
 								await this.handle_data(dep.outputs, result.data);
@@ -722,17 +746,20 @@ export class DependencyManager {
 										// For example, if the input component is an output component (chatinterface)
 										dep.progress_targets.forEach((output_id) => {
 											if (dep.inputs.includes(output_id)) return;
+											// An output another listener is still writing shows that
+											// listener's status instead
+											const handed_over =
+												this.loading_stati.running_fns.has(output_id);
 											this.update_state_cb(
 												output_id,
 												{
-													loading_status: {
-														status: null
-													}
+													loading_status: handed_over
+														? this.loading_stati.current[output_id]
+														: { status: null }
 												},
 												false
 											);
 										});
-										unset_args.forEach((fn) => fn());
 										await dep_submission.data.acknowledge();
 										this.clear_submission(dep.id, dep_submission.data);
 										this.end_live_stream(dep, dep_submission.data);
@@ -793,12 +820,13 @@ export class DependencyManager {
 								});
 							});
 						}
-						unset_args.forEach((fn) => fn());
 						this.clear_submission(dep.id, dep_submission.data);
 						this.end_live_stream(dep, dep_submission.data);
 						this.dispatch_deferred(dep.id);
 					}
 				} catch (error) {
+					// A chunk whose inputs could not be read does not end the open stream
+					if (sends_chunk && !active_submission) throw error;
 					// This run's own: with trigger_mode="multiple" the latest one
 					// may be another run, which acknowledging would close
 					await active_submission?.acknowledge();
@@ -823,10 +851,13 @@ export class DependencyManager {
 						});
 					});
 					this.dispatch_deferred(dep.id);
+				} finally {
+					unset_args.forEach((fn) => fn());
 				}
-			}
-		}
-		return;
+			})
+		);
+		const failed = results.find((result) => result.status === "rejected");
+		if (failed) throw failed.reason;
 	}
 
 	/** Builds the block a `gr.render` function returned, with its events. */
@@ -995,9 +1026,27 @@ export class DependencyManager {
 							}
 						}
 					}
+				} catch (error) {
+					// Settle the restored status, or it stays pending for good
+					this.loading_stati.update({
+						status: "error",
+						fn_index,
+						stream_state: null
+					});
+					await this.update_loading_stati_state();
+					throw error;
 				} finally {
 					await submission.acknowledge();
 					this.clear_submission(fn_index, submission);
+				}
+				// A stream that ended without a final status
+				if (outcome === null && this.loading_stati.is_running(fn_index)) {
+					this.loading_stati.update({
+						status: "complete",
+						fn_index,
+						stream_state: null
+					});
+					await this.update_loading_stati_state();
 				}
 				if (outcome !== null) {
 					// As for a run that was not interrupted: `.then()` and
@@ -1149,7 +1198,21 @@ export class DependencyManager {
 		);
 	}
 
+	/** Writes a listener's event args to a component without restoring them */
+	async write_event_args(
+		id: number,
+		args: Record<string, unknown>
+	): Promise<void> {
+		if (Object.keys(args).length === 0) return;
+		if (!(await this.get_state_cb?.(id))) return;
+		await this.update_state_cb(id, args, false);
+	}
+
 	/** Sets the event arguments for a specific component
+	 *
+	 * Listeners running at the same time share one hold, counted before any
+	 * await. The last to finish restores the original values, and the hold stays
+	 * until they are back, so a listener starting meanwhile joins it.
 	 *
 	 * @param id the id of the component to set the event arguments for
 	 * @param args the event arguments to set
@@ -1159,24 +1222,57 @@ export class DependencyManager {
 		id: number,
 		args: Record<string, unknown>
 	): Promise<() => void> {
-		let current_args: Record<string, unknown> = {};
-		const current_state = await this.get_state_cb?.(id);
-		if (!current_state) return () => {};
-		for (const [key] of Object.entries(args)) {
-			current_args[key] = current_state?.[key] ?? null;
-		}
-
-		if (Object.keys(args).length === 0) {
-			return () => {
-				// do nothing
-			};
-		}
-
-		await this.update_state_cb(id, args, false);
-
-		return () => {
-			this.update_state_cb(id, current_args, false);
+		if (Object.keys(args).length === 0) return () => {};
+		const hold = this.event_args_holds.get(id) ?? {
+			count: 0,
+			original: {},
+			applied: {}
 		};
+		this.event_args_holds.set(id, hold);
+		hold.count++;
+		let released = false;
+		const release = (): void => {
+			if (released) return;
+			released = true;
+			hold.count--;
+			if (hold.count > 0) return;
+			const forget = (): void => {
+				if (this.event_args_holds.get(id) !== hold) return;
+				if (hold.count === 0) {
+					this.event_args_holds.delete(id);
+				} else {
+					// A listener joined while restoring: put its values back
+					this.update_state_cb(id, hold.applied, false);
+				}
+			};
+			if (Object.keys(hold.original).length === 0) {
+				forget();
+				return;
+			}
+			Promise.resolve(this.update_state_cb(id, hold.original, false)).then(
+				forget,
+				forget
+			);
+		};
+
+		try {
+			const current_state = await this.get_state_cb?.(id);
+			if (!current_state) {
+				release();
+				return () => {};
+			}
+			for (const key of Object.keys(args)) {
+				if (!(key in hold.original)) {
+					hold.original[key] = current_state[key] ?? null;
+				}
+			}
+			hold.applied = args;
+			await this.update_state_cb(id, args, false);
+		} catch (error) {
+			release();
+			throw error;
+		}
+		return release;
 	}
 
 	async cancel(ids: number[] | undefined): Promise<void> {
