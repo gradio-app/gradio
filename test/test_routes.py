@@ -1005,6 +1005,55 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    @pytest.mark.parametrize("use_blocked_paths", [True, False])
+    def test_mount_gradio_app_rejects_non_uploaded_file_inputs(
+        self, tmp_path_factory, use_blocked_paths
+    ):
+        # Not tmp_path: the autouse gradio_temp_dir fixture makes tmp_path the
+        # upload folder, which would make this file look like a user upload.
+        secret = tmp_path_factory.mktemp("outside_upload_dir") / "secret.txt"
+        secret.write_text("TOP SECRET")
+
+        with gr.Blocks() as demo:
+            f = gr.File()
+            out = gr.Textbox()
+            f.change(
+                lambda x: Path(x).read_text() if x else "",
+                f,
+                out,
+                api_name="predict",
+            )
+
+        app = gr.mount_gradio_app(
+            FastAPI(),
+            demo,
+            path="/m",
+            blocked_paths=[str(secret)] if use_blocked_paths else None,
+        )
+        with TestClient(app) as client:
+            response = client.post(
+                "/m/gradio_api/run/predict",
+                json={
+                    "data": [
+                        {"path": str(secret), "meta": {"_type": "gradio.FileData"}}
+                    ]
+                },
+            )
+        assert "TOP SECRET" not in response.text
+        assert response.status_code != 200
+
+    def test_mount_gradio_app_reads_paths_from_env(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("GRADIO_BLOCKED_PATHS", f"{tmp_path / 'a'}, {tmp_path}")
+        monkeypatch.setenv("GRADIO_ALLOWED_PATHS", str(tmp_path / "b"))
+        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+        gr.mount_gradio_app(FastAPI(), demo, path="/m")
+        assert demo.blocked_paths == [str(tmp_path / "a"), str(tmp_path)]
+        assert demo.allowed_paths == [str(tmp_path / "b")]
+        assert demo.has_launched
+
+        gr.mount_gradio_app(FastAPI(), demo, path="/m", blocked_paths=["/x"])
+        assert demo.blocked_paths == ["/x"]
+
     def test_mount_gradio_app_monitoring_summary(self):
         app = FastAPI()
         app = gr.mount_gradio_app(
