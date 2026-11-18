@@ -31,6 +31,7 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+START_TIMEOUT = float(os.getenv("GRADIO_START_TIMEOUT", "5"))
 
 GRADIO_HOT_RELOAD = os.getenv("GRADIO_HOT_RELOAD", "false").lower()
 
@@ -69,7 +70,7 @@ class Server(uvicorn.Server):
         start = time.time()
         while not self.started:
             time.sleep(1e-3)
-            if time.time() - start > 5:
+            if time.time() - start > START_TIMEOUT:
                 raise ServerFailedToStartError(
                     "Server failed to start. Please check that the port is available."
                 )
@@ -82,6 +83,12 @@ class Server(uvicorn.Server):
         self.thread.join(timeout=5)
 
 
+def _is_windows_reserved_port_error(error: Exception) -> bool:
+    """Windows refuses to bind a port in one of its excluded port ranges with
+    WSAEACCES (10013), even when nothing is listening on it."""
+    return sys.platform == "win32" and getattr(error, "winerror", None) == 10013
+
+
 def start_server(
     app: App,
     server_name: str | None = None,
@@ -89,6 +96,7 @@ def start_server(
     ssl_keyfile: str | None = None,
     ssl_certfile: str | None = None,
     ssl_keyfile_password: str | None = None,
+    forwarded_allow_ips: list[str] | None = None,
 ) -> tuple[str, int, str, Server]:
     """Launches a local server running the provided Interface
     Parameters:
@@ -99,6 +107,7 @@ def start_server(
         ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
         ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
+        forwarded_allow_ips: The proxies trusted for X-Forwarded-For and X-Forwarded-Proto. If None, uvicorn uses the FORWARDED_ALLOW_IPS environment variable, or loopback.
 
     Returns:
         server_name: the name of the server (default is "localhost")
@@ -126,6 +135,7 @@ def start_server(
         else range(INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
     )
 
+    port_reserved_by_windows = False
     for port in server_ports:
         try:
             # The fastest way to check if a port is available is to try to bind to it with socket.
@@ -148,6 +158,7 @@ def start_server(
                 ssl_keyfile=ssl_keyfile,
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
+                forwarded_allow_ips=forwarded_allow_ips,
             )
             if get_space() is not None and not os.environ.get("GRADIO_PROCESS_GATEWAY"):
                 reloader = SpacesReloader(
@@ -176,12 +187,14 @@ def start_server(
                 server = Server(config=config)
             server.run_in_thread()
             break
-        except (OSError, ServerFailedToStartError):
-            pass
+        except (OSError, ServerFailedToStartError) as e:
+            if _is_windows_reserved_port_error(e):
+                port_reserved_by_windows = True
     else:
-        raise OSError(
-            f"Cannot find empty port in range: {min(server_ports)}-{max(server_ports)}. You can specify a different port by setting the GRADIO_SERVER_PORT environment variable or passing the `server_port` parameter to `launch()`."
-        )
+        message = f"Cannot find empty port in range: {min(server_ports)}-{max(server_ports)}. You can specify a different port by setting the GRADIO_SERVER_PORT environment variable or passing the `server_port` parameter to `launch()`."
+        if port_reserved_by_windows:
+            message += " The port may not be in use but reserved by Windows (for example by Hyper-V, WSL or Docker). Run `netsh int ipv4 show excludedportrange protocol=tcp` to see the reserved port ranges."
+        raise OSError(message)
 
     if ssl_keyfile is not None:
         path_to_local_server = f"https://{url_host_name}:{port}/"

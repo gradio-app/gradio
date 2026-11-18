@@ -13,6 +13,7 @@ import shutil
 import uuid
 import warnings
 from collections.abc import Callable, Iterable, MutableMapping, Sequence
+from contextlib import ExitStack, contextmanager
 from functools import partial
 from pathlib import Path
 from threading import Lock
@@ -779,6 +780,9 @@ class TrackedIterable:
         self._tqdm = _tqdm
         self.progress = progress
 
+    def __getstate__(self):
+        return {**self.__dict__, "iterable": None, "_tqdm": None}
+
 
 @document("__call__", "tqdm")
 class Progress(Iterable):
@@ -1017,13 +1021,16 @@ def create_tracker(fn, track_tqdm):
     progress = Progress(track_tqdm=track_tqdm)
     if not track_tqdm:
         return progress, fn
-    return progress, utils.function_wrapper(
-        f=fn,
-        before_fn=LocalContext.progress.set,
-        before_args=(progress,),
-        after_fn=LocalContext.progress.set,
-        after_args=(None,),
-    )
+
+    @contextmanager
+    def context():
+        with ExitStack() as stack:
+            yield stack.callback(
+                LocalContext.progress.reset,
+                LocalContext.progress.set(progress),
+            )
+
+    return progress, utils.function_wrapper(fn, context)
 
 
 def _session_from_request(request: Any) -> MutableMapping[str, Any]:

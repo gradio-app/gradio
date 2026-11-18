@@ -162,7 +162,7 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        return _redirect_to_target(request)
+        return _forget_history_token(request, _redirect_to_target(request))
 
 
 def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
@@ -203,7 +203,18 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        return _redirect_to_target(request)
+        return _forget_history_token(request, _redirect_to_target(request))
+
+
+def _forget_history_token(
+    request: fastapi.Request, response: RedirectResponse
+) -> RedirectResponse:
+    """Signing out also forgets any token this browser gave for run history."""
+    from gradio import history
+
+    if getattr(request.app, "cookie_id", None):
+        history.delete_token_cookies(response, request.app)
+    return response
 
 
 def _generate_redirect_uri(request: fastapi.Request) -> str:
