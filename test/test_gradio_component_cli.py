@@ -1,3 +1,4 @@
+import inspect
 import shutil
 import textwrap
 from pathlib import Path
@@ -331,7 +332,7 @@ class TestPyproject:
     @pytest.fixture
     def pyproject(self, tmp_path):
         template = (
-            Path(_create_utils.__file__).parent / "files" / "pyproject_.toml"
+            Path(inspect.getfile(_create_utils)).parent / "files" / "pyproject_.toml"
         ).read_text()
         path = tmp_path / "pyproject.toml"
         path.write_text(template.replace("<<name>>", "gradio_mybox"))
