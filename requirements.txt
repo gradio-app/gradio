@@ -1,6 +1,6 @@
 anyio>=4.10,<5.0
 brotli>=1.2.1
-fastapi>=0.115.2,<1.0
+fastapi>=0.133.0,<1.0
 gradio_client==2.8.0-dev.0
 hf-gradio>=0.4.1,<1.0
 httpx2>=2.0.0,<3.0
@@ -10,7 +10,7 @@ orjson~=3.0
 packaging
 pandas>=1.0,<4.0
 pillow>=8.0,<14.0
-pydantic>=2.0,<=3.0
+pydantic>=2.7,<3.0
 python-multipart>=0.0.18,<1.0 # required for fastapi forms.
 pyyaml>=5.0,<7.0
 safehttpx>=0.2.0,<0.3.0
