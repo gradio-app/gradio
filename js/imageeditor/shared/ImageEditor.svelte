@@ -54,6 +54,9 @@
 		current_tool = $bindable(),
 		webcam_options,
 		show_download_button = false,
+		show_fullscreen_button = false,
+		fullscreen = false,
+		onfullscreen,
 		theme_mode,
 		full_history = $bindable(null),
 		has_drawn = $bindable(false),
@@ -88,6 +91,9 @@
 		current_tool: ToolbarTool;
 		webcam_options: WebcamOptions;
 		show_download_button?: boolean;
+		show_fullscreen_button?: boolean;
+		fullscreen?: boolean;
+		onfullscreen?: (fullscreen: boolean) => void;
 		theme_mode: "dark" | "light";
 		full_history?: CommandNode | null;
 		has_drawn?: boolean;
@@ -812,6 +818,9 @@
 					handle_tool_change({ tool: "pan" });
 				}}
 				enable_download={show_download_button}
+				{show_fullscreen_button}
+				{fullscreen}
+				{onfullscreen}
 				ondownload={() => handle_download()}
 				{can_undo}
 				{can_redo}

@@ -46,6 +46,7 @@
 	}
 
 	let is_dragging = $state(false);
+	let fullscreen = $state(false);
 
 	const is_browser = typeof window !== "undefined";
 
@@ -107,6 +108,7 @@
 		container={gradio.shared.container}
 		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
+		bind:fullscreen
 	>
 		<StatusTracker
 			autoscroll={gradio.shared.autoscroll}
@@ -119,6 +121,10 @@
 			onselect={(detail) => gradio.dispatch("select", detail)}
 			onshare={(detail) => gradio.dispatch("share", detail as ShareData)}
 			onerror={(detail) => gradio.dispatch("error", detail)}
+			onfullscreen={(detail) => {
+				fullscreen = detail;
+			}}
+			{fullscreen}
 			value={gradio.props.value?.composite || null}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
@@ -142,6 +148,7 @@
 		container={gradio.shared.container}
 		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
+		bind:fullscreen
 	>
 		<StatusTracker
 			autoscroll={gradio.shared.autoscroll}
@@ -203,6 +210,13 @@
 			show_download_button={gradio.props.buttons === null
 				? true
 				: (gradio.props.buttons ?? []).includes("download")}
+			show_fullscreen_button={gradio.props.buttons === null
+				? true
+				: (gradio.props.buttons ?? []).includes("fullscreen")}
+			{fullscreen}
+			onfullscreen={(detail) => {
+				fullscreen = detail;
+			}}
 			theme_mode={resolved_theme_mode}
 			ondownload_error={(detail) => gradio.dispatch("error", detail)}
 			onerror={(detail) => gradio.dispatch("error", detail)}
