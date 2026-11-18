@@ -580,14 +580,17 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		});
 	});
 
-	it("a stream that only receives asks for the kind of media it receives", async () => {
+	it("a stream that only receives asks for the kind of media it receives, and sends none", async () => {
 		const add = vi.spyOn(FakePeerConnection.prototype, "addTransceiver");
+		// e.g. the .stream() of a camera that is only among the outputs: its
+		// media comes in the event data, but the server takes no track then
+		const media = new FakeMediaStream([new FakeTrack("video")]);
 		submit_over_webrtc.call(
 			client,
 			"/generate",
 			[0.5],
 			{ ...send_receive, mode: "receive", media_input: null },
-			{},
+			{ media },
 			null,
 			true
 		);
@@ -595,6 +598,7 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		job.send(turn);
 		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
 		expect(add).toHaveBeenCalledWith("video", { direction: "recvonly" });
+		expect(FakePeerConnection.instances[0].senders).toEqual([]);
 	});
 
 	it.skipIf(typeof window === "undefined")(

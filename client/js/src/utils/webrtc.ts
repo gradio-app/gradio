@@ -262,13 +262,17 @@ export function submit_over_webrtc(
 	const in_data = data.findIndex((value) => value instanceof MediaStream);
 	const media_index = in_data >= 0 ? in_data : (transport.media_input ?? -1);
 	const event_media = (_event_data as any)?.media;
-	// Replaced by a MediaStream in the media slot of send_chunk()
+	// Replaced by a MediaStream in the media slot of send_chunk(). None in
+	// receive mode, where the server takes no track (a component that is only
+	// among the outputs still puts its camera in the event data)
 	let media: MediaStream | null =
-		in_data >= 0
-			? (data[in_data] as MediaStream)
-			: event_media instanceof MediaStream
-				? event_media
-				: null;
+		transport.mode === "receive"
+			? null
+			: in_data >= 0
+				? (data[in_data] as MediaStream)
+				: event_media instanceof MediaStream
+					? event_media
+					: null;
 	const webrtc_id = new_webrtc_id();
 	const others = (values: unknown[]): unknown[] =>
 		values.filter((_, i) => i !== media_index);
