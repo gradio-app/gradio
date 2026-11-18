@@ -94,6 +94,7 @@ def maybe_setup_zerogpu_context(
             disconnect_detector=disconnect_detector,
             server_ports=filter(None, _get_server_ports(blocks, request)),
             headers=dict(request.headers) if request is not None else {},
+            print_zerogpu_exceptions=True,
         )
     ):
         try:
