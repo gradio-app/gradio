@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import sys
 import warnings
 from collections.abc import Callable, Sequence
 from typing import (
@@ -14,6 +15,7 @@ from typing import (
 
 import numpy as np
 import semantic_version
+from typing_extensions import TypeIs
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -27,6 +29,15 @@ if TYPE_CHECKING:
     from pandas.io.formats.style import Styler
 
     from gradio.components import Timer
+
+
+def _is_styler(value: Any) -> TypeIs[Styler]:
+    """Whether a value is a pandas Styler. pandas needs jinja2 to import its
+    Styler, and Gradio does not install jinja2, so this does not import it: no
+    value can be a Styler unless the module that defines it is already loaded."""
+    module = sys.modules.get("pandas.io.formats.style")
+    styler = getattr(module, "Styler", None)
+    return styler is not None and isinstance(value, styler)
 
 
 def _is_polars_available():
@@ -325,13 +336,12 @@ class Dataframe(Component):
         Checks if the value of the dataframe provided is empty.
         """
         import pandas as pd
-        from pandas.io.formats.style import Styler
 
         if value is None:
             return True
         if isinstance(value, pd.DataFrame):
             return value.empty
-        elif isinstance(value, Styler):
+        elif _is_styler(value):
             return value.data.empty  # type: ignore
         elif isinstance(value, np.ndarray):
             return value.size == 0
@@ -364,13 +374,12 @@ class Dataframe(Component):
         that do not have headers, an empty list is returned.
         """
         import pandas as pd
-        from pandas.io.formats.style import Styler
 
         if value is None:
             return []
         if isinstance(value, pd.DataFrame):
             return list(value.columns)
-        elif isinstance(value, Styler):
+        elif _is_styler(value):
             return list(value.data.columns)  # type: ignore
         elif isinstance(value, str):
             return list(pd.read_csv(value).columns)
@@ -398,7 +407,6 @@ class Dataframe(Component):
         Gets the cell data (as a list of lists) from the value provided.
         """
         import pandas as pd
-        from pandas.io.formats.style import Styler
 
         if isinstance(value, dict):
             return value.get("data", [[]])  # type: ignore
@@ -406,7 +414,7 @@ class Dataframe(Component):
             if isinstance(value, str):
                 value = pd.read_csv(value)  # type: ignore
             return value.to_dict(orient="split")["data"]
-        elif isinstance(value, Styler):
+        elif _is_styler(value):
             df: pd.DataFrame = value.data  # type: ignore
             hidden_columns = getattr(value, "hidden_columns", [])
             visible_cols = [
@@ -448,9 +456,8 @@ class Dataframe(Component):
         """
         Gets the metadata from the value provided.
         """
-        from pandas.io.formats.style import Styler
 
-        if isinstance(value, Styler):
+        if _is_styler(value):
             return Dataframe.__extract_metadata(
                 value, [int(c) for c in getattr(value, "hidden_columns", [])]
             )
@@ -485,15 +492,14 @@ class Dataframe(Component):
             the uploaded spreadsheet data as an object with `headers` and `data` keys and optional `metadata` key
         """
         import pandas as pd
-        from pandas.io.formats.style import Styler
 
-        if isinstance(value, Styler) and semantic_version.Version(
+        if _is_styler(value) and semantic_version.Version(
             pd.__version__
         ) < semantic_version.Version("1.5.0"):
             raise ValueError(
                 "Styler objects are only supported in pandas version 1.5.0 or higher. Please try: `pip install --upgrade pandas` to use this feature."
             )
-        if isinstance(value, Styler) and self.interactive:
+        if _is_styler(value) and self.interactive:
             warnings.warn(
                 "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
             )
@@ -521,7 +527,6 @@ class Dataframe(Component):
         Automatically sets the datatype of each column based on the data provided. If the datatype can't be inferred, it defaults to "str".
         """
         import pandas as pd
-        from pandas.io.formats.style import Styler
 
         dtype_mapping = {
             "str": "str",
@@ -553,7 +558,7 @@ class Dataframe(Component):
                 for dtype in value.dtypes
             ]
 
-        elif isinstance(value, Styler):
+        elif _is_styler(value):
             self.datatype = [
                 dtype_mapping.get(
                     numbers_re.sub("", brackets_re.sub("", str(dtype))).lower(), "str"

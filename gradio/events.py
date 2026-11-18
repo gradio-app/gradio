@@ -15,7 +15,6 @@ from typing import (
 )
 
 from gradio_client.documentation import document
-from jinja2 import Template
 
 from gradio.data_classes import FileData, FileDataDict
 
@@ -582,8 +581,9 @@ class EventListener(str):
 
     def set_doc(self, component: str):
         if self.listener.__doc__:
-            doc = Template(self.listener.__doc__).render(component=component)
-            self.listener.__doc__ = doc
+            self.listener.__doc__ = self.listener.__doc__.replace(
+                "{{ component }}", component
+            )
 
     def copy(self):
         return EventListener(

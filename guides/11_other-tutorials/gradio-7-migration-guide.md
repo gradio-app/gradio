@@ -78,3 +78,9 @@ See [where state is stored](/guides/state-in-blocks#where-state-is-stored) for d
 ## `pydub` is no longer installed with Gradio
 
 Gradio 7 does not depend on `pydub` (or on `audioop-lts`, which `pydub` needs on Python 3.13 and newer). If your app imports `pydub` itself, add it to your app's requirements.
+
+## `jinja2` and `markupsafe` are no longer installed with Gradio
+
+Gradio 7 does not depend on `jinja2` or `markupsafe`. If your app uses them itself, for example through `Jinja2Templates` in a FastAPI app that Gradio is mounted on, add `jinja2` to your app's requirements.
+
+This includes passing a styled pandas DataFrame (`df.style`) to `gr.Dataframe`: pandas needs `jinja2` for its `Styler`, and used to get it through Gradio.

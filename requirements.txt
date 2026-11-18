@@ -5,8 +5,6 @@ gradio_client==2.8.0-dev.0
 hf-gradio>=0.4.1,<1.0
 httpx2>=2.0.0,<3.0
 huggingface_hub>=1.16.0,<3.0
-Jinja2<4.0
-markupsafe>=2.0,<4.0
 numpy>=1.0,<3.0
 orjson~=3.0
 packaging
