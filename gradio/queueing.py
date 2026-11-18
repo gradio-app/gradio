@@ -87,6 +87,8 @@ class Event:
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
         self.own_stream = False
+        # Run time estimate from the event listener's `eta=` callable, if any.
+        self.eta_hint: float | None = None
 
     @property
     def streaming(self):
@@ -704,6 +706,8 @@ class Queue:
             username,
         )
         event.data = body
+        if callable(fn.eta):
+            event.eta_hint = compute_eta_hint(fn, body.data)
         if body.session_hash is None:
             body.session_hash = event.session_hash
         if own_stream:
@@ -1062,13 +1066,14 @@ class Queue:
         if event_queue.current_concurrency == event_queue.concurrency_limit:
             expected_end_times = []
             for fn, start_times in event_queue.start_times_per_fn.items():
-                if fn not in self.process_time_per_fn:
-                    time_till_available_worker = None
-                    break
                 if fn.connection == "stream":
                     process_time = fn.time_limit or 0
                 else:
-                    process_time = self.process_time_per_fn[fn].avg_time
+                    estimate = self.estimate_process_time(fn)
+                    if estimate is None:
+                        time_till_available_worker = None
+                        break
+                    process_time = estimate
                 expected_end_times += [
                     start_time + process_time for start_time in start_times
                 ]
@@ -1079,11 +1084,7 @@ class Queue:
                 )
 
         for rank, event in enumerate(event_queue.queue):
-            process_time_for_fn = (
-                self.process_time_per_fn[event.fn].avg_time
-                if event.fn in self.process_time_per_fn
-                else None
-            )
+            process_time_for_fn = self.estimate_process_time(event.fn, event)
 
             # eta is the time remaining from now until the result will be returned
             # process_time_for_fn = time to run fn once worker assigned to it
@@ -1117,6 +1118,21 @@ class Queue:
                 wait_so_far += delta
             else:
                 wait_so_far = None
+
+    def estimate_process_time(
+        self, fn: BlockFunction, event: Event | None = None
+    ) -> float | None:
+        """
+        Expected run time of `fn` once a worker picks it up: the event's `eta=` hint if
+        the listener supplied one, otherwise the average of past runs.
+        """
+        if event is not None and event.eta_hint is not None:
+            return event.eta_hint
+        if isinstance(fn.eta, (int, float)) and not isinstance(fn.eta, bool):
+            return float(fn.eta)
+        if fn in self.process_time_per_fn:
+            return self.process_time_per_fn[fn].avg_time
+        return None
 
     def get_status(self) -> EstimationMessage:
         return EstimationMessage(
@@ -1184,11 +1200,7 @@ class Queue:
                 if event.alive:
                     self.send_message(
                         event,
-                        ProcessStartsMessage(
-                            eta=self.process_time_per_fn[fn].avg_time
-                            if fn in self.process_time_per_fn
-                            else None
-                        ),
+                        ProcessStartsMessage(eta=self.estimate_process_time(fn, event)),
                     )
                     awake_events.append(event)
             if not awake_events:
@@ -1562,6 +1574,26 @@ class Queue:
                 pass
             del app.iterators[event_id]
         return
+
+
+def compute_eta_hint(fn: BlockFunction, data: list[Any] | None) -> float | None:
+    """
+    Calls the listener's `eta=` callable with the raw input values of a request.
+    Returns None (falling back to the average of past runs) if it returns None,
+    something that is not a non-negative number, or raises.
+    """
+    try:
+        eta = cast(Callable[..., Any], fn.eta)(*(data or []))
+        if eta is None:
+            return None
+        eta = float(eta)
+        return eta if eta >= 0 else None
+    except Exception as e:
+        warnings.warn(
+            f"The `eta` function of event listener '{fn.name}' raised an error, "
+            f"so the queue ETA falls back to the average of past runs: {e!r}"
+        )
+        return None
 
 
 def create_validator_fn(fn: BlockFunction) -> BlockFunction:

@@ -645,6 +645,7 @@ class EventListener(str):
             stream_every: float = 0.5,
             key: int | str | tuple[int | str, ...] | None = None,
             validator: Callable | None = None,
+            eta: float | Callable[..., float | None] | None = None,
             inputs_kwargs: dict[str, Component | BlockContext] | None = None,
         ) -> Dependency:
             """
@@ -671,6 +672,7 @@ class EventListener(str):
                 api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
                 key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
                 validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names. It should return a `gr.validate()` for each input value.
+                eta: An estimate of how long, in seconds, the function takes to run, used for the ETA shown while the event waits in the queue instead of the average of past runs. Can be a number, or a function that receives the raw input values sent by the client (before preprocessing) and returns a number, e.g. `lambda prompt, steps: steps * 0.2`. If it returns None or raises, the average of past runs is used.
             """
 
             if fn == "decorator":
@@ -712,6 +714,7 @@ class EventListener(str):
                         stream_every=stream_every,
                         key=key,
                         validator=validator,
+                        eta=eta,
                     )
                     created_fn_ids = set(root_block.fns) - prior_fn_ids
                     post_fn_id = root_block.fn_id
@@ -748,6 +751,7 @@ class EventListener(str):
                         stream_every=stream_every,
                         key=key,
                         validator=validator,
+                        eta=eta,
                     )
 
                     @wraps(func)
@@ -814,6 +818,7 @@ class EventListener(str):
                 else None,
                 key=key,
                 validator=validator,
+                eta=eta,
             )
             set_cancel_events(
                 [event_target],
@@ -876,6 +881,7 @@ def on(
     stream_every: float = 0.5,
     key: int | str | tuple[int | str, ...] | None = None,
     validator: Callable | None = None,
+    eta: float | Callable[..., float | None] | None = None,
 ) -> Dependency:
     """
     Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
@@ -906,6 +912,7 @@ def on(
         time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
         stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
         validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names. It should return a `gr.validate()` for each input value.
+        eta: An estimate of how long, in seconds, the function takes to run, used for the ETA shown while the event waits in the queue instead of the average of past runs. Can be a number, or a function that receives the raw input values sent by the client (before preprocessing) and returns a number, e.g. `lambda prompt, steps: steps * 0.2`. If it returns None or raises, the average of past runs is used.
     Example:
         import gradio as gr
         with gr.Blocks() as demo:
@@ -969,6 +976,7 @@ def on(
                 stream_every=stream_every,
                 key=key,
                 validator=validator,
+                eta=eta,
             )
             created_fn_ids = set(root_block.fns) - prior_fn_ids
             post_fn_id = root_block.fn_id
@@ -1005,6 +1013,7 @@ def on(
                 stream_every=stream_every,
                 key=key,
                 validator=validator,
+                eta=eta,
             )
 
             @wraps(func)
@@ -1076,6 +1085,7 @@ def on(
         stream_every=stream_every,
         key=key,
         validator=validator,
+        eta=eta,
     )
     set_cancel_events(methods, cancels)
     return Dependency(None, dep.get_config(), dep_index, fn)

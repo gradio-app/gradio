@@ -804,3 +804,65 @@ def test_history_is_only_kept_for_clients_that_may_resume():
         )
     finally:
         demo.close()
+
+
+class TestEtaHints:
+    @staticmethod
+    def make_demo(eta):
+        with gr.Blocks() as demo:
+            prompt = gr.Textbox()
+            steps = gr.Number()
+            out = gr.Textbox()
+            gr.Button().click(lambda p, s: p, [prompt, steps], out, eta=eta)
+        return demo
+
+    def test_eta_is_stored_on_the_block_function(self):
+        demo = self.make_demo(12)
+        assert demo.fns[0].eta == 12
+
+    def test_estimate_prefers_event_hint_then_static_eta_then_history(self):
+        demo = self.make_demo(None)
+        fn = demo.fns[0]
+        queue = demo._queue
+        assert queue.estimate_process_time(fn) is None
+
+        queue.process_time_per_fn[fn].add(4.0)
+        assert queue.estimate_process_time(fn) == 4.0
+
+        fn.eta = 10
+        assert queue.estimate_process_time(fn) == 10.0
+
+        event = queueing.Event(None, fn, None, None)  # type: ignore
+        event.eta_hint = 2.5
+        assert queue.estimate_process_time(fn, event) == 2.5
+
+    def test_callable_eta_receives_raw_inputs(self):
+        demo = self.make_demo(lambda prompt, steps: steps * 0.5)
+        assert queueing.compute_eta_hint(demo.fns[0], ["a cat", 30]) == 15.0
+
+    @pytest.mark.parametrize("returned", [None, -1])
+    def test_none_or_negative_eta_falls_back(self, returned):
+        demo = self.make_demo(lambda prompt, steps: returned)
+        assert queueing.compute_eta_hint(demo.fns[0], ["a", 1]) is None
+
+    def test_failing_eta_warns_and_falls_back(self):
+        demo = self.make_demo(lambda prompt, steps: "soon")
+        with pytest.warns(UserWarning, match="eta"):
+            assert queueing.compute_eta_hint(demo.fns[0], ["a", 1]) is None
+
+    def test_broadcast_uses_the_hint_of_each_queued_event(self):
+        demo = self.make_demo(lambda prompt, steps: steps)
+        fn = demo.fns[0]
+        queue = demo._queue
+        queue.create_event_queue_for_fn(fn)
+        event_queue = queue.event_queue_per_concurrency_id[fn.concurrency_id]
+        event_queue.concurrency_limit = 1
+        for steps in (3, 5):
+            event = queueing.Event(None, fn, None, None)  # type: ignore
+            event.eta_hint = queueing.compute_eta_hint(fn, ["a", steps])
+            event_queue.queue.append(event)
+
+        sent = []
+        with patch.object(queue, "send_message", lambda e, m: sent.append(m)):
+            queue.broadcast_estimations(fn.concurrency_id)
+        assert [m.rank_eta for m in sent] == [3.0, 8.0]
