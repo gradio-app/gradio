@@ -1,7 +1,6 @@
 anyio>=4.10,<5.0
 brotli>=1.2.1
 fastapi>=0.115.2,<1.0
-groovy~=0.1
 gradio_client==2.8.0-dev.0
 hf-gradio>=0.4.1,<1.0
 httpx2>=2.0.0,<3.0

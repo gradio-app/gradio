@@ -210,7 +210,7 @@ def generate_event_listeners(organized):
     postprocess: bool = True,
     cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-    js: str | Literal[True] | None = None,
+    js: str | None = None,
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
     api_visibility: Literal["public", "private", "undocumented"] = "public",

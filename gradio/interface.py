@@ -533,7 +533,6 @@ class Interface(Blocks):
                     lambda: DeepLinkButton(interactive=True),
                     inputs=None,
                     outputs=[self.deep_link],
-                    js=True,
                     api_visibility="undocumented",
                 )
             self.render_examples()
@@ -945,7 +944,6 @@ class Interface(Blocks):
                     lambda: DeepLinkButton(interactive=True),
                     inputs=None,
                     outputs=[self.deep_link],
-                    js=True,
                     api_visibility="undocumented",
                 )
 

@@ -46,3 +46,35 @@ btn.click(lambda: gr.Button(interactive=False), None, btn).then(
 ```
 
 An output that several running listeners write to keeps showing its loading status until the last of them has finished.
+
+## `js=True` no longer converts Python functions to JavaScript
+
+In Gradio 6, passing `js=True` to an event listener converted a simple Python function to JavaScript, so that it ran in the browser without a request to the server. Gradio 7 removes this feature, along with the `groovy` dependency that implemented it. A listener that still passes `js=True` prints a warning and runs its function on the server, so the app keeps working, with one more request per event.
+
+Removing `js=True` is enough:
+
+```python
+# Gradio 6
+btn.click(lambda: gr.Row(visible=False), None, row, js=True)
+
+# Gradio 7
+btn.click(lambda: gr.Row(visible=False), None, row)
+```
+
+To run code in the browser instead, write the JavaScript yourself and pass it as a string to `js`, as described in the [custom JS guide](/guides/custom-CSS-and-JS).
+
+## `gr.State` values are kept in the browser, where the user can read them
+
+In Gradio 6, the value of a `gr.State` stayed in the server's memory. In Gradio 7 it is kept in the user's browser by default, so that it survives a server restart and works across replicas. The copy in the browser is signed, so the user cannot change it, but it is not encrypted, so the user can read it.
+
+If a `gr.State` holds something the user must not see, such as an API key, a hidden prompt or another user's data, keep it on the server:
+
+```python
+secret = gr.State(storage="server")
+```
+
+See [where state is stored](/guides/state-in-blocks#where-state-is-stored) for details.
+
+## `pydub` is no longer installed with Gradio
+
+Gradio 7 does not depend on `pydub` (or on `audioop-lts`, which `pydub` needs on Python 3.13 and newer). If your app imports `pydub` itself, add it to your app's requirements.

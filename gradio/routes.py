@@ -2810,7 +2810,7 @@ def mount_gradio_app(
     theme: Theme | str | None = None,
     css: str | None = None,
     css_paths: str | Path | Sequence[str | Path] | None = None,
-    js: str | Literal[True] | None = None,
+    js: str | None = None,
     head: str | None = None,
     head_paths: str | Path | Sequence[str | Path] | None = None,
 ) -> fastapi.FastAPI:
@@ -2935,7 +2935,6 @@ def mount_gradio_app(
     blocks.css_paths = css_paths or []
     blocks._set_html_css_theme_variables()
 
-    blocks.transpile_to_js()
     gradio_app = App.create_app(
         blocks,
         app_kwargs=app_kwargs,
