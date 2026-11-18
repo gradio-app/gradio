@@ -1064,7 +1064,8 @@ def function_wrapper(
 
         @functools.wraps(f)
         async def asyncgen_wrapper(*args, **kwargs):
-            iterator = f(*args, **kwargs)
+            with context_factory():
+                iterator = f(*args, **kwargs)
             while True:
                 try:
                     with context_factory():
@@ -1088,7 +1089,8 @@ def function_wrapper(
 
         @functools.wraps(f)
         def gen_wrapper(*args, **kwargs):
-            iterator = f(*args, **kwargs)
+            with context_factory():
+                iterator = f(*args, **kwargs)
             while True:
                 try:
                     with context_factory():
