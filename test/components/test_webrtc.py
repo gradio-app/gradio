@@ -583,6 +583,15 @@ class TestWebRTC:
                         transport="webrtc",
                         **kwargs,
                     )
+
+            # A stream cannot be chained after another event
+            def frames():
+                yield None
+
+            click = gr.Button().click(lambda: None)
+            for chained in (click.then, click.success, click.failure):
+                with pytest.raises(ValueError, match="chained"):
+                    chained(frames, outputs=[camera], transport="webrtc")
             stream = camera.stream(
                 flip, inputs=[camera], outputs=[camera], transport="webrtc"
             )

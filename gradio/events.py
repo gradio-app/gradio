@@ -815,6 +815,11 @@ class EventListener(str):
                         "A stream with transport= does not support "
                         f"{', '.join(unsupported)}."
                     )
+                if _trigger_after is not None:
+                    raise ValueError(
+                        "A stream with transport= cannot be chained with "
+                        f".{_event_name}(): start it from a component's event."
+                    )
                 try:
                     from gradio.webrtc import connection  # noqa: F401
                 except ImportError as e:
