@@ -476,6 +476,16 @@ class TestWebRTC:
         finally:
             LocalContext.blocks_config.reset(token)
 
+    def test_a_video_stream_leaves_the_video_an_ordinary_output(self):
+        with gr.Blocks():
+            video = gr.Video(sources=["webcam"])
+            video.stream(flip, inputs=[video], outputs=[video], transport="webrtc")
+            # On gr.Video, streaming=True makes every event's output HLS chunks
+            assert not video.streaming
+            # gr.on() refuses a gr.Video stream without transport=, as stream() does
+            with pytest.raises(ValueError, match="transport="):
+                gr.on([video.stream], flip, inputs=[video], outputs=[video])
+
     def test_stream_validation(self):
         with gr.Blocks() as demo:
             slider = gr.Slider()

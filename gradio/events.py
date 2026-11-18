@@ -506,6 +506,21 @@ class EventListenerMethod:
     event_name: str
 
 
+def _is_video_stream(block: Any, event_name: str) -> bool:
+    from gradio.components.video import Video
+
+    return event_name == "stream" and isinstance(block, Video)
+
+
+def _check_video_stream(block: Any, event_name: str) -> None:
+    """gr.Video's stream event runs only over WebRTC: its page never sends
+    the chunks of a queue stream."""
+    if _is_video_stream(block, event_name):
+        raise ValueError(
+            'gr.Video streams only over WebRTC: call its stream() with transport="webrtc".'
+        )
+
+
 if TYPE_CHECKING:
     EventListenerCallable = Callable[
         [
@@ -786,13 +801,8 @@ class EventListener(str):
                 block if _has_trigger else None, _event_name
             )
 
-            if transport is None and _event_name == "stream":
-                from gradio.components.video import Video
-
-                if isinstance(block, Video):
-                    raise ValueError(
-                        'gr.Video streams only over WebRTC: pass transport="webrtc".'
-                    )
+            if transport is None:
+                _check_video_stream(block, _event_name)
             from gradio.streaming.handlers import check_transport
 
             check_transport(fn, transport)
@@ -854,8 +864,10 @@ class EventListener(str):
                     key=key,
                 )
                 set_cancel_events([event_target], cancels)
-                # e.g. .stream() puts its component in streaming mode
-                if _callback:
+                # e.g. .stream() puts its component in streaming mode, except
+                # gr.Video, where that means HLS output for every event (its
+                # live stream follows stream_transport instead)
+                if _callback and not _is_video_stream(block, _event_name):
                     _callback(block)
                 return Dependency(block, dep.get_config(), dep_index, fn)
 
@@ -1138,6 +1150,8 @@ def on(
             EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore
             for t in triggers_typed
         ]
+        for method in methods:
+            _check_video_stream(method.block, method.event_name)
     if triggers:
         for trigger in triggers:
             if trigger.callback:  # type: ignore
