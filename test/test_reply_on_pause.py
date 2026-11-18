@@ -176,6 +176,19 @@ def test_needs_a_generator_and_the_vad_extra(monkeypatch):
         SileroVAD()
 
 
+def test_a_reply_that_takes_the_token_asks_for_sign_in():
+    from gradio.server import _takes_oauth
+
+    def reply(audio, token: gr.OAuthToken | None):
+        yield audio
+
+    def anonymous(audio):
+        yield audio
+
+    assert _takes_oauth(ReplyOnPause(reply, vad=LoudnessVAD()))
+    assert not _takes_oauth(ReplyOnPause(anonymous, vad=LoudnessVAD()))
+
+
 def test_a_handler_instance_is_accepted_where_functions_are():
     # Also checked statically: the type checker runs on this file
     def reply(audio, name):

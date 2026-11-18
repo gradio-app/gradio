@@ -33,7 +33,11 @@ def _takes_oauth(fn: Any) -> bool:
     VideoOptions) takes a gr.OAuthProfile or gr.OAuthToken, as `special_args`
     fills them in."""
     from gradio.helpers import takes_oauth
+    from gradio.streaming import ReplyOnPause
 
+    if isinstance(fn, ReplyOnPause):
+        # Its start_up fills them in for the function it wraps
+        fn = fn.fn
     fn = getattr(fn, "callable", fn)
     # A handler class gets them in its start_up method
     fn = getattr(fn, "start_up", fn)
