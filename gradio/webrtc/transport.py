@@ -197,6 +197,15 @@ def blocks_stream(
         modality = "audio-video"
         media.include_audio = True
     media_in = inputs.index(media) if media in inputs else None
+    media_type = getattr(media, "type", "numpy")
+    if media_in is not None and media_type != "numpy":
+        # Frames and audio chunks are decoded straight to arrays: converting
+        # each one to PIL or to a file would not keep up with the stream
+        raise ValueError(
+            "A stream with transport= gives the function its media as numpy "
+            f'arrays, so the {type(media).__name__} it streams needs type="numpy" '
+            f"(it has type={media_type!r})."
+        )
     # The components that can show the media: the same rule picks a separate
     # output below and checks the one given as media_output
     family = "video" if modality == "audio-video" else modality

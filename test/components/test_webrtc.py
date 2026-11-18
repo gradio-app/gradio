@@ -645,6 +645,27 @@ class TestWebRTC:
             for chained in (click.then, click.success, click.failure):
                 with pytest.raises(ValueError, match="chained"):
                     chained(frames, outputs=[camera], transport="webrtc")
+
+            # The media reaches the function as numpy arrays, whatever type=
+            pil_camera = gr.Image(sources=["webcam"], streaming=True, type="pil")
+            with pytest.raises(ValueError, match='type="numpy"'):
+                pil_camera.stream(
+                    flip, inputs=[pil_camera], outputs=[pil_camera], transport="webrtc"
+                )
+            file_microphone = gr.Audio(
+                sources=["microphone"], streaming=True, type="filepath"
+            )
+            with pytest.raises(ValueError, match='type="numpy"'):
+                file_microphone.stream(
+                    lambda audio: None,
+                    inputs=[file_microphone],
+                    outputs=[],
+                    transport="webrtc",
+                )
+            # type= does not apply to an output
+            gr.Button().click(
+                frames, outputs=[gr.Image(type="pil")], transport="webrtc"
+            )
             stream = camera.stream(
                 flip, inputs=[camera], outputs=[camera], transport="webrtc"
             )
