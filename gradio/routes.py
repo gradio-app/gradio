@@ -346,6 +346,7 @@ def render_page(
         },
     )
 
+
 # Shared transport keeps the connection pool warm without sharing an
 # `httpx2.AsyncClient` (and therefore a cookie jar) across `/proxy=` requests.
 # A single shared `AsyncClient` would persist `Set-Cookie` headers from one
@@ -947,9 +948,7 @@ class App(FastAPI):
                         template,
                         config,
                         gradio_api_info,
-                        base_url=(
-                            "../../" if request.url.path.endswith("/") else "../"
-                        )
+                        base_url=("../../" if request.url.path.endswith("/") else "../")
                         if is_run_history
                         else "./",
                     )

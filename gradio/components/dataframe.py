@@ -15,8 +15,8 @@ from typing import (
 
 import numpy as np
 import semantic_version
-from typing_extensions import TypeIs
 from gradio_client.documentation import document
+from typing_extensions import TypeIs
 
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel

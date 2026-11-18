@@ -16,11 +16,11 @@ import pytest
 from gradio_client.client import Endpoint
 from PIL import Image, ImageCms
 from pydantic import BaseModel
-from gradio._vendor.pydub import AudioSegment
 
 import gradio as gr
 from gradio import components, data_classes, processing_utils, utils
 from gradio._vendor import ffmpy
+from gradio._vendor.pydub import AudioSegment
 from gradio.context import LocalContext
 from gradio.exceptions import InvalidPathError
 from gradio.route_utils import API_PREFIX

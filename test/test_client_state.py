@@ -243,9 +243,7 @@ class TestSealer:
         sealer = StateSealer(b"secret")
         token = sealer.seal(b"app:1", b"1", 0.0)
         raw = client_state._b64decode(token[len(client_state.TOKEN_PREFIX) :])
-        moved = client_state.TOKEN_PREFIX + client_state._b64encode(
-            raw[:32] + raw[33:]
-        )
+        moved = client_state.TOKEN_PREFIX + client_state._b64encode(raw[:32] + raw[33:])
         with pytest.raises(client_state.InvalidStateTokenError):
             sealer.open(b"app:1" + raw[32:33], moved)
 

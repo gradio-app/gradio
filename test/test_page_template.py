@@ -66,7 +66,7 @@ def test_toorjson_cannot_close_a_script_tag():
 
 
 def test_index_page_escapes_what_the_app_supplies():
-    title = "T \"q\" </title><script>alert(1)</script> {{ config_json }}"
+    title = 'T "q" </title><script>alert(1)</script> {{ config_json }}'
     with gr.Blocks(title=title) as demo:
         gr.Markdown("</script><script>alert(2)</script> {{ title }}")
     app, _, _ = demo.launch(prevent_thread_lock=True, ssr_mode=False)
@@ -77,7 +77,7 @@ def test_index_page_escapes_what_the_app_supplies():
     assert "<script>alert(" not in page
     assert (
         'content="T &quot;q&quot; &lt;/title&gt;&lt;script&gt;alert(1)'
-        "&lt;/script&gt; {{ config_json }}\""
+        '&lt;/script&gt; {{ config_json }}"'
     ) in page
     assert "window.gradio_config = {" in page
     assert "\\u003c/script\\u003e\\u003cscript\\u003ealert(2)" in page

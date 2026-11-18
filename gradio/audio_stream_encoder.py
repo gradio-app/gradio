@@ -11,9 +11,8 @@ import time
 import wave
 from collections import deque
 
-from gradio._vendor.pydub import AudioSegment
-
 from gradio import processing_utils
+from gradio._vendor.pydub import AudioSegment
 from gradio.data_classes import MediaStreamChunk
 
 logger = logging.getLogger(__name__)
