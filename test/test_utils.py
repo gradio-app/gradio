@@ -804,6 +804,16 @@ def test_error_payload():
     result = error_payload(Exception("test error"), True)
     assert result == {"error": "test error", "visible": True}
 
+    result = error_payload(Exception("test error"), False)
+    assert result == {"error": None}
+
+    result = error_payload(ValueError(), True)
+    assert result == {"error": "ValueError", "visible": True}
+
+    token = "hf_" + "a1B2" * 9
+    result = error_payload(RuntimeError(f"401 for token {token}"), True)
+    assert result == {"error": "401 for token hf_***", "visible": True}
+
     gr_error = Error("custom error", duration=1.5, visible=True, title="Error Title")
     result = error_payload(gr_error, False)
     assert result == {

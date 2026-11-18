@@ -1904,9 +1904,24 @@ def error_payload(
             content["visible"] = error.visible
             content["title"] = error.title
         else:
-            content["error"] = str(error)
+            content["error"] = sanitize_error_message(error)
             content["visible"] = show_error
     return content
+
+
+_HF_TOKEN_PATTERN = re.compile(r"\bhf_[A-Za-z0-9]{20,}\b")
+
+
+def sanitize_error_message(error: BaseException | None) -> str:
+    """
+    Returns the user-facing message for an exception that was not raised as a
+    gr.Error: its message with any Hugging Face tokens redacted, or the exception's
+    type name when the message is empty (e.g. `raise ValueError()`).
+    """
+    if error is None:
+        return ""
+    message = _HF_TOKEN_PATTERN.sub("hf_***", str(error))
+    return message or type(error).__name__
 
 
 class UnhashableKeyDict(MutableMapping):
