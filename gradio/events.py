@@ -838,12 +838,9 @@ class EventListener(str):
                         "function; to switch between streams, use several "
                         "components and change their visibility."
                     )
-                try:
-                    from gradio.webrtc import connection  # noqa: F401
-                except ImportError as e:
-                    from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
+                from gradio.webrtc.utils import require_webrtc
 
-                    raise ImportError(WEBRTC_EXTRA_HINT) from e
+                require_webrtc()
                 from gradio.webrtc.transport import blocks_stream
 
                 dep, dep_index = blocks_stream(

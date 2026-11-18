@@ -378,12 +378,9 @@ class Server(App):
                         kwargs["stream_every"] = 0.5
                     gr_api(fn=fn, **kwargs)
                     continue
-                try:
-                    from gradio.webrtc import connection  # noqa: F401
-                except ImportError as e:
-                    from gradio.webrtc.utils import WEBRTC_EXTRA_HINT
+                from gradio.webrtc.utils import require_webrtc
 
-                    raise ImportError(WEBRTC_EXTRA_HINT) from e
+                require_webrtc()
                 from gradio.webrtc.transport import api_stream
 
                 api_stream(

@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import fractions
 import functools
+import importlib
 import inspect
 import logging
 import threading
@@ -54,6 +55,15 @@ WEBRTC_EXTRA_HINT = (
     'The `aiortc` package is required to stream over WebRTC (transport="webrtc"). '
     'Install it with the `webrtc` extra: pip install "gradio[webrtc]"'
 )
+
+
+def require_webrtc() -> None:
+    """Imports the WebRTC connection module, or raises how to install the
+    `webrtc` extra (aiortc) it needs, with the original error chained."""
+    try:
+        importlib.import_module("gradio.webrtc.connection")
+    except ImportError as e:
+        raise ImportError(WEBRTC_EXTRA_HINT) from e
 
 
 def has_streams(blocks: Any) -> bool:
