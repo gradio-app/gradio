@@ -21,6 +21,7 @@ from typing import Any, cast
 import numpy as np
 from numpy.typing import NDArray
 
+from gradio.helpers import skip
 from gradio.streaming.utils import (
     AdditionalOutputs,
     CloseStream,
@@ -217,6 +218,11 @@ def split_output(
 
 def _and_call(fn: Any) -> tuple[Any, ...]:
     return (fn, type(fn).__call__) if callable(fn) else (fn,)
+
+
+def is_skip(value: Any) -> bool:
+    """Whether `value` is `gr.skip()`."""
+    return isinstance(value, dict) and value == skip()
 
 
 def is_async(fn: Any) -> bool:

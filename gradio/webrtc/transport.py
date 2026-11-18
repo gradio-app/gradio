@@ -38,7 +38,7 @@ from gradio.streaming.handlers import (
 from gradio.webrtc.endpoint import add_stream_event, check_turn, check_video_bitrate
 from gradio.webrtc.handlers import VideoOptions
 from gradio.webrtc.options import AudioChunk, VideoFrame, WebRTCOptions
-from gradio.webrtc.utils import SKIPPED_FRAME, is_async
+from gradio.webrtc.utils import SKIPPED_FRAME, is_async, is_skip
 
 if TYPE_CHECKING:
     from gradio.block_function import BlockFunction
@@ -623,9 +623,6 @@ def transport_event(
     repeats_frames = (
         modality == "video" and mode == "send-receive" and not is_handler_class
     )
-
-    def is_skip(value: Any) -> bool:
-        return isinstance(value, dict) and value == skip()
 
     def to_stream_output(result: Any) -> Any:
         """One value per output, into what the stream's tracks take: the media,

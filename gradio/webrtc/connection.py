@@ -84,6 +84,7 @@ from gradio.webrtc.utils import (
     StreamErrors,
     current_errors,
     is_async,
+    is_skip,
     webrtc_error_handler,
 )
 
@@ -109,10 +110,6 @@ SHUTDOWN_WAIT = 5
 
 # An output whose value the page does not have, or that is not compared
 _UNSEEN = object()
-
-
-def _is_skip(value: Any) -> bool:
-    return isinstance(value, dict) and value == skip()
 
 
 def _comparable(value: Any) -> bool:
@@ -355,6 +352,8 @@ class Stream:
         # their position, in place of what the page sends (the gr.State
         # inputs that are also outputs, see transport.transport_event)
         self.carried: dict[int, Any] = {}
+        # Counts the input values the page sent (see _prepare_and_set_inputs)
+        self.inputs_seq = 0
         # Set by the offer, and let go of when the stream ends. The stream
         # outlives them: an ended stream still delivers its pending outputs.
         self.pc: RTCPeerConnection | None = None
@@ -410,7 +409,7 @@ class Stream:
         pending = self._pending or [skip()] * len(values)
         changed = False
         for i, value in enumerate(values):
-            if _is_skip(value) or _same(value, self._shown[i]):
+            if is_skip(value) or _same(value, self._shown[i]):
                 continue
             pending[i] = value
             self._shown[i] = _remembered(value)
@@ -446,7 +445,7 @@ class Stream:
         if self.outputs:
             merged = list(self.outputs[-1].args)
             for i, value in enumerate(pending):
-                if not _is_skip(value):
+                if not is_skip(value):
                     merged[i] = value
             self.outputs[-1] = AdditionalOutputs(*merged)
             return
@@ -793,8 +792,8 @@ class ConnectionManager:
     async def _prepare_and_set_inputs(self, stream: Stream, values: list[Any]) -> None:
         """Preprocesses the input values a page sent and pushes them into the
         stream, unless newer values arrived meanwhile."""
-        seq = getattr(stream, "_inputs_seq", 0) + 1
-        stream._inputs_seq = seq  # type: ignore[attr-defined]
+        stream.inputs_seq += 1
+        seq = stream.inputs_seq
         try:
             prepared = await cast(Callable, self.prepare_inputs)(
                 values, stream.event.session_hash
@@ -806,7 +805,7 @@ class ConnectionManager:
             if stream.errors is not None:
                 stream.errors.fail(e)
             return
-        if getattr(stream, "_inputs_seq", 0) == seq:
+        if stream.inputs_seq == seq:
             for i, value in stream.carried.items():
                 prepared[i] = value
             stream.set_inputs(prepared)
