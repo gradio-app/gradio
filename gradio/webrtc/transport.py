@@ -807,7 +807,6 @@ def transport_event(
         video_bitrate=options.video_bitrate,
         rtc_configuration=options.rtc_configuration,
         output_every=output_every,
-        inputs_over_channel=True,
         adapt_handler=adapt if is_handler_class else None,
         prepare_inputs=prepare_inputs if preprocessed_inputs else None,
     )

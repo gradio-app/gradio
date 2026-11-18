@@ -35,7 +35,7 @@ import logging
 import math
 import time
 import weakref
-from collections import Counter, OrderedDict, deque
+from collections import Counter, OrderedDict
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -102,7 +102,6 @@ CONNECT_TIMEOUT = 30
 # its turn has come just before the event's first call admits the stream.
 ADMISSION_WAIT = 5
 WATCH_INTERVAL = 0.25
-MAX_PENDING_OUTPUTS = 64
 MAX_PENDING_CANDIDATES = 128
 MAX_PENDING_CANDIDATE_IDS = 256
 # Seconds a new stream waits for the handlers of ended streams to shut down
@@ -338,7 +337,8 @@ class Stream:
         self.connected_at: float | None = None
         self.context = Context(stream_id=webrtc_id)
         self.inputs = StreamInputs()
-        self.outputs: deque[AdditionalOutputs] = deque(maxlen=MAX_PENDING_OUTPUTS)
+        # The outputs the event has not taken yet; newer ones merge into them
+        self.output: AdditionalOutputs | None = None
         # What the page shows of the outputs besides the media, or will once
         # the queued ones go out; and the changes waiting for output_every
         # (see add_output)
@@ -442,14 +442,14 @@ class Stream:
         if pending is None:
             return
         self._last_delivery = time.monotonic()
-        if self.outputs:
-            merged = list(self.outputs[-1].args)
+        if self.output is not None:
+            merged = list(self.output.args)
             for i, value in enumerate(pending):
                 if not is_skip(value):
                     merged[i] = value
-            self.outputs[-1] = AdditionalOutputs(*merged)
+            self.output = AdditionalOutputs(*merged)
             return
-        self.outputs.append(AdditionalOutputs(*pending))
+        self.output = AdditionalOutputs(*pending)
         self.lease.wake()
 
     def add_track(self, track: Track) -> bool:
@@ -462,16 +462,13 @@ class Stream:
         return True
 
     def take_output(self) -> AdditionalOutputs | None:
-        """The next AdditionalOutputs to deliver. One step of the event's run
-        delivers one and comes back for the rest. The last ones of an ended
-        stream go out with the event's completion, as a stream's last outputs
-        do, unless a failure is still to be reported."""
-        if not self.outputs:
+        """The outputs to deliver, for one step of the event's run. The last
+        ones of an ended stream go out with the event's completion, as a
+        stream's last outputs do, unless a failure is still to be reported."""
+        outputs, self.output = self.output, None
+        if outputs is None:
             return None
-        outputs = self.outputs.popleft()
-        if self.outputs:
-            self.lease.wake()
-        elif self.ended:
+        if self.ended:
             if self.failure is None:
                 self.lease.finish()
             else:
@@ -639,7 +636,6 @@ class ConnectionManager:
         video_bitrate: dict[str, int] | None = None,
         rtc_configuration: dict[str, Any] | Callable | None = None,
         output_every: float | None = None,
-        inputs_over_channel: bool = False,
         adapt_handler: Callable[[Any], None] | None = None,
         prepare_inputs: Callable[[list[Any], str | None], Awaitable[list[Any]]]
         | None = None,
@@ -655,9 +651,6 @@ class ConnectionManager:
         self.time_limit = time_limit
         self.allow_extra_tracks = allow_extra_tracks
         self.rtc_configuration = rtc_configuration
-        # Pages send the values of the other inputs over the data channel
-        # (prepare_inputs preprocesses them for an event listener's stream)
-        self.inputs_over_channel = inputs_over_channel
         self.server_rtc_configuration = to_rtc_configuration(server_rtc_configuration)
         self.video_bitrate = video_bitrate
         # The shortest interval between deliveries of a stream's outputs
@@ -1042,27 +1035,27 @@ class ConnectionManager:
         def on_datachannel(channel):
             logger.debug("Data channel established: %s", channel.label)
             stream.channel = channel
-            if self.inputs_over_channel:
 
-                @channel.on("message")
-                def on_message(message: Any) -> None:
-                    try:
-                        data = json.loads(message) if isinstance(message, str) else None
-                    except ValueError:
-                        data = None
-                    if (
-                        isinstance(data, dict)
-                        and data.get("type") == "input"
-                        and isinstance(data.get("data"), list)
-                    ):
-                        if self.prepare_inputs is None:
-                            stream.set_inputs(list(data["data"]))
-                        else:
-                            task = asyncio.ensure_future(
-                                self._prepare_and_set_inputs(stream, list(data["data"]))
-                            )
-                            self.tasks.add(task)
-                            task.add_done_callback(self.tasks.discard)
+            # The page sends the values of the other inputs here
+            @channel.on("message")
+            def on_message(message: Any) -> None:
+                try:
+                    data = json.loads(message) if isinstance(message, str) else None
+                except ValueError:
+                    data = None
+                if (
+                    isinstance(data, dict)
+                    and data.get("type") == "input"
+                    and isinstance(data.get("data"), list)
+                ):
+                    if self.prepare_inputs is None:
+                        stream.set_inputs(list(data["data"]))
+                    else:
+                        task = asyncio.ensure_future(
+                            self._prepare_and_set_inputs(stream, list(data["data"]))
+                        )
+                        self.tasks.add(task)
+                        task.add_done_callback(self.tasks.discard)
 
             async def set_channel():
                 while not stream.tracks:
@@ -1287,12 +1280,3 @@ async def get_rtc_configuration(
             manager.rtc_configuration_for(request)
         )
     return await asyncio.shield(stream.rtc_configuration)
-
-
-def set_input(webrtc_id: Any, session_hash: str | None, *args: Any) -> None:
-    """Pushes the current values of the extra inputs into a live stream of
-    this browser session."""
-    registry = current_registry()
-    stream = registry.get(webrtc_id) if registry is not None else None
-    if stream is not None and stream.owned_by(session_hash):
-        stream.set_inputs(list(args))

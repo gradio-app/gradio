@@ -1472,15 +1472,13 @@ class TestStreams:
         assert h.event_running(second_event)
 
     @pytest.mark.asyncio
-    async def test_closing_the_stream_delivers_every_pending_output(self, launched):
+    async def test_closing_the_stream_delivers_the_pending_output(self, launched):
         h = launched
         event_id = await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
         # Outputs the queue has not delivered yet, e.g. while workers are busy
-        stream_of(h.manager, "one").outputs.extend(
-            AdditionalOutputs(n) for n in (1, 2, 3)
-        )
+        stream_of(h.manager, "one").output = AdditionalOutputs(1)
         await h.http.post(f"{h.api}/stream/{event_id}/close")
         messages = await h.messages("one", completed)
         delivered = [
@@ -1489,7 +1487,7 @@ class TestStreams:
             if m.get("msg") in ("process_streaming", "process_completed")
             and isinstance(m["output"]["data"][1], int | float)
         ]
-        assert delivered == [1, 2, 3]
+        assert delivered == [1]
         assert messages[-1]["success"] is True
         # And the connection closes
         await h.wait_until(lambda: live_pc(h.manager, "one") is None)
@@ -2686,8 +2684,8 @@ class TestStreamsWithProcesses:
     test_a_quiet_stream_keeps_its_turn = TestStreams.test_a_quiet_stream_keeps_its_turn
     # The page's close reaches the stream here, which delivers what is
     # pending; the media closes once the gateway says that the event ended
-    test_closing_the_stream_delivers_every_pending_output = (
-        TestStreams.test_closing_the_stream_delivers_every_pending_output
+    test_closing_the_stream_delivers_the_pending_output = (
+        TestStreams.test_closing_the_stream_delivers_the_pending_output
     )
     test_closing_a_stream_whose_handler_just_failed_fails_it = (
         TestStreams.test_closing_a_stream_whose_handler_just_failed_fails_it
@@ -2719,10 +2717,8 @@ class TestStreamsWithProcesses:
         event_id = await h.start("one")
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
-        # Each output takes a call of the stream's event
-        stream_of(h.manager, "one").outputs.extend(
-            AdditionalOutputs(n) for n in (1, 2, 3)
-        )
+        # The pending output takes a call of the stream's event
+        stream_of(h.manager, "one").output = AdditionalOutputs(1)
         await h.http.post(f"{h.api}/stream/{event_id}/close")
         await h.messages("one", completed)
         status = (await h.http.get(f"{h.api}/processes")).json()
@@ -3199,7 +3195,7 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
         # Once a worker is free, the event still delivers every pending
         # output, however long past its time limit, and reports the failure
         session = stream_of(h.manager, "one")
-        session.outputs.append(AdditionalOutputs(99))
+        session.output = AdditionalOutputs(99)
         assert session.errors is not None
         session.errors.failure = {"error": "Bad frame", "visible": False}
         messages = await h.messages("one", completed)
@@ -4520,16 +4516,6 @@ class TestCleanUp:
             caplog.text
         )
 
-    def test_input_for_a_stream_id_that_is_not_a_string_is_ignored(self):
-        unit_registry()
-        token = LocalContext.blocks.set(cast(Any, SimpleNamespace(_queue=_unit_queue)))
-        try:
-            # E.g. the extra inputs' event, called with a crafted id that
-            # cannot even be a dict key
-            webrtc_connection.set_input(cast(Any, [1]), "s", 0.5)
-        finally:
-            LocalContext.blocks.reset(token)
-
     def test_a_session_close_leaves_a_stream_call_running(self):
         from gradio.processing.worker import RemoteEventHandle, RunningEvent, Worker
 
@@ -5154,8 +5140,8 @@ class TestStreamOutputs:
         it was woken for them."""
         woken = event.signal.is_set()
         event.signal.clear()
-        values = [o.args for o in stream.outputs]
-        stream.outputs.clear()
+        values = [stream.output.args] if stream.output is not None else []
+        stream.output = None
         return values, woken
 
     @pytest.mark.asyncio
@@ -5228,13 +5214,13 @@ class TestStreamOutputs:
         stream, event = self.stream(10)
         stream.add_output(AdditionalOutputs("a"))
         stream.add_output(AdditionalOutputs("b"))
-        assert [o.args for o in stream.outputs] == [("a",)]
+        assert stream.output is not None and stream.output.args == ("a",)
         stream.close()
-        assert [o.args for o in stream.outputs] == [("b",)]
+        assert stream.output is not None and stream.output.args == ("b",)
         # A change after the end is not held either
-        stream.outputs.clear()
+        stream.output = None
         stream.add_output(AdditionalOutputs("c"))
-        assert [o.args for o in stream.outputs] == [("c",)]
+        assert stream.output is not None and stream.output.args == ("c",)
 
 
 class TestStateInStreams:
