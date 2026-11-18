@@ -2,10 +2,8 @@ name: Sync Gradio Skills to Hugging Face
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - ".agents/skills/**"
+    tags:
+      - "gradio@*"
   workflow_dispatch:
 
 jobs:
@@ -21,7 +19,7 @@ jobs:
         id: pr_title
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "title=Sync Gradio Skills (${{ github.sha }})" >> $GITHUB_OUTPUT
+            echo "title=Sync Gradio Skills (${{ github.ref_name }})" >> $GITHUB_OUTPUT
           else
             echo "title=Sync Gradio Skills (manual trigger)" >> $GITHUB_OUTPUT
           fi
@@ -78,7 +76,7 @@ jobs:
           body: |
             Auto-generated from [gradio@${{ github.sha }}](https://github.com/gradio-app/gradio/commit/${{ github.sha }})
 
-            Triggered by changes to `.agents/skills/`
+            Triggered by `${{ github.ref_name }}`
 
             ---
             This PR was created automatically by the [sync-skills](https://github.com/gradio-app/gradio/blob/main/.github/workflows/sync-skills.yml) workflow.
