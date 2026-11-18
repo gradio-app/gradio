@@ -417,14 +417,14 @@ class Queue:
             self.pending_messages_per_session[session_hash] = messages
         resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
         history = resumable.history
+        kept = {id(message) for message in history}
         waiting: list[EventMessage] = []
         while not messages.empty():
             message = messages.get_nowait()
             if message.event_id not in requested_ids or (
                 # A stream's logs are not in its history (see `send_message`),
                 # but a page that reconnects while the stream runs shows them
-                message.msg == ServerMessage.log
-                and not any(kept is message for kept in history)
+                message.msg == ServerMessage.log and id(message) not in kept
             ):
                 waiting.append(message)
         known_ids = {
@@ -514,11 +514,10 @@ class Queue:
             self.pending_messages_per_session[session_hash] = AsyncQueue()
         resumable = self.resumable_sessions.get(session_hash)
         if own_messages is not None and resumable is not None:
+            kept = {id(message) for message in resumable.history}
             # asyncio.Queue keeps its items in _queue, which has no public view
             for message in list(own_messages._queue):  # type: ignore[attr-defined]
-                if message.msg == ServerMessage.log and not any(
-                    kept is message for kept in resumable.history
-                ):
+                if message.msg == ServerMessage.log and id(message) not in kept:
                     self.pending_messages_per_session[session_hash].put_nowait(message)
         event = self.event_ids_to_events.get(event_id)
         if event is not None:
