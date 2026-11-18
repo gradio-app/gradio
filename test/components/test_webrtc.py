@@ -5025,6 +5025,7 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
             return frame
 
         stream_fn, _ = api_stream(unhinted_return, **kwargs)
+        assert stream_fn.fn is not None
         manager = inspect.getclosurevars(stream_fn.fn).nonlocals["manager"]
         with pytest.raises(ValueError, match="return type hint"):
             manager.handler.callable(np.zeros((16, 16, 3), dtype=np.uint8))
