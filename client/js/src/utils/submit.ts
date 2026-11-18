@@ -91,14 +91,19 @@ export function submit(
 			config
 		);
 
-		// A WebRTC stream sends its media over its own connection
+		// A WebRTC stream sends its media over its own connection. Resuming one
+		// reattaches to its event like any other (the page then ends it)
+		const webrtc =
+			dependency.transport?.type === "webrtc" && !resume_event_id
+				? dependency.transport
+				: null;
 		// Named arguments (a gr.Server endpoint) in the endpoint's order
 		const transport_data =
-			dependency.transport?.type === "webrtc" && !Array.isArray(data)
+			webrtc && !Array.isArray(data)
 				? map_data_to_params(data, endpoint_info)
 				: data;
 		if (
-			dependency.transport?.type === "webrtc" &&
+			webrtc &&
 			Array.isArray(transport_data) &&
 			typeof MediaStream !== "undefined" &&
 			// The job submit_over_webrtc() itself submits carries the stream id
@@ -107,7 +112,7 @@ export function submit(
 				typeof event_data === "object" &&
 				"webrtc_id" in event_data
 			) &&
-			(dependency.transport.mode === "receive" ||
+			(webrtc.mode === "receive" ||
 				(event_data as any)?.media instanceof MediaStream ||
 				transport_data.some((value) => value instanceof MediaStream))
 		) {
@@ -115,7 +120,7 @@ export function submit(
 				this,
 				endpoint,
 				transport_data,
-				dependency.transport,
+				webrtc,
 				event_data,
 				trigger_id,
 				all_events,

@@ -458,6 +458,31 @@ describe("Client class", () => {
 			await Promise.all(submissions.map((submission) => submission.return()));
 		});
 
+		test("reattaches a WebRTC stream that only receives instead of starting another", async () => {
+			vi.stubGlobal("MediaStream", class {});
+			try {
+				const app = await Client.connect(direct_app_reference);
+				app.stream_status.open = true;
+				(app.config!.dependencies[0] as any).transport = {
+					type: "webrtc",
+					modality: "video",
+					mode: "receive",
+					media_input: null,
+					media_output: 0
+				};
+
+				const [submission] = app.resume_jobs([
+					{ event_id: "event-1", fn_index: 0 }
+				]);
+
+				await expect(submission.wait_for_id()).resolves.toBe("event-1");
+				expect(app.event_callbacks["event-1"]).toBeDefined();
+				await submission.return();
+			} finally {
+				vi.unstubAllGlobals();
+			}
+		});
+
 		test.skipIf(typeof sessionStorage === "undefined")(
 			"clears a resumable event rejected by the server",
 			async () => {
