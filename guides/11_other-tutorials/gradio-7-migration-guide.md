@@ -84,3 +84,7 @@ Gradio 7 does not depend on `pydub` (or on `audioop-lts`, which `pydub` needs on
 Gradio 7 does not depend on `jinja2` or `markupsafe`. If your app uses them itself, for example through `Jinja2Templates` in a FastAPI app that Gradio is mounted on, add `jinja2` to your app's requirements.
 
 This includes passing a styled pandas DataFrame (`df.style`) to `gr.Dataframe`: pandas needs `jinja2` for its `Styler`, and used to get it through Gradio.
+
+## `semantic_version` is no longer installed with Gradio
+
+Gradio 7 compares versions with `packaging` instead. If your app imports `semantic_version` itself, add it to your app's requirements. Theme version expressions such as `gr.Theme.from_hub("gradio/seafoam@>=0.0.1,<0.1.0")` work as before.

@@ -6,9 +6,8 @@ import tempfile
 from pathlib import Path
 from typing import Annotated
 
-import semantic_version
 from huggingface_hub import HfApi
-from packaging.version import Version as PEP440Version
+from packaging.version import InvalidVersion, Version
 from rich import print
 from rich.console import Console
 from rich.panel import Panel
@@ -38,17 +37,11 @@ def _get_version_from_file(dist_file: Path) -> str | None:
     return None
 
 
-def _parse_version(
-    version_string: str,
-) -> semantic_version.Version | PEP440Version | None:
-    """Parse a version string, trying semantic_version first, then PEP440."""
+def _parse_version(version_string: str) -> Version | None:
     try:
-        return semantic_version.Version(version_string)
-    except ValueError:
-        try:
-            return PEP440Version(version_string)
-        except Exception:
-            return None
+        return Version(version_string)
+    except InvalidVersion:
+        return None
 
 
 def _get_max_version(distribution_files: list[Path]) -> str | None:

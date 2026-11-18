@@ -14,8 +14,8 @@ from typing import (
 )
 
 import numpy as np
-import semantic_version
 from gradio_client.documentation import document
+from packaging.version import Version
 from typing_extensions import TypeIs
 
 from gradio.components.base import Component
@@ -493,9 +493,7 @@ class Dataframe(Component):
         """
         import pandas as pd
 
-        if _is_styler(value) and semantic_version.Version(
-            pd.__version__
-        ) < semantic_version.Version("1.5.0"):
+        if _is_styler(value) and Version(pd.__version__) < Version("1.5.0"):
             raise ValueError(
                 "Styler objects are only supported in pandas version 1.5.0 or higher. Please try: `pip install --upgrade pandas` to use this feature."
             )

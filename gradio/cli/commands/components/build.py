@@ -6,8 +6,8 @@ import subprocess
 from pathlib import Path
 from typing import Annotated
 
-import semantic_version
 import typer
+from packaging.version import Version
 from tomlkit import dump, parse
 
 import gradio
@@ -82,14 +82,13 @@ def _build(
             ) from e
         if bump_version:
             pyproject_toml = parse((path / "pyproject.toml").read_text())
-            version = semantic_version.Version(
-                pyproject_toml["project"]["version"]  # type: ignore
-            ).next_patch()
+            current = Version(str(pyproject_toml["project"]["version"]))  # type: ignore
+            version = f"{current.major}.{current.minor}.{current.micro + 1}"
             live.update(
                 f":1234: Using version [bold][magenta]{version}[/][/]. "
                 "Set [bold][magenta]--no-bump-version[/][/] to use the version in pyproject.toml file."
             )
-            pyproject_toml["project"]["version"] = str(version)  # type: ignore
+            pyproject_toml["project"]["version"] = version  # type: ignore
             with open(path / "pyproject.toml", "w", encoding="utf-8") as f:
                 dump(pyproject_toml, f)
         else:
