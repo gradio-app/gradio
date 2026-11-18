@@ -448,6 +448,34 @@ class TestWebRTC:
             "",
         ]
 
+    @pytest.mark.parametrize("created", ["inside", "outside"])
+    def test_stream_is_refused_inside_a_render(self, created):
+        import copy
+
+        with gr.Blocks() as demo:
+            outside = gr.Image(sources=["webcam"], streaming=True)
+            count = gr.Number(0)
+
+            @gr.render(inputs=[count])
+            def _(n):
+                camera = (
+                    gr.Image(sources=["webcam"], streaming=True, key="camera")
+                    if created == "inside"
+                    else outside
+                )
+                camera.stream(
+                    flip, inputs=[camera], outputs=[camera], transport="webrtc"
+                )
+
+        token = LocalContext.blocks_config.set(copy.copy(demo.default_config))
+        try:
+            # A render runs again whenever its inputs change, which would
+            # replace a running stream's event
+            with pytest.raises(ValueError, match="inside a @gr.render"):
+                demo.renderables[0].apply(0)
+        finally:
+            LocalContext.blocks_config.reset(token)
+
     def test_stream_validation(self):
         with gr.Blocks() as demo:
             slider = gr.Slider()

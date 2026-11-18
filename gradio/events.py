@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 from gradio_client.utils import python_type_to_json_schema
 
-from gradio.context import get_blocks_context
+from gradio.context import LocalContext, get_blocks_context
 from gradio.utils import get_cancelled_fn_indices, get_function_params, get_return_types
 
 
@@ -819,6 +819,14 @@ class EventListener(str):
                     raise ValueError(
                         "A stream with transport= cannot be chained with "
                         f".{_event_name}(): start it from a component's event."
+                    )
+                if LocalContext.renderable.get(None) is not None:
+                    # A re-render replaces its events, including a running stream
+                    raise ValueError(
+                        "A stream with transport= cannot be set up inside a "
+                        "@gr.render function. Set it up outside the render "
+                        "function; to switch between streams, use several "
+                        "components and change their visibility."
                     )
                 try:
                     from gradio.webrtc import connection  # noqa: F401
