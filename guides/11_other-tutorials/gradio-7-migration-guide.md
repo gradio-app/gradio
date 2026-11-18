@@ -110,3 +110,7 @@ The `gradio` command line is now built on `click`, and prints plain text instead
 `gr.DateTime` now uses the standard library's `zoneinfo` for its `timezone` parameter. With `type="datetime"`, the `tzinfo` of the value passed to your function is a `zoneinfo.ZoneInfo` instead of a `pytz` timezone, and an unknown timezone name raises `zoneinfo.ZoneInfoNotFoundError`. The resulting times are the same.
 
 If your app imports `pytz` or `tomlkit` itself, add them to your app's requirements.
+
+## pandas 2.0 or newer is required
+
+Gradio 7 requires `pandas>=2.0`. Several other minimum versions were also raised to the oldest ones that work with Python 3.11: `numpy>=1.23.2`, `pillow>=9.2`, `fastapi>=0.133.0`, `pydantic>=2.7` and `uvicorn>=0.21.0`.

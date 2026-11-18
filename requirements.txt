@@ -4,17 +4,17 @@ click>=8.0,<9.0
 fastapi>=0.133.0,<1.0
 gradio_client==2.8.0-dev.0
 httpx2>=2.0.0,<3.0
-huggingface_hub>=1.16.0,<3.0
-numpy>=1.0,<3.0
-orjson~=3.0
+huggingface_hub>=1.16.1,<3.0
+numpy>=1.23.2,<3.0
+orjson>=3.8,<4.0
 packaging
-pandas>=1.0,<4.0
-pillow>=8.0,<14.0
+pandas>=2.0,<4.0
+pillow>=9.2,<14.0
 pydantic>=2.7,<3.0
 python-multipart>=0.0.18,<1.0 # required for fastapi forms.
-pyyaml>=5.0,<7.0
+pyyaml>=6.0,<7.0
 safehttpx>=0.2.0,<0.3.0
 starlette>=1.0.1,<2.0
-typing_extensions~=4.0
+typing_extensions>=4.10,<5.0
 uvicorn>=0.21.0
 psutil>=5.9,<8
