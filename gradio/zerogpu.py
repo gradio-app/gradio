@@ -19,7 +19,12 @@ if TYPE_CHECKING:
     from gradio.blocks import Blocks
 
 
-def exception_mapper(detail: ZeroGPUError, exc: Exception | None, show_error: bool):
+def exception_mapper(
+    detail: ZeroGPUError,
+    exc: Exception | None,
+    show_error: bool,
+    print_exception: bool,
+):
     if isinstance(exc, AppError):
         return Error(
             message=exc.message,
@@ -32,7 +37,7 @@ def exception_mapper(detail: ZeroGPUError, exc: Exception | None, show_error: bo
     return Error(
         title=detail["title"],
         message=message,
-        print_exception=False,
+        print_exception=print_exception,
     )
 
 
@@ -103,12 +108,14 @@ def maybe_setup_zerogpu_context(
                 detail=error.detail,
                 exc=error.exception,
                 show_error=blocks.show_error,
+                print_exception=error.print_exception,
             ) from error
         except ZeroGPUException as error:
             raise exception_mapper(
                 detail=error.detail,
                 exc=None,
                 show_error=blocks.show_error,
+                print_exception=error.print_exception,
             ) from error
 
 
