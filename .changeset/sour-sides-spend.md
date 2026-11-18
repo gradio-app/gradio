@@ -1,7 +1,6 @@
 ---
 "@gradio/workflowcanvas": minor
-"@self/spa": minor
 "gradio": minor
 ---
 
-feat:workflow: fix missing fonts
+feat:workflow: use theme fonts and weights
