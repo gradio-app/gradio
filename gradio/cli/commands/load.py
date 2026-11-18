@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import typer
+import click
 
-from .load_chat import main as chat
+from .load_chat import chat_command
 
-load_app = typer.Typer(help="Load various types of interfaces and models")
-
-load_app.command("chat", help="Launch a chat interface using OpenAI-compatible API")(
-    chat
+load_app = click.Group(
+    name="load",
+    help="Load various types of interfaces and models",
+    commands=[chat_command],
 )

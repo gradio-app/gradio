@@ -88,3 +88,19 @@ This includes passing a styled pandas DataFrame (`df.style`) to `gr.Dataframe`: 
 ## `semantic_version` is no longer installed with Gradio
 
 Gradio 7 compares versions with `packaging` instead. If your app imports `semantic_version` itself, add it to your app's requirements. Theme version expressions such as `gr.Theme.from_hub("gradio/seafoam@>=0.0.1,<0.1.0")` work as before.
+
+## `gradio info` and `gradio predict` are no longer built in
+
+The `gradio info` and `gradio predict` commands have moved out of Gradio. They are provided by the separate [`hf-gradio`](https://pypi.org/project/hf-gradio/) package, which Gradio no longer installs:
+
+```bash
+pip install hf-gradio
+hf-gradio info gradio/calculator
+hf-gradio predict gradio/calculator /predict '{"num1": 5, "operation": "multiply", "num2": 3}'
+```
+
+If you use the Hugging Face CLI, `hf extensions install gradio-app/hf-gradio` gives you the same commands as `hf gradio info` and `hf gradio predict`.
+
+## `typer`, `rich` and `hf-gradio` are no longer installed with Gradio
+
+The `gradio` command line is now built on `click`, and prints plain text instead of `rich` panels and tables. Every command and option keeps its name. If your app imports `typer` or `rich` itself, add them to your app's requirements.

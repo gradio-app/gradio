@@ -4,11 +4,9 @@ import os
 import re
 import shutil
 import subprocess
-from typing import Annotated
 
+import click
 import huggingface_hub
-from rich import print
-from typer import Option
 
 import gradio as gr
 
@@ -130,7 +128,7 @@ def check_gcloud_auth():
         )
 
         if not auth_result.stdout.strip():
-            print("[bold yellow]You are not logged in to Google Cloud.[/bold yellow]")
+            print("You are not logged in to Google Cloud.")
             print("Running 'gcloud init' to set up authentication...")
             subprocess.run(["gcloud", "init"], check=True)
 
@@ -142,29 +140,27 @@ def check_gcloud_auth():
         )
 
         if not project_result.stdout.strip():
-            print("[bold yellow]No Google Cloud project is selected.[/bold yellow]")
+            print("No Google Cloud project is selected.")
             project_id = input("Enter your Google Cloud project ID: ")
             if not project_id:
-                print("[red]Project ID is required for deployment.[/red]")
+                print("Project ID is required for deployment.")
                 return None
             return project_id
 
-        print(f"[green]✓ Authenticated as: {auth_result.stdout.strip()}[/green]")
-        print(f"[green]✓ Project: {project_result.stdout.strip()}[/green]")
+        print(f"✓ Authenticated as: {auth_result.stdout.strip()}")
+        print(f"✓ Project: {project_result.stdout.strip()}")
         return project_result.stdout.strip()
 
     except subprocess.CalledProcessError as e:
-        print(f"[bold red]Error checking Google Cloud configuration: {e}[/bold red]")
+        print(f"Error checking Google Cloud configuration: {e}")
         print("Running 'gcloud init' to set up configuration...")
         try:
             subprocess.run(["gcloud", "init"], check=True)
         except subprocess.CalledProcessError as init_error:
-            print(f"[red]Failed to run 'gcloud init': {init_error}[/red]")
+            print(f"Failed to run 'gcloud init': {init_error}")
             return False
     except FileNotFoundError:
-        print(
-            "[bold red]gcloud CLI not found. Please install Google Cloud SDK.[/bold red]"
-        )
+        print("gcloud CLI not found. Please install Google Cloud SDK.")
         return False
 
     return True
@@ -174,7 +170,7 @@ def deploy_to_gcloud():
     """Deploy a Gradio app to Google Cloud Run. Always uses app.py as the entry point."""
     if not shutil.which("gcloud"):
         print(
-            "[bold red]gcloud CLI is not installed.[/bold red]\n"
+            "gcloud CLI is not installed.\n"
             "Please install the Google Cloud SDK from: "
             "[link]https://cloud.google.com/sdk/docs/install[/link]"
         )
@@ -182,14 +178,12 @@ def deploy_to_gcloud():
 
     project_id = check_gcloud_auth()
     if not project_id:
-        print(
-            "[bold red]Google Cloud configuration failed. Please run 'gcloud init' manually.[/bold red]"
-        )
+        print("Google Cloud configuration failed. Please run 'gcloud init' manually.")
         return
 
     if not os.path.exists("app.py") and not os.path.exists("main.py"):
         print(
-            "[bold red]Error:[/bold red] app.py and main.py not found. Google Cloud Run deployment requires app.py or main.py as the entry point."
+            "Error: app.py and main.py not found. Google Cloud Run deployment requires app.py or main.py as the entry point."
         )
         return
 
@@ -205,7 +199,7 @@ def deploy_to_gcloud():
                 f.write(f"gradio=={gr.__version__}\n")
             print(f"Created requirements.txt with gradio=={gr.__version__}")
         else:
-            print("\n[yellow]Deployment cancelled.[/yellow]")
+            print("\nDeployment cancelled.")
             return
     else:
         with open(requirements_file, encoding="utf-8") as f:
@@ -221,7 +215,7 @@ def deploy_to_gcloud():
                 f.write(f"gradio=={gr.__version__}\n")
             print(f"Added gradio=={gr.__version__} to requirements.txt")
 
-    print("[bold]Deploying to Google Cloud Run...[/bold]")
+    print("Deploying to Google Cloud Run...")
 
     try:
         deploy_command = [
@@ -240,34 +234,30 @@ def deploy_to_gcloud():
             text=True,
             capture_output=False,
         )
-        print("[green]✓ Deployment complete![/green]")
+        print("✓ Deployment complete!")
     except subprocess.CalledProcessError as e:
-        print(f"[red]Deployment failed: {e}[/red]")
+        print(f"Deployment failed: {e}")
         return
     except KeyboardInterrupt:
-        print("\n[yellow]Deployment cancelled.[/yellow]")
+        print("\nDeployment cancelled.")
         return
 
 
 def deploy(
-    title: Annotated[str | None, Option(help="Spaces app title")] = None,
-    app_file: Annotated[
-        str | None, Option(help="File containing the Gradio app")
-    ] = None,
-    provider: Annotated[
-        str | None, Option(help="Deployment provider (spaces or gcloud)")
-    ] = "spaces",
+    title: str | None = None,
+    app_file: str | None = None,
+    provider: str | None = "spaces",
 ):
     if provider == "gcloud":
         if app_file and app_file != "app.py":
             print(
-                "[yellow]Warning:[/yellow] --app-file is ignored for Google Cloud Run deployment. Using app.py as entry point."
+                "Warning: --app-file is ignored for Google Cloud Run deployment. Using app.py as entry point."
             )
         deploy_to_gcloud()
         return
 
     if provider != "spaces":
-        print(f"[red]Unknown provider: {provider}. Use 'spaces' or 'gcloud'.[/red]")
+        print(f"Unknown provider: {provider}. Use 'spaces' or 'gcloud'.")
         return
 
     if os.getenv("SYSTEM") == "spaces":
@@ -319,3 +309,20 @@ def deploy(
         for secret_name, secret_value in configuration["secrets"].items():
             hf_api.add_space_secret(space_id, secret_name, secret_value)
     print(f"Space available at https://huggingface.co/spaces/{space_id}")
+
+
+deploy_command = click.Command(
+    name="deploy",
+    callback=deploy,
+    help="Deploy a Gradio app to Spaces or Google Cloud Run. Must be called within the directory you would like to deploy.",
+    params=[
+        click.Option(["--title"], help="Spaces app title"),
+        click.Option(["--app-file"], help="File containing the Gradio app"),
+        click.Option(
+            ["--provider"],
+            default="spaces",
+            show_default=True,
+            help="Deployment provider (spaces or gcloud)",
+        ),
+    ],
+)

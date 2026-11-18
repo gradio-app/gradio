@@ -3,19 +3,16 @@ from __future__ import annotations
 import re
 import shutil
 import tempfile
+import traceback
 from pathlib import Path
-from typing import Annotated
 
+import click
 from huggingface_hub import HfApi
 from packaging.version import InvalidVersion, Version
-from rich import print
-from rich.console import Console
-from rich.panel import Panel
-from rich.prompt import Confirm, Prompt
 from tomlkit import parse
-from typer import Argument, Option
 
 from gradio.analytics import custom_component_analytics
+from gradio.cli.commands.display import ask, confirm, print_box
 
 colors = ["red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"]
 
@@ -60,45 +57,17 @@ def _get_max_version(distribution_files: list[Path]) -> str | None:
 
 
 def _publish(
-    dist_dir: Annotated[
-        Path,
-        Argument(help=f"Path to the wheel directory. Default is {Path('.') / 'dist'}"),
-    ] = Path(".") / "dist",
-    upload_pypi: Annotated[bool, Option(help="Whether to upload to PyPI.")] = True,
-    pypi_username: Annotated[str, Option(help="The username for PyPI.")] = "",
-    pypi_password: Annotated[str, Option(help="The password for PyPI.")] = "",
-    upload_demo: Annotated[
-        bool, Option(help="Whether to upload demo to HuggingFace.")
-    ] = True,
-    demo_dir: Annotated[Path | None, Option(help="Path to the demo directory.")] = None,
-    source_dir: Annotated[
-        Path,
-        Option(help="Path to the source directory of the custom component."),
-    ] = Path("."),
-    token: Annotated[
-        str | None,
-        Option(
-            help="HuggingFace token for uploading demo. Can be omitted if already logged in via huggingface cli."
-        ),
-    ] = None,
-    prefer_local: Annotated[
-        bool,
-        Option(
-            help="Install the package from the local wheel in the demo space, even if it exists on PyPi."
-        ),
-    ] = False,
-    upload_source: Annotated[
-        bool,
-        Option(
-            help="Whether to upload the source code of the custom component, to share with the community."
-        ),
-    ] = False,
-    repo_id: Annotated[
-        str | None,
-        Option(
-            help="The repository id to upload the demo to. If not provided, a space will be created with the same name as the package in the HuggingFace account corresponding to the token."
-        ),
-    ] = None,
+    dist_dir: Path = Path(".") / "dist",
+    upload_pypi: bool = True,
+    pypi_username: str = "",
+    pypi_password: str = "",
+    upload_demo: bool = True,
+    demo_dir: Path | None = None,
+    source_dir: Path = Path("."),
+    token: str | None = None,
+    prefer_local: bool = False,
+    upload_source: bool = False,
+    repo_id: str | None = None,
 ):
     custom_component_analytics(
         "publish",
@@ -107,7 +76,6 @@ def _publish(
         upload_pypi=upload_pypi,
         upload_source=upload_source,
     )
-    console = Console()
     dist_dir = dist_dir.resolve()
 
     if not dist_dir.exists():
@@ -138,23 +106,20 @@ def _publish(
         )
     config_file = None
     if upload_pypi and (not pypi_username or not pypi_password):
-        panel = Panel(
-            "It is recommended to upload your component to pypi so that [bold][magenta]anyone[/][/] "
-            "can install it with [bold][magenta]pip install[/][/].\n\n"
-            f"A PyPi account is needed. If you do not have an account, register account here: [blue]{PYPI_REGISTER_URL}[/]",
+        print_box(
+            "It is recommended to upload your component to pypi so that anyone "
+            "can install it with pip install.\n\n"
+            f"A PyPi account is needed. If you do not have an account, register account here: {PYPI_REGISTER_URL}",
         )
-        print(panel)
-        upload_pypi = Confirm.ask(":snake: Upload to pypi?")
+        upload_pypi = confirm("🐍 Upload to pypi?")
         if upload_pypi and (Path.home() / ".pypirc").exists():
-            print(":closed_lock_with_key: Found .pypirc file in home directory.")
+            print("🔐 Found .pypirc file in home directory.")
             config_file = str(Path.home() / ".pypirc")
         elif upload_pypi:
             print(
-                ":light_bulb: You can generate an API token at [blue]https://pypi.org/manage/account/token/[/]"
+                "💡 You can generate an API token at https://pypi.org/manage/account/token/"
             )
-            pypi_token = Prompt.ask(
-                ":closed_lock_with_key: Enter your pypi API token", password=True
-            )
+            pypi_token = ask("🔐 Enter your pypi API token", password=True)
             pypi_username = "__token__"
             pypi_password = pypi_token
     if upload_pypi:
@@ -192,38 +157,35 @@ def _publish(
                     "Try upgrading 'pkginfo' with python -m pip install pkginfo --upgrade"
                 ) from e
         except Exception:
-            console.print_exception()
+            traceback.print_exc()
     if upload_demo and not demo_dir:
-        panel = Panel(
-            "It is recommended you upload a demo of your component to [blue]https://huggingface.co/spaces[/] "
+        print_box(
+            "It is recommended you upload a demo of your component to https://huggingface.co/spaces "
             "so that anyone can try it from their browser."
         )
-        print(panel)
-        upload_demo = Confirm.ask(":hugging_face: Upload demo?")
+        upload_demo = confirm("🤗 Upload demo?")
         if upload_demo:
-            panel = Panel(
-                "Please provide the path to the [magenta]demo directory[/] for your custom component.\n\n"
-                "This directory should contain [magenta]all the files[/] it needs to run successfully.\n\n"
-                "Please make sure the gradio app is in an [magenta]space.py[/] file.\n\n"
-                "If you need additional python requirements, add a [magenta]requirements.txt[/] file to this directory."
+            print_box(
+                "Please provide the path to the demo directory for your custom component.\n\n"
+                "This directory should contain all the files it needs to run successfully.\n\n"
+                "Please make sure the gradio app is in an space.py file.\n\n"
+                "If you need additional python requirements, add a requirements.txt file to this directory."
             )
-            print(panel)
-            demo_dir_ = Prompt.ask(
-                f":roller_coaster: Please enter the path to the demo directory. Leave blank to use: {(Path('.') / 'demo')}"
+            demo_dir_ = ask(
+                f"🎢 Please enter the path to the demo directory. Leave blank to use: {(Path('.') / 'demo')}"
             )
             demo_dir_ = demo_dir_ or str(Path(".") / "demo")
             demo_dir = Path(demo_dir_).resolve()
 
     if upload_demo and not upload_source:
-        panel = Panel(
-            "It is recommended that you share your [magenta]source code[/] so that others can learn from and improve your component."
+        print_box(
+            "It is recommended that you share your source code so that others can learn from and improve your component."
         )
-        print(panel)
-        upload_source = Confirm.ask(":books: Would you like to share your source code?")
+        upload_source = confirm("📚 Would you like to share your source code?")
         if upload_source:
             source_dir_ = (
-                Prompt.ask(
-                    f":file_folder: Please enter the path to the source directory. Leave blank to use: {source_dir}"
+                ask(
+                    f"📁 Please enter the path to the source directory. Leave blank to use: {source_dir}"
                 )
                 or source_dir
             )
@@ -300,3 +262,60 @@ def resolve_demo(demo_dir: Path) -> Path:
         raise FileNotFoundError(
             f'Could not find "space.py" or "app.py" in "{demo_dir}".'
         )
+
+
+publish_command = click.Command(
+    name="publish",
+    callback=_publish,
+    help="Publish a component to PyPI and HuggingFace Hub. DIST_DIR is the path to the wheel directory (default: dist).",
+    params=[
+        click.Argument(
+            ["dist_dir"], type=click.Path(path_type=Path), default=Path(".") / "dist"
+        ),
+        click.Option(
+            ["--upload-pypi/--no-upload-pypi"],
+            default=True,
+            show_default=True,
+            help="Whether to upload to PyPI.",
+        ),
+        click.Option(["--pypi-username"], default="", help="The username for PyPI."),
+        click.Option(["--pypi-password"], default="", help="The password for PyPI."),
+        click.Option(
+            ["--upload-demo/--no-upload-demo"],
+            default=True,
+            show_default=True,
+            help="Whether to upload demo to HuggingFace.",
+        ),
+        click.Option(
+            ["--demo-dir"],
+            type=click.Path(path_type=Path),
+            help="Path to the demo directory.",
+        ),
+        click.Option(
+            ["--source-dir"],
+            type=click.Path(path_type=Path),
+            default=Path("."),
+            help="Path to the source directory of the custom component.",
+        ),
+        click.Option(
+            ["--token"],
+            help="HuggingFace token for uploading demo. Can be omitted if already logged in via huggingface cli.",
+        ),
+        click.Option(
+            ["--prefer-local/--no-prefer-local"],
+            default=False,
+            show_default=True,
+            help="Install the package from the local wheel in the demo space, even if it exists on PyPi.",
+        ),
+        click.Option(
+            ["--upload-source/--no-upload-source"],
+            default=False,
+            show_default=True,
+            help="Whether to upload the source code of the custom component, to share with the community.",
+        ),
+        click.Option(
+            ["--repo-id"],
+            help="The repository id to upload the demo to. If not provided, a space will be created with the same name as the package in the HuggingFace account corresponding to the token.",
+        ),
+    ],
+)

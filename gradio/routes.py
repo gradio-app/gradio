@@ -54,10 +54,10 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from gradio_client import utils as client_utils
+from gradio_client.api_info import condense_info
 from gradio_client.documentation import document
-from gradio_client.snippet import generate_code_snippets
+from gradio_client.snippet import generate_cli_snippet, generate_code_snippets
 from gradio_client.utils import ServerMessage
-from hf_gradio.cli import _condense_info, generate_cli_snippet
 from huggingface_hub import HfApi
 from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -1194,7 +1194,7 @@ class App(FastAPI):
             info = get_api_info(
                 request, page=None, route_path=f"{API_PREFIX}/openapi.json"
             )
-            info_simple = _condense_info(info, url_only=True)
+            info_simple = condense_info(info, url_only=True)
             schema = {
                 "openapi": "3.0.2",
                 "info": {

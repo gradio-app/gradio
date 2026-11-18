@@ -44,6 +44,6 @@ def main(url_or_space_id: str, source_directory: str):
 
 
 if __name__ == "__main__":
-    import typer
+    import sys
 
-    typer.run(main)
+    main(sys.argv[1], sys.argv[2])

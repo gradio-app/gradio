@@ -4,9 +4,8 @@ import importlib
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Annotated
 
-import typer
+import click
 from packaging.version import Version
 from tomlkit import dump, parse
 
@@ -26,24 +25,11 @@ gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"  
 
 
 def _build(
-    path: Annotated[
-        Path, typer.Argument(help="The directory of the custom component.")
-    ] = Path("."),
-    build_frontend: Annotated[
-        bool, typer.Option(help="Whether to build the frontend as well.")
-    ] = True,
-    bump_version: Annotated[
-        bool, typer.Option(help="Whether to bump the version number automatically.")
-    ] = False,
-    generate_docs: Annotated[
-        bool, typer.Option(help="Whether to generate the documentation as well.")
-    ] = True,
-    python_path: Annotated[
-        str | None,
-        typer.Option(
-            help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised."
-        ),
-    ] = None,
+    path: Path = Path("."),
+    build_frontend: bool = True,
+    bump_version: bool = False,
+    generate_docs: bool = True,
+    python_path: str | None = None,
 ):
     custom_component_analytics(
         "build",
@@ -59,9 +45,7 @@ def _build(
         raise ValueError(f"Cannot find pyproject.toml file in {name}")
 
     with LivePanelDisplay() as live:
-        live.update(
-            f":package: Building package in [orange3]{str(name.name)}[/]", add_sleep=0.2
-        )
+        live.update(f"📦 Building package in {str(name.name)}", add_sleep=0.2)
         pyproject_toml = parse((path / "pyproject.toml").read_text())
         package_name = get_deep(pyproject_toml, ["project", "name"])
 
@@ -85,8 +69,8 @@ def _build(
             current = Version(str(pyproject_toml["project"]["version"]))  # type: ignore
             version = f"{current.major}.{current.minor}.{current.micro + 1}"
             live.update(
-                f":1234: Using version [bold][magenta]{version}[/][/]. "
-                "Set [bold][magenta]--no-bump-version[/][/] to use the version in pyproject.toml file."
+                f"🔢 Using version {version}. "
+                "Set --no-bump-version to use the version in pyproject.toml file."
             )
             pyproject_toml["project"]["version"] = version  # type: ignore
             with open(path / "pyproject.toml", "w", encoding="utf-8") as f:
@@ -94,8 +78,8 @@ def _build(
         else:
             version = pyproject_toml["project"]["version"]  # type: ignore
             live.update(
-                f":1234: Package will use version [bold][magenta]{version}[/][/] defined in pyproject.toml file. "
-                "Set [bold][magenta]--bump-version[/][/] to automatically bump the version number."
+                f"🔢 Package will use version {version} defined in pyproject.toml file. "
+                "Set --bump-version to automatically bump the version number."
             )
 
         if generate_docs:
@@ -121,7 +105,7 @@ def _build(
             )
 
         if build_frontend:
-            live.update(":art: Building frontend")
+            live.update("🎨 Building frontend")
             component_directory = path.resolve()
 
             node = shutil.which("node")
@@ -162,22 +146,52 @@ def _build(
                 node_cmds, capture_output=True, text=True, check=False
             )
             if pipe.returncode != 0:
-                live.update(":red_square: Build failed!")
+                live.update("🟥 Build failed!")
                 live.update(pipe.stderr)
                 live.update(pipe.stdout)
                 raise SystemExit("Frontend build failed")
             else:
-                live.update(":white_check_mark: Build succeeded!")
+                live.update("✅ Build succeeded!")
 
         cmds = [python_path, "-m", "build", str(name)]
-        live.update(f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]")
+        live.update(f"👷 Building... ({' '.join(cmds)})")
         pipe = subprocess.run(cmds, capture_output=True, text=True, check=False)
         if pipe.returncode != 0:
-            live.update(":red_square: Build failed!")
+            live.update("🟥 Build failed!")
             live.update(pipe.stderr)
             raise SystemExit("Python build failed")
         else:
-            live.update(":white_check_mark: Build succeeded!")
-            live.update(
-                f":ferris_wheel: Wheel located in [orange3]{str(name / 'dist')}[/]"
-            )
+            live.update("✅ Build succeeded!")
+            live.update(f"🎡 Wheel located in {str(name / 'dist')}")
+
+
+build_command = click.Command(
+    name="build",
+    callback=_build,
+    help="Build the component for distribution. Must be called from the component directory. PATH is the directory of the custom component (default: the current directory).",
+    params=[
+        click.Argument(["path"], type=click.Path(path_type=Path), default=Path(".")),
+        click.Option(
+            ["--build-frontend/--no-build-frontend"],
+            default=True,
+            show_default=True,
+            help="Whether to build the frontend as well.",
+        ),
+        click.Option(
+            ["--bump-version/--no-bump-version"],
+            default=False,
+            show_default=True,
+            help="Whether to bump the version number automatically.",
+        ),
+        click.Option(
+            ["--generate-docs/--no-generate-docs"],
+            default=True,
+            show_default=True,
+            help="Whether to generate the documentation as well.",
+        ),
+        click.Option(
+            ["--python-path"],
+            help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised.",
+        ),
+    ],
+)
