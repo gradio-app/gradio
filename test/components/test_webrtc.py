@@ -4956,6 +4956,10 @@ async def test_a_server_webrtc_stream_gets_the_visitor_oauth_token(executor):
 
 
 def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
+    import inspect
+
+    import numpy as np
+
     from gradio.webrtc.transport import api_stream
 
     def echo(frame: gr.VideoFrame, x: float) -> tuple[gr.VideoFrame, float]:
@@ -5028,6 +5032,16 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         assert stream_fn.transport is not None
         assert stream_fn.transport["modality"] == "audio"
         assert stream_fn.transport["mode"] == "send"
+
+        # Without a return hint the endpoint has no outputs, which the error
+        # for a returned value points at
+        def unhinted_return(frame: gr.VideoFrame):
+            return frame
+
+        stream_fn, _ = api_stream(unhinted_return, **kwargs)
+        manager = inspect.getclosurevars(stream_fn.fn).nonlocals["manager"]
+        with pytest.raises(ValueError, match="return type hint"):
+            manager.handler.callable(np.zeros((16, 16, 3), dtype=np.uint8))
         # A handler class has no type hints to mark its media with
         for fn in (unmarked, mixed, CaptionVideo):
             with pytest.raises(ValueError, match="one type hint"):

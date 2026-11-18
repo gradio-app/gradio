@@ -635,9 +635,15 @@ def transport_event(
             else [result]
         )
         if len(values) != len(outputs):
+            hint = (
+                " A gr.Server endpoint gets its outputs from its return type "
+                "hint, e.g. -> gr.VideoFrame."
+                if not outputs
+                else ""
+            )
             raise ValueError(
                 f"The stream function returned {len(values)} values for "
-                f"{len(outputs)} outputs."
+                f"{len(outputs)} outputs.{hint}"
             )
         media = values[media_out] if media_out is not None else None
         if is_skip(media):
