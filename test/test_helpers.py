@@ -11,7 +11,7 @@ from unittest.mock import patch
 import gradio_client as grc
 import pytest
 from gradio_client import utils as client_utils
-from pydub import AudioSegment
+from gradio._vendor.pydub import AudioSegment
 from starlette.testclient import TestClient
 from tqdm import tqdm
 

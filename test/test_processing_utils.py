@@ -16,7 +16,7 @@ import pytest
 from gradio_client.client import Endpoint
 from PIL import Image, ImageCms
 from pydantic import BaseModel
-from pydub import AudioSegment
+from gradio._vendor.pydub import AudioSegment
 
 import gradio as gr
 from gradio import components, data_classes, processing_utils, utils
@@ -1234,3 +1234,51 @@ class TestAudioFormatDetection:
     )
     def test_detect_audio_format_edge_cases(self, data, expected):
         assert processing_utils.detect_audio_format(data) == expected
+
+
+class TestVendoredPydub:
+    """The vendored pydub does its sample conversions with numpy instead of
+    the stdlib `audioop` module, which Python 3.13 removed."""
+
+    def test_8_bit_wav_round_trip(self, tmp_path):
+        import wave
+
+        unsigned = bytes([0, 64, 128, 192, 255])
+        path = tmp_path / "eight_bit.wav"
+        with wave.open(str(path), "wb") as f:
+            f.setnchannels(1)
+            f.setsampwidth(1)
+            f.setframerate(8000)
+            f.writeframes(unsigned)
+
+        segment = AudioSegment.from_file(str(path))
+        # wav stores 8-bit samples unsigned; pydub holds them signed
+        assert list(segment.get_array_of_samples()) == [-128, -64, 0, 64, 127]
+
+        exported = tmp_path / "exported.wav"
+        segment.export(str(exported), format="wav").close()
+        with wave.open(str(exported), "rb") as f:
+            assert f.readframes(f.getnframes()) == unsigned
+
+    @pytest.mark.parametrize(
+        "width,new_width,expected",
+        [
+            (1, 2, [-32768, -256, 0, 256, 32512]),
+            (1, 4, [-(2**31), -(2**24), 0, 2**24, 127 * 2**24]),
+            (2, 1, [-128, -1, 0, 1, 127]),
+            (4, 2, [-32768, -256, 0, 256, 32767]),
+        ],
+    )
+    def test_set_sample_width(self, width, new_width, expected):
+        dtype = {1: np.int8, 2: np.int16, 4: np.int32}
+        top = 8 * (width - 1)
+        samples = np.array(
+            [-128 << top, -1 << top, 0, 1 << top, (127 << top) | ((1 << top) - 1)],
+            dtype=dtype[width],
+        )
+        segment = AudioSegment(
+            samples.tobytes(), frame_rate=8000, sample_width=width, channels=1
+        )
+        converted = segment.set_sample_width(new_width)
+        assert converted.sample_width == new_width
+        assert list(converted.get_array_of_samples()) == expected

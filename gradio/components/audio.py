@@ -15,7 +15,7 @@ import numpy as np
 from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from pydub import AudioSegment
+from gradio._vendor.pydub import AudioSegment
 
 from gradio import processing_utils
 from gradio.audio_stream_encoder import (

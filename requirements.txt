@@ -1,5 +1,4 @@
 anyio>=4.10,<5.0
-audioop-lts<=0.2.2; python_version >= "3.13" # this is a replacement for the built-in 'audioop' module removed in Python 3.13 (and needed for pydub)
 brotli>=1.2.1
 cryptography>=41.0
 fastapi>=0.115.2,<1.0
@@ -17,7 +16,6 @@ pandas>=1.0,<4.0
 pillow>=8.0,<14.0
 pydantic>=2.0,<=3.0
 python-multipart>=0.0.18,<1.0 # required for fastapi forms.
-pydub<1.0
 pyyaml>=5.0,<7.0
 safehttpx>=0.2.0,<0.3.0
 semantic_version~=2.0
