@@ -9,7 +9,6 @@ from collections.abc import Iterable
 from pathlib import Path
 
 import huggingface_hub
-import semantic_version as semver
 from gradio_client.documentation import document
 from huggingface_hub import CommitOperationAdd
 
@@ -18,6 +17,8 @@ from gradio.themes.utils import (
     fonts,
     get_matching_version,
     get_theme_assets,
+    next_patch,
+    parse_version,
     sizes,
 )
 from gradio.themes.utils.readme_content import README_CONTENT
@@ -222,7 +223,7 @@ class ThemeClass:
         theme_file = huggingface_hub.hf_hub_download(
             repo_id=name,
             repo_type="space",
-            filename=f"themes/theme_schema@{matching_version.version}.json",
+            filename=matching_version.filename,
         )
         theme = cls.load(theme_file)
         theme.name = name
@@ -232,14 +233,14 @@ class ThemeClass:
     def _get_next_version(space_info: huggingface_hub.hf_api.SpaceInfo) -> str:
         assets = get_theme_assets(space_info)
         latest_version = max(assets, key=lambda asset: asset.version).version
-        return str(latest_version.next_patch())
+        return next_patch(latest_version)
 
     @staticmethod
     def _theme_version_exists(
         space_info: huggingface_hub.hf_api.SpaceInfo, version: str
     ) -> bool:
         assets = get_theme_assets(space_info)
-        return any(a.version == semver.Version(version) for a in assets)
+        return any(a.version == parse_version(version) for a in assets)
 
     def push_to_hub(
         self,
@@ -293,7 +294,7 @@ class ThemeClass:
         if not version:
             version = self._get_next_version(space_info) if space_exists else "0.0.1"
         else:
-            _ = semver.Version(version)
+            _ = parse_version(version)
 
         if space_exists and self._theme_version_exists(space_info, version):
             raise ValueError(

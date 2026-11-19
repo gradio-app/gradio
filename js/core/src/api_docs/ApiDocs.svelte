@@ -81,7 +81,7 @@
 
 	let cli_flavor = $state<"hf" | "gradio">("gradio");
 
-	let cli_command = $derived(cli_flavor === "hf" ? "hf gradio" : "gradio");
+	let cli_command = $derived(cli_flavor === "hf" ? "hf gradio" : "hf-gradio");
 
 	function set_query_param(key: string, value: string) {
 		const url = new URL(window.location.href);
@@ -492,7 +492,7 @@
 								}}
 							>
 								<img src={gradio_logo} alt="Gradio" />
-								Gradio CLI
+								hf-gradio (pip)
 							</li>
 							<li
 								class="snippet {cli_flavor === 'hf'

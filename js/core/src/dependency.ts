@@ -5,7 +5,6 @@ import type {
 	LayoutNode,
 	Payload
 } from "./types.js";
-import { AsyncFunction } from "./init_utils";
 import { create_custom_js_handler } from "./custom_js";
 import { Client, type client_return, type ResumableJob } from "@gradio/client";
 import {
@@ -53,7 +52,6 @@ export class Dependency {
 	functions: {
 		frontend?: (...args: unknown[]) => Promise<unknown[]>;
 		backend: boolean;
-		backend_js?: (...args: unknown[]) => Promise<unknown[]>;
 	};
 
 	constructor(dep_config: IDependency) {
@@ -74,13 +72,7 @@ export class Dependency {
 							dep_config.outputs.length
 						)
 					: undefined,
-			backend: dep_config.backend_fn,
-			backend_js: dep_config.js_implementation
-				? new AsyncFunction(
-						`let result = await (${dep_config.js_implementation})(...arguments);
-						return (!Array.isArray(result)) ? [result] : result;`
-					)
-				: undefined
+			backend: dep_config.backend_fn
 		};
 		this.targets = dep_config.targets;
 		this.cancels = dep_config.cancels;
@@ -111,13 +103,6 @@ export class Dependency {
 		| { type: "submit"; data: ReturnType<client_return["submit"]> }
 	> {
 		let _data_payload = data_payload;
-
-		// if the function is backend_js, then it's the entire event
-		// no need to chain frontend and backend
-		if (this.functions.backend_js) {
-			const data = await this.functions.backend_js(..._data_payload);
-			return { type: "data", data };
-		}
 
 		// If it has a js implementation, the correct behavior
 		// is to run that and pass the output to the backend
@@ -592,15 +577,6 @@ export class DependencyManager {
 					if (dep_submission.type !== "submit") {
 						if (dep_submission.type === "data") {
 							await this.handle_data(dep.outputs, dep_submission.data);
-						}
-						if (dep.functions.backend) {
-							// A transpiled js=True fn runs here, but was marked pending above
-							this.update_loading_status({
-								status: "complete",
-								fn_index: dep.id,
-								stream_state: null
-							});
-							this.update_loading_stati_state();
 						}
 						[...success, ...all].forEach((dep_id) => {
 							this.dispatch({

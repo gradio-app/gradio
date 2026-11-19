@@ -343,7 +343,7 @@ class Server(App):
         theme: Theme | str | None = None,
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         num_workers: int | None = None,

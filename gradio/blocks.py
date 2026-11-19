@@ -31,7 +31,6 @@ import httpx2
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from groovy import transpile
 
 from gradio import (
     analytics,
@@ -921,7 +920,7 @@ class BlocksConfig:
         show_progress_on: Component | Sequence[Component] | None = None,
         api_name: str | None = None,
         api_description: str | None | Literal[False] = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         no_target: bool = False,
         queue: bool = True,
         batch: bool = False,
@@ -941,7 +940,6 @@ class BlocksConfig:
         time_limit: float | None = None,
         stream_every: float = 0.5,
         event_specific_args: list[str] | None = None,
-        js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
         component_prop_inputs: list[int] | None = None,
@@ -1086,10 +1084,15 @@ class BlocksConfig:
 
         rendered_in = LocalContext.renderable.get(None)
 
-        if js is True and inputs:
-            raise ValueError(
-                "Cannot create event: events with js=True cannot have inputs."
+        if js is True:
+            warnings.warn(
+                "`js=True` is no longer supported: Gradio 7 does not convert "
+                "Python functions to JavaScript, so this function will run on "
+                "the server. Remove `js=True`, or pass the JavaScript to run "
+                "in the browser as a string.",
+                stacklevel=3,
             )
+            js = None
 
         reuse_id = False
         fn_id = self.fn_id
@@ -1144,7 +1147,6 @@ class BlocksConfig:
             event_specific_args=event_specific_args,
             component_prop_inputs=component_prop_inputs,
             page=self.root_block.current_page,
-            js_implementation=js_implementation,
             key=key,
             validator=validator,
         )
@@ -2904,30 +2906,6 @@ Received inputs:
         )
         return config
 
-    def transpile_to_js(self, quiet: bool = False):
-        fns_to_transpile = [
-            fn.fn for fn in self.fns.values() if fn.fn and fn.js is True
-        ]
-        num_to_transpile = len(fns_to_transpile)
-        if not quiet and num_to_transpile > 0:
-            print("********************************************")
-            print("* Trying to transpile functions from Python -> JS for performance\n")
-        for index, fn in enumerate(fns_to_transpile):
-            if not quiet:
-                print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")  # type: ignore
-            if getattr(fn, "__js_implementation__", None) is None:  # type: ignore
-                try:
-                    fn.__js_implementation__ = transpile(fn, validate=True)  # type: ignore
-                    if not quiet:
-                        print("✅")
-                except Exception as e:
-                    if not quiet:
-                        print("❌", e, end="\n\n")
-            elif not quiet:
-                print("✅")
-        if not quiet and num_to_transpile > 0:
-            print("********************************************\n")
-
     def __enter__(self):
         render_context = get_render_context()
         if render_context is None:
@@ -3121,7 +3099,7 @@ Received inputs:
         theme: Theme | str | None = None,
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         executor: Literal["thread", "process"] | None = None,
@@ -3316,7 +3294,6 @@ Received inputs:
         self.resume_sessions = utils.resolve_resume_sessions(resume_sessions)
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
-        self.transpile_to_js(quiet=quiet)
         self.i18n_instance = i18n
         self.config = self.get_config_file()
 

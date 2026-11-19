@@ -10,7 +10,6 @@ import re
 import warnings
 
 import httpx2
-import yaml
 from gradio_client.utils import encode_url_or_file_to_base64
 from huggingface_hub import HfApi, ImageClassificationOutputElement, InferenceClient
 from huggingface_hub.errors import HFValidationError
@@ -52,6 +51,8 @@ def get_tabular_examples(model_name: str) -> dict[str, list[float]]:
         if yaml_regex is None:
             example_data = {}
         else:
+            import yaml
+
             example_yaml = next(
                 yaml.safe_load_all(readme.text[: yaml_regex.span()[-1]])
             )

@@ -38,7 +38,7 @@ from gradio.utils import abspath, get_hash_seed, get_upload_folder, is_in_or_equ
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
-    from pydub import AudioSegment
+    from gradio._vendor.pydub import AudioSegment
 
 sync_transport = None
 async_transport = None
