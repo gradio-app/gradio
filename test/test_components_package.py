@@ -2,6 +2,7 @@
 how to install it."""
 
 import importlib
+import os
 import subprocess
 import sys
 import textwrap
@@ -74,6 +75,52 @@ class TestWithoutComponents:
             """
         )
         assert out.splitlines()[-2:] == ["Hello core", "[]"]
+
+    def test_server_mode_serves_an_api_from_worker_processes(self, tmp_path):
+        """The default executor starts a gateway and worker processes, which must
+        not need `gradio_components` either. They inherit the blocker through a
+        `sitecustomize` module on PYTHONPATH."""
+        (tmp_path / "sitecustomize.py").write_text(CORE_ONLY)
+        script = tmp_path / "app.py"
+        script.write_text(
+            textwrap.dedent(
+                """
+                import os
+                import sys
+
+                import gradio as gr
+                from gradio_client import Client
+
+                app = gr.Server()
+
+                @app.api(name="hello")
+                def hello(name: str) -> str:
+                    return f"Hello {name}"
+
+                if __name__ == "__main__":
+                    _, url, _ = app.launch(prevent_thread_lock=True)
+                    print(Client(url, verbose=False).predict("core", api_name="/hello"))
+                    blocked = {"gradio_components", "numpy", "pandas", "PIL"}
+                    print(sorted(blocked & {name.split(".")[0] for name in sys.modules}))
+                    sys.stdout.flush()
+                    os._exit(0)
+                """
+            )
+        )
+        env = dict(os.environ)
+        env["PYTHONPATH"] = os.pathsep.join(
+            filter(None, [str(tmp_path), env.get("PYTHONPATH")])
+        )
+        result = subprocess.run(
+            [sys.executable, str(script)],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            env=env,
+        )
+        assert result.returncode == 0, result.stderr
+        assert result.stdout.splitlines()[-2:] == ["Hello core", "[]"]
 
     @pytest.mark.parametrize(
         "statement, feature",

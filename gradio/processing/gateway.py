@@ -831,7 +831,9 @@ def build(bootstrap: dict) -> Blocks:
     Context.token = bootstrap["hf_token"]
     if bootstrap["static_paths"]:
         utils.set_static_paths(bootstrap["static_paths"])
-    with Blocks() as blocks:
+    # mode="server" builds without `gradio_components`, which a `gr.Server` app
+    # may not have; `configure` then sets the app's own mode
+    with Blocks(mode="server") as blocks:
         pass
     configure(blocks, bootstrap)
     blocks.delete_cache = bootstrap["delete_cache"]
