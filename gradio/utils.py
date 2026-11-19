@@ -1933,22 +1933,33 @@ def _is_ip_address(host: str) -> bool:
 
 
 def _redact_url(match: re.Match) -> str:
+    # Leave trailing punctuation (e.g. the ":" in "Failed to connect to {url}: ...")
+    # out of the URL, so that it parses.
     url = match.group(0)
+    stripped = url.rstrip(".,:;!?")
+    trailing = url[len(stripped) :]
+    url = stripped
     try:
         parts = urllib.parse.urlsplit(url)
         host = parts.hostname or ""
         port = parts.port
     except ValueError:
-        return url
+        # Fail closed: a URL we can't parse could still carry a private address
+        # or credentials, so hide everything after the scheme.
+        scheme = url.split("://", 1)[0]
+        return f"{scheme}://***{trailing}"
     host_and_port = parts.netloc.rsplit("@", 1)[-1]
     if host and _is_ip_address(host):
         host_and_port = "***" if port is None else f"***:{port}"
     netloc = ("***@" if "@" in parts.netloc else "") + host_and_port
     if netloc == parts.netloc and not parts.query:
-        return url
+        return url + trailing
     query = "***" if parts.query else ""
-    return urllib.parse.urlunsplit(
-        (parts.scheme, netloc, parts.path, query, parts.fragment)
+    return (
+        urllib.parse.urlunsplit(
+            (parts.scheme, netloc, parts.path, query, parts.fragment)
+        )
+        + trailing
     )
 
 
@@ -1959,7 +1970,9 @@ def sanitize_error_message(error: BaseException | None) -> str:
     `raise ValueError()`). Errors from HTTP libraries often quote the URL they
     failed on, so the message is redacted before it is shown: Hugging Face tokens,
     `user:password@` credentials and query strings in URLs, and server addresses
-    given as IP addresses (which usually point at a private backend).
+    given as IP addresses (which usually point at a private backend). This is
+    best effort: IP addresses outside URLs (other than urllib3's `host='...'`),
+    e.g. "Connect call failed ('10.0.0.5', 8000)", are not redacted.
     """
     if error is None:
         return ""

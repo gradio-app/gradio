@@ -832,6 +832,16 @@ def test_get_icon_path():
             'url: /api/tryon?*** (Caused by NewConnectionError("HTTPConnection('
             "host='***', port=8000): Failed to establish a new connection\"))",
         ),
+        # A trailing ":" after the URL used to break parsing and skip redaction
+        (
+            "Failed to connect to http://10.0.0.5:8000: Connection refused",
+            "Failed to connect to http://***:8000: Connection refused",
+        ),
+        # A URL that can't be parsed is hidden entirely (fail closed)
+        (
+            "Failed to connect to http://10.0.0.5:99999999/x",
+            "Failed to connect to http://***",
+        ),
         # Public hostnames and URLs without secrets are kept, so the message stays useful
         (
             "Could not fetch config for https://user-space.hf.space",
