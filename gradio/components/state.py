@@ -26,10 +26,11 @@ class State(Component):
 
     By default the value is kept in the user's browser: after each event that changes it,
     the server sends the browser a signed copy, which the browser sends back when it is
-    needed. Users cannot change a signed value, but they can read it, so set
-    `storage="server"` for a value that users must not see. This lets the state survive a server restart and work when an app runs on
+    needed. This lets the state survive a server restart and work when an app runs on
     several replicas (set the `GRADIO_SECRET_KEY` environment variable to the same value on
-    each one). Values must be serializable: JSON types, tuples, sets, bytes, dates, NumPy
+    each one). The copy is signed, not encrypted: users cannot change it, but they can read
+    it. If the state holds anything users must not see, such as an API key, a system prompt
+    or the answer to a game, set `storage="server"`. Values must be serializable: JSON types, tuples, sets, bytes, dates, NumPy
     arrays, pandas objects, PIL images, dataclasses, pydantic models, enums and classes
     defined in your app are supported. Set `storage="server"` to keep a value in the
     server's memory instead, e.g. for a model or a database connection.
