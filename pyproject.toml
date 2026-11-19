@@ -55,6 +55,7 @@ filename = "requirements.txt"
 [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
 oauth = ["requirements-oauth.txt"]
 mcp = ["requirements-mcp.txt"]
+components = ["requirements-components.txt"]
 
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
 content-type = "text/markdown"
@@ -88,6 +89,8 @@ include = [
   "/README.md",
   "/requirements.txt",
   "/requirements-oauth.txt",
+  "/requirements-mcp.txt",
+  "/requirements-components.txt",
   "/.config/copy_frontend.py",
   "/js",
   "/client/js",
@@ -111,12 +114,13 @@ exclude = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = {gradio-client = false, spaces = false, starlette = false, safehttpx = false, pillow = false, brotli = false}
+exclude-newer-package = {gradio-client = false, gradio-components = false, spaces = false, starlette = false, safehttpx = false, pillow = false, brotli = false}
 
 # Use the in-repo client for development. An unpacked sdist has no
 # client/python, so pass --no-sources when installing from one with uv.
 [tool.uv.sources]
 gradio-client = { path = "client/python", editable = true }
+gradio-components = { path = "components/python", editable = true }
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py", "gradio/_vendor/*"]
