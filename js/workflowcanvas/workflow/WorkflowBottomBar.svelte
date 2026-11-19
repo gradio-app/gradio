@@ -294,9 +294,8 @@
 	}
 
 	.bb-group-label {
-		font-family: "Manrope", sans-serif;
 		font-size: 10px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: #4a4d57;
@@ -356,9 +355,8 @@
 		border-radius: 28px;
 		background: transparent;
 		color: #8b8d98;
-		font-family: "Manrope", sans-serif;
 		font-size: 12px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		cursor: pointer;
 		transition:
 			background 0.15s,
@@ -405,9 +403,8 @@
 		border-radius: 28px;
 		background: transparent;
 		color: #6b6e78;
-		font-family: "Manrope", sans-serif;
 		font-size: 12px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		cursor: pointer;
 		transition:
 			background 0.15s,
@@ -443,9 +440,8 @@
 		border-radius: 6px;
 		background: transparent;
 		color: #8b8d98;
-		font-family: "Manrope", sans-serif;
 		font-size: 12px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		cursor: pointer;
 		text-align: left;
 		transition:
@@ -467,9 +463,8 @@
 		border-radius: 28px;
 		background: linear-gradient(135deg, #f97316, #ea580c);
 		color: #fff;
-		font-family: "Manrope", sans-serif;
 		font-size: 12.5px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		cursor: pointer;
 		transition:
 			transform 0.1s,

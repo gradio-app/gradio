@@ -246,7 +246,7 @@
 	}
 
 	.connect-hint code {
-		font-family: monospace;
+		font-family: var(--font-mono);
 		font-size: 11.5px;
 		background: #0c0d10;
 		border: 1px solid #2a2b38;
@@ -280,7 +280,7 @@
 
 	.connect-title {
 		font-size: 13px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		color: #e8e9f0;
 	}
 
@@ -375,7 +375,7 @@
 	}
 
 	.bucket-id {
-		font-family: monospace;
+		font-family: var(--font-mono);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -411,7 +411,7 @@
 		display: block;
 		margin: 0 0 6px;
 		font-size: 12px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		color: #c8cad8;
 	}
 
@@ -443,7 +443,7 @@
 		color: #e8e9f0;
 		font-size: 12px;
 		padding: 7px 10px;
-		font-family: monospace;
+		font-family: var(--font-mono);
 		min-width: 0;
 	}
 
@@ -468,7 +468,7 @@
 		border-radius: 6px;
 		color: #9a9caa;
 		font-size: 12px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		padding: 7px 14px;
 		cursor: pointer;
 		white-space: nowrap;
