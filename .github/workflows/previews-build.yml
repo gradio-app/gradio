@@ -67,6 +67,12 @@ jobs:
           gradio_version: "https://huggingface.co/buckets/gradio/pypi-previews/resolve/${{ needs.changes.outputs.sha }}/gradio-${{ needs.changes.outputs.gradio_version }}-py3-none-any.whl"
           gradio_client_version: "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
           config_path: ".config/demos.json"
+      # The demos need the components, which the gradio wheel no longer contains.
+      # Like the client, gradio_components is installed from this commit.
+      - name: add gradio_components to the demo requirements
+        run: |
+          printf '\n%s\n' "gradio_components @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=components/python" >> demo/all_demos/requirements.txt
+          cat demo/all_demos/requirements.txt
       - name: upload demos
         uses: actions/upload-artifact@v4
         with:

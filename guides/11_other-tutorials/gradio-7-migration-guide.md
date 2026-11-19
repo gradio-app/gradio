@@ -22,6 +22,7 @@ What you need to do:
 
 - In `requirements.txt`, `pyproject.toml` or a Dockerfile, replace `gradio` with `gradio[components]`, unless your app only uses `gr.Server`.
 - If your code imports numpy, pandas or Pillow without listing them, they are now installed by `gradio[components]` rather than by `gradio`.
+- Type checkers resolve `gr.Textbox`, `from gradio.components import Textbox` and `from gradio_components.textbox import Textbox`. An import from a component's old module, such as `from gradio.components.textbox import Textbox`, still runs, but a type checker cannot follow it: import from `gradio_components.textbox` instead.
 - A logger configured by name for a component module, such as `gradio.components.video`, is now named `gradio_components.video`.
 
 ## 32-bit integer images cannot be encoded as PNG

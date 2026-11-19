@@ -54,12 +54,6 @@ jobs:
           os: "ubuntu-latest"
           test: true
           skip_docs_gen: true
-      # The shared action is pinned to the base branch, so until it installs
-      # gradio_components itself this step does (it is a no-op afterwards).
-      - name: Install gradio_components
-        run: |
-          . venv/bin/activate
-          uv pip install -e components/python
       - name: Lint
         run: |
           . venv/bin/activate

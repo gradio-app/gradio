@@ -97,13 +97,6 @@ jobs:
           test: true
           skip_build: true
           skip_docs_gen: true
-      # The shared action is pinned to the base branch, so until it installs
-      # gradio_components itself this step does (it is a no-op afterwards).
-      - name: Install gradio_components
-        shell: bash
-        run: |
-          . ${{steps.install_deps.outputs.venv_activate}}
-          uv pip install -e components/python
       - name: download built frontend templates
         uses: actions/download-artifact@v4
         with:

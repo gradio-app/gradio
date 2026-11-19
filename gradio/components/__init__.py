@@ -3,6 +3,8 @@
 `gradio.components.Textbox` and `from gradio.components import Textbox` keep working
 when that package is installed."""
 
+from typing import TYPE_CHECKING
+
 from gradio import _components_package
 from gradio.components.base import (
     Component,
@@ -15,6 +17,10 @@ from gradio.components.base import (
 )
 from gradio.components.state import State
 from gradio.layouts import Form
+
+if TYPE_CHECKING:
+    # so that type checkers know the components that `__getattr__` returns below
+    from gradio_components import *  # noqa: F403
 
 __all__ = [
     "Component",
