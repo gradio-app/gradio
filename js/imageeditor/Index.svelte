@@ -46,7 +46,47 @@
 	}
 
 	let is_dragging = $state(false);
+	// Fullscreen for the read-only view, which uses the Block's in-page fullscreen
+	// like gr.Image does.
 	let fullscreen = $state(false);
+
+	// The interactive editor uses the browser's Fullscreen API, so it fills the
+	// screen even inside an iframe (e.g. on Hugging Face Spaces) and nothing else on
+	// the page is drawn over it. If the browser refuses, fall back to the Block's
+	// in-page fullscreen.
+	let editor_root: HTMLDivElement | undefined = $state();
+	let native_fullscreen = $state(false);
+	let fallback_fullscreen = $state(false);
+	let editor_fullscreen = $derived(native_fullscreen || fallback_fullscreen);
+
+	$effect(() => {
+		const on_fullscreen_change = (): void => {
+			native_fullscreen =
+				!!editor_root && document.fullscreenElement === editor_root;
+		};
+		document.addEventListener("fullscreenchange", on_fullscreen_change);
+		return () =>
+			document.removeEventListener("fullscreenchange", on_fullscreen_change);
+	});
+
+	async function set_editor_fullscreen(on: boolean): Promise<void> {
+		if (!on) {
+			fallback_fullscreen = false;
+			if (editor_root && document.fullscreenElement === editor_root) {
+				await document.exitFullscreen();
+			}
+			return;
+		}
+		if (editor_root && document.fullscreenEnabled) {
+			try {
+				await editor_root.requestFullscreen();
+				return;
+			} catch {
+				// e.g. an iframe embed without allow="fullscreen"
+			}
+		}
+		fallback_fullscreen = true;
+	}
 
 	const is_browser = typeof window !== "undefined";
 
@@ -148,7 +188,7 @@
 		container={gradio.shared.container}
 		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
-		bind:fullscreen
+		bind:fullscreen={fallback_fullscreen}
 	>
 		<StatusTracker
 			autoscroll={gradio.shared.autoscroll}
@@ -158,68 +198,80 @@
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
-		<InteractiveImageEditor
-			border_region={gradio.props.border_region ?? 0}
-			bind:is_dragging
-			canvas_size={gradio.props.canvas_size ?? [800, 800]}
-			bind:image_id
-			layers={normalised_layers}
-			composite={normalised_composite}
-			background={normalised_background}
-			bind:this={editor_instance}
-			root={gradio.shared.root}
-			sources={gradio.props.sources ?? ["upload", "webcam", "clipboard"]}
-			label={gradio.shared.label}
-			show_label={gradio.shared.show_label}
-			fixed_canvas={gradio.props.fixed_canvas}
-			oninput={() => {
-				if (!has_run_input) {
-					has_run_input = true;
-				} else {
-					gradio.dispatch("input");
-				}
-			}}
-			onsave={() => handle_save()}
-			onclear={() => gradio.dispatch("clear")}
-			onupload={() => gradio.dispatch("upload")}
-			onreceive_null={() =>
-				(gradio.props.value = {
-					background: null,
-					layers: [],
-					composite: null
-				})}
-			onchange={() => {
-				if (!has_run_change) {
-					has_run_change = true;
-				} else {
-					gradio.dispatch("change");
-				}
-			}}
-			brush={gradio.props.brush ?? false}
-			eraser={gradio.props.eraser ?? false}
-			changeable={gradio.shared.attached_events?.includes("apply") ?? false}
-			realtime={gradio.shared.attached_events?.includes("change") ||
-				gradio.shared.attached_events?.includes("input")}
-			i18n={gradio.i18n}
-			transforms={gradio.props.transforms ?? []}
-			accept_blobs={gradio.shared.server.accept_blobs}
-			layer_options={gradio.props.layers!}
-			upload={(...args) => gradio.shared.client.upload(...args)}
-			placeholder={gradio.props.placeholder}
-			webcam_options={gradio.props.webcam_options!}
-			show_download_button={gradio.props.buttons === null
-				? true
-				: (gradio.props.buttons ?? []).includes("download")}
-			show_fullscreen_button={gradio.props.buttons === null
-				? true
-				: (gradio.props.buttons ?? []).includes("fullscreen")}
-			{fullscreen}
-			onfullscreen={(detail) => {
-				fullscreen = detail;
-			}}
-			theme_mode={resolved_theme_mode}
-			ondownload_error={(detail) => gradio.dispatch("error", detail)}
-			onerror={(detail) => gradio.dispatch("error", detail)}
-		></InteractiveImageEditor>
+		<div class="editor-root" bind:this={editor_root}>
+			<InteractiveImageEditor
+				border_region={gradio.props.border_region ?? 0}
+				bind:is_dragging
+				canvas_size={gradio.props.canvas_size ?? [800, 800]}
+				bind:image_id
+				layers={normalised_layers}
+				composite={normalised_composite}
+				background={normalised_background}
+				bind:this={editor_instance}
+				root={gradio.shared.root}
+				sources={gradio.props.sources ?? ["upload", "webcam", "clipboard"]}
+				label={gradio.shared.label}
+				show_label={gradio.shared.show_label}
+				fixed_canvas={gradio.props.fixed_canvas}
+				oninput={() => {
+					if (!has_run_input) {
+						has_run_input = true;
+					} else {
+						gradio.dispatch("input");
+					}
+				}}
+				onsave={() => handle_save()}
+				onclear={() => gradio.dispatch("clear")}
+				onupload={() => gradio.dispatch("upload")}
+				onreceive_null={() =>
+					(gradio.props.value = {
+						background: null,
+						layers: [],
+						composite: null
+					})}
+				onchange={() => {
+					if (!has_run_change) {
+						has_run_change = true;
+					} else {
+						gradio.dispatch("change");
+					}
+				}}
+				brush={gradio.props.brush ?? false}
+				eraser={gradio.props.eraser ?? false}
+				changeable={gradio.shared.attached_events?.includes("apply") ?? false}
+				realtime={gradio.shared.attached_events?.includes("change") ||
+					gradio.shared.attached_events?.includes("input")}
+				i18n={gradio.i18n}
+				transforms={gradio.props.transforms ?? []}
+				accept_blobs={gradio.shared.server.accept_blobs}
+				layer_options={gradio.props.layers!}
+				upload={(...args) => gradio.shared.client.upload(...args)}
+				placeholder={gradio.props.placeholder}
+				webcam_options={gradio.props.webcam_options!}
+				show_download_button={gradio.props.buttons === null
+					? true
+					: (gradio.props.buttons ?? []).includes("download")}
+				show_fullscreen_button={gradio.props.buttons === null
+					? true
+					: (gradio.props.buttons ?? []).includes("fullscreen")}
+				fullscreen={editor_fullscreen}
+				onfullscreen={(detail) => set_editor_fullscreen(detail)}
+				theme_mode={resolved_theme_mode}
+				ondownload_error={(detail) => gradio.dispatch("error", detail)}
+				onerror={(detail) => gradio.dispatch("error", detail)}
+			></InteractiveImageEditor>
+		</div>
 	</Block>
 {/if}
+
+<style>
+	.editor-root {
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
+
+	.editor-root:fullscreen {
+		background: var(--block-background-fill);
+	}
+</style>
