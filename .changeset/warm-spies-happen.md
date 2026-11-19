@@ -1,5 +1,6 @@
 ---
 "gradio": minor
+"gradio_client": minor
 "gradio_components": minor
 ---
 
