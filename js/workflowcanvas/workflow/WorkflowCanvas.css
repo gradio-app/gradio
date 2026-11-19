@@ -9,7 +9,6 @@
 	border-radius: 14px;
 	overflow: hidden;
 	overscroll-behavior: none;
-	font-family: "Manrope", sans-serif;
 	color-scheme: dark;
 	box-shadow:
 		0 0 0 1px rgba(255, 255, 255, 0.03),
@@ -25,6 +24,7 @@
 	background: #101118;
 	border-bottom: 1px solid #1e1f2a;
 	flex-shrink: 0;
+	gap: 12px;
 }
 
 .toolbar-left,
@@ -32,6 +32,15 @@
 	display: flex;
 	align-items: center;
 	gap: 10px;
+}
+
+.toolbar-left {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.toolbar-right {
+	flex-shrink: 0;
 }
 
 .name-btn {
@@ -44,6 +53,7 @@
 	padding: 4px 8px;
 	border-radius: 6px;
 	transition: background 0.15s;
+	min-width: 0;
 }
 
 .name-btn:hover {
@@ -51,8 +61,11 @@
 }
 
 .name-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	font-size: 14px;
-	font-weight: 700;
+	font-weight: var(--weight-semibold);
 	color: #d5d6de;
 	letter-spacing: -0.01em;
 }
@@ -70,17 +83,15 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	font-family: "Manrope", sans-serif;
 	font-size: 11px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	color: #4fd1a5;
 	letter-spacing: 0.01em;
 }
 
 .name-input {
-	font-family: "Manrope", sans-serif;
 	font-size: 14px;
-	font-weight: 700;
+	font-weight: var(--weight-semibold);
 	border: 1px solid #f97316;
 	border-radius: 6px;
 	padding: 4px 8px;
@@ -91,19 +102,22 @@
 }
 
 .toolbar-stat {
-	font-family: "JetBrains Mono", monospace;
+	font-family: var(--font-mono);
 	font-size: 10px;
 	color: #3e3f4d;
 	letter-spacing: 0.02em;
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .tool-btn {
+	white-space: nowrap;
+	flex-shrink: 0;
 	display: flex;
 	align-items: center;
 	gap: 4px;
-	font-family: "Manrope", sans-serif;
 	font-size: 12px;
-	font-weight: 500;
+	font-weight: var(--weight-regular);
 	padding: 5px 10px;
 	border: 1px solid #1e1f2a;
 	border-radius: 6px;
@@ -182,7 +196,6 @@
 	border-radius: 6px;
 	background: transparent;
 	color: #d5d6de;
-	font-family: "Manrope", sans-serif;
 	text-align: left;
 	cursor: pointer;
 }
@@ -200,17 +213,17 @@
 
 .save-menu-item-label {
 	font-size: 12px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 }
 
 .save-menu-item-detail {
 	font-size: 10px;
-	font-weight: 400;
+	font-weight: var(--weight-regular);
 	color: #777a86;
 }
 
 .api-btn-glyph {
-	font-family: "JetBrains Mono", monospace;
+	font-family: var(--font-mono);
 	font-size: 11px;
 	color: var(--color-accent, #f97316);
 }
@@ -230,9 +243,8 @@
 	border-radius: 999px;
 	background: transparent;
 	color: #a0a2ae;
-	font-family: "Manrope", sans-serif;
 	font-size: 12px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	cursor: pointer;
 	transition:
 		background 0.15s,
@@ -260,9 +272,8 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-family: "Manrope", sans-serif;
 	font-size: 11px;
-	font-weight: 700;
+	font-weight: var(--weight-semibold);
 	color: #a0a2ae;
 }
 
@@ -293,7 +304,6 @@
 }
 
 .toolbar-user-menu-msg {
-	font-family: "Manrope", sans-serif;
 	font-size: 12px;
 	line-height: 1.5;
 	color: #a0a2ae;
@@ -301,9 +311,8 @@
 
 .toolbar-user-menu-btn {
 	align-self: flex-start;
-	font-family: "Manrope", sans-serif;
 	font-size: 12px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	padding: 5px 12px;
 	border: 1px solid #2a2b36;
 	border-radius: 6px;
@@ -385,7 +394,7 @@
 	background: transparent;
 	color: #5c5e6a;
 	font-size: 14px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	cursor: pointer;
 	display: flex;
 	align-items: center;
@@ -409,9 +418,9 @@
 }
 
 .zoom-btn {
-	font-family: "JetBrains Mono", monospace;
+	font-family: var(--font-mono);
 	font-size: 10px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	padding: 4px 8px;
 	border: 1px solid #1e1f2a;
 	border-radius: 5px;
@@ -443,7 +452,7 @@
 
 .shortcuts-title {
 	font-size: 11px;
-	font-weight: 700;
+	font-weight: var(--weight-semibold);
 	color: #8b8d98;
 	margin-bottom: 8px;
 }
@@ -459,7 +468,7 @@
 }
 
 .shortcut-row kbd {
-	font-family: "JetBrains Mono", monospace;
+	font-family: var(--font-mono);
 	font-size: 10px;
 	padding: 1px 5px;
 	border-radius: 3px;
@@ -488,9 +497,9 @@
 }
 
 .wf-toast {
-	font-family: "JetBrains Mono", monospace;
+	font-family: var(--font-mono);
 	font-size: 11px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	padding: 8px 12px 8px 16px;
 	border-radius: 8px;
 	background: #1a1b25;
@@ -531,7 +540,7 @@
 .wf-toast-action {
 	font-family: inherit;
 	font-size: 11px;
-	font-weight: 700;
+	font-weight: var(--weight-semibold);
 	padding: 4px 10px;
 	border-radius: 6px;
 	border: 1px solid currentColor;
@@ -570,7 +579,7 @@
 .wf-toast.wf-toast-pro .wf-toast-action {
 	font-family: inherit;
 	font-size: 11px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	padding: 4px 10px;
 	border-radius: 6px;
 	border: 1px solid rgba(139, 92, 246, 0.5);
@@ -616,13 +625,12 @@
 	border-radius: 12px;
 	padding: 18px 18px 14px;
 	box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
-	font-family: "Manrope", sans-serif;
 	color: #d5d6de;
 }
 
 .wf-modal-title {
 	font-size: 14px;
-	font-weight: 700;
+	font-weight: var(--weight-semibold);
 	color: #e5e6ec;
 	margin-bottom: 8px;
 }
@@ -636,7 +644,7 @@
 
 .wf-modal-body strong {
 	color: #d5d6de;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 }
 
 .wf-modal-actions {
@@ -646,9 +654,8 @@
 }
 
 .wf-modal-btn {
-	font-family: "Manrope", sans-serif;
 	font-size: 12px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	padding: 7px 14px;
 	border-radius: 6px;
 	border: 1px solid #2a2b36;
@@ -739,9 +746,8 @@
 	border-radius: 6px;
 	background: transparent;
 	color: #8b8d98;
-	font-family: "Manrope", sans-serif;
 	font-size: 12px;
-	font-weight: 500;
+	font-weight: var(--weight-regular);
 	cursor: pointer;
 	text-align: left;
 	transition:
@@ -756,9 +762,8 @@
 }
 
 .drop-section-label {
-	font-family: "Manrope", sans-serif;
 	font-size: 9px;
-	font-weight: 700;
+	font-weight: var(--weight-semibold);
 	color: #3e4050;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
@@ -782,9 +787,8 @@
 }
 
 .add-node-section-label {
-	font-family: "Manrope", sans-serif;
 	font-size: 9px;
-	font-weight: 700;
+	font-weight: var(--weight-semibold);
 	color: #3e4050;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
@@ -804,9 +808,8 @@
 	border-radius: 6px;
 	background: transparent;
 	color: #8b8d98;
-	font-family: "Manrope", sans-serif;
 	font-size: 11px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	cursor: pointer;
 	text-align: center;
 	transition:
@@ -855,9 +858,9 @@
 
 .connection-badge {
 	position: absolute;
-	font-family: "JetBrains Mono", monospace;
+	font-family: var(--font-mono);
 	font-size: 9px;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	padding: 2px 6px;
 	border-radius: 4px;
 	background: var(--badge-color);
@@ -865,6 +868,34 @@
 	pointer-events: none;
 	z-index: 20;
 	white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+	.toolbar-stat {
+		display: none;
+	}
+	.tool-btn-label {
+		display: none;
+	}
+	.toolbar-user-name {
+		max-width: 84px;
+	}
+}
+
+@media (max-width: 1320px) {
+	.zoom-controls,
+	.zoom-controls.history-open {
+		top: 12px;
+		bottom: auto;
+		left: 12px;
+		right: auto;
+	}
+	.shortcuts-panel {
+		top: 52px;
+		bottom: auto;
+		left: 12px;
+		right: auto;
+	}
 }
 
 @media (max-width: 640px), (pointer: coarse) {
@@ -875,6 +906,7 @@
 		box-shadow: none;
 	}
 	.toolbar {
+		position: relative;
 		height: auto;
 		min-height: 44px;
 		padding: 6px 8px;
@@ -885,7 +917,12 @@
 	.toolbar-left,
 	.toolbar-right {
 		gap: 6px;
-		flex-wrap: wrap;
+	}
+	.toolbar-left {
+		flex: 1 1 0;
+	}
+	.name-input {
+		min-width: 0;
 	}
 	.toolbar-stat {
 		display: none;
@@ -895,10 +932,13 @@
 	}
 	.name-btn,
 	.name-readonly,
+	.name-input,
 	.tool-btn,
 	.toolbar-login-btn,
 	.toolbar-user-chip {
 		white-space: nowrap;
+		height: 30px;
+		box-sizing: border-box;
 	}
 	.tool-btn {
 		padding: 5px 8px;
@@ -926,12 +966,21 @@
 	.save-menu {
 		width: min(280px, calc(100vw - 24px));
 	}
+	.toolbar-user-wrap {
+		position: static;
+	}
+	.toolbar-user-menu {
+		right: 8px;
+	}
 	.save-menu {
 		right: 0;
 	}
-	.zoom-controls {
-		bottom: calc(84px + env(safe-area-inset-bottom));
-		right: 8px;
+	.zoom-controls,
+	.zoom-controls.history-open {
+		top: 8px;
+		bottom: auto;
+		left: 8px;
+		right: auto;
 	}
 	.shortcuts-panel,
 	.zoom-ctrl-shortcuts {
@@ -957,5 +1006,14 @@
 	.drop-menu,
 	.add-node-menu {
 		max-width: calc(100vw - 16px);
+	}
+}
+
+@media (max-width: 640px) {
+	.toolbar-user-name {
+		display: none;
+	}
+	.toolbar-user-chip {
+		padding: 3px;
 	}
 }
