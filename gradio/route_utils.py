@@ -20,7 +20,7 @@ import traceback
 import unicodedata
 import uuid
 from collections import defaultdict, deque
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator, Callable, Sequence
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
@@ -77,7 +77,7 @@ from gradio.state_holder import SessionState
 from gradio.utils import get_package_version
 
 if TYPE_CHECKING:
-    from gradio.blocks import BlockFunction, Blocks, BlocksConfig
+    from gradio.blocks import Block, BlockFunction, Blocks, BlocksConfig
     from gradio.helpers import EventData
     from gradio.oauth import OAuthToken
     from gradio.routes import App
@@ -273,8 +273,6 @@ class Header(str):
         demo.launch(mcp_server=True)
     """
 
-    pass
-
 
 class FnIndexInferError(Exception):
     pass
@@ -456,6 +454,7 @@ async def call_process_api(
         outputs=output.get("data"),
         started_at=started_at,
         fns=session_state.blocks_config.fns,
+        blocks=session_state.blocks_config.blocks,
         trigger_id=body.trigger_id,
         is_final=record_history and not output.get("is_generating"),
         batched=bool(body.batched and fn.batch),
@@ -478,6 +477,24 @@ def _is_automatic_run(
         original = fns[original.trigger_after]
     events = [event for block_id, event in original.targets if block_id == trigger_id]
     return bool(events) and all(event in ("tick", "load") for event in events)
+
+
+def _blank_passwords(
+    blocks: Sequence, session_blocks: dict[int, Block], values: Any
+) -> Any:
+    if not isinstance(values, list):
+        return values
+    # The session holds each component as updated by earlier runs and this one,
+    # so a textbox switched to password at runtime is caught too.
+    blocks = [session_blocks.get(block._id, block) for block in blocks]
+    return [
+        None
+        if i < len(blocks)
+        and blocks[i].get_block_name() == "textbox"
+        and getattr(blocks[i], "type", None) == "password"
+        else value
+        for i, value in enumerate(values)
+    ]
 
 
 def _split_batched_run(
@@ -521,6 +538,7 @@ def record_run_history(
     outputs: Any,
     started_at: str,
     fns: dict[int, BlockFunction],
+    blocks: dict[int, Block],
     trigger_id: int | None,
     is_final: bool = True,
     batched: bool = False,
@@ -554,8 +572,8 @@ def record_run_history(
             history.schedule_record_run(
                 app,
                 request=run_request,
-                inputs=run_inputs,
-                outputs=run_outputs,
+                inputs=_blank_passwords(fn.inputs, blocks, run_inputs),
+                outputs=_blank_passwords(fn.outputs, blocks, run_outputs),
                 api_name=fn.api_name,
                 fn_index=fn._id,
                 started_at=started_at,
@@ -627,9 +645,7 @@ def get_api_call_path(request: fastapi.Request) -> str:
     if start_index >= 0:
         return request_path[start_index : len(request_path)]
 
-    raise ValueError(
-        f"Request url '{str(request.url)}' has an unknown api call pattern."
-    )
+    raise ValueError(f"Request url '{request.url!s}' has an unknown api call pattern.")
 
 
 def get_root_url(
@@ -778,12 +794,12 @@ class GradioMultiPartParser:
         headers: Headers,
         stream: AsyncGenerator[bytes, None],
         *,
-        max_files: Union[int, float] = 1000,
-        max_fields: Union[int, float] = 1000,
+        max_files: float = 1000,
+        max_fields: float = 1000,
         upload_dir: str | Path | None = None,
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
-        max_file_size: int | float,
+        max_file_size: float,
         max_header_size: int = max_header_size,
     ) -> None:
         self.headers = headers

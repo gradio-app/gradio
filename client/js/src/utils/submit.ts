@@ -108,7 +108,9 @@ export function submit(
 			return {
 				type: component.type,
 				component_class_id: component.component_class_id,
-				props: component.props
+				props: passwords.has(id)
+					? { ...component.props, value: null }
+					: component.props
 			};
 		};
 		// The run history covers the same endpoints the API page documents, which
@@ -121,15 +123,48 @@ export function submit(
 		const is_documented_endpoint = dependency.api_visibility === "public";
 		// A chunk is not the input of an input stream, so the streamed component
 		// is saved empty; the event's other inputs are kept.
-		const streamed_inputs = new Set(
-			dependency.targets
-				.filter(([, event]) => event === "stream")
-				.map(([id]) => id)
+		const passwords = new Set(
+			config.components
+				.filter((c) => c.type === "textbox" && c.props.type === "password")
+				.map((c) => c.id)
 		);
+		const blank_inputs = new Set([
+			...dependency.targets
+				.filter(([, event]) => event === "stream")
+				.map(([id]) => id),
+			...passwords
+		]);
 		const history_inputs = (values: unknown[]): unknown[] =>
 			values.map((value, index) =>
-				streamed_inputs.has(dependency.inputs[index]) ? null : value
+				blank_inputs.has(dependency.inputs[index]) ? null : value
 			);
+		// Matches `handle_payload`, which drops `gr.State` outputs unless
+		// `with_null_state` is set.
+		const output_ids = options.with_null_state
+			? dependency.outputs
+			: dependency.outputs.filter(
+					(id) => config.components.find((c) => c.id === id)?.type !== "state"
+				);
+		const history_event = (event: GradioEvent): GradioEvent =>
+			event.type === "data" && Array.isArray(event.data)
+				? {
+						...event,
+						data: event.data.map((value, index) => {
+							const id = output_ids[index];
+							const component = config.components.find((c) => c.id === id);
+							if (
+								component?.type === "textbox" &&
+								(value as any)?.__type__ === "update" &&
+								"type" in (value as object)
+							) {
+								component.props.type = (value as any).type;
+								if (component.props.type === "password") passwords.add(id);
+								else passwords.delete(id);
+							}
+							return passwords.has(id) ? null : value;
+						})
+					}
+				: event;
 		// Either side may opt out: the app for everyone who uses it, and this
 		// caller for itself.
 		const history_enabled =
@@ -194,7 +229,7 @@ export function submit(
 
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
-			update_run_history(history_scope, history_run_id, event);
+			update_run_history(history_scope, history_run_id, history_event(event));
 			if (event.type === "data" || event.type === "render") {
 				sign_file_urls(event.data, root, api_prefix, that.jwt);
 			}
