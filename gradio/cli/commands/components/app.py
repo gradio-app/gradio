@@ -1,24 +1,23 @@
-from typer import Typer
+import click
 
-from .build import _build
-from .create import _create
-from .dev import _dev
-from .docs import _docs
-from .install_component import _install
-from .publish import _publish
-from .show import _show
+from .build import build_command
+from .create import create_command
+from .dev import dev_command
+from .docs import docs_command
+from .install_component import install_command
+from .publish import publish_command
+from .show import show_command
 
-app = Typer(help="Create and publish a new Gradio component")
-
-app.command("create", help="Create a new component.")(_create)
-app.command(
-    "build",
-    help="Build the component for distribution. Must be called from the component directory.",
-)(_build)
-app.command("dev", help="Launch the custom component demo in development mode.")(_dev)
-app.command("show", help="Show the list of available templates")(_show)
-app.command("install", help="Install the custom component in the current environment")(
-    _install
+app = click.Group(
+    name="cc",
+    help="Create and publish a new Gradio component",
+    commands=[
+        create_command,
+        build_command,
+        dev_command,
+        show_command,
+        install_command,
+        publish_command,
+        docs_command,
+    ],
 )
-app.command("publish", help="Publish a component to PyPI and HuggingFace Hub")(_publish)
-app.command("docs", help="Generate documentation for a custom components")(_docs)

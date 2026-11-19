@@ -6,13 +6,10 @@ import shutil
 import site
 import subprocess
 from pathlib import Path
-from typing import Annotated
 
-from rich import print
-from rich.markup import escape
-from tomlkit import parse
-from typer import Argument, Option
+import click
 
+from gradio.cli.commands.components import _pyproject
 from gradio.cli.commands.display import LivePanelDisplay
 from gradio.utils import set_directory
 
@@ -70,7 +67,7 @@ def _get_frontend_dir(directory: Path) -> Path:
     """
     default_frontend_dir = directory / "frontend"
     try:
-        pyproject_toml = parse((directory / "pyproject.toml").read_text())
+        pyproject_toml = _pyproject.load(directory / "pyproject.toml")
         package_name = pyproject_toml["project"]["name"]  # type: ignore
     except Exception:
         return default_frontend_dir
@@ -115,7 +112,7 @@ def _get_frontend_dir(directory: Path) -> Path:
         return (file_location / component_class.FRONTEND_DIR).resolve()
     except Exception:
         print(
-            f":warning: Could not import `{package_name}` to check for a custom "
+            f"⚠ Could not import `{package_name}` to check for a custom "
             f"FRONTEND_DIR, assuming the frontend code is located in {default_frontend_dir}."
         )
         return default_frontend_dir
@@ -128,49 +125,58 @@ def _install_command(
         "pip", executable_path=pip_path, cli_arg_name="--pip-path", check_3=True
     )
     cmds = [pip_executable_path, "install", "-e", f"{str(directory)}[dev]"]
-    live.update(
-        f":construction_worker: Installing python... [grey37]({escape(' '.join(cmds))})[/]"
-    )
+    live.update(f"👷 Installing python... ({' '.join(cmds)})")
     pipe = subprocess.run(cmds, capture_output=True, text=True, check=False)
 
     if pipe.returncode != 0:
-        live.update(":red_square: Python installation [bold][red]failed[/][/]")
+        live.update("🟥 Python installation failed")
         live.update(pipe.stderr)
         raise SystemExit("Python installation failed")
 
     else:
-        live.update(":white_check_mark: Python install succeeded!")
+        live.update("✅ Python install succeeded!")
 
-    live.update(
-        f":construction_worker: Installing javascript... [grey37]({npm_install})[/]"
-    )
+    live.update(f"👷 Installing javascript... ({npm_install})")
     with set_directory(_get_frontend_dir(directory)):
         pipe = subprocess.run(
             npm_install.split(), capture_output=True, text=True, check=False
         )
         if pipe.returncode != 0:
-            live.update(":red_square: NPM install [bold][red]failed[/][/]")
+            live.update("🟥 NPM install failed")
             live.update(pipe.stdout)
             live.update(pipe.stderr)
             raise SystemExit("NPM install failed")
         else:
-            live.update(":white_check_mark: NPM install succeeded!")
+            live.update("✅ NPM install succeeded!")
 
 
 def _install(
-    directory: Annotated[
-        Path, Argument(help="The directory containing the custom components.")
-    ] = Path("."),
-    npm_install: Annotated[
-        str, Option(help="NPM install command to use. Default is 'npm install'.")
-    ] = "npm install",
-    pip_path: Annotated[
-        str | None,
-        Option(
-            help="Path to pip executable. If None, will use the default path found by `which pip3`. If pip3 is not found, `which pip` will be tried. If both fail an error will be raised."
-        ),
-    ] = None,
+    directory: Path = Path("."),
+    npm_install: str = "npm install",
+    pip_path: str | None = None,
 ):
     npm_install = _get_npm(npm_install)
     with LivePanelDisplay() as live:
         _install_command(directory, live, npm_install, pip_path)
+
+
+install_command = click.Command(
+    name="install",
+    callback=_install,
+    help="Install the custom component in the current environment. DIRECTORY is the directory containing the custom component (default: the current directory).",
+    params=[
+        click.Argument(
+            ["directory"], type=click.Path(path_type=Path), default=Path(".")
+        ),
+        click.Option(
+            ["--npm-install"],
+            default="npm install",
+            show_default=True,
+            help="NPM install command to use.",
+        ),
+        click.Option(
+            ["--pip-path"],
+            help="Path to pip executable. If None, will use the default path found by `which pip3`. If pip3 is not found, `which pip` will be tried. If both fail an error will be raised.",
+        ),
+    ],
+)
