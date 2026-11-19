@@ -106,22 +106,6 @@ describe("DependencyManager.reload", () => {
 		expect(active_dependency.outputs).toEqual([32]);
 		expect(dependency_manager.loading_stati.fn_outputs[0]).toEqual([32]);
 	});
-
-	test("accepts the js=True marker used by transpiled dependencies", async () => {
-		const transpiled_dependency = dependency(0, "transpiled", [10]);
-		transpiled_dependency.js = true;
-		transpiled_dependency.js_implementation = "() => 'client result'";
-		const active_dependency = manager([
-			transpiled_dependency
-		]).dependencies_by_fn.get(0)!;
-
-		await expect(
-			active_dependency.run({} as never, [], null, null)
-		).resolves.toEqual({
-			type: "data",
-			data: ["client result"]
-		});
-	});
 });
 
 describe("process_frontend_fn", () => {
@@ -735,26 +719,6 @@ describe("DependencyManager.dispatch", () => {
 			type: "event",
 			event_name: "submit",
 			target_id: 10,
-			event_data: null
-		});
-
-		expect(dependency_manager.loading_stati.current[10]?.status).toBe(
-			"complete"
-		);
-		expect(dependency_manager.loading_stati.running_fns.size).toBe(0);
-	});
-
-	test("ends the pending status of a transpiled js=True listener", async () => {
-		const transpiled = dependency(0, "transpiled", [10]);
-		transpiled.targets = [[1, "click"]];
-		transpiled.js = true;
-		transpiled.js_implementation = "() => 'client result'";
-		const dependency_manager = manager([transpiled]);
-
-		await dependency_manager.dispatch({
-			type: "event",
-			event_name: "click",
-			target_id: 1,
 			event_data: null
 		});
 

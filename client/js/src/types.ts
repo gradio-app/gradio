@@ -308,7 +308,6 @@ export interface Dependency {
 	like_user_message: boolean;
 	event_specific_args: string[];
 	component_prop_inputs: number[];
-	js_implementation: string | null;
 }
 
 export interface DependencyTypes {
