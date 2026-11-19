@@ -46,54 +46,23 @@
 	}
 
 	let is_dragging = $state(false);
-	// Fullscreen for the read-only view, which uses the Block's in-page fullscreen
-	// like gr.Image does.
+	// Both the interactive and read-only views use the Block's in-page
+	// fullscreen, like gr.Image. It fills the window, not the whole screen, so the
+	// canvas and its buttons stay within reach on large displays.
 	let fullscreen = $state(false);
 
-	// The interactive editor uses the browser's Fullscreen API, so it fills the
-	// screen even inside an iframe (e.g. on Hugging Face Spaces) and nothing else on
-	// the page is drawn over it. If the browser refuses, fall back to the Block's
-	// in-page fullscreen.
-	let editor_root: HTMLDivElement | undefined = $state();
-	let native_fullscreen = $state(false);
-	let fallback_fullscreen = $state(false);
-	let editor_fullscreen = $derived(native_fullscreen || fallback_fullscreen);
-
+	// When the app is embedded in an iframe (e.g. on Hugging Face Spaces), this
+	// asks the parent page to fit the frame to its viewport, so the fullscreen
+	// canvas doesn't run off the bottom of the window.
 	$effect(() => {
-		const on_fullscreen_change = (): void => {
-			native_fullscreen =
-				!!editor_root && document.fullscreenElement === editor_root;
-			if (native_fullscreen) fallback_fullscreen = false;
+		if (!fullscreen) return;
+		const root = document.documentElement;
+		const already_covered = root.hasAttribute("data-gradio-cover");
+		root.setAttribute("data-gradio-cover", "");
+		return () => {
+			if (!already_covered) root.removeAttribute("data-gradio-cover");
 		};
-		document.addEventListener("fullscreenchange", on_fullscreen_change);
-		return () =>
-			document.removeEventListener("fullscreenchange", on_fullscreen_change);
 	});
-
-	async function set_editor_fullscreen(on: boolean): Promise<void> {
-		if (!on) {
-			fallback_fullscreen = false;
-			if (editor_root && document.fullscreenElement === editor_root) {
-				await document.exitFullscreen();
-			}
-			return;
-		}
-		if (editor_root && document.fullscreenEnabled) {
-			try {
-				// Some embedded browsers never settle the request, so don't wait forever.
-				const entered = await Promise.race([
-					editor_root.requestFullscreen().then(() => true),
-					new Promise<false>((resolve) =>
-						setTimeout(() => resolve(false), 1000)
-					)
-				]);
-				if (entered) return;
-			} catch {
-				// e.g. an iframe embed without allow="fullscreen"
-			}
-		}
-		if (!native_fullscreen) fallback_fullscreen = true;
-	}
 
 	const is_browser = typeof window !== "undefined";
 
@@ -195,7 +164,7 @@
 		container={gradio.shared.container}
 		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
-		bind:fullscreen={fallback_fullscreen}
+		bind:fullscreen
 	>
 		<StatusTracker
 			autoscroll={gradio.shared.autoscroll}
@@ -205,7 +174,7 @@
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
-		<div class="editor-root" bind:this={editor_root}>
+		<div class="editor-root">
 			<InteractiveImageEditor
 				border_region={gradio.props.border_region ?? 0}
 				bind:is_dragging
@@ -261,8 +230,10 @@
 				show_fullscreen_button={gradio.props.buttons === null
 					? true
 					: (gradio.props.buttons ?? []).includes("fullscreen")}
-				fullscreen={editor_fullscreen}
-				onfullscreen={(detail) => set_editor_fullscreen(detail)}
+				{fullscreen}
+				onfullscreen={(detail) => {
+					fullscreen = detail;
+				}}
 				theme_mode={resolved_theme_mode}
 				ondownload_error={(detail) => gradio.dispatch("error", detail)}
 				onerror={(detail) => gradio.dispatch("error", detail)}
@@ -272,13 +243,13 @@
 {/if}
 
 <style>
+	/* The editor's toolbars and layer chips use high z-indexes. Keep them in
+	this editor's own stacking context so they can't draw over another editor
+	that is fullscreen. */
 	.editor-root {
 		position: relative;
 		width: 100%;
 		height: 100%;
-	}
-
-	.editor-root:fullscreen {
-		background: var(--block-background-fill);
+		isolation: isolate;
 	}
 </style>

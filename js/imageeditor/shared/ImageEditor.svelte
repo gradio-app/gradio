@@ -683,12 +683,16 @@
 		brush?.set_brush_opacity(selected_opacity);
 	});
 
-	function remove_image(): void {
+	async function remove_image(): Promise<void> {
 		onclear?.();
-		editor.reset_canvas();
+		const reset = editor.reset_canvas();
 		handle_tool_change({ tool: "image" });
 		background_image = false;
 		has_drawn = false;
+		// reset_canvas() puts the canvas back at scale 1, so fit it to the
+		// container again (e.g. when clearing while fullscreen).
+		await reset;
+		zoom.set_zoom("fit");
 	}
 
 	export function handle_remove(): void {
