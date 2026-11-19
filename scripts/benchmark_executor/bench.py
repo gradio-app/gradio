@@ -40,7 +40,7 @@ def start_app(executor, port):
         "GRADIO_EXECUTOR": executor,
         "BENCH_PORT": str(port),
         "BENCH_DEVICE": DEVICE,
-        "HF_HUB_OFFLINE": "1",
+        "HF_HUB_OFFLINE": os.environ.get("HF_HUB_OFFLINE", "1"),
         "GRADIO_ANALYTICS_ENABLED": "False",
         "PYTHONWARNINGS": "ignore",
     }
