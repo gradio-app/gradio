@@ -65,7 +65,7 @@ export async function stream_text_generation(
 
 	let res = await request(opts.maxTokens ?? 16384);
 	if (
-		res.ok &&
+		!res.ok &&
 		opts.maxTokens === undefined &&
 		opts.params?.max_tokens === undefined
 	) {
