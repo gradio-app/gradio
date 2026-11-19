@@ -63,6 +63,7 @@
 		const on_fullscreen_change = (): void => {
 			native_fullscreen =
 				!!editor_root && document.fullscreenElement === editor_root;
+			if (native_fullscreen) fallback_fullscreen = false;
 		};
 		document.addEventListener("fullscreenchange", on_fullscreen_change);
 		return () =>
@@ -79,13 +80,19 @@
 		}
 		if (editor_root && document.fullscreenEnabled) {
 			try {
-				await editor_root.requestFullscreen();
-				return;
+				// Some embedded browsers never settle the request, so don't wait forever.
+				const entered = await Promise.race([
+					editor_root.requestFullscreen().then(() => true),
+					new Promise<false>((resolve) =>
+						setTimeout(() => resolve(false), 1000)
+					)
+				]);
+				if (entered) return;
 			} catch {
 				// e.g. an iframe embed without allow="fullscreen"
 			}
 		}
-		fallback_fullscreen = true;
+		if (!native_fullscreen) fallback_fullscreen = true;
 	}
 
 	const is_browser = typeof window !== "undefined";
