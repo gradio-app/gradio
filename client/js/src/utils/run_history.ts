@@ -259,12 +259,47 @@ function read_run_history_impl(
 	const key = storage_key(scope);
 	if (!key) return [];
 
+	let runs: StoredRun[];
 	try {
 		const value = JSON.parse(window.localStorage.getItem(key) || "[]");
-		return Array.isArray(value) ? value : [];
+		runs = Array.isArray(value) ? value : [];
 	} catch {
 		return [];
 	}
+	if (runs.map(blank_stored_passwords).some(Boolean))
+		write_run_history(scope, runs);
+	return runs;
+}
+
+const is_password = (component: StoredRunComponent | null | undefined) =>
+	component?.type === "textbox" && component.props?.type === "password";
+
+function blank_stored_passwords(run: StoredRun): boolean {
+	let changed = false;
+	const scrub = (target: any, key: string | number) => {
+		if (target[key] == null) return;
+		target[key] = null;
+		changed = true;
+	};
+	for (const [values, components = []] of [
+		[run.inputs, run.input_components],
+		[run.outputs, run.output_components]
+	] as const) {
+		for (const c of components) if (is_password(c)) scrub(c!.props, "value");
+		if (!Array.isArray(values)) continue;
+		const aligned =
+			values.length === components.length
+				? components
+				: components.filter((c) => c?.type !== "state");
+		values.forEach((value, index) => {
+			if (
+				is_password(aligned[index]) ||
+				(value?.__type__ === "update" && value.type === "password")
+			)
+				scrub(values, index);
+		});
+	}
+	return changed;
 }
 
 function write_run_history(
