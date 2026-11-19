@@ -14,10 +14,50 @@
 		float?: boolean;
 		rtl?: boolean;
 	} = $props();
+
+	let label_el: HTMLLabelElement | undefined = $state();
+	let hovered = $state(false);
+
+	// Buttons in the corner can cover a long label. Reveal it on hover by raising
+	// it above them. The label keeps `pointer-events: none`, so clicks and drags
+	// (e.g. drawing on an image editor canvas) still reach what is underneath:
+	// hover is detected from pointer moves on the parent instead.
+	$effect(() => {
+		const el = label_el;
+		const host = el?.parentElement;
+		if (!el || !host || !float || !show_label || disable) return;
+
+		const on_move = (event: PointerEvent): void => {
+			const target = event.target as Element | null;
+			if (event.buttons !== 0 || target?.closest("button, a, input")) {
+				hovered = false;
+				return;
+			}
+			const rect = el.getBoundingClientRect();
+			hovered =
+				event.clientX >= rect.left &&
+				event.clientX <= rect.right &&
+				event.clientY >= rect.top &&
+				event.clientY <= rect.bottom;
+		};
+		const on_leave = (): void => {
+			hovered = false;
+		};
+
+		host.addEventListener("pointermove", on_move);
+		host.addEventListener("pointerleave", on_leave);
+		return () => {
+			host.removeEventListener("pointermove", on_move);
+			host.removeEventListener("pointerleave", on_leave);
+			hovered = false;
+		};
+	});
 </script>
 
 <!-- svelte-ignore a11y_label_has_associated_control -->
 <label
+	bind:this={label_el}
+	class:hovered
 	class:hide={!show_label}
 	class:sr-only={!show_label}
 	class:float
@@ -58,6 +98,11 @@
 		position: absolute;
 		top: var(--block-label-margin);
 		left: var(--block-label-margin);
+	}
+
+	label.float.hovered {
+		z-index: var(--layer-top);
+		max-width: calc(100% - 2 * var(--block-label-margin));
 	}
 	label:not(.float) {
 		position: static;
