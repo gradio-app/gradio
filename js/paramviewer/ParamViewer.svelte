@@ -182,7 +182,7 @@
 </script>
 
 <div
-	class="wrap"
+	class="wrap paramviewer"
 	bind:this={component_root}
 	style:max-height={get_dimension(max_height)}
 >

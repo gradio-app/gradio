@@ -15,6 +15,11 @@ jobs:
     env:
       UV_EXCLUDE_NEWER: 7 days
       PLAYWRIGHT_VERSION: 1.60.0
+      # Benchmark base and PR in the same rendering mode. SSR is the default when a
+      # patched Node is installed, but the base release may predate that, and SSR
+      # pages load every component's JS and CSS, so mixed modes show a size jump
+      # that isn't a regression.
+      GRADIO_SSR_MODE: "true"
     permissions:
       contents: read
       pull-requests: write
@@ -51,7 +56,8 @@ jobs:
         if: steps.changes.outputs.should_run == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          # SSR needs a patched Node (24.22.1+ on the 24 line), and a bare `24` can resolve to an older cached release.
+          node-version: 24.22.1
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
