@@ -232,22 +232,6 @@ class Queue:
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
         )
 
-    @staticmethod
-    def _get_df(records):
-        import pandas as pd
-
-        try:
-            with pd.option_context("future.no_silent_downcasting", True):
-                return (
-                    pd.DataFrame(records).fillna(value=np.nan).infer_objects(copy=False)  # type: ignore
-                )
-        except Exception as e:
-            if "No such keys(s)" in str(e):
-                return (
-                    pd.DataFrame(records).fillna(value=np.nan).infer_objects(copy=False)  # type: ignore
-                )
-            raise e
-
     def compute_analytics_summary(self, records):
         if not records:
             return self.cached_event_analytics_summary
@@ -255,17 +239,30 @@ class Queue:
             self.events_recorded - self.event_count_at_last_cache
             >= self.ANAYLTICS_CACHE_FREQUENCY
         ):
-            df = self._get_df(records)
             self.event_count_at_last_cache = self.events_recorded
-            grouped = df.groupby("function")
+            # Plain numpy rather than a DataFrame: this runs after every event, and
+            # importing pandas here would delay the first summary.
+            by_function: dict[str, list[dict]] = defaultdict(list)
+            for record in records:
+                if record.get("function") is not None:
+                    by_function[record["function"]].append(record)
             metrics = {"functions": {}}
-            for fn_name, fn_df in grouped:
-                status = fn_df["status"].values
+            for fn_name in sorted(by_function):
+                fn_records = by_function[fn_name]
+                status = np.array([r["status"] for r in fn_records], dtype=object)
                 success = np.sum(status == "success")
                 failure = np.sum(status == "failed")
                 total = success + failure
                 success_rate = success / total if total > 0 else None
-                percentiles = np.percentile(fn_df["process_time"].values, [50, 90, 99])  # type: ignore
+                # An event that has not finished has no process time yet.
+                process_times = np.array(
+                    [
+                        np.nan if r["process_time"] is None else r["process_time"]
+                        for r in fn_records
+                    ],
+                    dtype=float,
+                )
+                percentiles = np.percentile(process_times, [50, 90, 99])
                 metrics["functions"][fn_name] = {
                     "success_rate": success_rate,
                     "process_time_percentiles": {
@@ -274,7 +271,7 @@ class Queue:
                         "99th": percentiles[2],  # type: ignore
                     },
                     "total_requests": self.events_recorded_per_fn.get(
-                        fn_name, fn_df.shape[0]
+                        fn_name, len(fn_records)
                     ),
                 }
             self.cached_event_analytics_summary = metrics

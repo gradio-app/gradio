@@ -217,10 +217,35 @@ class TestSealer:
         assert len(token) < 1000
         assert sealer.open(b"scope", token) == (data, 123.0)
 
-    def test_token_hides_the_value(self):
+    def test_token_is_signed_but_readable(self):
+        # Tokens are signed, not encrypted: the user can read the value in one
+        # but cannot change it. Values that must stay hidden use storage="server".
         sealer = StateSealer(b"secret")
         token = sealer.seal(b"scope", b'"the answer is 42"', 0.0)
-        assert b"answer" not in client_state._b64decode(token[3:])
+        raw = client_state._b64decode(token[len(client_state.TOKEN_PREFIX) :])
+        assert b"answer" in raw
+        forged = raw.replace(b"42", b"43")
+        with pytest.raises(client_state.InvalidStateTokenError):
+            sealer.open(
+                b"scope", client_state.TOKEN_PREFIX + client_state._b64encode(forged)
+            )
+
+    @pytest.mark.parametrize("keep", [0, 10, 32, 40])
+    def test_rejects_truncated_tokens(self, keep):
+        sealer = StateSealer(b"secret")
+        token = sealer.seal(b"scope", b"1", 0.0)
+        raw = client_state._b64decode(token[len(client_state.TOKEN_PREFIX) :])
+        truncated = client_state.TOKEN_PREFIX + client_state._b64encode(raw[:keep])
+        with pytest.raises(client_state.InvalidStateTokenError):
+            sealer.open(b"scope", truncated)
+
+    def test_scope_and_body_cannot_trade_bytes(self):
+        sealer = StateSealer(b"secret")
+        token = sealer.seal(b"app:1", b"1", 0.0)
+        raw = client_state._b64decode(token[len(client_state.TOKEN_PREFIX) :])
+        moved = client_state.TOKEN_PREFIX + client_state._b64encode(raw[:32] + raw[33:])
+        with pytest.raises(client_state.InvalidStateTokenError):
+            sealer.open(b"app:1" + raw[32:33], moved)
 
     def test_rejects_tampering_and_other_scopes_and_keys(self):
         sealer = StateSealer(b"secret")
@@ -230,7 +255,7 @@ class TestSealer:
             (b"app:1", tampered, b"secret"),
             (b"app:2", token, b"secret"),
             (b"app:1", token, b"other"),
-            (b"app:1", "v0." + token[3:], b"secret"),
+            (b"app:1", "v1." + token[3:], b"secret"),
         ]:
             with pytest.raises(client_state.InvalidStateTokenError):
                 StateSealer(key).open(scope, candidate)

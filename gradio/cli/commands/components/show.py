@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import inspect
 
-from rich.console import Console
-from rich.table import Table
+import click
 
 import gradio._simple_templates
 import gradio.components
 import gradio.layouts
 from gradio.analytics import custom_component_analytics
 from gradio.blocks import BlockContext
+from gradio.cli.commands.display import format_table
 from gradio.components import Component, FormComponent
 
 _IGNORE = {
@@ -44,11 +44,11 @@ def _get_table_items(module):
             continue
         tags = []
         if "Simple" in name or name in _BEGINNER_FRIENDLY:
-            tags.append(":seedling::handshake:Beginner Friendly:seedling::handshake:")
+            tags.append("Beginner Friendly")
         if issubclass(gr_cls, FormComponent):
-            tags.append(":pencil::jigsaw:Form Component:pencil::jigsaw:")
+            tags.append("Form Component")
         if name in gradio.layouts.__all__:
-            tags.append(":triangular_ruler:Layout:triangular_ruler:")
+            tags.append("Layout")
         doc = inspect.getdoc(gr_cls) or "No description available."
         doc = doc.split(".")[0]
         if tags:
@@ -71,13 +71,9 @@ def _show():
         + _get_table_items(gradio.components)
         + _get_table_items(gradio.layouts)
     )
-    table = Table(show_header=True, header_style="orange1", show_lines=True)
-    table.add_column("Name", justify="center")
-    table.add_column("Description", justify="center")
+    click.echo_via_pager(format_table(("Name", "Description"), items) + "\n")
 
-    for item in items:
-        table.add_row(*item)
 
-    console = Console()
-    with console.pager():
-        console.print(table)
+show_command = click.Command(
+    name="show", callback=_show, help="Show the list of available templates"
+)

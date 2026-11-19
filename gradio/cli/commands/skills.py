@@ -13,9 +13,9 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-from typing import Annotated, cast
+from typing import cast
 
-import typer
+import click
 from gradio_client import Client
 from gradio_client.snippet import generate_code_snippets
 from huggingface_hub import HfApi
@@ -31,8 +31,6 @@ _SKILL_FILES = ["SKILL.md"]
 _REFERENCE_FILES = ["examples.md", "api-signatures.md", "event-listeners.md"]
 
 _HF_SKILL_FILES = ["SKILL.md"]
-
-skills_app = typer.Typer(help="Manage Gradio skills for AI assistants.")
 
 
 def _get_skill_targets():
@@ -310,44 +308,15 @@ def _install_space_skill(
     return dest
 
 
-@skills_app.command(
-    "add",
-)
 def skills_add(
-    space_id: Annotated[
-        str | None,
-        typer.Argument(
-            help="HF Space ID (e.g. 'user/my-space'). If omitted, installs the general Gradio skill."
-        ),
-    ] = None,
-    cursor: Annotated[
-        bool, typer.Option("--cursor", help="Install for Cursor.")
-    ] = False,
-    claude: Annotated[
-        bool, typer.Option("--claude", help="Install for Claude.")
-    ] = False,
-    codex: Annotated[bool, typer.Option("--codex", help="Install for Codex.")] = False,
-    opencode: Annotated[
-        bool, typer.Option("--opencode", help="Install for OpenCode.")
-    ] = False,
-    global_: Annotated[
-        bool,
-        typer.Option(
-            "--global",
-            "-g",
-            help="Install globally (user-level) instead of in the current project directory.",
-        ),
-    ] = False,
-    dest: Annotated[
-        Path | None,
-        typer.Option(
-            help="Install into a custom destination (path to skills directory)."
-        ),
-    ] = None,
-    force: Annotated[
-        bool,
-        typer.Option("--force", help="Overwrite existing skills in the destination."),
-    ] = False,
+    space_id: str | None = None,
+    cursor: bool = False,
+    claude: bool = False,
+    codex: bool = False,
+    opencode: bool = False,
+    global_: bool = False,
+    dest: Path | None = None,
+    force: bool = False,
 ) -> None:
     """Download and install Gradio skills for an AI assistant.
 
@@ -371,7 +340,7 @@ def skills_add(
         if dest:
             if cursor or claude or codex or opencode or global_:
                 print("--dest cannot be combined with agent flags or --global.")
-                raise typer.Exit(code=1)
+                raise SystemExit(1)
             skill_dest = _install_space_skill(skill_id, content, dest, force)
             print(f"Installed '{skill_id}' to {skill_dest}")
             return
@@ -403,7 +372,7 @@ def skills_add(
     if dest:
         if cursor or claude or codex or opencode or global_:
             print("--dest cannot be combined with agent flags or --global.")
-            raise typer.Exit(code=1)
+            raise SystemExit(1)
         skill_dest = _install_to(dest, force)
         hf_skill_dest = _install_hf_gradio_to(dest, force)
         print(f"Installed '{SKILL_ID}' to {skill_dest}")
@@ -440,3 +409,40 @@ def skills_add(
         )
         if hf_link_path is not None:
             _print_agent_install(hf_link_path)
+
+
+skills_app = click.Group(
+    name="skills",
+    help="Manage Gradio skills for AI assistants.",
+    commands=[
+        click.Command(
+            name="add",
+            callback=skills_add,
+            help=skills_add.__doc__,
+            params=[
+                click.Argument(["space_id"], required=False),
+                click.Option(["--cursor"], is_flag=True, help="Install for Cursor."),
+                click.Option(["--claude"], is_flag=True, help="Install for Claude."),
+                click.Option(["--codex"], is_flag=True, help="Install for Codex."),
+                click.Option(
+                    ["--opencode"], is_flag=True, help="Install for OpenCode."
+                ),
+                click.Option(
+                    ["--global", "-g", "global_"],
+                    is_flag=True,
+                    help="Install globally (user-level) instead of in the current project directory.",
+                ),
+                click.Option(
+                    ["--dest"],
+                    type=click.Path(path_type=Path),
+                    help="Install into a custom destination (path to skills directory).",
+                ),
+                click.Option(
+                    ["--force"],
+                    is_flag=True,
+                    help="Overwrite existing skills in the destination.",
+                ),
+            ],
+        )
+    ],
+)

@@ -2341,7 +2341,7 @@ class TestHandleStreamingOutputs:
         # `call_process_api` and the queue find a run through
         # `app.iterators[event_id]`, which is assigned only after `process_api`
         # returns, so on a first call neither can end its streams.
-        from pydub.exceptions import CouldntDecodeError
+        from gradio._vendor.pydub.exceptions import CouldntDecodeError
 
         chunk = (
             pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"

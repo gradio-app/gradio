@@ -1,8 +1,6 @@
-from hf_gradio.cli import info, predict
-
 from .cli_env_info import print_environment_info
 from .components import app as custom_component
-from .deploy_space import deploy
+from .deploy_space import deploy, deploy_command
 from .load import load_app
 from .reload import run as reload
 from .skills import skills_app
@@ -10,12 +8,11 @@ from .upload_mcp import main as upload_mcp
 
 __all__ = [
     "deploy",
+    "deploy_command",
     "reload",
     "print_environment_info",
     "custom_component",
     "upload_mcp",
     "load_app",
     "skills_app",
-    "info",
-    "predict",
 ]

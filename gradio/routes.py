@@ -20,7 +20,7 @@ import time
 import traceback
 import warnings
 from collections import Counter
-from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -35,7 +35,6 @@ from urllib.parse import urlencode
 import anyio
 import fastapi
 import httpx2
-import markupsafe
 import orjson
 from fastapi import (
     APIRouter,
@@ -54,14 +53,12 @@ from fastapi.responses import (
     StreamingResponse,
 )
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
+from gradio_client.api_info import condense_info
 from gradio_client.documentation import document
-from gradio_client.snippet import generate_code_snippets
+from gradio_client.snippet import generate_cli_snippet, generate_code_snippets
 from gradio_client.utils import ServerMessage
-from hf_gradio.cli import _condense_info, generate_cli_snippet
 from huggingface_hub import HfApi
-from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
@@ -72,6 +69,7 @@ import gradio
 from gradio import (
     caching,
     history,
+    page_template,
     route_utils,
     themes,
     utils,
@@ -311,8 +309,9 @@ class OwnEventStreamResponse(StreamingResponse):
             await queue.mark_session_detached(self.session_hash)
 
 
-def toorjson(value):
-    return markupsafe.Markup(
+def toorjson(value) -> str:
+    """Serializes a value to JSON that is safe to place inside a `<script>`."""
+    return (
         ORJSONResponse._render_str(value)
         .replace("<", "\\u003c")
         .replace(">", "\\u003e")
@@ -321,8 +320,32 @@ def toorjson(value):
     )
 
 
-templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
-templates.env.filters["toorjson"] = toorjson
+def render_page(
+    template: str, config: Mapping[str, Any], gradio_api_info: Any, base_url: str = "./"
+) -> str:
+    """Fills in one of the frontend's HTML pages for an app."""
+    body_css = config.get("body_css") or {}
+    return page_template.render(
+        Path(STATIC_TEMPLATE_LIB) / template,
+        text={
+            "base_url": base_url,
+            "body_background_fill": body_css.get("body_background_fill", "white"),
+            "body_text_color": body_css.get("body_text_color", "#1f2937"),
+            "body_background_fill_dark": body_css.get(
+                "body_background_fill_dark", "#0b0f19"
+            ),
+            "body_text_color_dark": body_css.get("body_text_color_dark", "#f3f4f6"),
+            "thumbnail": config.get("thumbnail") or "",
+            "title": config.get("title") or "",
+            "simple_description": config.get("simple_description") or "",
+        },
+        raw={
+            "config_json": toorjson(config),
+            "gradio_api_info_json": toorjson(gradio_api_info),
+            "root_json": toorjson(config.get("root", "")),
+        },
+    )
+
 
 # Shared transport keeps the connection pool warm without sharing an
 # `httpx2.AsyncClient` (and therefore a cookie jar) across `/proxy=` requests.
@@ -920,21 +943,17 @@ class App(FastAPI):
                     page=page,
                     route_path=(f"{API_PREFIX}/runs" if is_run_history else f"/{page}"),
                 )
-                resp = templates.TemplateResponse(
-                    request=request,
-                    name=template,
-                    context={
-                        "base_url": (
-                            "../../" if request.url.path.endswith("/") else "../"
-                        )
+                return HTMLResponse(
+                    render_page(
+                        template,
+                        config,
+                        gradio_api_info,
+                        base_url=("../../" if request.url.path.endswith("/") else "../")
                         if is_run_history
                         else "./",
-                        "config": config,
-                        "gradio_api_info": gradio_api_info,
-                    },
+                    )
                 )
-                return resp
-            except TemplateNotFound as err:
+            except FileNotFoundError as err:
                 if blocks.share:
                     raise ValueError(
                         "Did you install Gradio from source files? Share mode only "
@@ -1175,7 +1194,7 @@ class App(FastAPI):
             info = get_api_info(
                 request, page=None, route_path=f"{API_PREFIX}/openapi.json"
             )
-            info_simple = _condense_info(info, url_only=True)
+            info_simple = condense_info(info, url_only=True)
             schema = {
                 "openapi": "3.0.2",
                 "info": {
@@ -2810,7 +2829,7 @@ def mount_gradio_app(
     theme: Theme | str | None = None,
     css: str | None = None,
     css_paths: str | Path | Sequence[str | Path] | None = None,
-    js: str | Literal[True] | None = None,
+    js: str | None = None,
     head: str | None = None,
     head_paths: str | Path | Sequence[str | Path] | None = None,
 ) -> fastapi.FastAPI:
@@ -2935,7 +2954,6 @@ def mount_gradio_app(
     blocks.css_paths = css_paths or []
     blocks._set_html_css_theme_variables()
 
-    blocks.transpile_to_js()
     gradio_app = App.create_app(
         blocks,
         app_kwargs=app_kwargs,

@@ -5,8 +5,8 @@ from __future__ import annotations
 import re
 from datetime import datetime, timedelta
 from typing import Any, Literal
+from zoneinfo import ZoneInfo
 
-import pytz
 from gradio_client.documentation import document
 
 from gradio.components.base import FormComponent
@@ -14,6 +14,17 @@ from gradio.components.button import Button
 from gradio.events import Events
 from gradio.i18n import I18nData
 from gradio.utils import set_default_buttons
+
+
+def _localize(dt: datetime, tz: ZoneInfo) -> datetime:
+    """Attaches a timezone to a naive datetime. A wall-clock time that occurs twice
+    (when clocks go back) or not at all (when they go forward) is read as standard
+    time, not daylight saving time."""
+    first, second = dt.replace(tzinfo=tz, fold=0), dt.replace(tzinfo=tz, fold=1)
+    first_offset, second_offset = first.utcoffset(), second.utcoffset()
+    if first_offset is None or second_offset is None:
+        return first
+    return first if first_offset <= second_offset else second
 
 
 @document()
@@ -136,7 +147,7 @@ class DateTime(FormComponent):
             return value
         else:
             return datetime.fromtimestamp(
-                value, tz=pytz.timezone(self.timezone) if self.timezone else None
+                value, tz=ZoneInfo(self.timezone) if self.timezone else None
             ).strftime(self.time_format)
 
     def api_info(self) -> dict[str, Any]:
@@ -173,5 +184,5 @@ class DateTime(FormComponent):
         else:
             dt = datetime.strptime(date, self.time_format)
             if self.timezone:
-                dt = pytz.timezone(self.timezone).localize(dt)
+                dt = _localize(dt, ZoneInfo(self.timezone))
             return dt

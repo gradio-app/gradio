@@ -25,10 +25,12 @@ class State(Component):
     same user. Can attach .change listeners that trigger when the state changes.
 
     By default the value is kept in the user's browser: after each event that changes it,
-    the server sends the browser an encrypted copy, which the browser sends back when it is
+    the server sends the browser a signed copy, which the browser sends back when it is
     needed. This lets the state survive a server restart and work when an app runs on
     several replicas (set the `GRADIO_SECRET_KEY` environment variable to the same value on
-    each one). Values must be serializable: JSON types, tuples, sets, bytes, dates, NumPy
+    each one). The copy is signed, not encrypted: users cannot change it, but they can read
+    it. If the state holds anything users must not see, such as an API key, a system prompt
+    or the answer to a game, set `storage="server"`. Values must be serializable: JSON types, tuples, sets, bytes, dates, NumPy
     arrays, pandas objects, PIL images, dataclasses, pydantic models, enums and classes
     defined in your app are supported. Set `storage="server"` to keep a value in the
     server's memory instead, e.g. for a model or a database connection.
@@ -51,7 +53,7 @@ class State(Component):
         Parameters:
             value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
             render: should always be True, is included for consistency with other components.
-            storage: where the value is kept between events. "browser" (the default, unless `delete_callback` is passed) keeps an encrypted copy in the user's browser, with the server's memory used only as a cache, so the state works across server restarts and replicas. The value must be serializable; if it is not, it is kept in the server's memory with a warning. "server" keeps the value in the server's memory for the session, which works for any value but is lost if the user's next request reaches a different server.
+            storage: where the value is kept between events. "browser" (the default, unless `delete_callback` is passed) keeps a signed copy in the user's browser, which the user can read but not change, with the server's memory used only as a cache, so the state works across server restarts and replicas. The value must be serializable; if it is not, it is kept in the server's memory with a warning. "server" keeps the value in the server's memory for the session, which works for any value and keeps it hidden from the user, but is lost if the user's next request reaches a different server.
             time_to_live: the number of seconds the state should be stored for after it is created or updated. If None, the state will be stored indefinitely. Once it expires, the state is reset to its initial value.
             delete_callback: a function that is called when the state is deleted. The function should take the state value as an argument. Passing it makes `storage` default to "server", since the server cannot tell when a value kept in a browser is no longer needed.
         """
