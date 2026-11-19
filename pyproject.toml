@@ -115,6 +115,7 @@ exclude = [
   "gradio/themes/",
   "gradio/_frontend_code/",
   "components/python/gradio_components/*_plot.py",
+  "components/python/hatch_build.py",
   "gradio/node/*.py",
   "gradio/_frontend_code/*.py",
   "gradio/cli/commands/cli_env_info.py",

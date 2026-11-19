@@ -6,6 +6,7 @@ frontend, and no numpy, pandas or Pillow.
 """
 
 import importlib.util
+import inspect
 import os
 import sys
 
@@ -32,7 +33,7 @@ def hello():
 if __name__ == "__main__":
     for name in HEAVY:
         assert importlib.util.find_spec(name) is None, f"{name} is installed"
-    package = os.path.dirname(gr.__file__)
+    package = os.path.dirname(inspect.getfile(gr))
     assert not os.path.exists(os.path.join(package, "templates")), "frontend shipped"
     assert not os.path.exists(os.path.join(package, "media_assets")), "media shipped"
 

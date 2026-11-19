@@ -293,7 +293,8 @@ class TestImportOrder:
         import gradio_components.textbox
 
         importlib.import_module("gradio.components.textbox")
-        assert gradio_components.textbox.__spec__.name == "gradio_components.textbox"
+        spec = gradio_components.textbox.__spec__
+        assert spec is not None and spec.name == "gradio_components.textbox"
 
     def test_moved_submodules_are_attributes_of_gradio(self):
         import gradio_components.image_utils
