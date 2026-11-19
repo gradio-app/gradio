@@ -7,10 +7,10 @@ from unittest.mock import patch
 
 import pytest
 from gradio_client import handle_file
+from gradio_components.chatbot import Message, TextMessage
+from gradio_components.plot import PlotData
 
 import gradio as gr
-from gradio.components.chatbot import Message, TextMessage
-from gradio.components.plot import PlotData
 
 
 def invalid_fn(message):

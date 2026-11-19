@@ -1,5 +1,5 @@
 import gradio as gr
-from gradio.components.chatbot import Message, MessageDict
+from gradio_components.chatbot import Message, MessageDict
 
 md = "This is **bold** text."
 

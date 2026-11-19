@@ -168,7 +168,7 @@ class TraceCollector:
         if not self._traces:
             return {"count": 0, "phases": {}}
 
-        import numpy as np
+        from gradio.queueing import _percentiles as percentiles
 
         prediction_traces = [
             t for t in self._traces if t.fn_name != "gradio_file_upload"
@@ -185,14 +185,15 @@ class TraceCollector:
         ]
 
         def _percentiles(arr):
+            p50, p90, p95, p99 = percentiles(arr, [50, 90, 95, 99])
             return {
-                "p50": float(np.percentile(arr, 50)),
-                "p90": float(np.percentile(arr, 90)),
-                "p95": float(np.percentile(arr, 95)),
-                "p99": float(np.percentile(arr, 99)),
-                "mean": float(np.mean(arr)),
-                "min": float(np.min(arr)),
-                "max": float(np.max(arr)),
+                "p50": p50,
+                "p90": p90,
+                "p95": p95,
+                "p99": p99,
+                "mean": float(sum(arr) / len(arr)),
+                "min": float(min(arr)),
+                "max": float(max(arr)),
             }
 
         result: dict[str, Any] = {
@@ -202,7 +203,7 @@ class TraceCollector:
         for phase in phases:
             values = [getattr(t, f"{phase}_ms") for t in prediction_traces]
             if values:
-                result["phases"][phase] = _percentiles(np.array(values))
+                result["phases"][phase] = _percentiles(values)
             else:
                 result["phases"][phase] = {
                     "p50": 0.0,
@@ -218,7 +219,7 @@ class TraceCollector:
             upload_values = [t.upload_ms for t in upload_traces]
             result["upload"] = {
                 "count": len(upload_traces),
-                **_percentiles(np.array(upload_values)),
+                **_percentiles(upload_values),
             }
 
         return result

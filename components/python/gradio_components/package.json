@@ -1,0 +1,7 @@
+{
+	"name": "gradio_components",
+	"version": "7.0.0-dev.0",
+	"description": "",
+	"python": "true",
+	"private": true
+}

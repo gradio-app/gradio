@@ -8,7 +8,7 @@ from pathlib import Path
 import click
 from packaging.version import Version
 
-import gradio
+from gradio import _components_package
 from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.components import _pyproject
 from gradio.cli.commands.components._docs_utils import (
@@ -21,7 +21,7 @@ from gradio.cli.commands.components.install_component import (
 )
 from gradio.cli.commands.display import LivePanelDisplay
 
-gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"  # type: ignore
+gradio_template_path = _components_package.frontend_dir() / "frontend"
 
 
 def _build(

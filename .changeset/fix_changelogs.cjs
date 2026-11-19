@@ -1,5 +1,11 @@
 const { join } = require("path");
-const { readFileSync, existsSync, writeFileSync, unlinkSync } = require("fs");
+const {
+	readFileSync,
+	readdirSync,
+	existsSync,
+	writeFileSync,
+	unlinkSync
+} = require("fs");
 const { getPackagesSync } = require("@manypkg/get-packages");
 
 const RE_PKG_NAME = /^[\w-]+\b/;
@@ -113,6 +119,16 @@ ${current_changelog.replace(`# ${pkg_name}`, "").trim()}
 		}
 	}
 
+	// A package in a `fixed` group, such as gradio_components, gets a new version
+	// whenever the group does, with or without a changeset of its own, so the pins
+	// of every Python package are brought up to date, not only of those above.
+	for (const pkg_name in all_packages) {
+		const { python, version } = all_packages[pkg_name].packageJson;
+		if (python) {
+			bump_local_dependents(pkg_name, version);
+		}
+	}
+
 	unlinkSync(join(pkg_meta.rootDir, ".changeset", "_changelog.json"));
 
 	/**
@@ -129,18 +145,34 @@ ${current_changelog.replace(`# ${pkg_name}`, "").trim()}
 
 			if (!python) continue;
 
-			const requirements_path = join(dir, "..", "requirements.txt");
-			const requirements = readFileSync(requirements_path, "utf-8").split("\n");
+			// requirements.txt and the files behind each extra, such as
+			// requirements-components.txt, which pins gradio_components
+			const parent = join(dir, "..");
+			const requirement_files = readdirSync(parent).filter((file) =>
+				/^requirements(-[\w-]+)?\.txt$/.test(file)
+			);
 
-			const pkg_index = requirements.findIndex((line) => {
-				const m = line.trim().match(RE_PKG_NAME);
-				if (!m) return false;
-				return m[0] === pkg_to_bump;
-			});
+			for (const file of requirement_files) {
+				const requirements_path = join(parent, file);
+				const requirements = readFileSync(requirements_path, "utf-8").split(
+					"\n"
+				);
 
-			if (pkg_index !== -1) {
-				requirements[pkg_index] = `${pkg_to_bump}==${version}`;
-				writeFileSync(requirements_path, requirements.join("\n"));
+				// only an exact pin is rewritten: a range, such as the `gradio>=`
+				// that gradio_components requires, is left as it is
+				const pkg_index = requirements.findIndex((line) => {
+					const m = line.trim().match(RE_PKG_NAME);
+					if (!m) return false;
+					return (
+						m[0] === pkg_to_bump &&
+						line.trim().slice(m[0].length).trimStart().startsWith("==")
+					);
+				});
+
+				if (pkg_index !== -1) {
+					requirements[pkg_index] = `${pkg_to_bump}==${version}`;
+					writeFileSync(requirements_path, requirements.join("\n"));
+				}
 			}
 		}
 	}
