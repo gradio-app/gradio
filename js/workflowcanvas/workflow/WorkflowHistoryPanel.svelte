@@ -442,7 +442,7 @@
 
 	.history-title {
 		font-size: 13px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		color: #e8e9f0;
 		letter-spacing: 0.01em;
 	}
@@ -589,7 +589,7 @@
 	.history-cta-title {
 		color: #e8e9f0;
 		font-size: 13px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 	}
 
 	.history-cta-sub {
@@ -600,7 +600,7 @@
 	}
 
 	.history-cta-sub code {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 11.5px;
 		color: #c8cad8;
 		word-break: break-all;
@@ -638,7 +638,7 @@
 		border-radius: 6px;
 		color: #c8cad8;
 		font-size: 12px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		padding: 6px 12px;
 		cursor: pointer;
 	}

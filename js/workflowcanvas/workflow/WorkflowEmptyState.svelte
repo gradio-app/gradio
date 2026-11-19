@@ -112,23 +112,20 @@
 	}
 
 	.card-name {
-		font-family: "Manrope", sans-serif;
 		font-size: 12.5px;
-		font-weight: 700;
+		font-weight: var(--weight-semibold);
 		color: #fff;
 		letter-spacing: -0.01em;
 		margin-bottom: 3px;
 	}
 
 	.card-desc {
-		font-family: "Manrope", sans-serif;
 		font-size: 10.5px;
 		color: rgba(255, 255, 255, 0.6);
 		line-height: 1.45;
 	}
 
 	.footer-hint {
-		font-family: "Manrope", sans-serif;
 		font-size: 11px;
 		color: #252738;
 	}
