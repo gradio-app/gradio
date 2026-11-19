@@ -706,8 +706,8 @@ class Queue:
             username,
         )
         event.data = body
-        if callable(fn.eta):
-            event.eta_hint = compute_eta_hint(fn, body.data)
+        if fn.eta is not None and not is_eta_number(fn.eta):
+            event.eta_hint = await self.request_eta_hint(fn, body)
         if body.session_hash is None:
             body.session_hash = event.session_hash
         if own_stream:
@@ -1128,11 +1128,29 @@ class Queue:
         """
         if event is not None and event.eta_hint is not None:
             return event.eta_hint
-        if isinstance(fn.eta, (int, float)) and not isinstance(fn.eta, bool):
-            return float(fn.eta)
+        if is_eta_number(fn.eta):
+            return float(cast(float, fn.eta))
         if fn in self.process_time_per_fn:
             return self.process_time_per_fn[fn].avg_time
         return None
+
+    async def request_eta_hint(
+        self, fn: BlockFunction, body: PredictBodyInternal
+    ) -> float | None:
+        """
+        The listener's `eta=` callable, called with the request's raw input values.
+        With executor="process" this queue runs in the gateway, while the callable
+        stays in the app's process, so it is called there.
+        """
+        pool = getattr(self.blocks, "_process_pool", None)
+        if pool is None:
+            return compute_eta_hint(fn, body.data)
+        from gradio.processing.gateway import forward_eta
+
+        try:
+            return await forward_eta(pool, fn, body)
+        except Exception:  # noqa: BLE001 -- busy or restarting: use the average
+            return None
 
     def get_status(self) -> EstimationMessage:
         return EstimationMessage(
@@ -1574,6 +1592,10 @@ class Queue:
                 pass
             del app.iterators[event_id]
         return
+
+
+def is_eta_number(eta: Any) -> bool:
+    return isinstance(eta, (int, float)) and not isinstance(eta, bool)
 
 
 def compute_eta_hint(fn: BlockFunction, data: list[Any] | None) -> float | None:
