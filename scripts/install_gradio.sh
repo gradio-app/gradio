@@ -10,3 +10,6 @@ pip install -e .
 
 echo "Installing Gradio Client..."
 pip install -e client/python
+
+echo "Installing Gradio Components..."
+pip install -e components/python

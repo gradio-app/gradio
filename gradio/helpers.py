@@ -35,7 +35,7 @@ from gradio.route_utils import Header
 from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.components import Component
+    from gradio.components.base import Component
 
 LOG_FILE = "log.csv"
 # Marks an input whose value should not change when an example is loaded

@@ -18,11 +18,11 @@ from gradio_client import Client
 from gradio_client.client import Endpoint
 from gradio_client.documentation import document
 from gradio_client.utils import encode_url_or_file_to_base64, is_http_url_like
+from gradio_components.multimodal_textbox import MultimodalValue
 from packaging import version
 
 import gradio as gr
 from gradio import components, external_utils, utils
-from gradio.components.multimodal_textbox import MultimodalValue
 from gradio.context import Context
 from gradio.exceptions import (
     GradioVersionIncompatibleError,
@@ -32,12 +32,12 @@ from gradio.media import get_audio, get_image
 from gradio.processing_utils import save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
+    from gradio_components.chatbot import NormalizedMessageDict
+    from gradio_components.login_button import LoginButton
     from huggingface_hub.inference._providers import PROVIDER_T
 
     from gradio.blocks import Blocks
     from gradio.chat_interface import ChatInterface
-    from gradio.components.chatbot import NormalizedMessageDict
-    from gradio.components.login_button import LoginButton
     from gradio.interface import Interface
 
 
@@ -306,8 +306,9 @@ def from_model(
     elif p == "text-generation":
         # Example: meta-llama/Meta-Llama-3-8B-Instruct
         if tags and "conversational" in tags:
+            from gradio_components.chatbot import Chatbot
+
             from gradio import ChatInterface
-            from gradio.components import Chatbot
 
             fn = external_utils.conversational_wrapper(client)
             examples = [
@@ -922,7 +923,7 @@ def load_chat(
             )
 
     if "chatbot" not in kwargs:
-        from gradio.components import Chatbot
+        from gradio_components.chatbot import Chatbot
 
         kwargs["chatbot"] = Chatbot(scale=1, allow_tags=True)
 

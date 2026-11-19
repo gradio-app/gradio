@@ -250,9 +250,9 @@ class TestEventErrors:
 
 def test_event_pyi_file_matches_source_code():
     """Test that the template used to create pyi files (search INTERFACE_TEMPLATE in component_meta) matches the source code of EventListener._setup."""
-    code = (
-        Path(__file__).parent / ".." / "gradio" / "components" / "button.pyi"
-    ).read_text()
+    import gradio_components.button
+
+    code = Path(gradio_components.button.__file__).with_suffix(".pyi").read_text()
     mod = ast.parse(code)
     segment = None
     for node in ast.walk(mod):
@@ -267,9 +267,9 @@ def test_event_pyi_file_matches_source_code():
             continue
         assert param.name in segment
 
-    code = (
-        Path(__file__).parent / ".." / "gradio" / "components" / "image.pyi"
-    ).read_text()
+    import gradio_components.image
+
+    code = Path(gradio_components.image.__file__).with_suffix(".pyi").read_text()
     mod = ast.parse(code)
     segment = None
     for node in ast.walk(mod):

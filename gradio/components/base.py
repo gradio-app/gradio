@@ -38,7 +38,7 @@ if TYPE_CHECKING:
         headers: list[str]
         data: list[list[str | int | bool]]
 
-    from gradio.components import Timer
+    from gradio_components.timer import Timer
 
 
 class _Keywords(Enum):
@@ -264,7 +264,7 @@ class Component(ComponentBase, Block):
             [(i, "change") for i in inputs if hasattr(i, "change")] if inputs else []
         )
         if isinstance(every, (int, float)):
-            from gradio.components import Timer
+            from gradio_components.timer import Timer
 
             every = Timer(every)
         if every:

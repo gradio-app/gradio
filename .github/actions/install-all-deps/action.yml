@@ -142,6 +142,7 @@ runs:
         . ${{ env.VENV_ACTIVATE }}
         uv pip install -e client/python
         uv pip install -e ".[oauth, mcp]"
+        uv pip install -e components/python
     - name: install-frontend
       if: inputs.skip_gradio_install != 'true'
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@7.0-dev"

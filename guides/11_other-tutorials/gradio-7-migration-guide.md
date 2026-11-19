@@ -6,6 +6,24 @@ This guide covers migration changes for the upcoming Gradio 7 release.
 
 Gradio 7 and its Python client require Python 3.11 or newer. Python 3.10 is no longer supported.
 
+## Components are installed with `gradio[components]`
+
+`pip install gradio` now installs only the core of Gradio: the server, the queue, the API engine, the client and `gr.Server`. Everything that builds a user interface (`gr.Blocks`, `gr.Interface`, `gr.ChatInterface`, the layouts and every component such as `gr.Textbox` or `gr.Image`) is in a separate package, `gradio_components`, along with the dependencies that only components need (numpy, pandas and Pillow).
+
+Install it through the extra, which pins the version that matches your version of Gradio:
+
+```bash
+pip install "gradio[components]"
+```
+
+Your code does not change. `import gradio as gr`, `gr.Textbox(...)` and imports such as `from gradio.components import Textbox` or `from gradio.components.base import Component` all work as before once `gradio_components` is installed. Without it, using any of them raises an error that tells you to install `gradio[components]`.
+
+What you need to do:
+
+- In `requirements.txt`, `pyproject.toml` or a Dockerfile, replace `gradio` with `gradio[components]`, unless your app only uses `gr.Server`.
+- If your code imports numpy, pandas or Pillow without listing them, they are now installed by `gradio[components]` rather than by `gradio`.
+- A logger configured by name for a component module, such as `gradio.components.video`, is now named `gradio_components.video`.
+
 ## 32-bit integer images cannot be encoded as PNG
 
 Gradio 7 raises an error when encoding a PIL image in `I` mode (32-bit signed integer pixels) as PNG. Earlier Pillow versions silently clipped these values to the unsigned 16-bit range supported by PNG. Gradio now rejects this conversion consistently across supported Pillow versions.

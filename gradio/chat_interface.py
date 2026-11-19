@@ -15,30 +15,30 @@ from typing import Any, Literal, Union, cast
 
 from anyio.to_thread import run_sync
 from gradio_client.documentation import document
-
-from gradio import routes, utils
-from gradio.blocks import Blocks
-from gradio.components import (
-    JSON,
-    BrowserState,
-    Button,
+from gradio_components.browser_state import BrowserState
+from gradio_components.button import Button
+from gradio_components.chatbot import (
     Chatbot,
-    Component,
-    Dataset,
-    Markdown,
-    MultimodalTextbox,
-    State,
-    Textbox,
-    get_component_instance,
-)
-from gradio.components.chatbot import (
     ChatMessage,
     ExampleMessage,
     Message,
     MessageDict,
     NormalizedMessageDict,
 )
-from gradio.components.multimodal_textbox import MultimodalPostprocess, MultimodalValue
+from gradio_components.dataset import Dataset
+from gradio_components.json_component import JSON
+from gradio_components.markdown import Markdown
+from gradio_components.multimodal_textbox import (
+    MultimodalPostprocess,
+    MultimodalTextbox,
+    MultimodalValue,
+)
+from gradio_components.textbox import Textbox
+
+from gradio import routes, utils
+from gradio.blocks import Blocks
+from gradio.components.base import Component, get_component_instance
+from gradio.components.state import State
 from gradio.context import LocalContext
 from gradio.events import Dependency, EditData, SelectData
 from gradio.flagging import ChatCSVLogger

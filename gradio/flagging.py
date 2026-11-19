@@ -20,7 +20,7 @@ from gradio import utils
 from gradio.events import LikeData
 
 if TYPE_CHECKING:
-    from gradio.components import Component
+    from gradio.components.base import Component
 
 
 class FlaggingCallback(ABC):

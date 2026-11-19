@@ -12,6 +12,7 @@ from typing import Literal
 from huggingface_hub import snapshot_download
 
 import gradio
+from gradio import _components_package
 
 
 def _in_test_dir():
@@ -384,19 +385,24 @@ def _create_backend(
                 return item
         return None
 
+    components_package = _components_package.require("`gradio cc create`")
+    import gradio_components._simple_templates as simple_templates
+
+    gradio_dir = Path(inspect.getfile(gradio)).parent
+    components_dir = Path(inspect.getfile(components_package)).parent
     lists_to_search = [
-        (gradio.components.__all__, "components"),
-        (gradio.layouts.__all__, "layouts"),
-        (gradio._simple_templates.__all__, "_simple_templates"),  # type: ignore
+        (components_package.__all__, components_dir),
+        (gradio.layouts.__all__, gradio_dir / "layouts"),
+        (simple_templates.__all__, components_dir / "_simple_templates"),
     ]
 
     correct_cased_template = None
     module = None
 
-    for list_, module_name in lists_to_search:
+    for list_, module_dir in lists_to_search:
         correct_cased_template = find_template_in_list(component.template, list_)
         if correct_cased_template:
-            module = module_name
+            module = module_dir
             break
 
     if not correct_cased_template:
@@ -465,15 +471,17 @@ __all__ = ['{name}']
 """
     )
 
-    p = Path(inspect.getfile(gradio)).parent
     python_file = backend / f"{name.lower()}.py"
 
+    if not (module / component.python_file_name).exists():
+        # The few component classes that are part of core Gradio
+        module = gradio_dir / "components"
     shutil.copy(
-        str(p / module / component.python_file_name),
+        str(module / component.python_file_name),
         str(python_file),
     )
 
-    source_pyi_file = p / module / component.python_file_name.replace(".py", ".pyi")
+    source_pyi_file = module / component.python_file_name.replace(".py", ".pyi")
     pyi_file = backend / f"{name.lower()}.pyi"
     if source_pyi_file.exists():
         shutil.copy(str(source_pyi_file), str(pyi_file))

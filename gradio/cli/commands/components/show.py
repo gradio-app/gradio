@@ -4,13 +4,12 @@ import inspect
 
 import click
 
-import gradio._simple_templates
-import gradio.components
 import gradio.layouts
+from gradio import _components_package
 from gradio.analytics import custom_component_analytics
 from gradio.blocks import BlockContext
 from gradio.cli.commands.display import format_table
-from gradio.components import Component, FormComponent
+from gradio.components.base import Component, FormComponent
 
 _IGNORE = {
     "Text",
@@ -66,9 +65,12 @@ def _show():
         upload_pypi=None,
         upload_source=None,
     )
+    components = _components_package.require("`gradio cc show`")
+    import gradio_components._simple_templates as simple_templates
+
     items = (
-        _get_table_items(gradio._simple_templates)
-        + _get_table_items(gradio.components)
+        _get_table_items(simple_templates)
+        + _get_table_items(components)
         + _get_table_items(gradio.layouts)
     )
     click.echo_via_pager(format_table(("Name", "Description"), items) + "\n")

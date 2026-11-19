@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from gradio.pipelines_utils import (
+from gradio_components.pipelines_utils import (
     handle_diffusers_pipeline,
     handle_transformers_js_pipeline,
     handle_transformers_pipeline,

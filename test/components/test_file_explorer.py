@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import pytest
+from gradio_components.file_explorer import FileExplorerData
 
 import gradio as gr
-from gradio.components.file_explorer import FileExplorerData
 from gradio.exceptions import InvalidPathError
 
 

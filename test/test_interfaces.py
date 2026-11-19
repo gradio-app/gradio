@@ -7,10 +7,11 @@ from unittest.mock import MagicMock, patch
 
 import httpx2
 import pytest
+from gradio_components.image import Image
+from gradio_components.textbox import Textbox
 
 import gradio
 from gradio.blocks import Blocks
-from gradio.components import Image, Textbox
 from gradio.interface import Interface, TabbedInterface, close_all, os
 from gradio.layouts import TabItem, Tabs
 from gradio.utils import assert_configs_are_equivalent_besides_ids

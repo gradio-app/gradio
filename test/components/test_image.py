@@ -5,9 +5,9 @@ import numpy as np
 import PIL
 import pytest
 from gradio_client import utils as client_utils
+from gradio_components.image import ImageData
 
 import gradio as gr
-from gradio.components.image import ImageData  # type: ignore
 from gradio.exceptions import Error
 from gradio.media import get_image
 

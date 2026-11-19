@@ -12,19 +12,16 @@ from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
 from gradio_client.documentation import document
+from gradio_components.button import Button
+from gradio_components.clear_button import ClearButton
+from gradio_components.deep_link_button import DeepLinkButton
+from gradio_components.duplicate_button import DuplicateButton
+from gradio_components.markdown import Markdown
 
 from gradio import Examples, utils
 from gradio.blocks import Blocks
-from gradio.components import (
-    Button,
-    ClearButton,
-    Component,
-    DeepLinkButton,
-    DuplicateButton,
-    Markdown,
-    State,
-    get_component_instance,
-)
+from gradio.components.base import Component, get_component_instance
+from gradio.components.state import State
 from gradio.data_classes import InterfaceTypes
 from gradio.events import Dependency, Events, on
 from gradio.exceptions import RenderError

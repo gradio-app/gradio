@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal, Union, cast
 from gradio_client.documentation import document
 
 from gradio.blocks import Block
-from gradio.components import Component
+from gradio.components.base import Component
 from gradio.context import LocalContext, get_blocks_context, get_render_context
 from gradio.events import EventListener, EventListenerMethod
 from gradio.layouts import Column, Row
