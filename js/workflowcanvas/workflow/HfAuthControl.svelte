@@ -63,6 +63,7 @@
 
 <style>
 	.login-btn {
+		white-space: nowrap;
 		font-size: 12px;
 		font-weight: var(--weight-regular);
 		padding: 5px 12px;
