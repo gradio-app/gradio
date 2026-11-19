@@ -152,6 +152,67 @@ describe("submit iterator", () => {
 		}
 	);
 
+	test.skipIf(typeof window === "undefined")(
+		"saves a password textbox empty",
+		async () => {
+			const app = await Client.connect("hmb/hello_world");
+			app.stream_status.open = true;
+			const scope = {
+				app_id: app.config?.app_id,
+				username: app.config?.username
+			};
+			const dependency = app.config!.dependencies[0];
+			const input = app.config!.components.find(
+				(c) => c.id === dependency.inputs[0]
+			)!;
+			const output = app.config!.components.find(
+				(c) => c.id === dependency.outputs[0]
+			)!;
+			for (const component of [input, output]) {
+				component.type = "textbox";
+				component.props.type = "password";
+				component.props.value = "sk-default";
+			}
+			// A state output in front shifts what the client returns.
+			app.config!.components.push(
+				{ id: 901, type: "state", props: {} } as any,
+				{ id: 902, type: "textbox", props: { type: "text" } } as any,
+				{ id: 903, type: "textbox", props: { type: "text" } } as any
+			);
+			dependency.outputs = [901, output.id, 902, 903];
+			server.resetHandlers(
+				http.post(`${direct_space_url}/queue/join`, () =>
+					HttpResponse.json({ event_id: "password-event" })
+				)
+			);
+
+			const iterator = app.submit("/predict", ["sk-secret"]);
+			await iterator.wait_for_id();
+			await app.event_callbacks["password-event"]({
+				msg: "process_completed",
+				output: {
+					data: [
+						null,
+						"echo-sk-secret",
+						"plain",
+						// Masked at runtime, so only the update says it is a password.
+						{ __type__: "update", type: "password", value: "sk-secret" }
+					]
+				},
+				success: true
+			});
+			const [run] = read_run_history(scope);
+			expect(run.inputs).toEqual([null]);
+			expect(run.outputs).toEqual([null, "plain", null]);
+			expect(app.config!.components.find((c) => c.id === 903)!.props.type).toBe(
+				"password"
+			);
+			expect(JSON.stringify(run)).not.toContain("sk-secret");
+			expect(JSON.stringify(run)).not.toContain("sk-default");
+			await iterator.return();
+		}
+	);
+
 	test("next() after the iterator is closed resolves to {done: true}", async () => {
 		const app = await Client.connect("hmb/hello_world");
 		// Avoid opening a real SSE stream — the test does not need one.

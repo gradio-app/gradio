@@ -258,6 +258,7 @@
 	<div
 		class="workflow-fullscreen"
 		class:hidden={view !== "canvas"}
+		class:has-view-toggle={!!app_view_id}
 		inert={view !== "canvas"}
 	>
 		<WorkflowCanvas
@@ -373,7 +374,7 @@
 		background: transparent;
 		color: var(--body-text-color-subdued);
 		font-size: 13px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		line-height: 1;
 		cursor: pointer;
 		transition:
@@ -417,15 +418,26 @@
 		background: var(--button-primary-background-fill);
 		color: var(--button-primary-text-color);
 		font-size: 13px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		cursor: pointer;
 	}
 
-	/* The canvas's centered bottom bar (~700px wide with the editing controls)
-	   would run into the toggle on narrower windows, so sit above it there. */
-	@media (max-width: 1100px) {
+	.workflow-fullscreen:has(:global(.templates-overlay-backdrop)) ~ .view-toggle,
+	.workflow-fullscreen:has(:global(.picker-overlay)) ~ .view-toggle,
+	.workflow-fullscreen:has(:global(.input-type-menu)) ~ .view-toggle {
+		display: none;
+	}
+
+	@media (min-width: 641px) and (max-width: 1320px) and (pointer: fine) {
+		.workflow-fullscreen.has-view-toggle :global(.bottom-bar) {
+			left: 206px;
+			right: 12px;
+			width: fit-content;
+			margin-inline: auto;
+			transform: none;
+		}
 		.view-toggle.on-canvas {
-			bottom: calc(72px + var(--frame-lift, 0px));
+			bottom: calc(25px + env(safe-area-inset-bottom) + var(--frame-lift, 0px));
 		}
 	}
 	@media (max-width: 640px), (pointer: coarse) {

@@ -1055,10 +1055,10 @@ class Queue:
                     block_id for block_id, event in fn.targets if event == "stream"
                 }
                 session_hash = body.session_hash
-                fns = (
-                    app.state_holder[session_hash].blocks_config.fns
+                blocks_config = (
+                    app.state_holder[session_hash].blocks_config
                     if session_hash and session_hash in app.state_holder
-                    else app.get_blocks().fns
+                    else app.get_blocks().default_config
                 )
                 route_utils.record_run_history(
                     app,
@@ -1070,7 +1070,8 @@ class Queue:
                     ],
                     outputs=response.get("data"),
                     started_at=started_at,
-                    fns=fns,
+                    fns=blocks_config.fns,
+                    blocks=blocks_config.blocks,
                     trigger_id=body.trigger_id,
                 )
             end_time = time.time()

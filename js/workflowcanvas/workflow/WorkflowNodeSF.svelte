@@ -1040,7 +1040,6 @@
 		border-radius: 10px;
 		min-height: 90px;
 		user-select: none;
-		font-family: "Manrope", sans-serif;
 		overflow: visible;
 		transition:
 			box-shadow 0.2s,
@@ -1168,7 +1167,7 @@
 
 	.node-label {
 		font-size: 12.5px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		color: #d5d6de;
 		white-space: nowrap;
 		cursor: text;
@@ -1231,9 +1230,9 @@
 	   whole while the title takes the squeeze. */
 	.node-meta {
 		flex: 0 0 auto;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 9.5px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		line-height: 1;
 		color: #55576a;
 		white-space: nowrap;
@@ -1242,9 +1241,8 @@
 	}
 
 	.node-label-input {
-		font-family: "Manrope", sans-serif;
 		font-size: 12.5px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		color: #d5d6de;
 		background: #101118;
 		border: 1px solid #f97316;
@@ -1273,9 +1271,8 @@
 		bottom: calc(100% + 6px);
 		right: 12px;
 		white-space: nowrap;
-		font-family: "Manrope", sans-serif;
 		font-size: 11.5px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		color: #6b6e78;
 		background: transparent;
 		border: none;
@@ -1332,7 +1329,7 @@
 	}
 
 	.node-outside-label-fn {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 10.5px;
 		color: #8b8d98;
 		cursor: default;
@@ -1470,7 +1467,7 @@
 
 	.port-label {
 		font-size: 11.5px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		color: #8b8d98;
 		white-space: nowrap;
 	}
@@ -1480,9 +1477,9 @@
 	}
 
 	.port-type-tag {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 9px;
-		font-weight: 500;
+		font-weight: var(--weight-regular);
 		opacity: 0.5;
 	}
 
@@ -1602,7 +1599,7 @@
 
 	.node-error-banner {
 		position: relative;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 9px;
 		color: #fca5a5;
 		background: rgba(239, 68, 68, 0.1);
@@ -1638,7 +1635,7 @@
 		background: none;
 		border: none;
 		padding: 0;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 8px;
 		color: rgba(252, 165, 165, 0.55);
 		cursor: pointer;
@@ -1656,9 +1653,9 @@
 		padding: 4px 12px;
 		border: none;
 		background: transparent;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 9px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		color: #3e3f4d;
 		cursor: pointer;
 		text-align: left;
@@ -1695,7 +1692,7 @@
 
 	.custom-param-input,
 	.custom-param-select {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 10px;
 		padding: 0 7px;
 		border: 1px solid #1e1f2a;
@@ -1724,9 +1721,9 @@
 		align-items: center;
 		justify-content: center;
 		height: 24px;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 11px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		padding: 0 10px;
 		border: none;
 		background: transparent;
@@ -1778,7 +1775,7 @@
 
 	.inline-input {
 		width: 100%;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 10px;
 		padding: 3px 7px;
 		border: 1px solid #1e1f2a;
@@ -1815,7 +1812,7 @@
 
 	.inline-number-inrow {
 		width: 100%;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 10px;
 		padding: 2px 6px;
 		border: 1px solid #1e1f2a;
@@ -1844,7 +1841,7 @@
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 10px;
 		color: #8b8d98;
 		cursor: pointer;
@@ -1897,7 +1894,7 @@
 	.node-requirement {
 		flex: 0 0 auto;
 		font-size: 8.5px;
-		font-weight: 600;
+		font-weight: var(--weight-semibold);
 		line-height: 1;
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
@@ -2036,7 +2033,7 @@
 
 	.node-endpoint-select,
 	.node-endpoint-load {
-		font-family: "JetBrains Mono", monospace;
+		font-family: var(--font-mono);
 		font-size: 9.5px;
 		padding: 1px 0 1px 4px;
 		border: none;
