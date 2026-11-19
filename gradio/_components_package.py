@@ -3,6 +3,7 @@ components. Core Gradio (the server, the queue and `gr.Server`) works without it
 
 from __future__ import annotations
 
+import dis
 import importlib
 import importlib.abc
 import importlib.util
@@ -54,13 +55,39 @@ def is_being_imported() -> bool:
     return bool(getattr(spec, "_initializing", False))
 
 
-def not_installed_error(feature: str) -> ComponentsNotInstalledError:
-    return ComponentsNotInstalledError(
+class ComponentsNotInstalledAttributeError(AttributeError):
+    """The same message for a missing attribute, such as `gr.Textbox`. It is an
+    AttributeError so that `hasattr(gr, "Textbox")`, `getattr(gr, "Textbox", None)`
+    and `inspect.getmembers(gr)` behave as they do for any missing attribute."""
+
+
+def _message(feature: str) -> str:
+    return (
         f"Starting with Gradio 7, {feature} needs the `gradio_components` package, "
         "which is no longer installed with `pip install gradio`. Install it with:\n\n"
         '    pip install "gradio[components]"\n\n'
         "Core Gradio (`gr.Server`, the queue and the API) works without it."
     )
+
+
+def not_installed_error(feature: str) -> ComponentsNotInstalledError:
+    return ComponentsNotInstalledError(_message(feature))
+
+
+def missing_attribute_error(feature: str, caller) -> Exception:
+    """The error for a module `__getattr__` to raise when `gradio_components` is not
+    installed. `caller` is the frame that asked for the attribute.
+
+    Attribute access gets an AttributeError. `from gradio import Textbox` gets an
+    ImportError instead: Python would replace an AttributeError there with its own
+    "cannot import name 'Textbox'", which says nothing about what to install."""
+    try:
+        instruction = dis.opname[caller.f_code.co_code[caller.f_lasti]]
+    except Exception:
+        instruction = None
+    if instruction == "IMPORT_FROM":
+        return not_installed_error(feature)
+    return ComponentsNotInstalledAttributeError(_message(feature))
 
 
 def require(feature: str) -> ModuleType:

@@ -38,6 +38,12 @@ def __getattr__(name: str):
         # no component is private, so that `getattr(module, "_x", None)` and
         # `hasattr` work with or without `gradio_components`
         raise AttributeError(f"module 'gradio.components' has no attribute {name!r}")
+    if not _components_package.is_installed():
+        import sys
+
+        raise _components_package.missing_attribute_error(
+            f"`gradio.components.{name}`", sys._getframe(1)
+        )
     package = _components_package.require(f"`gradio.components.{name}`")
     try:
         return getattr(package, name)

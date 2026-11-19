@@ -4427,3 +4427,10 @@ Received inputs:
         self.pages.append((path, name, show_in_navbar))
         self.current_page = path
         return self
+
+
+def close_all(verbose: bool = True) -> None:
+    """Closes every running app in this process, including `gr.Server` apps."""
+    for instance in Blocks.get_instances():
+        if instance.is_running:
+            instance.close(verbose)

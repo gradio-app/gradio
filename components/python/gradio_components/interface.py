@@ -12,7 +12,7 @@ from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
 from gradio import Examples, utils
-from gradio.blocks import Blocks
+from gradio.blocks import Blocks, close_all  # noqa: F401
 from gradio.components.base import Component, get_component_instance
 from gradio.components.state import State
 from gradio.data_classes import InterfaceTypes
@@ -1006,9 +1006,3 @@ class TabbedInterface(Blocks):
                         scale=1 if interface.fill_height else None,
                     ):
                         interface.render()
-
-
-def close_all(verbose: bool = True) -> None:
-    for instance in Blocks.get_instances():
-        if instance.is_running:
-            instance.close(verbose)

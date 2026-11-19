@@ -48,14 +48,20 @@ if __name__ == "__main__":
     for use in (lambda: gr.Blocks(), lambda: gr.Textbox, lambda: gr.Interface):
         try:
             use()
-        except ImportError as error:
+        except (ImportError, AttributeError) as error:
             assert 'pip install "gradio[components]"' in str(error)
         else:
             raise AssertionError("expected the install message")
     try:
         gr.get_image("bus.png")
-    except ImportError as error:
+    except (ImportError, AttributeError) as error:
         assert "gradio_components" in str(error)
+
+    assert not hasattr(gr, "Textbox")
+    namespace: dict = {}
+    exec("from gradio import *", namespace)
+    assert "Server" in namespace and "Textbox" not in namespace
+    gr.close_all(verbose=False)
 
     loaded = [name for name in HEAVY if name in sys.modules]
     assert not loaded, loaded

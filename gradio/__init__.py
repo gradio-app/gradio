@@ -8,6 +8,7 @@ import json
 from typing import TYPE_CHECKING
 
 from gradio import _components_package, components, mcp, themes, validators
+from gradio.blocks import close_all
 from gradio.caching import Cache, cache
 from gradio.cli import deploy
 from gradio.components import Component, State, component
@@ -107,7 +108,7 @@ if TYPE_CHECKING:
         WatermarkOptions,
         WebcamOptions,
     )
-    from gradio_components.interface import Interface, TabbedInterface, close_all
+    from gradio_components.interface import Interface, TabbedInterface
     from gradio_components.layouts import (
         Accordion,
         Column,
@@ -223,7 +224,6 @@ _NEEDS_COMPONENTS: dict[str, tuple[str, str]] = {
     "Examples": ("gradio.helpers", "create_examples"),
     "Interface": ("gradio_components.interface", "Interface"),
     "TabbedInterface": ("gradio_components.interface", "TabbedInterface"),
-    "close_all": ("gradio_components.interface", "close_all"),
     "Accordion": ("gradio_components.layouts", "Accordion"),
     "Column": ("gradio_components.layouts", "Column"),
     "Draggable": ("gradio_components.layouts", "Draggable"),
@@ -285,6 +285,14 @@ def _load(name: str):
 
 
 def __getattr__(name: str):
+    if (
+        name in _NEEDS_COMPONENTS or name in _MOVED_SUBMODULES
+    ) and not _components_package.is_installed():
+        import sys
+
+        raise _components_package.missing_attribute_error(
+            f"`gr.{name}`", sys._getframe(1)
+        )
     if name in _NEEDS_COMPONENTS:
         return _load(name)
     if name in _MOVED_SUBMODULES:
@@ -485,5 +493,9 @@ __all__ = [
     "Workflow",
     "WorkflowCanvas",
 ]
+
+if not _components_package.is_installed():
+    # so that `from gradio import *` works with core Gradio alone
+    __all__ = [name for name in __all__ if name not in _NEEDS_COMPONENTS]  # noqa: PLE0605
 
 App = Server

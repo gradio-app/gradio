@@ -155,39 +155,112 @@ class TestWithoutComponents:
         assert lines[-3:] == ["200", "501 True", "[]"]
 
     @pytest.mark.parametrize(
-        "statement, feature",
+        "statement, feature, error",
         [
-            ("gr.Textbox", "`gr.Textbox`"),
-            ("gr.Blocks", "`gr.Blocks`"),
-            ("gr.Interface", "`gr.Interface`"),
-            ("gr.ChatInterface", "`gr.ChatInterface`"),
-            ("gr.Row", "`gr.Row`"),
-            ("gr.TextArea", "`gr.TextArea`"),
-            ("gr.components.Image", "`gradio.components.Image`"),
-            ("exec('from gradio import Image')", "`gr.Image`"),
+            # attribute access is an AttributeError, as for any missing attribute
+            ("gr.Textbox", "`gr.Textbox`", "ComponentsNotInstalledAttributeError"),
+            ("gr.Blocks", "`gr.Blocks`", "ComponentsNotInstalledAttributeError"),
+            ("gr.Interface", "`gr.Interface`", "ComponentsNotInstalledAttributeError"),
+            ("gr.Row", "`gr.Row`", "ComponentsNotInstalledAttributeError"),
+            ("gr.TextArea", "`gr.TextArea`", "ComponentsNotInstalledAttributeError"),
+            ("gr.layouts", "`gr.layouts`", "ComponentsNotInstalledAttributeError"),
+            (
+                "gr.components.Image",
+                "`gradio.components.Image`",
+                "ComponentsNotInstalledAttributeError",
+            ),
+            # an import is an ImportError
+            (
+                "exec('from gradio import Image')",
+                "`gr.Image`",
+                "ComponentsNotInstalledError",
+            ),
+            (
+                "exec('from gradio import Blocks, Row')",
+                "`gr.Blocks`",
+                "ComponentsNotInstalledError",
+            ),
+            (
+                "exec('from gradio.components import Image')",
+                "`gradio.components.Image`",
+                "ComponentsNotInstalledError",
+            ),
             (
                 "exec('from gradio.components.textbox import Textbox')",
                 "`gradio.components.textbox`",
+                "ComponentsNotInstalledError",
             ),
-            ("exec('import gradio.templates')", "`gradio.templates`"),
-            ("gr.component('textbox', render=False)", "the 'textbox' component"),
-            ("exec('from gradio.blocks import Blocks; Blocks()')", "`gr.Blocks`"),
+            (
+                "exec('from gradio.interface import Interface')",
+                "`gradio.interface`",
+                "ComponentsNotInstalledError",
+            ),
+            (
+                "exec('import gradio.templates')",
+                "`gradio.templates`",
+                "ComponentsNotInstalledError",
+            ),
+            (
+                "gr.component('textbox', render=False)",
+                "the 'textbox' component",
+                "ComponentsNotInstalledError",
+            ),
+            (
+                "exec('from gradio.blocks import Blocks; Blocks()')",
+                "`gr.Blocks`",
+                "ComponentsNotInstalledError",
+            ),
         ],
     )
-    def test_using_a_component_says_how_to_install_them(self, statement, feature):
+    def test_using_a_component_says_how_to_install_them(
+        self, statement, feature, error
+    ):
         out = run_core_only(
             f"""
             import gradio as gr
             try:
                 {statement}
-            except ImportError as error:
+            except (ImportError, AttributeError) as error:
                 print(type(error).__name__)
                 print(error)
             """
         )
-        assert out.splitlines()[0] == "ComponentsNotInstalledError"
+        assert out.splitlines()[0] == error
         assert f"{feature} needs the `gradio_components` package" in out
         assert 'pip install "gradio[components]"' in out
+
+    def test_introspection_and_star_import_work_without_components(self):
+        out = run_core_only(
+            """
+            import inspect
+            import gradio as gr
+
+            print(hasattr(gr, "Textbox"), getattr(gr, "Blocks", None))
+            print(hasattr(gr.components, "Textbox"))
+            print(len(inspect.getmembers(gr)) > 0)
+            namespace = {}
+            exec("from gradio import *", namespace)
+            print("Server" in namespace, "close_all" in namespace, "Textbox" in namespace)
+            """
+        )
+        assert out.splitlines() == ["False None", "False", "True", "True True False"]
+
+    def test_close_all_closes_a_server_without_components(self):
+        out = run_core_only(
+            """
+            import gradio as gr
+
+            app = gr.Server()
+            app.launch(prevent_thread_lock=True, executor="thread")
+            running = [b.is_running for b in gr.blocks.Blocks.get_instances()]
+            gr.close_all(verbose=False)
+            print(running, [b.is_running for b in gr.blocks.Blocks.get_instances()])
+            sys.stdout.flush()
+            os._exit(0)
+            """,
+            prelude="import os",
+        )
+        assert out.splitlines()[-1] == "[True] [False]"
 
     def test_core_names_are_available(self):
         out = run_core_only(
