@@ -296,7 +296,8 @@ describe("stream_text_generation — errors", () => {
 			ok: false,
 			status: 404,
 			body: null,
-			text: async () => "Not Found"
+			text: async () => "Not Found",
+			clone: () => ({ text: async () => "Not Found" })
 		} as unknown as Response);
 		await expect(
 			stream_text_generation({
@@ -327,7 +328,8 @@ describe("stream_text_generation — errors", () => {
 describe("stream_text_generation — context window", () => {
 	test("retries without max_tokens when it overflows the context", async () => {
 		const rejected = {
-			status: 400,
+			ok: false,
+			status: 422,
 			clone: () => ({ text: async () => "maximum context length" })
 		} as unknown as Response;
 		const fetchMock = vi
