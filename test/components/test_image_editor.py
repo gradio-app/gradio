@@ -76,7 +76,7 @@ class TestImageEditor:
             },
             "canvas_size": [800, 800],
             "placeholder": None,
-            "buttons": None,
+            "buttons": ["download", "share", "fullscreen"],
             "fixed_canvas": False,
         }
 
