@@ -281,6 +281,8 @@ def __dir__():
 if _components_package.is_installed() and not _components_package.is_being_imported():
     for _name in _NEEDS_COMPONENTS:
         _load(_name)
+    # not exported from `gr`, but registered as components and documented
+    import gradio_components._simple_templates  # noqa: F401
 
 # this is the version:
 __version__ = get_package_version()
