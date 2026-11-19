@@ -1,8 +1,8 @@
 import numpy as np
 import PIL.Image
+from gradio_components.image_editor import EditorData, EditorValue
 
 import gradio as gr
-from gradio.components.image_editor import EditorData, EditorValue
 from gradio.data_classes import FileData
 
 

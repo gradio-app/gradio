@@ -94,7 +94,11 @@ def _is_app_class(cls: type) -> bool:
     module = sys.modules.get(cls.__module__)
     if module is None or cls.__module__ in sys.builtin_module_names:
         return False
-    if cls.__module__.partition(".")[0] in ("gradio", "gradio_client"):
+    if cls.__module__.partition(".")[0] in (
+        "gradio",
+        "gradio_client",
+        "gradio_components",
+    ):
         return False
     if "<locals>" in cls.__qualname__:
         return False
