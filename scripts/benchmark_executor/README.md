@@ -6,8 +6,9 @@ realistic ML app? Measured on 7.0-dev `08a0e720e`, Python 3.12, one Apple M5 lap
 
 ![Generations per minute as visitor traffic rises](results/charts/throughput.png)
 
-**Takeaway:** the landing page stays fast in both modes. What the gateway process
-protects is the model: in thread mode, serving visitors competes with the function
+**Takeaway:** with a real torch model the landing page stays fast in both modes
+(it does not when the function holds the GIL, see below). What the gateway process
+protects here is the model: in thread mode, serving visitors competes with the function
 for the GIL, so throughput falls as traffic rises. In process mode it stays flat.
 
 ## Apps
@@ -60,6 +61,24 @@ Page load for a new visitor (all four requests), mean of the repeats' p50 / p99:
 | 40 | 8 / 14 ms | 7 / 12 ms | 7 / 12 ms | 7 / 10 ms |
 | 80 | 8 / 27 ms | 7 / 23 ms | 7 / 36 ms | 7 / 21 ms |
 | 120 | 9 / 84 ms | 9 / 72 ms | 8 / 85 ms | 9 / 57 ms |
+
+## A function that holds the GIL (`cpu.py`)
+
+The two apps above run torch models, which release the GIL often. `cpu.py` is the
+opposite case: about 1 s of pure-Python compute per call, like the `cpu` work in
+`../benchmark_ssr_default/bench_queue.py`. Same load generator, 20 visitors/s for
+20 s, one in four submitting, two runs per executor (`results/viral_cpu/`):
+
+| | thread | process |
+|---|---|---|
+| Page load p50 | 1.7–2.2 s | 6 ms |
+| Page loads over 1 s | 333 and 329 of about 350 | 0 of 400 |
+| Visitors whose page loaded within the 20 s | 351–355 of 400 | 400 of 400 |
+| `/queue/join` p50 | 190–730 ms | 1 ms |
+
+So which side suffers in thread mode depends on the function. If it holds the GIL,
+the page and the queue get slow. If it releases the GIL often, the page stays fast
+and the function gets slow instead. The process executor removes both.
 
 ## Without traffic (`bench.py`)
 
