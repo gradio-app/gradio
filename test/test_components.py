@@ -5,12 +5,12 @@ import numpy as np
 import pandas as pd
 import pytest
 from gradio_client import utils as client_utils
+from gradio_components.templates import TextArea
 
 import gradio as gr
 from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel, GradioRootModel
-from gradio.templates import TextArea
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

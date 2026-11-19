@@ -1,7 +1,7 @@
 import tempfile
 from unittest.mock import patch
 
-import httpx
+import httpx2
 import huggingface_hub
 import pytest
 from huggingface_hub.hf_api import SpaceInfo
@@ -209,6 +209,38 @@ class TestSemverMatch:
             "theme_schema@3.18.2"
         )
 
+    @pytest.mark.parametrize(
+        "expression, expected",
+        [
+            ("*", "3.20.1"),
+            ("3.18", "3.18.2"),
+            ("==3", "3.20.1"),
+            (">3.18", "3.20.1"),
+            ("<=3.18", "3.18.2"),
+            ("<3.18", "3.17.1"),
+            ("!=3.20.*", "3.19.1"),
+            ("^3.10.0", "3.20.1"),
+            ("^0.1.0", "0.1.3"),
+            ("~3.18.0", "3.18.2"),
+            ("~=3.18.0", "3.18.2"),
+            ("~=3.18", "3.20.1"),
+        ],
+    )
+    def test_expression_forms(self, expression, expected):
+        match = get_matching_version(assets, expression)
+        assert match is not None
+        assert str(match.version) == expected
+
+    @pytest.mark.parametrize("expression", ["latest", ">=", "1.2.3.4", "<*", "1.*.2"])
+    def test_invalid_expression(self, expression):
+        with pytest.raises(ValueError, match="Invalid version expression"):
+            get_matching_version(assets, expression)
+
+    @pytest.mark.parametrize("version", ["3.0", "3", "v1.0.0", "1.0.0.0", "abc"])
+    def test_theme_versions_must_be_major_minor_patch(self, version):
+        with pytest.raises(ValueError, match="Invalid version string"):
+            ThemeAsset(f"themes/theme_schema@{version}.json")
+
 
 class TestGetThemeAssets:
     def test_get_theme_assets(self):
@@ -341,7 +373,7 @@ class TestThemeUploadDownload:
     def test_first_upload_no_version(self, mock_1):
         mock_1.whoami.return_value = {"name": "freddyaboulton"}
 
-        mock_1.HfApi().space_info.side_effect = httpx.HTTPError("Foo")  # type: ignore
+        mock_1.HfApi().space_info.side_effect = httpx2.HTTPError("Foo")  # type: ignore
 
         gr.themes.Monochrome().push_to_hub(repo_name="does_not_exist")
         repo_call_args = mock_1.HfApi().create_commit.call_args_list[0][1]

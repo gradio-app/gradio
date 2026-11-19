@@ -221,6 +221,7 @@ def generate_bash_snippet(
     root: str,
     api_prefix: str = "/",
     oauth_token: str | None = None,
+    single_request: bool = False,
 ) -> str:
     normalised_root = root.rstrip("/")
     normalised_prefix = api_prefix if api_prefix else "/"
@@ -267,16 +268,56 @@ def generate_bash_snippet(
     base_url = f"{normalised_root}{normalised_prefix}call/v2/{endpoint_name}"
     get_url = f"{normalised_root}{normalised_prefix}call/{endpoint_name}"
 
-    lines.extend(
-        [
-            f'curl -X POST {base_url} -s -H "Content-Type: application/json" \\',
-            f"  -d '{data_str}' \\",
-            "  | awk -F'\"' '{ print $4}' \\",
-            f"  | read EVENT_ID; curl -N {get_url}/$EVENT_ID",
-        ]
-    )
+    if single_request:
+        lines.extend(
+            [
+                f'curl -s -N -X POST {base_url} -H "Content-Type: application/json" \\',
+                '  -H "Accept: text/event-stream" \\',
+                f"  -d '{data_str}'",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                f'curl -X POST {base_url} -s -H "Content-Type: application/json" \\',
+                f"  -d '{data_str}' \\",
+                "  | awk -F'\"' '{ print $4}' \\",
+                f"  | read EVENT_ID; curl -N {get_url}/$EVENT_ID",
+            ]
+        )
 
     return "\n".join(lines)
+
+
+def _is_file_dict(obj: Any) -> bool:
+    return (
+        isinstance(obj, dict)
+        and isinstance(obj.get("path"), str)
+        and obj.get("meta") == {"_type": "gradio.FileData"}
+    )
+
+
+def generate_cli_snippet(named_endpoints: dict[str, Any]) -> dict[str, str]:
+    """Generates a command line snippet for each named endpoint, as a mapping from
+    the endpoint name to the snippet. The `{command}` and `{space_id}` placeholders
+    are left for the caller to fill in."""
+    from gradio_client.utils import traverse
+
+    snippets = {}
+    for endpoint, info in named_endpoints.items():
+        params = json.dumps(
+            {
+                p["parameter_name"]: traverse(
+                    p["parameter_default"] or p["example_input"],
+                    lambda d: {k: v for k, v in d.items() if k in ("path", "meta")},
+                    _is_file_dict,
+                )
+                for p in info["parameters"]
+            },
+            indent=2,
+        )
+        snippets[endpoint] = f"{{command}} predict {{space_id}} {endpoint} '{params}'\n"
+    return snippets
 
 
 def generate_code_snippets(
@@ -285,6 +326,7 @@ def generate_code_snippets(
     root: str,
     space_id: str | None = None,
     api_prefix: str = "/",
+    single_request: bool = False,
 ) -> dict[str, str]:
     params = endpoint_info.get("parameters", [])
     src = space_id or root
@@ -293,5 +335,7 @@ def generate_code_snippets(
     return {
         "python": generate_python_snippet(api_name, params, src, oauth_token),
         "javascript": generate_js_snippet(api_name, params, src, oauth_token),
-        "bash": generate_bash_snippet(api_name, params, root, api_prefix, oauth_token),
+        "bash": generate_bash_snippet(
+            api_name, params, root, api_prefix, oauth_token, single_request
+        ),
     }

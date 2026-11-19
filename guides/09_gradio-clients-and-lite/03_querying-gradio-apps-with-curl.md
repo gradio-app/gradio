@@ -11,35 +11,17 @@ Using `curl`, we can translate text programmatically.
 Here's the code to do it:
 
 ```bash
-$ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: application/json" -d '{
+$ curl -N -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: application/json" -H "Accept: text/event-stream" -d '{
   "data": ["Hello, my friend."] 
 }'
 
->> {"event_id": $EVENT_ID}   
-```
-
-```bash
-$ curl -N https://abidlabs-en2fr.hf.space/call/predict/$EVENT_ID
-
 >> event: complete
 >> data: ["Bonjour, mon ami."]
 ```
 
+The `POST` request submits the input, and because it sends `Accept: text/event-stream`, the result streams back on the same response.
 
-Note: making a prediction and getting a result requires two `curl` requests: a `POST` and a `GET`. The `POST` request returns an `EVENT_ID` and prints  it to the console, which is used in the second `GET` request to fetch the results. You can combine these into a single command using `awk` and `read` to parse the results of the first command and pipe into the second, like this:
-
-```bash
-$ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: application/json" -d '{
-  "data": ["Hello, my friend."] 
-}' \
-  | awk -F'"' '{ print $4}'  \
-  | read EVENT_ID; curl -N https://abidlabs-en2fr.hf.space/call/predict/$EVENT_ID
-
->> event: complete
->> data: ["Bonjour, mon ami."]
-```
-
-In the rest of this Guide, we'll explain these two steps in more detail and provide additional examples of querying Gradio apps with `curl`.
+In the rest of this Guide, we'll explain the request and its response in more detail and provide additional examples of querying Gradio apps with `curl`.
 
 
 **Prerequisites**: For this Guide, you do _not_ need to know how to build Gradio apps in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
@@ -74,22 +56,22 @@ You can get the Gradio app URL by clicking the "view API" link at the bottom of 
 While you can use any public Space as an API, you may get rate limited by Hugging Face if you make too many requests. For unlimited usage of a Space, simply duplicate the Space to create a private Space,
 and then use it to make as many requests as you'd like!
 
-Note: to query private Spaces, you will need to pass in your Hugging Face (HF) token. You can get your HF token here: https://huggingface.co/settings/tokens. In this case, you will need to include an additional header in both of your `curl` calls that we'll discuss below:
+Note: to query private Spaces, you will need to pass in your Hugging Face (HF) token. You can get your HF token here: https://huggingface.co/settings/tokens. In this case, you will need to include an additional header in your `curl` request that we'll discuss below:
 
 ```bash
 -H "Authorization: Bearer $HF_TOKEN"
 ```
 
-Now, we are ready to make the two `curl` requests.
+Now, we are ready to make the `curl` request.
 
 ## Step 1: Make a Prediction (POST)
 
-The first of the two `curl` requests is `POST` request that submits the input payload to the Gradio app. 
+The `POST` request submits the input payload to the Gradio app and streams back the result.
 
 The syntax of the `POST` request is as follows:
 
 ```bash
-$ curl -X POST $URL/call/$API_NAME -H "Content-Type: application/json" -d '{
+$ curl -N -X POST $URL/call/$API_NAME -H "Content-Type: application/json" -H "Accept: text/event-stream" -d '{
   "data": $PAYLOAD
 }'
 ```
@@ -100,13 +82,7 @@ Here:
 * `$API_NAME` is the name of the API endpoint for the event that you are running. You can get the API endpoint names by clicking the "view API" link at the bottom of the page.
 *  `$PAYLOAD` is a valid JSON data list containing the input payload, one element for each input component.
 
-When you make this `POST` request successfully, you will get an event id that is printed to the terminal in this format:
-
-```bash
->> {"event_id": $EVENT_ID}   
-```
-
-This `EVENT_ID` will be needed in the subsequent `curl` request to fetch the results of the prediction. 
+The `-N` flag tells `curl` to print the results as they arrive instead of buffering them. If you stop the request (for example, with Ctrl+C), the prediction is cancelled.
 
 Here are some examples of how to make the `POST` request
 
@@ -115,7 +91,7 @@ Here are some examples of how to make the `POST` request
 Revisiting the example at the beginning of the page, here is how to make the `POST` request for a simple Gradio application that takes in a single input text component:
 
 ```bash
-$ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: application/json" -d '{
+$ curl -N -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: application/json" -H "Accept: text/event-stream" -d '{
   "data": ["Hello, my friend."] 
 }'
 ```
@@ -125,7 +101,7 @@ $ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: ap
 This [Gradio demo](https://huggingface.co/spaces/gradio/hello_world_3) accepts three inputs: a string corresponding to the `gr.Textbox`, a boolean value corresponding to the `gr.Checkbox`, and a numerical value corresponding to the `gr.Slider`. Here is the `POST` request:
 
 ```bash
-curl -X POST https://gradio-hello-world-3.hf.space/call/predict -H "Content-Type: application/json" -d '{
+curl -N -X POST https://gradio-hello-world-3.hf.space/call/predict -H "Content-Type: application/json" -H "Accept: text/event-stream" -d '{
   "data": ["Hello", true, 5]
 }'
 ```
@@ -135,7 +111,7 @@ curl -X POST https://gradio-hello-world-3.hf.space/call/predict -H "Content-Type
 As mentioned earlier, if you are making a request to a private Space, you will need to pass in a [Hugging Face token](https://huggingface.co/settings/tokens) that has read access to the Space. The request will look like this:
 
 ```bash
-$ curl -X POST https://private-space.hf.space/call/predict -H "Content-Type: application/json" -H "Authorization: Bearer $HF_TOKEN" -d '{
+$ curl -N -X POST https://private-space.hf.space/call/predict -H "Content-Type: application/json" -H "Accept: text/event-stream" -H "Authorization: Bearer $HF_TOKEN" -d '{
   "data": ["Hello, my friend."] 
 }'
 ```
@@ -151,7 +127,7 @@ If you are using `curl` to query a Gradio application that requires file inputs,
 Here is an example `POST` request:
 
 ```bash
-$ curl -X POST https://gradio-image-mod.hf.space/call/predict -H "Content-Type: application/json" -d '{
+$ curl -N -X POST https://gradio-image-mod.hf.space/call/predict -H "Content-Type: application/json" -H "Accept: text/event-stream" -d '{
   "data": [{"path": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"}] 
 }'
 ```
@@ -164,19 +140,19 @@ If your Gradio demo [persists user state](/guides/interface-state) across multip
 ```bash
 # These two requests will share a session
 
-curl -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H "Content-Type: application/json" -d '{
+curl -N -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H "Content-Type: application/json" -H "Accept: text/event-stream" -d '{
   "data": ["Are you sentient?"],
   "session_hash": "randomsequence1234"
 }'
 
-curl -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H "Content-Type: application/json" -d '{
+curl -N -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H "Content-Type: application/json" -H "Accept: text/event-stream" -d '{
   "data": ["Really?"],
   "session_hash": "randomsequence1234"
 }'
 
 # This request will be treated as a new session
 
-curl -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H "Content-Type: application/json" -d '{
+curl -N -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H "Content-Type: application/json" -H "Accept: text/event-stream" -d '{
   "data": ["Are you sentient?"],
   "session_hash": "newsequence5678"
 }'
@@ -184,20 +160,9 @@ curl -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H 
 
 
 
-## Step 2: GET the result
+## Step 2: Read the result
 
-Once you have received the `EVENT_ID` corresponding to your prediction, you can stream the results. Gradio stores these results  in a least-recently-used cache in the Gradio app. By default, the cache can store 2,000 results (across all users and endpoints of the app). 
-
-To stream the results for your prediction, make a `GET` request with the following syntax:
-
-```bash
-$ curl -N $URL/call/$API_NAME/$EVENT_ID
-```
-
-
-Tip: If you are fetching results from a private Space, include a header with your HF token like this: `-H "Authorization: Bearer $HF_TOKEN"` in the `GET` request.
-
-This should produce a stream of responses in this format:
+The response to the `POST` request is a stream of results in this format:
 
 ```bash
 event: ... 
@@ -288,16 +253,30 @@ curl -X POST $URL/login \
 
 If the credentials are correct, you'll get `{"success":true}` in response and the cookies will be saved in `cookies.txt`.
 
-Next, you'll need to include these cookies when you make the original `POST` request, like this:
+Next, you'll need to include these cookies when you make the `POST` request, like this:
 
 ```bash
-$ curl -X POST $URL/call/$API_NAME -b cookies.txt -H "Content-Type: application/json" -d '{
+$ curl -N -X POST $URL/call/$API_NAME -b cookies.txt -H "Content-Type: application/json" -H "Accept: text/event-stream" -d '{
   "data": $PAYLOAD
 }'
 ```
 
-Finally, you'll need to `GET` the results, again supplying the cookies from the file:
+## Submitting and fetching results separately
+
+Without the `Accept: text/event-stream` header, the `POST` request returns an event id instead of the results:
 
 ```bash
-curl -N $URL/call/$API_NAME/$EVENT_ID -b cookies.txt
+$ curl -X POST $URL/call/$API_NAME -H "Content-Type: application/json" -d '{
+  "data": $PAYLOAD
+}'
+
+>> {"event_id": $EVENT_ID}
 ```
+
+You can then stream the results with a `GET` request, which returns the same stream of results as above:
+
+```bash
+$ curl -N $URL/call/$API_NAME/$EVENT_ID
+```
+
+This is the only way to query apps running Gradio versions before 7.0. Gradio stores these results in a least-recently-used cache in the Gradio app. By default, the cache can store 2,000 results (across all users and endpoints of the app). If the app runs on several servers behind a load balancer, both requests must reach the same server, so prefer the single request when you can.

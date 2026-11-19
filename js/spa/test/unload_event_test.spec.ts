@@ -19,12 +19,13 @@ test("when a user closes the page, the unload event should be triggered", async 
 	await expect(page.getByLabel("Number")).toHaveValue("4");
 	await page.close();
 
-	await new Promise((resolve) => setTimeout(resolve, 5000));
+	// The session is closed once it has had time to reconnect, as a refreshed
+	// page would, and its state is then deleted.
+	const read_log = (): string =>
+		readFileSync("../../demo/unload_event_test/output_log.txt", "utf-8");
+	await expect.poll(read_log, { timeout: 15000 }).toContain("deleted 4");
 
-	const data = readFileSync(
-		"../../demo/unload_event_test/output_log.txt",
-		"utf-8"
-	);
+	const data = read_log();
 	expect(data).toContain("incremented 0");
 	expect(data).toContain("incremented 1");
 	expect(data).toContain("incremented 2");

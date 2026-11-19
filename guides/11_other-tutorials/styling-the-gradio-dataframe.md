@@ -18,7 +18,7 @@ You can [read the Guide to Blocks first](https://gradio.app/blocks-and-event-lis
 
 ## The Pandas `Styler`
 
-The Gradio `DataFrame` component now supports values of the type `Styler` from the `pandas` class. This allows us to reuse the rich existing API and documentation of the `Styler` class instead of inventing a new style format on our own. Here's a complete example of how it looks:
+The Gradio `DataFrame` component now supports values of the type `Styler` from the `pandas` class. The `Styler` needs the `jinja2` package, which is not installed with Gradio or pandas, so install it first with `pip install jinja2`. This allows us to reuse the rich existing API and documentation of the `Styler` class instead of inventing a new style format on our own. Here's a complete example of how it looks:
 
 ```python
 import pandas as pd 

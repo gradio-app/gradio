@@ -4,7 +4,7 @@ import time
 
 import gradio as gr
 import pytest
-from pydub import AudioSegment
+from gradio._vendor.pydub import AudioSegment
 
 
 def pytest_configure(config):
@@ -92,7 +92,7 @@ def calculator_demo_with_defaults():
 
 @pytest.fixture
 def state_demo():
-    state = gr.State(delete_callback=lambda x: print("STATE DELETED"))
+    state = gr.State(storage="server", delete_callback=lambda x: print("STATE DELETED"))
     demo = gr.Interface(
         lambda x, y: (x, y),
         ["textbox", state],

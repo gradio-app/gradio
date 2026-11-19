@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import inspect
 
-from rich.console import Console
-from rich.table import Table
+import click
 
-import gradio._simple_templates
-import gradio.components
-import gradio.layouts
+from gradio import _components_package
 from gradio.analytics import custom_component_analytics
 from gradio.blocks import BlockContext
-from gradio.components import Component, FormComponent
+from gradio.cli.commands.display import format_table
+from gradio.components.base import Component, FormComponent
 
 _IGNORE = {
     "Text",
@@ -32,7 +30,7 @@ _IGNORE = {
 _BEGINNER_FRIENDLY = {"Slider", "Radio", "Checkbox", "Number", "CheckboxGroup", "File"}
 
 
-def _get_table_items(module):
+def _get_table_items(module, layout_names=()):
     items = []
     for name in module.__all__:
         if name in _IGNORE:
@@ -44,11 +42,11 @@ def _get_table_items(module):
             continue
         tags = []
         if "Simple" in name or name in _BEGINNER_FRIENDLY:
-            tags.append(":seedling::handshake:Beginner Friendly:seedling::handshake:")
+            tags.append("Beginner Friendly")
         if issubclass(gr_cls, FormComponent):
-            tags.append(":pencil::jigsaw:Form Component:pencil::jigsaw:")
-        if name in gradio.layouts.__all__:
-            tags.append(":triangular_ruler:Layout:triangular_ruler:")
+            tags.append("Form Component")
+        if name in layout_names:
+            tags.append("Layout")
         doc = inspect.getdoc(gr_cls) or "No description available."
         doc = doc.split(".")[0]
         if tags:
@@ -66,18 +64,18 @@ def _show():
         upload_pypi=None,
         upload_source=None,
     )
+    components = _components_package.require("`gradio cc show`")
+    import gradio_components._simple_templates as simple_templates
+    from gradio_components import layouts
+
     items = (
-        _get_table_items(gradio._simple_templates)
-        + _get_table_items(gradio.components)
-        + _get_table_items(gradio.layouts)
+        _get_table_items(simple_templates)
+        + _get_table_items(components)
+        + _get_table_items(layouts, layout_names=layouts.__all__)
     )
-    table = Table(show_header=True, header_style="orange1", show_lines=True)
-    table.add_column("Name", justify="center")
-    table.add_column("Description", justify="center")
+    click.echo_via_pager(format_table(("Name", "Description"), items) + "\n")
 
-    for item in items:
-        table.add_row(*item)
 
-    console = Console()
-    with console.pager():
-        console.print(table)
+show_command = click.Command(
+    name="show", callback=_show, help="Show the list of available templates"
+)

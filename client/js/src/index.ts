@@ -7,6 +7,7 @@ export { submit } from "./utils/submit";
 export { upload_files } from "./utils/upload_files";
 export { FileData, upload, prepare_files } from "./upload";
 export { handle_file } from "./helpers/data";
+export type { ResumableJob } from "./utils/session";
 export { get_zerogpu_origin } from "./helpers/zerogpu";
 export {
 	initialize_console_forwarding,
@@ -20,6 +21,7 @@ export {
 	clear_run_history,
 	consume_run_history_replay,
 	delete_run_history,
+	load_run_history,
 	on_run_history_change,
 	read_run_history,
 	read_run_history_storage,

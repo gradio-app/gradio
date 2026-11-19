@@ -31,6 +31,7 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
+START_TIMEOUT = float(os.getenv("GRADIO_START_TIMEOUT", "5"))
 
 GRADIO_HOT_RELOAD = os.getenv("GRADIO_HOT_RELOAD", "false").lower()
 
@@ -69,7 +70,7 @@ class Server(uvicorn.Server):
         start = time.time()
         while not self.started:
             time.sleep(1e-3)
-            if time.time() - start > 5:
+            if time.time() - start > START_TIMEOUT:
                 raise ServerFailedToStartError(
                     "Server failed to start. Please check that the port is available."
                 )
@@ -95,6 +96,7 @@ def start_server(
     ssl_keyfile: str | None = None,
     ssl_certfile: str | None = None,
     ssl_keyfile_password: str | None = None,
+    forwarded_allow_ips: list[str] | None = None,
 ) -> tuple[str, int, str, Server]:
     """Launches a local server running the provided Interface
     Parameters:
@@ -105,6 +107,7 @@ def start_server(
         ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
         ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
+        forwarded_allow_ips: The proxies trusted for X-Forwarded-For and X-Forwarded-Proto. If None, uvicorn uses the FORWARDED_ALLOW_IPS environment variable, or loopback.
 
     Returns:
         server_name: the name of the server (default is "localhost")
@@ -155,8 +158,9 @@ def start_server(
                 ssl_keyfile=ssl_keyfile,
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
+                forwarded_allow_ips=forwarded_allow_ips,
             )
-            if get_space() is not None:
+            if get_space() is not None and not os.environ.get("GRADIO_PROCESS_GATEWAY"):
                 reloader = SpacesReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,
@@ -167,7 +171,7 @@ def start_server(
                 server = Server(
                     config=config, reloader=reloader, watchfn=watchfn_spaces
                 )
-            elif GRADIO_WATCH_DIRS:
+            elif GRADIO_WATCH_DIRS and not os.environ.get("GRADIO_PROCESS_GATEWAY"):
                 reloader = SourceFileReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,

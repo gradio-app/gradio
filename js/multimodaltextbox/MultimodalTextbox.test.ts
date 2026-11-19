@@ -1,4 +1,4 @@
-import { test, describe, afterEach, expect } from "vitest";
+import { test, describe, afterEach, expect, vi } from "vitest";
 import {
 	cleanup,
 	render,
@@ -13,6 +13,7 @@ import {
 import { run_shared_prop_tests } from "@self/tootils/shared-prop-tests";
 import event from "@testing-library/user-event";
 import { tick } from "svelte";
+import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 
 import MultimodalTextbox from "./Index.svelte";
 
@@ -151,6 +152,43 @@ describe("Props: sources", () => {
 		expect(
 			queryByRole("button", { name: "Upload a file" })
 		).not.toBeInTheDocument();
+	});
+});
+
+describe("Props: microphone_options", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+		cleanup();
+	});
+
+	test("constraints are passed to the mic along with the device", async () => {
+		const constraints = { echoCancellation: false, autoGainControl: true };
+		vi.spyOn(RecordPlugin, "getAvailableAudioDevices").mockResolvedValue([
+			{
+				deviceId: "mic-1",
+				label: "mic-1",
+				kind: "audioinput"
+			} as MediaDeviceInfo
+		]);
+		const start_mic = vi
+			.spyOn(RecordPlugin.prototype, "startMic")
+			.mockResolvedValue(new MediaStream());
+		vi.spyOn(RecordPlugin.prototype, "startRecording").mockResolvedValue(
+			undefined
+		);
+		const { getByRole } = await render(MultimodalTextbox, {
+			...default_props,
+			sources: ["microphone"],
+			microphone_options: { constraints }
+		});
+
+		await fireEvent.click(getByRole("button", { name: "Record audio" }));
+
+		await waitFor(() => expect(start_mic).toHaveBeenCalled());
+		expect(start_mic).toHaveBeenCalledWith({
+			...constraints,
+			deviceId: "mic-1"
+		});
 	});
 });
 

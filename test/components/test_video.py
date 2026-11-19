@@ -20,16 +20,12 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+from gradio_components import video as video_module
+from gradio_components.video import _audio_lead_tolerance, _stream_states, _VideoStream
 
 import gradio as gr
 from gradio import processing_utils
 from gradio.audio_stream_encoder import AAC_FRAME_SAMPLES, AacStreamEncoder
-from gradio.components import video as video_module
-from gradio.components.video import (
-    _audio_lead_tolerance,
-    _stream_states,
-    _VideoStream,
-)
 from gradio.data_classes import FileData
 
 AUDIO_RATE = 44100
@@ -362,7 +358,7 @@ class TestVideo:
             "value": None,
             "interactive": None,
             "proxy_url": None,
-            "webcam_options": {"constraints": None, "mirror": True},
+            "webcam_options": {"constraints": None, "mirror": "auto"},
             "include_audio": True,
             "format": None,
             "_selectable": False,
@@ -886,7 +882,7 @@ class TestVideo:
         video = gr.Video(streaming=True)
         stream_id = "session/0/1/silent.m3u8"
         try:
-            with caplog.at_level(logging.WARNING, logger="gradio.components.video"):
+            with caplog.at_level(logging.WARNING, logger="gradio_components.video"):
                 segment, _ = await video.stream_output(str(source), stream_id, True)
         finally:
             video.end_stream_output(stream_id)
@@ -1297,6 +1293,25 @@ class TestVideo:
         assert "flip" not in Path(list(output_params.keys())[0]).name
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
+
+    @patch("pathlib.Path.exists", MagicMock(return_value=False))
+    @patch("gradio.components.video.FFmpeg")
+    def test_video_preprocessing_follows_mirrored_flag(self, mock_ffmpeg, media_data):
+        path = media_data.BASE64_VIDEO["path"]
+        not_mirrored = FileData(
+            path=path, meta={"_type": "gradio.FileData", "mirrored": False}
+        )
+        mirrored = FileData(
+            path=path, meta={"_type": "gradio.FileData", "mirrored": True}
+        )
+
+        gr.Video(sources=["webcam"], include_audio=True).preprocess(not_mirrored)
+        gr.Video(sources=["upload"], include_audio=True).preprocess(mirrored)
+        mock_ffmpeg.assert_not_called()
+
+        gr.Video(sources=["upload", "webcam"], include_audio=True).preprocess(mirrored)
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert "hflip" in list(output_params.values())[0]
 
     @patch("gradio.components.video.FFmpeg")
     def test_format_conversion_output_depends_on_include_audio(

@@ -5,3 +5,4 @@ torch
 pydub
 transformers
 huggingface_hub
+audioop-lts; python_version >= "3.13"

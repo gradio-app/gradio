@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
-    from gradio.components import State
+    from gradio.components.state import State
 
 
 class StateHolder:
@@ -99,7 +99,7 @@ class SessionState:
         return default
 
     def __setitem__(self, key: int, value: Any):
-        from gradio.components import State
+        from gradio.components.state import State
 
         block = self.blocks_config.blocks.get(key)
         if isinstance(block, State):
@@ -111,15 +111,19 @@ class SessionState:
         else:
             self.blocks_config.blocks[key] = value
         if block:
-            self.config_values[key] = self.blocks_config.config_for_block(
-                key, [], block
-            )
+            self._set_config(key, block)
 
     def _update_config(self, key: int):
         if self[key] is not None:
-            self.config_values[key] = self.blocks_config.config_for_block(
-                key, [], self[key]
-            )
+            self._set_config(key, self[key])
+
+    def _set_config(self, key: int, block: Any):
+        # Blocks do not track the value their component has in the session, so
+        # carry it over (e.g. when an update only changes the component's props).
+        props = self.config_values.get(key, {}).get("props", {})
+        self.config_values[key] = self.blocks_config.config_for_block(key, [], block)
+        if "value" in props:
+            self._update_value_in_config(key, props["value"])
 
     def _update_value_in_config(self, key: int, value: Any):
         if key not in self.config_values:
@@ -146,7 +150,7 @@ class SessionState:
 
     @property
     def state_components(self) -> Iterator[tuple[State, Any, bool]]:
-        from gradio.components import State
+        from gradio.components.state import State
 
         state_ids_to_delete = []
         for _id in self.state_data:

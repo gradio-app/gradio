@@ -7,7 +7,7 @@ import pytest
 from gradio_client import utils as client_utils
 
 import gradio as gr
-from gradio.components.image import ImageData  # type: ignore
+from gradio.data_classes import ImageData
 from gradio.exceptions import Error
 from gradio.media import get_image
 
@@ -49,7 +49,7 @@ class TestImage:
             "interactive": None,
             "format": "webp",
             "proxy_url": None,
-            "webcam_options": {"constraints": None, "mirror": True},
+            "webcam_options": {"constraints": None, "mirror": "auto"},
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],

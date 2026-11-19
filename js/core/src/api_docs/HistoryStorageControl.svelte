@@ -350,8 +350,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		color: var(--body-text-color-subdued, #71717a);
-		font-size: 14px;
+		color: var(--body-text-color);
 	}
 	.storage-picker {
 		position: relative;
@@ -395,8 +394,7 @@
 		color: var(--body-text-color-subdued, #71717a);
 	}
 	.storage-detail {
-		color: var(--body-text-color-subdued, #71717a);
-		font-size: 13px;
+		color: var(--body-text-color);
 	}
 	.storage-menu {
 		position: absolute;

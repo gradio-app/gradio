@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import ast
 import inspect
+import re
 from abc import ABCMeta
 from functools import wraps
 from pathlib import Path
-
-from jinja2 import Template
 
 from gradio.events import EventListener
 from gradio.exceptions import ComponentDefinitionError
@@ -37,7 +36,7 @@ INTERFACE_TEMPLATE = '''
         cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
         every: Timer | float | None = None,
         trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
         api_visibility: Literal["public", "private", "undocumented"] = "public",
@@ -83,15 +82,50 @@ INTERFACE_TEMPLATE = '''
 '''
 
 
+_EVENT_LOOP = "{% for event in events %}"
+_ARG_LOOP = re.compile(
+    r"\{% for arg in event\.event_specific_args %\}(.*?)\{% endfor %\}", re.DOTALL
+)
+
+
+def _render_interface(contents: str, events: list[EventListener]) -> str:
+    """Fills in INTERFACE_TEMPLATE: the class's code, then one method for each
+    event, each listing that event's own arguments."""
+    head, rest = INTERFACE_TEMPLATE.split(_EVENT_LOOP, 1)
+    event_body, tail = rest.rsplit("{% endfor %}", 1)
+
+    def render_event(event: EventListener) -> str:
+        def render_args(match: re.Match[str]) -> str:
+            return "".join(
+                match.group(1)
+                .replace("{{ arg.name }}", str(arg.get("name", "")))
+                .replace("{{ arg.type }}", str(arg.get("type", "")))
+                .replace("{{ arg.doc }}", str(arg.get("doc", "")))
+                for arg in event.event_specific_args
+            )
+
+        return _ARG_LOOP.sub(render_args, event_body).replace(
+            "{{ event.event_name }}", event.event_name
+        )
+
+    rendered = (
+        head.replace("{{ contents }}", contents)
+        + "".join(render_event(event) for event in events)
+        + tail
+    )
+    # A single trailing newline is dropped, as the template engine this
+    # replaced did, so that generated stubs stay byte-for-byte the same.
+    return rendered.removesuffix("\n")
+
+
 def create_pyi(class_code: str, events: list[EventListener | str]):
-    template = Template(INTERFACE_TEMPLATE)
     event_template = [
         e
         if isinstance(e, EventListener)
         else EventListener(event_name=e, event_specific_args=[])
         for e in events
     ]
-    return template.render(events=event_template, contents=class_code)
+    return _render_interface(class_code, event_template)
 
 
 def extract_class_source_code(

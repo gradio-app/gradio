@@ -11,11 +11,11 @@ function inject_ejs() {
 		transformIndexHtml: (html) => {
 			const replace_gradio_info_info_html = html.replace(
 				/%gradio_api_info%/,
-				`<script>window.gradio_api_info = {{ gradio_api_info | toorjson }};</script>`
+				`<script>window.gradio_api_info = {{ gradio_api_info_json }};</script>`
 			);
 			return replace_gradio_info_info_html.replace(
 				/%gradio_config%/,
-				`<script>window.gradio_config = {{ config | toorjson }};</script>`
+				`<script>window.gradio_config = {{ config_json }};</script>`
 			);
 		}
 	};

@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-import importlib.resources
 import json
 import textwrap
 from collections.abc import Iterable
 from pathlib import Path
 
-STATIC_FONTS_DIR = Path(
-    importlib.resources.files("gradio")
-    .joinpath("templates/frontend/static/fonts")
-    .as_posix()
-)
+from gradio import _components_package
+
+STATIC_FONTS_DIR = _components_package.frontend_dir() / "frontend" / "static" / "fonts"
 
 WEIGHT_TO_FILENAME = {
     100: "Thin",

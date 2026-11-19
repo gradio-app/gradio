@@ -12,7 +12,7 @@ with gr.Blocks() as demo:
         volumes = []
         with gr.Row():
             for i in range(count):
-                with gr.Column(variant="panel", min_width=200):
+                with gr.Column(min_width=200):
                     gr.Textbox(placeholder="Track Name", key=f"name-{i}", show_label=False)
                     track_audio = gr.Audio(label=f"Track {i}", key=f"track-{i}")
                     track_volume = gr.Slider(0, 100, value=100, label="Volume", key=f"volume-{i}")

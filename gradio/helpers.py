@@ -13,6 +13,7 @@ import shutil
 import uuid
 import warnings
 from collections.abc import Callable, Iterable, MutableMapping, Sequence
+from contextlib import ExitStack, contextmanager
 from functools import partial
 from pathlib import Path
 from threading import Lock
@@ -28,13 +29,12 @@ from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
-from gradio.flagging import CSVLogger
 from gradio.i18n import I18nData
 from gradio.route_utils import Header
 from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.components import Component
+    from gradio.components.base import Component
 
 LOG_FILE = "log.csv"
 # Marks an input whose value should not change when an example is loaded
@@ -343,6 +343,8 @@ class Examples:
                 sample_labels=example_labels,
             )
 
+        from gradio_components.flagging import CSVLogger
+
         self.cache_logger = CSVLogger(
             simplify_file_data=False, verbose=False, dataset_file_name="log.csv"
         )
@@ -489,7 +491,8 @@ class Examples:
                         load_example_input,
                         inputs=[
                             components.State(
-                                (self.preload, self.non_none_examples[self.preload])
+                                (self.preload, self.non_none_examples[self.preload]),
+                                storage="server",
                             )
                         ],
                         outputs=self.inputs,
@@ -502,7 +505,8 @@ class Examples:
                         load_example_output,
                         inputs=[
                             components.State(
-                                (self.preload, self.non_none_examples[self.preload])
+                                (self.preload, self.non_none_examples[self.preload]),
+                                storage="server",
                             )
                         ],
                         outputs=self.outputs,
@@ -777,6 +781,9 @@ class TrackedIterable:
         self._tqdm = _tqdm
         self.progress = progress
 
+    def __getstate__(self):
+        return {**self.__dict__, "iterable": None, "_tqdm": None}
+
 
 @document("__call__", "tqdm")
 class Progress(Iterable):
@@ -1015,13 +1022,16 @@ def create_tracker(fn, track_tqdm):
     progress = Progress(track_tqdm=track_tqdm)
     if not track_tqdm:
         return progress, fn
-    return progress, utils.function_wrapper(
-        f=fn,
-        before_fn=LocalContext.progress.set,
-        before_args=(progress,),
-        after_fn=LocalContext.progress.set,
-        after_args=(None,),
-    )
+
+    @contextmanager
+    def context():
+        with ExitStack() as stack:
+            yield stack.callback(
+                LocalContext.progress.reset,
+                LocalContext.progress.set(progress),
+            )
+
+    return progress, utils.function_wrapper(fn, context)
 
 
 def _session_from_request(request: Any) -> MutableMapping[str, Any]:

@@ -64,6 +64,12 @@ def builder(*args, **kwargs):
   background-color: rgba(0, 0, 0, .5);
   box-shadow: 0 0 1px rgba(255, 255, 255, .5);
 }
+.panel {
+    border: solid var(--panel-border-width) var(--panel-border-color);
+    border-radius: var(--container-radius);
+    background: var(--panel-background-fill);
+    padding: var(--spacing-lg);
+}
 """
     return demo.launch(
         *args,

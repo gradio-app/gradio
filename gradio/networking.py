@@ -10,7 +10,7 @@ import time
 import warnings
 from pathlib import Path
 
-import httpx
+import httpx2
 
 from gradio.exceptions import ShareCertificateWriteError
 from gradio.routes import App  # HACK: to avoid circular import # noqa: F401
@@ -34,7 +34,7 @@ def setup_tunnel(
     )
     if share_server_address is None:
         try:
-            response = httpx.get(GRADIO_API_SERVER, timeout=30)
+            response = httpx2.get(GRADIO_API_SERVER, timeout=30)
             payload = response.json()[0]
             remote_host, remote_port = payload["host"], int(payload["port"])
             certificate = payload["root_ca"]
@@ -72,12 +72,12 @@ def url_ok(url: str) -> bool:
         for _ in range(5):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore")
-                r = httpx.head(url, timeout=3, verify=False)
+                r = httpx2.head(url, timeout=3, verify=False)
             if (
                 r.status_code in (200, 401, 301, 302, 303, 307, 308)
             ):  # 401 or 302 if auth is set; 303 or 307 are alternatives to 302 for temporary redirects; 301 and 308 are permanent redirects
                 return True
             time.sleep(0.500)
-    except (ConnectionError, httpx.ConnectError, httpx.TimeoutException):
+    except (ConnectionError, httpx2.ConnectError, httpx2.TimeoutException):
         return False
     return False

@@ -6,12 +6,6 @@ from typing import TYPE_CHECKING, Literal
 
 from . import utils
 
-try:
-    import spaces  # type: ignore
-except Exception:
-    spaces = None  # type: ignore[assignment]
-
-
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
     from gradio.renderable import Renderable
@@ -37,7 +31,7 @@ class BlockFunction:
         tracks_progress: bool = False,
         api_name: str | None = None,
         api_description: str | None | Literal[False] = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Sequence[Component] | None = None,
         cancels: list[int] | None = None,
@@ -61,7 +55,6 @@ class BlockFunction:
         input_keyword_names: list[str] | None = None,
         input_parameter_names: list[str | None] | None = None,
         page: str = "",
-        js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
         is_validator_function: bool = False,
@@ -105,8 +98,6 @@ class BlockFunction:
         self.page = page
         self.validator = validator
         self.is_validator_function = is_validator_function
-        if js_implementation:
-            self.fn.__js_implementation__ = js_implementation  # type: ignore
 
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
@@ -119,15 +110,6 @@ class BlockFunction:
         self.input_keyword_names = input_keyword_names or []
         self.input_parameter_names = input_parameter_names or []
         self.key = key
-
-        self.spaces_auto_wrap()
-
-    def spaces_auto_wrap(self):
-        if spaces is None:
-            return
-        if utils.get_space() is None:
-            return
-        self.fn = spaces.gradio_auto_wrap(self.fn)
 
     def __str__(self):
         return str(
@@ -177,5 +159,4 @@ class BlockFunction:
             "stream_every": self.stream_every,
             "event_specific_args": self.event_specific_args,
             "component_prop_inputs": self.component_prop_inputs,
-            "js_implementation": getattr(self.fn, "__js_implementation__", None),
         }

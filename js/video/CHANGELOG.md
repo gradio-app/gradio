@@ -1,5 +1,17 @@
 # @gradio/video
 
+## 0.24.0-dev.0
+
+### Features
+
+- [#13926](https://github.com/gradio-app/gradio/pull/13926) [`db0658d`](https://github.com/gradio-app/gradio/commit/db0658d31036c9c4acba07d8153aa1ff6671420a) - Mirror the webcam only for front-facing cameras by default.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/upload@0.19.2-dev.0
+- @gradio/client@2.8.0-dev.0
+- @gradio/image@0.29.0-dev.0
+
 ## 0.23.3
 
 ### Dependency updates

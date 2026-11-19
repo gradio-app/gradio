@@ -12,6 +12,7 @@
 
 
     let obj = get_object("multimodaltextbox");
+    let microphone_obj = get_object("microphoneoptions");
 </script>
 
 <!--- Title -->
@@ -54,6 +55,29 @@ gradio.MultimodalTextbox(···)
 ### Event Listeners 
 <FunctionsSection fns={obj.fns} event_listeners={true} />
 {/if}
+
+<!-- Helper Classes -->
+### Helper Classes 
+<div style="margin-left: 3rem">
+
+<!--- Title -->
+### MicrophoneOptions
+
+
+<!--- Usage -->
+```python
+gradio.MicrophoneOptions(···)
+```
+
+<!--- Description -->
+#### Description
+## {@html style_formatted_text(microphone_obj.description)}
+
+<!--- Initialization -->
+#### Initialization
+<ParamTable parameters={microphone_obj.parameters} anchor_links={microphone_obj.name}/>
+
+</div>
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->

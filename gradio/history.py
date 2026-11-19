@@ -14,7 +14,7 @@ import threading
 import time
 from collections import OrderedDict
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any, NamedTuple
 from urllib.parse import unquote, urlparse
 
@@ -81,7 +81,7 @@ def new_record_id() -> str:
 
 def now_utc_iso() -> str:
     """Millisecond precision, matching the browser's `Date.toISOString()`."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return f"{now:%Y-%m-%dT%H:%M:%S}.{now.microsecond // 1000:03d}Z"
 
 

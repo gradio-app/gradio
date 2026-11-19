@@ -44,7 +44,7 @@
 </script>
 
 <div class="wrap" class:min-h-screen={app_mode}>
-	<BaseColumn variant="panel" min_width={480}>
+	<BaseColumn elem_classes={["login-panel"]} min_width={480}>
 		<h2>{i18n("login.login")}</h2>
 		{#if auth_message}
 			<p class="auth">{@html auth_message}</p>
@@ -97,6 +97,13 @@
 		margin-top: var(--size-3);
 		background: var(--background-fill-primary);
 		width: var(--size-full);
+	}
+
+	.wrap :global(.login-panel) {
+		border: solid var(--panel-border-width) var(--panel-border-color);
+		border-radius: var(--container-radius);
+		background: var(--panel-background-fill);
+		padding: var(--spacing-lg);
 	}
 
 	h2 {

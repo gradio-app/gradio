@@ -6,9 +6,6 @@ test("shared props reach affected components in a running app", async ({
 	await page.emulateMedia({ colorScheme: "dark" });
 	await page.reload();
 
-	await expect(page.locator("#panel-column")).toHaveClass(/\bpanel\b/);
-	await expect(page.locator("#compact-column")).toHaveClass(/\bcompact\b/);
-
 	await expect(page.locator("#padded-html")).toHaveClass(/\bpadded\b/);
 	await expect(page.locator("#unpadded-html")).not.toHaveClass(/\bpadded\b/);
 

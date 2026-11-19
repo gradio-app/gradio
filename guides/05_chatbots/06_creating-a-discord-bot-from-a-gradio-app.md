@@ -71,7 +71,7 @@ If that is working, we are ready to add Gradio-specific code. We will be using t
 ```python
 import discord
 from gradio_client import Client, handle_file
-import httpx
+import httpx2
 import os
 
 TOKEN = #PASTE YOUR DISCORD BOT TOKEN HERE
@@ -83,7 +83,7 @@ client = discord.Client(intents=intents)
 gradio_client = Client("abidlabs/gradio-playground-bot")
 
 def download_image(attachment):
-    response = httpx.get(attachment.url)
+    response = httpx2.get(attachment.url)
     image_path = f"./images/{attachment.filename}"
     os.makedirs("./images", exist_ok=True)
     with open(image_path, "wb") as f:

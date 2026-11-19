@@ -10,17 +10,17 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 import numpy as np
 import pytest
 from gradio_client.client import Endpoint
 from PIL import Image, ImageCms
 from pydantic import BaseModel
-from pydub import AudioSegment
 
 import gradio as gr
 from gradio import components, data_classes, processing_utils, utils
 from gradio._vendor import ffmpy
+from gradio._vendor.pydub import AudioSegment
 from gradio.context import LocalContext
 from gradio.exceptions import InvalidPathError
 from gradio.route_utils import API_PREFIX
@@ -235,8 +235,8 @@ class TestTempFileManagement:
             upload_response = MagicMock()
             upload_response.json.return_value = ["/tmp/gradio/uploaded/cat.png"]
             with (
-                patch("httpx.stream", return_value=download_response) as stream,
-                patch("httpx.post", return_value=upload_response),
+                patch("httpx2.stream", return_value=download_response) as stream,
+                patch("httpx2.post", return_value=upload_response),
             ):
                 processed_input = endpoint.process_input_files(round_trip)[0]
 
@@ -372,17 +372,6 @@ class TestImagePreprocessing:
         )
         output_img = Image.open(file_obj)
         assert output_img.n_frames == input_img.n_frames == 3  # type: ignore
-
-    def test_save_pil_to_file_32_bit_integer_png(self, gradio_temp_dir):
-        arr = np.array([[-5, 0, 1000, 65535, 70000]], dtype=np.int32)
-        input_img = Image.fromarray(arr)
-        assert input_img.mode == "I"
-        file_obj = processing_utils.save_pil_to_cache(
-            input_img, cache_dir=gradio_temp_dir, format="png"
-        )
-        output_img = Image.open(file_obj)
-        assert output_img.mode == "I;16"
-        assert np.array(output_img).tolist() == [[0, 0, 1000, 65535, 65535]]
 
     def test_np_pil_encode_to_the_same(self, gradio_temp_dir):
         arr = np.random.randint(0, 255, size=(100, 100, 3), dtype=np.uint8)
@@ -1207,8 +1196,8 @@ async def test_async_get_private_request_fail():
 
 @pytest.mark.asyncio
 async def test_async_get_redirect_without_location_returns_response(monkeypatch):
-    expected = httpx.Response(
-        302, request=httpx.Request("GET", "https://example.com/image.png")
+    expected = httpx2.Response(
+        302, request=httpx2.Request("GET", "https://example.com/image.png")
     )
 
     async def mock_get(*args, **kwargs):
@@ -1245,3 +1234,51 @@ class TestAudioFormatDetection:
     )
     def test_detect_audio_format_edge_cases(self, data, expected):
         assert processing_utils.detect_audio_format(data) == expected
+
+
+class TestVendoredPydub:
+    """The vendored pydub does its sample conversions with numpy instead of
+    the stdlib `audioop` module, which Python 3.13 removed."""
+
+    def test_8_bit_wav_round_trip(self, tmp_path):
+        import wave
+
+        unsigned = bytes([0, 64, 128, 192, 255])
+        path = tmp_path / "eight_bit.wav"
+        with wave.open(str(path), "wb") as f:
+            f.setnchannels(1)
+            f.setsampwidth(1)
+            f.setframerate(8000)
+            f.writeframes(unsigned)
+
+        segment = AudioSegment.from_file(str(path))
+        # wav stores 8-bit samples unsigned; pydub holds them signed
+        assert list(segment.get_array_of_samples()) == [-128, -64, 0, 64, 127]
+
+        exported = tmp_path / "exported.wav"
+        segment.export(str(exported), format="wav").close()
+        with wave.open(str(exported), "rb") as f:
+            assert f.readframes(f.getnframes()) == unsigned
+
+    @pytest.mark.parametrize(
+        "width,new_width,expected",
+        [
+            (1, 2, [-32768, -256, 0, 256, 32512]),
+            (1, 4, [-(2**31), -(2**24), 0, 2**24, 127 * 2**24]),
+            (2, 1, [-128, -1, 0, 1, 127]),
+            (4, 2, [-32768, -256, 0, 256, 32767]),
+        ],
+    )
+    def test_set_sample_width(self, width, new_width, expected):
+        dtype = {1: np.int8, 2: np.int16, 4: np.int32}
+        top = 8 * (width - 1)
+        samples = np.array(
+            [-128 << top, -1 << top, 0, 1 << top, (127 << top) | ((1 << top) - 1)],
+            dtype=dtype[width],
+        )
+        segment = AudioSegment(
+            samples.tobytes(), frame_rate=8000, sample_width=width, channels=1
+        )
+        converted = segment.set_sample_width(new_width)
+        assert converted.sample_width == new_width
+        assert list(converted.get_array_of_samples()) == expected

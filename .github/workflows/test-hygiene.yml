@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - 5.0-dev
+      - 7.0-dev
 
 concurrency:
   group: "${{ github.event.pull_request.number }}-${{ github.ref_name }}-${{ github.workflow }}"
@@ -25,7 +25,7 @@ jobs:
         run: |
           python3 -m venv venv
           . venv/bin/activate
-          pip install -e client/python . && python scripts/generate_skill.py --check
+          pip install -e client/python . -e components/python && python scripts/generate_skill.py --check
       - name: Check for large files
         uses: actionsdesk/lfs-warning@4b98a8a5e6c429c23c34eee02d71553bca216425 # @v3.3
         with:

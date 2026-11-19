@@ -5,14 +5,15 @@ from functools import partial
 from string import capwords
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 import pytest
+from gradio_components.image import Image
+from gradio_components.interface import Interface, TabbedInterface, close_all, os
+from gradio_components.layouts import TabItem, Tabs
+from gradio_components.textbox import Textbox
 
 import gradio
 from gradio.blocks import Blocks
-from gradio.components import Image, Textbox
-from gradio.interface import Interface, TabbedInterface, close_all, os
-from gradio.layouts import TabItem, Tabs
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 
@@ -32,11 +33,11 @@ class TestInterface:
     def test_close(self):
         io = Interface(lambda input: None, "textbox", "label")
         _, local_url, _ = io.launch(prevent_thread_lock=True)
-        response = httpx.get(local_url)
+        response = httpx2.get(local_url)
         assert response.status_code == 200
         io.close()
         with pytest.raises(Exception):
-            response = httpx.get(local_url)
+            response = httpx2.get(local_url)
 
     def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
@@ -113,7 +114,7 @@ class TestInterface:
         mock_setup_tunnel.side_effect = RuntimeError()
         mock_colab_check.return_value = True
         interface = Interface(lambda x: x, "textbox", "label")
-        _, _, share_url = interface.launch(prevent_thread_lock=True)
+        _, _, share_url = interface.launch(prevent_thread_lock=True, executor="thread")
         assert share_url is None
         interface.close()
 
@@ -184,6 +185,25 @@ class TestInterface:
             None,
         )
         assert dependency and dependency["show_progress"] == "hidden"
+
+    def test_flag_button_saves_after_showing_saving(self):
+        # Listeners of one click run at the same time, so the flag call must
+        # be chained after the "Saving..." update or it can finish first and
+        # leave the button disabled.
+        io = Interface(lambda x: x, "textbox", "textbox", flagging_mode="manual")
+        dependencies = io.config["dependencies"]  # type: ignore
+        flag_btn = next(
+            c["id"]
+            for c in io.config["components"]  # type: ignore
+            if c.get("props", {}).get("value") == "Flag"
+        )
+        click_deps = [
+            d for d in dependencies if (flag_btn, "click") in map(tuple, d["targets"])
+        ]
+        assert len(click_deps) == 1
+        assert [
+            d for d in dependencies if d.get("trigger_after") == click_deps[0]["id"]
+        ]
 
     def test_interface_in_blocks_does_not_error(self):
         with Blocks():

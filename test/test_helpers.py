@@ -11,12 +11,12 @@ from unittest.mock import patch
 import gradio_client as grc
 import pytest
 from gradio_client import utils as client_utils
-from pydub import AudioSegment
 from starlette.testclient import TestClient
 from tqdm import tqdm
 
 import gradio as gr
 from gradio import helpers, oauth, routes, utils
+from gradio._vendor.pydub import AudioSegment
 from gradio.media import get_audio, get_image
 from gradio.route_utils import API_PREFIX
 
@@ -223,7 +223,8 @@ class TestExamplesDataset:
             )
 
 
-def test_example_caching_relaunch(connect):
+@patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
+def test_example_caching_relaunch(patched_cache_folder, connect):
     def combine(a, b):
         return a + " " + b
 

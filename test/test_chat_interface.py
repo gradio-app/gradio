@@ -2,16 +2,15 @@ import tempfile
 import warnings
 from concurrent.futures import wait
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 from unittest.mock import patch
 
 import pytest
 from gradio_client import handle_file
-from typing_extensions import Self
+from gradio_components.chatbot import Message, TextMessage
+from gradio_components.plot import PlotData
 
 import gradio as gr
-from gradio.components.chatbot import Message, TextMessage
-from gradio.components.plot import PlotData
 
 
 def invalid_fn(message):

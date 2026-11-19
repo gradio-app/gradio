@@ -20,11 +20,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urljoin, urlparse
 
-import httpx
-import numpy as np
+import httpx2
 import safehttpx as sh
 from gradio_client import utils as client_utils
-from PIL import Image, ImageOps, ImageSequence, PngImagePlugin
 
 from gradio import utils
 from gradio._vendor import aiofiles
@@ -36,18 +34,29 @@ from gradio.profiling import traced_sync
 from gradio.route_utils import API_PREFIX
 from gradio.utils import abspath, get_hash_seed, get_upload_folder, is_in_or_equal
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
-    from pydub import AudioSegment
+
+def _audio_segment():
+    """The vendored pydub's `AudioSegment`. It is imported on first use because it
+    needs numpy, which comes with gradio_components and not with core Gradio."""
+    with warnings.catch_warnings():
+        # Ignore pydub's warning if ffmpeg is not installed
+        warnings.simplefilter("ignore")
+        from gradio._vendor.pydub import AudioSegment
+
+    return AudioSegment
+
 
 sync_transport = None
 async_transport = None
 
-sync_client = httpx.Client(transport=sync_transport)
+sync_client = httpx2.Client(transport=sync_transport)
 
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
+    import numpy as np
+    from PIL import Image
+
     from gradio.blocks import Block
 
 
@@ -85,9 +94,9 @@ def _get_original_url_from_proxy(url: str, proxy_url: str) -> str | None:
         return None
 
     try:
-        parsed_original_url = httpx.URL(original_url)
-        parsed_proxy_url = httpx.URL(proxy_url)
-    except httpx.InvalidURL:
+        parsed_original_url = httpx2.URL(original_url)
+        parsed_proxy_url = httpx2.URL(proxy_url)
+    except httpx2.InvalidURL:
         return None
     if (
         parsed_original_url.scheme,
@@ -122,6 +131,8 @@ def get_pil_exif_bytes(pil_image):
 
 
 def get_pil_metadata(pil_image):
+    from PIL import PngImagePlugin
+
     # Copy any text-only metadata
     metadata = PngImagePlugin.PngInfo()
     for key, value in pil_image.info.items():
@@ -132,6 +143,15 @@ def get_pil_metadata(pil_image):
 
 
 def encode_pil_to_bytes(pil_image, format="png"):
+    from PIL import ImageSequence
+
+    if format.lower() == "png" and pil_image.mode == "I":
+        raise OSError(
+            "Cannot save a 32-bit integer (I-mode) image as PNG without losing data. "
+            "If all pixel values are between 0 and 65535, explicitly convert the "
+            "image with image.convert('I;16') before returning it. Otherwise, use "
+            "a format such as TIFF to preserve the 32-bit integer values."
+        )
     with BytesIO() as output_bytes:
         if format.lower() == "gif":
             frames = [frame.copy() for frame in ImageSequence.Iterator(pil_image)]
@@ -145,10 +165,6 @@ def encode_pil_to_bytes(pil_image, format="png"):
         else:
             if format.lower() == "png":
                 params = {"pnginfo": get_pil_metadata(pil_image)}
-                if pil_image.mode == "I":
-                    # Pillow 13 can no longer write 32-bit integer images as PNG;
-                    # earlier versions clipped them to 16 bits, so do that explicitly.
-                    pil_image = pil_image.convert("I;16")
             else:
                 exif = get_pil_exif_bytes(pil_image)
                 params = {"exif": exif} if exif else {}
@@ -210,6 +226,9 @@ def save_pil_to_cache(
 def save_img_array_to_cache(
     arr: np.ndarray, cache_dir: str, format: str = "webp"
 ) -> str:
+    import numpy as np
+    from PIL import Image
+
     pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
     return save_pil_to_cache(pil_image, cache_dir, format=format)
 
@@ -356,9 +375,9 @@ def lru_cache_async(maxsize: int = 128):
 MAX_REDIRECTS = 20
 
 
-async def async_ssrf_protected_get(url: str) -> httpx.Response:
+async def async_ssrf_protected_get(url: str) -> httpx2.Response:
     """SSRF-protected GET: routes through `safehttpx` with the public hostname
-    allow-list and re-validates each redirect. Returns the `httpx.Response`
+    allow-list and re-validates each redirect. Returns the `httpx2.Response`
     without raising on non-2xx status (callers decide how to handle that)."""
     response = await sh.get(
         url, domain_whitelist=PUBLIC_HOSTNAME_WHITELIST, _transport=async_transport
@@ -554,7 +573,7 @@ def move_files_to_cache(
         if (
             block.proxy_url
             and client_utils.is_http_url_like(payload.path)
-            and httpx.URL(payload.path).host == httpx.URL(block.proxy_url).host
+            and httpx2.URL(payload.path).host == httpx2.URL(block.proxy_url).host
         ):
             url = f"{API_PREFIX}/proxy={payload.path}"
         elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
@@ -696,7 +715,7 @@ async def async_move_files_to_cache(
         if (
             block.proxy_url
             and client_utils.is_http_url_like(payload.path)
-            and httpx.URL(payload.path).host == httpx.URL(block.proxy_url).host
+            and httpx2.URL(payload.path).host == httpx2.URL(block.proxy_url).host
         ):
             url = f"{API_PREFIX}/proxy={payload.path}"
         elif block.proxy_url and not client_utils.is_http_url_like(payload.path):
@@ -746,6 +765,8 @@ def resize_and_crop(img, size, crop_type="center"):
     raises:
         ValueError: if an invalid `crop_type` is provided.
     """
+    from PIL import ImageOps
+
     if crop_type == "top":
         center = (0, 0)
     elif crop_type == "center":
@@ -769,11 +790,13 @@ def resize_and_crop(img, size, crop_type="center"):
 def audio_from_file(
     filename: str, crop_min: float = 0, crop_max: float = 100
 ) -> tuple[int, np.ndarray]:
+    import numpy as np
+
     from gradio.profiling import trace_phase_sync
 
     with trace_phase_sync("preprocess_audio_from_file"):
         try:
-            audio = AudioSegment.from_file(filename)
+            audio = _audio_segment().from_file(filename)
         except FileNotFoundError as e:
             isfile = Path(filename).is_file()
             msg = (
@@ -797,6 +820,8 @@ def audio_from_file(
 
 
 def audio_to_file(sample_rate, data, filename, format="wav"):
+    import numpy as np
+
     # pydub's `AudioSegment` raw constructor only supports integer PCM, and
     # interprets `sample_width=4` as int32 rather than float32. Without an
     # explicit conversion, non-WAV formats (mp3, flac, ogg, ...) end up
@@ -806,7 +831,7 @@ def audio_to_file(sample_rate, data, filename, format="wav"):
     if data.dtype != np.int16:
         data = convert_to_16_bit_audio(data)
 
-    audio = AudioSegment(
+    audio = _audio_segment()(
         data.tobytes(),
         frame_rate=sample_rate,
         sample_width=data.dtype.itemsize,
@@ -817,6 +842,8 @@ def audio_to_file(sample_rate, data, filename, format="wav"):
 
 
 def convert_to_16_bit_audio(data):
+    import numpy as np
+
     # Based on: https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html
     warning = "Trying to convert audio automatically from {} to 16-bit int format."
     # NumPy 2 (NEP 50) no longer upcasts arrays in arithmetic with Python
@@ -914,6 +941,8 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     .. [4] Dirty Pixels. J. Blinn. In "Jim Blinn's corner: Dirty Pixels",
            pp 47-57. Morgan Kaufmann, 1998.
     """
+    import numpy as np
+
     dtype_range = {
         bool: (False, True),
         np.bool_: (False, True),

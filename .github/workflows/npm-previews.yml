@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
+        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@7.0-dev"
         with:
           skip_build: true
       - name: Setup Node.js 24

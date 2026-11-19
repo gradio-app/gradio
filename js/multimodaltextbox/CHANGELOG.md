@@ -1,5 +1,20 @@
 # @gradio/multimodaltextbox
 
+## 0.15.0-dev.0
+
+### Features
+
+- [#14002](https://github.com/gradio-app/gradio/pull/14002) [`dd82f43`](https://github.com/gradio-app/gradio/commit/dd82f435ee94c05ab9cdf946861a95ab77e72a47) - Remove `gradio sketch` and the vibe editor.  Thanks @dawoodkhan82!
+- [#13931](https://github.com/gradio-app/gradio/pull/13931) [`2c2b564`](https://github.com/gradio-app/gradio/commit/2c2b5642c3ed873bb53d1663fc2d36a6d53c00c9) - Let gr.Audio and gr.MultimodalTextbox pass media track constraints to the microphone.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/upload@0.19.2-dev.0
+- @gradio/client@2.8.0-dev.0
+- @gradio/audio@0.25.0-dev.0
+- @gradio/image@0.29.0-dev.0
+- @gradio/video@0.24.0-dev.0
+
 ## 0.14.4
 
 ### Dependency updates

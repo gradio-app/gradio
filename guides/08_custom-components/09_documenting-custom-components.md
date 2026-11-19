@@ -57,7 +57,7 @@ If you already use type hints and docstrings in your component source code, you 
 
 ### Python version
 
-To get the best documentation experience, you need to use Python `3.10` or greater when generating documentation. This is because some introspection features used to generate the documentation were only added in `3.10`.
+Use Python `3.11` or greater when generating documentation, matching the minimum version supported by Gradio.
 
 ### Type hints
 

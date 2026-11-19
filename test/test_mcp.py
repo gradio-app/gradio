@@ -1,14 +1,16 @@
 import asyncio
+import base64
+import contextlib
 import copy
 import json
 import os
 import tempfile
 import time
 
-import httpx
+import httpx2
 import pytest
-from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
+from mcp import Client, ClientSession
+from mcp.client.streamable_http import streamable_http_client
 from PIL import Image
 from starlette.requests import Request
 
@@ -90,7 +92,7 @@ def test_postprocess_output_data(test_mcp_app):
         result = server.postprocess_output_data(test_data, fake_root_url)
         assert len(result) == 2
         assert result[0].type == "image"
-        assert result[0].mimeType == "image/png"  # type: ignore
+        assert result[0].mime_type == "image/png"  # type: ignore
         assert result[1].type == "text"
         assert url in result[1].text  # type: ignore
     finally:
@@ -108,7 +110,7 @@ def test_postprocess_output_data(test_mcp_app):
     result = server.postprocess_output_data(test_data, fake_root_url)
     assert len(result) == 2
     assert result[0].type == "image"
-    assert result[0].mimeType == "image/svg+xml"  # type: ignore
+    assert result[0].mime_type == "image/svg+xml"  # type: ignore
     assert result[1].type == "text"
     assert "Image URL:" in result[1].text  # type: ignore
     assert "/gradio_api/file=" in result[1].text  # type: ignore
@@ -309,7 +311,7 @@ async def test_mcp_streamable_http_client():
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
-        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
 
@@ -355,7 +357,7 @@ async def test_mcp_streamable_http_client_with_progress_callback():
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
-        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
 
@@ -375,7 +377,7 @@ async def test_mcp_streamable_http_client_with_progress_callback():
                     tool.name,
                     arguments={"text": "test"},
                     progress_callback=progress_callback,
-                    meta={"progressToken": "test-token-123"},
+                    meta={"progress_token": "test-token-123"},
                 )
 
                 assert len(result.content) == 1  # type: ignore
@@ -392,7 +394,7 @@ async def test_mcp_streamable_http_client_with_stateful_app(stateful_mcp_app):
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
-        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
 
@@ -442,7 +444,7 @@ async def test_x_gradio_user_mcp_gets_set():
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
-        async with streamablehttp_client(mcp_url) as (read_stream, write_stream, _):
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
 
@@ -460,6 +462,214 @@ async def test_x_gradio_user_mcp_gets_set():
                 )
     finally:
         app.close()
+
+
+@contextlib.asynccontextmanager
+async def mcp_client(mcp_url: str, protocol: str):
+    """
+    Connects to an MCP server either with a 2025-era `initialize` handshake (as most
+    MCP clients in the wild still do), or with the 2026-07-28 protocol that the
+    mcp v2 `Client` negotiates by default.
+    """
+    if protocol == "legacy":
+        async with streamable_http_client(mcp_url) as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                yield session
+    else:
+        async with Client(mcp_url) as client:
+            yield client
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+@pytest.mark.parametrize("protocol", ["legacy", "modern"])
+async def test_mcp_tools_resources_and_prompts(protocol):
+    def add(a: int, b: int) -> int:
+        """Add two numbers"""
+        return a + b
+
+    def fail(x: str) -> str:
+        """Always fails"""
+        raise gr.Error("this tool always fails")
+
+    @gr.mcp.resource("greeting://{name}")
+    def get_greeting(name: str) -> str:
+        """Get a personalized greeting"""
+        return f"Hello, {name}!"
+
+    @gr.mcp.resource("config://app", mime_type="application/octet-stream")
+    def get_config() -> str:
+        """Get the app config as binary data"""
+        return base64.b64encode(b"\x00config").decode("ascii")
+
+    @gr.mcp.prompt()
+    def greet_user(name: str, style: str = "friendly") -> str:
+        """Generate a greeting prompt"""
+        return f"Please write a {style} greeting for someone named {name}."
+
+    demo = gr.TabbedInterface(
+        [
+            gr.Interface(
+                add, [gr.Number(precision=0), gr.Number(precision=0)], "number"
+            ),
+            gr.Interface(fail, "text", "text"),
+            gr.Interface(get_greeting, "text", "text"),
+            gr.Interface(get_config, None, "text"),
+            gr.Interface(greet_user, ["text", "text"], "text"),
+        ]
+    )
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+
+    try:
+        async with mcp_client(mcp_url, protocol) as client:
+            tools = {tool.name: tool for tool in (await client.list_tools()).tools}
+            assert set(tools) == {"add", "fail"}
+            assert tools["add"].input_schema["required"] == ["a", "b"]
+
+            result = await client.call_tool("add", arguments={"a": 2, "b": 3})
+            assert not result.is_error
+            assert result.content[0].text == "5"  # type: ignore
+
+            result = await client.call_tool("fail", arguments={"x": "hi"})
+            assert result.is_error
+            assert "this tool always fails" in result.content[0].text  # type: ignore
+
+            resources = (await client.list_resources()).resources
+            assert [r.uri for r in resources] == ["config://app"]
+            templates = (await client.list_resource_templates()).resource_templates
+            assert [t.uri_template for t in templates] == ["greeting://{name}"]
+
+            contents = (await client.read_resource("greeting://Gradio")).contents
+            assert contents[0].text == "Hello, Gradio!"  # type: ignore
+            assert contents[0].mime_type == "text/plain"
+            contents = (await client.read_resource("config://app")).contents
+            assert base64.b64decode(contents[0].blob) == b"\x00config"  # type: ignore
+
+            prompts = (await client.list_prompts()).prompts
+            assert [p.name for p in prompts] == ["greet_user"]
+            assert [(a.name, a.required) for a in prompts[0].arguments or []] == [
+                ("name", True),
+                ("style", False),
+            ]
+            prompt = await client.get_prompt(
+                "greet_user", arguments={"name": "Gradio", "style": "formal"}
+            )
+            assert (
+                prompt.messages[0].content.text  # type: ignore
+                == "Please write a formal greeting for someone named Gradio."
+            )
+    finally:
+        demo.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.serial
+@pytest.mark.parametrize("space_id", [None, "user/my-space"])
+async def test_mcp_get_prompt_uses_listed_name_and_rejects_unknown(
+    space_id, monkeypatch
+):
+    if space_id:
+        monkeypatch.setenv("SYSTEM", "spaces")
+        monkeypatch.setenv("SPACE_ID", space_id)
+    prefix = "my_space_" if space_id else ""
+    calls = []
+
+    @gr.mcp.prompt(name="code-review")
+    def review_prompt(language: str = "python") -> str:
+        """Ask for a code review."""
+        return f"Review this {language} code."
+
+    @gr.mcp.prompt(name="code-review")
+    def strict_review_prompt(language: str = "python") -> str:
+        """Ask for a strict code review."""
+        return f"Strictly review this {language} code."
+
+    def send_invoice(customer: str) -> str:
+        """Send an invoice to a customer."""
+        calls.append(customer)
+        return f"invoice sent to {customer}"
+
+    with gr.Blocks() as demo:
+        gr.api(review_prompt)
+        gr.api(strict_review_prompt)
+        gr.api(send_invoice)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, mcp_server=True)
+    mcp_url = f"{local_url}gradio_api/mcp/"
+    expected = [f"{prefix}code-review", f"{prefix}code-review_1"]
+
+    try:
+        async with mcp_client(mcp_url, "legacy") as client:
+            names = [p.name for p in (await client.list_prompts()).prompts]
+            assert names == expected
+
+            texts = []
+            for name in names:
+                prompt = await client.get_prompt(name, arguments={"language": "rust"})
+                texts.append(prompt.messages[0].content.text)  # type: ignore
+            assert texts == [
+                "Review this rust code.",
+                "Strictly review this rust code.",
+            ]
+
+            for name in ["no_such_prompt", f"{prefix}send_invoice"]:
+                with pytest.raises(Exception, match="Prompt not found"):
+                    await client.get_prompt(name, arguments={"customer": "x"})
+            assert calls == []
+
+        async with mcp_client(f"{mcp_url}?tools=code-review", "legacy") as client:
+            names = [p.name for p in (await client.list_prompts()).prompts]
+            assert names == [f"{prefix}code-review"]
+
+        schema = httpx2.get(f"{mcp_url}schema").json()
+        assert [s["name"] for s in schema if s["meta"]["mcp_type"] == "prompt"] == (
+            expected
+        )
+    finally:
+        demo.close()
+
+
+@pytest.mark.parametrize("space_id", [None, "user/my-space"])
+@pytest.mark.parametrize("prompt_first", [True, False])
+def test_mcp_prompt_name_does_not_rename_tools(space_id, prompt_first, monkeypatch):
+    if space_id:
+        monkeypatch.setenv("SYSTEM", "spaces")
+        monkeypatch.setenv("SPACE_ID", space_id)
+    prefix = "my_space_" if space_id else ""
+
+    @gr.mcp.prompt(name="send_invoice")
+    def invoice_prompt(customer: str) -> str:
+        """Draft an invoice request."""
+        return f"Draft an invoice for {customer}."
+
+    def send_invoice(customer: str) -> str:
+        """Send an invoice to a customer."""
+        return f"invoice sent to {customer}"
+
+    with gr.Blocks() as demo:
+        if prompt_first:
+            gr.api(invoice_prompt)
+        gr.api(send_invoice)
+        gr.api(send_invoice)
+        if not prompt_first:
+            gr.api(invoice_prompt)
+
+    server = GradioMCPServer(demo)
+    endpoints = server.tool_to_endpoint
+    assert list(endpoints) == [
+        f"{prefix}send_invoice",
+        f"{prefix}send_invoice_1",
+        f"{prefix}send_invoice_2",
+    ]
+    for name, expected_fn in [
+        (f"{prefix}send_invoice", send_invoice),
+        (f"{prefix}send_invoice_1", send_invoice),
+        (f"{prefix}send_invoice_2", invoice_prompt),
+    ]:
+        block_fn = server.get_block_fn_from_endpoint_name(endpoints[name])
+        assert block_fn is not None
+        assert block_fn.fn is expected_fn
 
 
 @pytest.mark.asyncio
@@ -503,6 +713,28 @@ async def test_mcp_browser_get_returns_landing_page():
     # connection snippets for common MCP clients.
     assert b"example.com/gradio_api/mcp/" in body
     assert b"Connect your AI assistant" in body
+
+
+def test_print_mcp_server_links_huggingchat_for_share_url(capsys):
+    with gr.Blocks(title="Letter Counter") as demo:
+        gr.Textbox()
+    demo.local_url = "http://127.0.0.1:7860/"
+
+    demo.share_url = None
+    demo._print_mcp_server()
+    output = capsys.readouterr().out
+    assert "* Streamable HTTP URL: http://127.0.0.1:7860/gradio_api/mcp/" in output
+    assert "HuggingChat" not in output
+
+    demo.share_url = "https://abc123.gradio.live"
+    demo._print_mcp_server()
+    output = capsys.readouterr().out
+    assert "* Streamable HTTP URL: https://abc123.gradio.live/gradio_api/mcp/" in output
+    assert (
+        "* Try it in HuggingChat: https://huggingface.co/chat/"
+        "?mcp=https%3A%2F%2Fabc123.gradio.live%2Fgradio_api%2Fmcp%2F"
+        "&mcp_name=Letter%20Counter"
+    ) in output
 
 
 MCP_HEADERS = {
@@ -568,7 +800,7 @@ async def test_mcp_server_requires_login_when_auth_is_set():
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx2.AsyncClient() as client:
             # Unauthenticated requests are rejected, as they are for /gradio_api/run
             assert (
                 await client.post(
@@ -593,10 +825,12 @@ async def test_mcp_server_requires_login_when_auth_is_set():
 
         # Once logged in, tools (queued or not), resources and prompts all work,
         # and run as the user
-        async with streamablehttp_client(mcp_url, headers={"Cookie": cookie}) as (
-            read_stream,
-            write_stream,
-            _,
+        async with (
+            httpx2.AsyncClient(headers={"Cookie": cookie}) as http_client,
+            streamable_http_client(mcp_url, http_client=http_client) as (
+                read_stream,
+                write_stream,
+            ),
         ):
             async with ClientSession(read_stream, write_stream) as session:
                 await session.initialize()
@@ -617,8 +851,6 @@ async def test_mcp_server_requires_login_when_auth_is_set():
 @pytest.mark.serial
 async def test_mcp_server_respects_auth_dependency():
     async def get_user(request: Request):
-        # Reading the body checks that the MCP server still receives it afterwards
-        await request.body()
         return request.headers.get("x-user")
 
     demo = build_auth_test_app()
@@ -628,7 +860,7 @@ async def test_mcp_server_respects_auth_dependency():
     mcp_url = f"{local_url}gradio_api/mcp/"
 
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx2.AsyncClient(timeout=30) as client:
             assert (await client.get(f"{mcp_url}schema")).status_code == 401
             assert (
                 await call_tool_over_http(client, mcp_url, "greet", {"greeting": "Hi"})

@@ -1,8 +1,8 @@
 import numpy as np
 import PIL.Image
+from gradio_components.image_editor import EditorData, EditorValue
 
 import gradio as gr
-from gradio.components.image_editor import EditorData, EditorValue
 from gradio.data_classes import FileData
 
 
@@ -47,7 +47,7 @@ class TestImageEditor:
             "visible": True,
             "elem_id": None,
             "elem_classes": [],
-            "webcam_options": {"constraints": None, "mirror": True},
+            "webcam_options": {"constraints": None, "mirror": "auto"},
             "_selectable": False,
             "key": None,
             "preserved_by_key": ["value"],
