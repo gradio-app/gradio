@@ -566,23 +566,19 @@ class TestWebRTC:
                     outputs=[camera],
                     transport="http",  # type: ignore[arg-type]
                 )
-            # The page sends media, so the function takes one frame per call
-            # and returns its outputs; a generator would be its output
-
-            def frames(frame, *args):
-                yield frame
+            # The page sends media: a generator is sent each frame, which an
+            # async one cannot be
 
             async def async_frames(frame, *args):
                 yield frame
 
-            for generator in (frames, async_frames):
-                with pytest.raises(ValueError, match="not a generator"):
-                    camera.stream(
-                        generator,
-                        inputs=[camera],
-                        outputs=[camera],
-                        transport="webrtc",
-                    )
+            with pytest.raises(ValueError, match="not an async generator"):
+                camera.stream(
+                    async_frames,
+                    inputs=[camera],
+                    outputs=[camera],
+                    transport="webrtc",
+                )
             # A gr.Video streams only over WebRTC
             with pytest.raises(ValueError, match="transport="):
                 video.stream(flip, inputs=[video], outputs=[slider])
@@ -5247,7 +5243,10 @@ class TestStreamOutputs:
 
 class TestStateInStreams:
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("kind", ["video", "async video", "audio"])
+    @pytest.mark.parametrize(
+        "kind",
+        ["video", "async video", "audio", "video generator", "audio generator"],
+    )
     async def test_a_state_the_function_returns_is_what_its_next_call_gets(
         self, kind, monkeypatch
     ):
@@ -5262,6 +5261,15 @@ class TestStateInStreams:
         async def count_up_async(media, count):
             return count_up(media, count)
 
+        def count_up_generator(media, count):
+            while True:
+                media, count = yield count_up(media, count)
+
+        fn = {"async video": count_up_async}.get(kind, count_up)
+        if kind.endswith("generator"):
+            fn = count_up_generator
+        kind = kind.removesuffix(" generator")
+
         with gr.Blocks() as demo:
             if kind == "audio":
                 media = gr.Audio(sources=["microphone"], streaming=True)
@@ -5270,7 +5278,7 @@ class TestStateInStreams:
             count = gr.State(5)
             text = gr.Textbox()
             media.stream(
-                count_up_async if kind == "async video" else count_up,
+                fn,
                 inputs=[media, count],
                 outputs=[text, count],
                 transport="webrtc",
@@ -5298,6 +5306,131 @@ class TestStateInStreams:
             finally:
                 await pc.close()
                 await h.http.aclose()
+
+
+class TestGeneratorsThatTakeMedia:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("modality", ["video", "audio"])
+    async def test_a_generator_is_sent_the_inputs_and_closed_with_the_stream(
+        self, modality, monkeypatch
+    ):
+        monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+        forget_earlier_streams()
+        seen = []
+        released = []
+
+        def follow(value, media, request: gr.Request):
+            # One generator for the stream: what it sets up here lasts until
+            # the stream ends
+            host = request.headers["host"]
+            try:
+                while True:
+                    seen.append((value, type(media).__name__, bool(host)))
+                    value, media = yield media, f"{value}"
+            finally:
+                released.append(True)
+
+        with gr.Blocks() as demo:
+            if modality == "audio":
+                media = gr.Audio(sources=["microphone"], streaming=True)
+            else:
+                media = webcam()
+            slider = gr.Slider()
+            text = gr.Textbox()
+            media.stream(
+                follow,
+                inputs=[slider, media],
+                outputs=[media, text],
+                transport="webrtc",
+                stream_every=0.02 if modality == "audio" else None,
+            )
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            h = Harness(demo, local_url, media)
+            pc = await make_offer(audio=modality == "audio", video=modality == "video")
+            try:
+                await h.start("one")
+                await h.connect(pc, "one")
+                await h.push_inputs("one", 0.2)
+                await h.wait_until(lambda: len(seen) >= 2)
+                await h.push_inputs("one", 0.7)
+                await h.wait_until(lambda: seen[-1][0] == 0.7)
+                # The media in its own place among the inputs, each time
+                kind = "ndarray" if modality == "video" else "tuple"
+                assert seen[0] == (0.2, kind, True)
+                assert seen[-1] == (0.7, kind, True)
+                assert released == []
+                await pc.close()
+                await h.messages("one", completed)
+                await h.wait_until(lambda: released == [True])
+            finally:
+                await pc.close()
+                await h.http.aclose()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("modality", ["video", "audio"])
+    async def test_the_stream_ends_when_its_generator_does(self, modality, monkeypatch):
+        monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+        forget_earlier_streams()
+        seen = []
+
+        def three_times(media):
+            for i in range(3):
+                seen.append(i)
+                media = yield media
+
+        with gr.Blocks() as demo:
+            if modality == "audio":
+                media = gr.Audio(sources=["microphone"], streaming=True)
+            else:
+                media = webcam()
+            media.stream(
+                three_times,
+                inputs=[media],
+                outputs=[media],
+                transport="webrtc",
+                stream_every=0.02 if modality == "audio" else None,
+            )
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            h = Harness(demo, local_url, media)
+            pc = await make_offer(audio=modality == "audio", video=modality == "video")
+            try:
+                await h.start("one")
+                await h.connect(pc, "one")
+                await h.push_inputs("one")
+                messages = await h.messages("one", completed)
+                assert messages[-1]["success"] is True
+                assert seen == [0, 1, 2]
+            finally:
+                await pc.close()
+                await h.http.aclose()
+
+    def test_a_server_endpoint_takes_a_generator(self):
+        from collections.abc import Generator
+
+        from gradio.webrtc.transport import api_stream
+
+        def flip_frames(
+            frame: gr.VideoFrame, brightness: float
+        ) -> Generator[tuple[gr.VideoFrame, float], tuple[gr.VideoFrame, float], None]:
+            while True:
+                frame, brightness = yield frame, brightness
+
+        with gr.Blocks():
+            stream_fn, _ = api_stream(
+                flip_frames,
+                transport="webrtc",
+                api_name="flip",
+                time_limit=None,
+                stream_every=None,
+                concurrency_limit="default",
+                concurrency_id=None,
+            )
+        assert stream_fn.transport is not None
+        assert stream_fn.transport["mode"] == "send-receive"
+        assert stream_fn.transport["media_input"] == 0
+        assert stream_fn.transport["media_output"] == 0
 
 
 def test_a_stream_puts_its_component_in_streaming_mode():

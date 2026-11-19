@@ -204,6 +204,12 @@ class VideoCallback(VideoStreamTrack):
         self._clock_start: float | None = None
         self._clock_timestamp: int | None = None
         self._next_slot = 0.0
+        # A generator function's generator, which gets the frames
+        self.generator = (
+            HandlerGenerator()
+            if inspect.isgeneratorfunction(inspect.unwrap(event_handler))
+            else None
+        )
 
     def _newest(self, frame: Any) -> Any:
         """With skip_frames, the newest frame that has arrived instead of `frame`."""
@@ -324,6 +330,13 @@ class VideoCallback(VideoStreamTrack):
                 result = await cast(Callable[..., Awaitable[Any]], self.event_handler)(
                     frame_array, *self.latest_args
                 )
+            elif self.generator is not None:
+                result = await run_in_thread(
+                    self.generator.send,
+                    self.event_handler,
+                    frame_array,
+                    *self.latest_args,
+                )
             else:
                 result = await run_in_thread(
                     self.event_handler, frame_array, *self.latest_args
@@ -356,6 +369,12 @@ class VideoCallback(VideoStreamTrack):
             raise
         except Exception as e:
             raise track_ended_by(e) from e
+
+    async def close_generator(self) -> None:
+        if self.generator is not None:
+            current_channel.set(self.channel)
+            current_context.set(self.context)
+            await run_in_thread(self.generator.close)
 
     async def next_timestamp(self) -> tuple[int, fractions.Fraction]:
         if self.readyState != "live":
@@ -682,14 +701,15 @@ class AudioCallback(AudioStreamTrack):
 
 class HandlerGenerator:
     """
-    The generator of a receive-mode handler, which its track advances in
-    worker threads. Closing it when the stream ends runs its own clean-up (a
-    finally block, a with statement) then, rather than whenever it is
-    collected.
+    The generator of a stream's generator function, which its track (or its
+    audio handler) advances in worker threads: with `next()` when it only
+    makes the stream's media, with `send()` when it also takes the page's.
+    Closing it when the stream ends runs its own clean-up (a finally block, a
+    with statement) then, rather than whenever it is collected.
     """
 
     def __init__(self) -> None:
-        self.generator: Generator[Any, None, Any] | None = None
+        self.generator: Generator[Any, Any, Any] | None = None
         self.closed = False
         # Held while the generator runs, which closing it has to wait for
         self.lock = threading.Lock()
@@ -714,6 +734,21 @@ class HandlerGenerator:
                 return next(self.generator)
             except StopIteration:
                 return GENERATOR_DONE
+
+    def send(self, start: Callable[..., Any], *args: Any) -> Any:
+        """What the generator yields for `args`: the first call starts it with
+        them, each later call sends them to it. None once it is over."""
+        with self.lock:
+            if self.closed:
+                return None
+            try:
+                if self.generator is None:
+                    self.generator = start(*args)
+                    return next(self.generator)
+                return self.generator.send(args)
+            except StopIteration:
+                # As in next(): it cannot cross into the awaiting task
+                return None
 
     def close(self) -> None:
         self.closed = True

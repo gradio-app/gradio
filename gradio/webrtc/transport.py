@@ -18,7 +18,7 @@ import inspect
 import queue
 import threading
 from collections.abc import AsyncIterator, Callable
-from contextlib import aclosing
+from contextlib import aclosing, closing
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
@@ -93,15 +93,11 @@ def _check_fn(fn: Any, mode: str, modality: Modality) -> None:
                 "A stream that only sends media to the page takes a generator "
                 "function (def ... yield) that yields one value per output."
             )
-    if (
-        mode != "receive"
-        and not handler
-        and (inspect.isgeneratorfunction(fn) or inspect.isasyncgenfunction(fn))
-    ):
+    if mode != "receive" and not handler and inspect.isasyncgenfunction(fn):
         raise ValueError(
-            "A stream that takes media from the page calls the function with "
-            "each frame (or chunk of audio), so it returns one value per "
-            "output and is not a generator."
+            "A stream that takes media from the page takes a function, called "
+            "with each frame (or chunk of audio), or a generator function "
+            "(def ... yield), which is sent them; not an async generator."
         )
     if (
         handler
@@ -491,6 +487,7 @@ def _chunked_audio_handler(
     """
     from gradio import routes
     from gradio.streaming.utils import bind_special_args
+    from gradio.webrtc.tracks import HandlerGenerator
 
     class ChunkedAudio(StreamHandler):
         def __init__(self) -> None:
@@ -501,6 +498,10 @@ def _chunked_audio_handler(
             self.lock = threading.Lock()
             self.results: queue.Queue = queue.Queue()
             self.call: Callable = fn
+            # A generator function's generator, which gets the chunks
+            self.generator = (
+                HandlerGenerator() if inspect.isgeneratorfunction(fn) else None
+            )
 
         def start_up(self, request: Any = None) -> None:
             # The gr.Request / OAuth parameters of fn, for this connection
@@ -527,7 +528,10 @@ def _chunked_audio_handler(
                 self.wait_for_args_sync()
                 args = list(self.latest_args)
                 args.insert(media_in, (rate, chunk))
-                result = self.call(*_unboxed(args))
+                if self.generator is None:
+                    result = self.call(*_unboxed(args))
+                else:
+                    result = self.generator.send(self.call, *_unboxed(args))
                 if inspect.isawaitable(result):
                     # On the loop, as async video functions run, with this
                     # thread's context (gr.Info and the like reach the page)
@@ -551,6 +555,10 @@ def _chunked_audio_handler(
             if isinstance(result, BaseException):
                 raise result
             return result
+
+        def shutdown(self) -> None:
+            if self.generator is not None:
+                self.generator.close()
 
         def copy(self) -> ChunkedAudio:
             return ChunkedAudio()
@@ -759,6 +767,40 @@ def transport_event(
                 yield to_stream_output(item)
 
         handler = generate
+    elif inspect.isgeneratorfunction(fn):
+        # One generator per stream (see `tracks.HandlerGenerator`): the first
+        # call starts it with its arguments like a function, and each later
+        # call sends it the inputs, the value itself with one input or a tuple
+        # with several, as a function returns its outputs. What it yields is
+        # what a function returns, and the stream ends when it does.
+        input_names = [p[0] for p in utils.get_function_params(fn)]
+        sent_names = [p.name for p in fixed if p.name in input_names]
+        ended = CloseStream("")
+
+        def sent(args: tuple[Any, ...]) -> Any:
+            by_name = dict(zip(sent_names, args, strict=False))
+            values = [by_name[name] for name in input_names if name in by_name]
+            values += args[len(sent_names) :]
+            return values[0] if len(values) == 1 else tuple(values)
+
+        def output(args: tuple[Any, ...], result: Any) -> Any:
+            if modality == "audio":
+                # Its handler keeps the gr.State values and adapts emit()
+                return result
+            write_back(args, result)
+            return to_stream_output(result)
+
+        def steps(*args: Any) -> Any:
+            with closing(fn(*in_fn_order(_unboxed(args)))) as generator:
+                result = next(generator, ended)
+                while True:
+                    args = yield output(args, result)
+                    try:
+                        result = generator.send(sent(tuple(_unboxed(args))))
+                    except StopIteration:
+                        result = ended
+
+        handler = steps
     elif modality == "audio":
         handler = _chunked_audio_handler(
             fn, cast(int, media_in), stream_every or 0.5, write_back
@@ -795,6 +837,11 @@ def transport_event(
             handler = VideoOptions(
                 callable=wrapper, fps=fps, skip_frames=options.skip_frames
             )
+        elif mode != "receive":
+            handler = _chunked_audio_handler(
+                wrapper, cast(int, media_in), stream_every or 0.5, write_back
+            )
+            is_handler_class = True
 
     # The event's own function reads only the stream id, so the queue does not
     # preprocess; the values that arrive later get the same preprocessing here

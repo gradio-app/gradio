@@ -508,7 +508,9 @@ class Stream:
             # Stopping a track ends its loops; its "ended" event calls close()
             # again, which then finds nothing left to release
             track.stop()
-            if isinstance(track, ServerToClientAudio | ServerToClientVideo):
+            if isinstance(track, ServerToClientAudio | ServerToClientVideo) or (
+                isinstance(track, VideoCallback) and track.generator is not None
+            ):
                 manager._add_shutdown(track.close_generator())
         # Handler classes, once each: both tracks of an audio-video connection
         # share one handler
