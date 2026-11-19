@@ -101,10 +101,16 @@ class _MovedModuleFinder(importlib.abc.MetaPathFinder, importlib.abc.Loader):
             raise ImportError(spec.name)
         if not is_installed():
             raise not_installed_error(f"`{spec.name}`")
-        return importlib.import_module(new_name)
+        module = importlib.import_module(new_name)
+        # The import system is about to set the module's `__spec__` to this alias.
+        # Keep the real one, to put back in `exec_module`.
+        spec.loader_state = module.__spec__
+        return module
 
     def exec_module(self, module):
-        pass
+        real_spec = getattr(module.__spec__, "loader_state", None)
+        if real_spec is not None:
+            module.__spec__ = real_spec
 
 
 if not any(isinstance(finder, _MovedModuleFinder) for finder in sys.meta_path):

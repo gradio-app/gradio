@@ -36,8 +36,10 @@ __all__ = [
 
 
 def __getattr__(name: str):
-    if name.startswith("__"):
-        raise AttributeError(name)
+    if name.startswith("_"):
+        # no component is private, so that `getattr(module, "_x", None)` and
+        # `hasattr` work with or without `gradio_components`
+        raise AttributeError(f"module 'gradio.components' has no attribute {name!r}")
     package = _components_package.require(f"`gradio.components.{name}`")
     try:
         return getattr(package, name)

@@ -191,13 +191,13 @@ def deploy_to_gcloud():
     if not os.path.exists(requirements_file):
         if (
             input(
-                f"A requirements.txt file is necessary for Google Cloud Run deployment. Create requirements.txt with gradio=={gr.__version__}? (y/n) [y]: "
+                f"A requirements.txt file is necessary for Google Cloud Run deployment. Create requirements.txt with gradio[components]=={gr.__version__}? (y/n) [y]: "
             ).lower()
             != "n"
         ):
             with open(requirements_file, "w", encoding="utf-8") as f:
-                f.write(f"gradio=={gr.__version__}\n")
-            print(f"Created requirements.txt with gradio=={gr.__version__}")
+                f.write(f"gradio[components]=={gr.__version__}\n")
+            print(f"Created requirements.txt with gradio[components]=={gr.__version__}")
         else:
             print("\nDeployment cancelled.")
             return
@@ -207,13 +207,13 @@ def deploy_to_gcloud():
 
         if "gradio" not in requirements_content and (
             input(
-                f"Add gradio=={gr.__version__} to requirements.txt? (y/n) [y]: "
+                f"Add gradio[components]=={gr.__version__} to requirements.txt? (y/n) [y]: "
             ).lower()
             != "n"
         ):
             with open(requirements_file, "a", encoding="utf-8") as f:
-                f.write(f"gradio=={gr.__version__}\n")
-            print(f"Added gradio=={gr.__version__} to requirements.txt")
+                f.write(f"gradio[components]=={gr.__version__}\n")
+            print(f"Added gradio[components]=={gr.__version__} to requirements.txt")
 
     print("Deploying to Google Cloud Run...")
 

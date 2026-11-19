@@ -119,6 +119,16 @@ ${current_changelog.replace(`# ${pkg_name}`, "").trim()}
 		}
 	}
 
+	// A package in a `fixed` group, such as gradio_components, gets a new version
+	// whenever the group does, with or without a changeset of its own, so the pins
+	// of every Python package are brought up to date, not only of those above.
+	for (const pkg_name in all_packages) {
+		const { python, version } = all_packages[pkg_name].packageJson;
+		if (python) {
+			bump_local_dependents(pkg_name, version);
+		}
+	}
+
 	unlinkSync(join(pkg_meta.rootDir, ".changeset", "_changelog.json"));
 
 	/**
@@ -148,10 +158,15 @@ ${current_changelog.replace(`# ${pkg_name}`, "").trim()}
 					"\n"
 				);
 
+				// only an exact pin is rewritten: a range, such as the `gradio>=`
+				// that gradio_components requires, is left as it is
 				const pkg_index = requirements.findIndex((line) => {
 					const m = line.trim().match(RE_PKG_NAME);
 					if (!m) return false;
-					return m[0] === pkg_to_bump;
+					return (
+						m[0] === pkg_to_bump &&
+						line.trim().slice(m[0].length).trimStart().startsWith("==")
+					);
 				});
 
 				if (pkg_index !== -1) {

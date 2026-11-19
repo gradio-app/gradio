@@ -250,6 +250,12 @@ _NEEDS_COMPONENTS: dict[str, tuple[str, str]] = {
 }
 
 
+# Submodules that moved to `gradio_components` and are still reachable as `gr.<name>`.
+_MOVED_SUBMODULES = ("templates", "_simple_templates", "image_utils", "pipelines_utils")
+
+_components_loaded = False
+
+
 def _load(name: str):
     import importlib
 
@@ -263,11 +269,11 @@ def _load(name: str):
 def __getattr__(name: str):
     if name in _NEEDS_COMPONENTS:
         return _load(name)
-    if name == "templates":
+    if name in _MOVED_SUBMODULES:
         import importlib
 
-        _components_package.require("`gr.templates`")
-        return importlib.import_module("gradio_components.templates")
+        _components_package.require(f"`gr.{name}`")
+        return importlib.import_module(f"gradio_components.{name}")
     raise AttributeError(f"module 'gradio' has no attribute {name!r}")
 
 
@@ -275,14 +281,42 @@ def __dir__():
     return sorted(set(globals()) | set(_NEEDS_COMPONENTS))
 
 
-# With `gradio_components` installed, load everything now, as Gradio always has: this
-# registers every component, so that string shortcuts like "textbox" resolve. Without
-# it, the names above raise an error that explains how to install it.
-if _components_package.is_installed() and not _components_package.is_being_imported():
-    for _name in _NEEDS_COMPONENTS:
-        _load(_name)
+def _load_components() -> None:
+    """Loads everything that needs `gradio_components`, as Gradio always has: this
+    registers every component, so that string shortcuts like "textbox" resolve.
+    Runs once: below if `gradio` is imported first, and at the end of
+    `import gradio_components` if that is imported first."""
+    global _components_loaded  # noqa: PLW0603
+    if _components_loaded:
+        return
+    _components_loaded = True
+
+    import importlib
+    import warnings
+
+    for name in _NEEDS_COMPONENTS:
+        _load(name)
     # not exported from `gr`, but registered as components and documented
-    import gradio_components._simple_templates  # noqa: F401
+    importlib.import_module("gradio_components._simple_templates")
+
+    # `gradio.components.Textbox` and `from gradio.components import *`, as before
+    package = importlib.import_module("gradio_components")
+    for name in package.__all__:
+        setattr(components, name, getattr(package, name))
+    components.__all__ = sorted({*components.__all__, *package.__all__})
+
+    if package.__version__ != get_package_version():
+        warnings.warn(
+            f"gradio {get_package_version()} is installed with gradio_components "
+            f"{package.__version__}. The two are released together and must have the "
+            'same version: run `pip install -U "gradio[components]"`.'
+        )
+
+
+# Without `gradio_components`, the names above raise an error that explains how to
+# install it.
+if _components_package.is_installed() and not _components_package.is_being_imported():
+    _load_components()
 
 # this is the version:
 __version__ = get_package_version()

@@ -67,6 +67,7 @@ from starlette.responses import RedirectResponse
 
 import gradio
 from gradio import (
+    _components_package,
     caching,
     history,
     page_template,
@@ -2544,7 +2545,12 @@ class App(FastAPI):
             if size is None:
                 return FileResponse(favicon_path)
 
-            import PIL.Image
+            try:
+                import PIL.Image
+            except ImportError:
+                # Pillow comes with `gradio[components]`. Without it the icon is
+                # served at its own size, which browsers scale themselves.
+                return FileResponse(favicon_path)
 
             img = PIL.Image.open(favicon_path)
             img = img.resize((size, size))
@@ -2638,6 +2644,16 @@ class App(FastAPI):
                 )
             if compare_passwords_securely(key, app.analytics_key):
                 analytics_url = f"/monitoring/{app.analytics_key}/dashboard"
+                if not _components_package.is_installed():
+                    # the dashboard is itself a Blocks app
+                    raise HTTPException(
+                        status_code=501,
+                        detail=str(
+                            _components_package.not_installed_error(
+                                "the monitoring dashboard"
+                            )
+                        ),
+                    )
                 if not app.monitoring_enabled:
                     from gradio.monitoring_dashboard import data
                     from gradio.monitoring_dashboard import demo as dashboard

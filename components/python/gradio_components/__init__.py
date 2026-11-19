@@ -146,3 +146,9 @@ __all__ = [
 __version__ = json.loads((Path(__file__).parent / "package.json").read_text())[
     "version"
 ]
+
+# If this package was imported before `gradio`, then `gradio` could not load the
+# templates, layouts and `gr.Blocks` while this module was still running. It can now.
+import gradio as _gradio  # noqa: E402
+
+_gradio._load_components()

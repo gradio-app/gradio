@@ -32,9 +32,9 @@ CORE_ONLY = textwrap.dedent(
 )
 
 
-def run_core_only(code: str) -> str:
+def run_core_only(code: str, prelude: str = "") -> str:
     result = subprocess.run(
-        [sys.executable, "-c", CORE_ONLY + textwrap.dedent(code)],
+        [sys.executable, "-c", CORE_ONLY + prelude + "\n" + textwrap.dedent(code)],
         check=False,
         capture_output=True,
         text=True,
@@ -121,6 +121,38 @@ class TestWithoutComponents:
         )
         assert result.returncode == 0, result.stderr
         assert result.stdout.splitlines()[-2:] == ["Hello core", "[]"]
+
+    def test_built_in_routes_do_not_need_components(self):
+        out = run_core_only(
+            """
+            import gradio as gr
+            from gradio.profiling import RequestTrace, collector
+            import httpx2 as httpx
+
+            trace = RequestTrace(event_id="a", fn_name="hello")
+            trace.total_ms = 10.0
+            collector._traces.append(trace)
+            summary = collector.get_summary()
+            print(summary["phases"]["total"]["p50"], summary["phases"]["total"]["max"])
+
+            app = gr.Server()
+            favicon = os.path.join(os.path.dirname(gr.__file__), "media_assets", "images", "logo.png")
+            _, url, _ = app.launch(
+                prevent_thread_lock=True, executor="thread", pwa=True,
+                favicon_path=favicon,
+            )
+            print(httpx.get(url + "pwa_icon/192").status_code)
+            monitoring = httpx.get(f"{url}monitoring/{app.analytics_key}")
+            print(monitoring.status_code, "gradio[components]" in monitoring.text)
+            print(sorted(BLOCKED & {name.split(".")[0] for name in sys.modules}))
+            sys.stdout.flush()
+            os._exit(0)
+            """,
+            prelude="import os",
+        )
+        lines = out.splitlines()
+        assert "10.0 10.0" in lines
+        assert lines[-3:] == ["200", "501 True", "[]"]
 
     @pytest.mark.parametrize(
         "statement, feature",
@@ -216,3 +248,67 @@ def test_percentiles_match_numpy(size):
 def test_percentiles_of_unfinished_events_are_nan():
     assert all(np.isnan(_percentiles([1.0, None], [50, 90])))
     assert all(np.isnan(_percentiles([], [50])))
+
+
+def run_python(code: str) -> str:
+    result = subprocess.run(
+        [sys.executable, "-W", "error::UserWarning", "-c", textwrap.dedent(code)],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    assert result.returncode == 0, result.stderr
+    return result.stdout
+
+
+class TestImportOrder:
+    def test_everything_is_registered_whichever_package_is_imported_first(self):
+        def registered(first: str) -> list[str]:
+            return run_python(
+                f"""
+                {first}
+                import gradio as gr
+                from gradio import utils
+
+                print(sorted(c.__name__ for c in utils.core_gradio_components()))
+                gr.Interface(lambda x: x, "textarea", "simpletextbox")
+                print(gr.TextArea.__module__)
+                """
+            ).splitlines()
+
+        gradio_first = registered("import gradio")
+        components_first = registered("from gradio_components.textbox import Textbox")
+        assert gradio_first == components_first
+        assert "TextArea" in gradio_first[0] and "SimpleTextbox" in gradio_first[0]
+        assert gradio_first[1] == "gradio_components.templates"
+
+    def test_star_import_of_gradio_components(self):
+        namespace: dict = {}
+        exec("from gradio.components import *", namespace)
+        assert namespace["Textbox"] is gr.Textbox
+        assert namespace["Component"] is gr.components.Component
+
+    def test_an_old_module_path_keeps_the_real_module_spec(self):
+        import gradio_components.textbox
+
+        importlib.import_module("gradio.components.textbox")
+        assert gradio_components.textbox.__spec__.name == "gradio_components.textbox"
+
+    def test_moved_submodules_are_attributes_of_gradio(self):
+        import gradio_components.image_utils
+
+        assert gr.image_utils is gradio_components.image_utils
+        assert gr.templates.TextArea is gr.TextArea
+
+    def test_private_names_are_attribute_errors(self):
+        assert getattr(gr.components, "_not_a_component", None) is None
+
+    def test_version_mismatch_warns(self):
+        import gradio_components
+
+        gr._components_loaded = False
+        with pytest.MonkeyPatch.context() as patch:
+            patch.setattr(gradio_components, "__version__", "0.0.1")
+            with pytest.warns(UserWarning, match="must have the same version"):
+                gr._load_components()
