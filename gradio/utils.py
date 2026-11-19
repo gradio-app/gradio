@@ -9,6 +9,7 @@ import importlib
 import importlib.metadata
 import importlib.resources
 import inspect
+import ipaddress
 import json
 import os
 import pickle as pkl
@@ -1910,17 +1911,65 @@ def error_payload(
 
 
 _HF_TOKEN_PATTERN = re.compile(r"\bhf_[A-Za-z0-9]{20,}\b")
+# An absolute URL, ending at whitespace, a quote, a bracket or a parenthesis. The
+# host may be a bracketed IPv6 address, e.g. http://user@[::1]:80/path.
+_URL_PATTERN = re.compile(
+    r"\b[a-zA-Z][a-zA-Z0-9+.-]*://"
+    r"(?:[^\s'\"<>()\[\]@/]*@)?(?:\[[0-9a-fA-F:.]+\])?[^\s'\"<>()\[\]]*"
+)
+# urllib3 (and so `requests`) names the server as `host='...'` and gives the
+# path on its own, e.g. "HTTPConnectionPool(host='10.0.0.5', port=80): Max
+# retries exceeded with url: /predict?key=..."
+_URLLIB3_HOST_PATTERN = re.compile(r"\bhost='([^']*)'")
+_URLLIB3_PATH_PATTERN = re.compile(r"(\bwith url: [^\s?]*)\?[^\s)]*")
+
+
+def _is_ip_address(host: str) -> bool:
+    try:
+        ipaddress.ip_address(host.strip("[]"))
+        return True
+    except ValueError:
+        return False
+
+
+def _redact_url(match: re.Match) -> str:
+    url = match.group(0)
+    try:
+        parts = urllib.parse.urlsplit(url)
+        host = parts.hostname or ""
+        port = parts.port
+    except ValueError:
+        return url
+    host_and_port = parts.netloc.rsplit("@", 1)[-1]
+    if host and _is_ip_address(host):
+        host_and_port = "***" if port is None else f"***:{port}"
+    netloc = ("***@" if "@" in parts.netloc else "") + host_and_port
+    if netloc == parts.netloc and not parts.query:
+        return url
+    query = "***" if parts.query else ""
+    return urllib.parse.urlunsplit(
+        (parts.scheme, netloc, parts.path, query, parts.fragment)
+    )
 
 
 def sanitize_error_message(error: BaseException | None) -> str:
     """
     Returns the user-facing message for an exception that was not raised as a
-    gr.Error: its message with any Hugging Face tokens redacted, or the exception's
-    type name when the message is empty (e.g. `raise ValueError()`).
+    gr.Error, or the exception's type name when the message is empty (e.g.
+    `raise ValueError()`). Errors from HTTP libraries often quote the URL they
+    failed on, so the message is redacted before it is shown: Hugging Face tokens,
+    `user:password@` credentials and query strings in URLs, and server addresses
+    given as IP addresses (which usually point at a private backend).
     """
     if error is None:
         return ""
     message = _HF_TOKEN_PATTERN.sub("hf_***", str(error))
+    message = _URL_PATTERN.sub(_redact_url, message)
+    message = _URLLIB3_HOST_PATTERN.sub(
+        lambda m: "host='***'" if _is_ip_address(m.group(1)) else m.group(0),
+        message,
+    )
+    message = _URLLIB3_PATH_PATTERN.sub(r"\1?***", message)
     return message or type(error).__name__
 
 
