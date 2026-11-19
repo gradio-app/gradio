@@ -20,7 +20,7 @@ import traceback
 import unicodedata
 import uuid
 from collections import defaultdict, deque
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator, Callable, Sequence
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
@@ -480,7 +480,7 @@ def _is_automatic_run(
 
 
 def _blank_passwords(
-    blocks: list, session_blocks: dict[int, Block], values: Any
+    blocks: Sequence, session_blocks: dict[int, Block], values: Any
 ) -> Any:
     if not isinstance(values, list):
         return values
