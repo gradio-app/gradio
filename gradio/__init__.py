@@ -7,7 +7,7 @@ says so."""
 import json
 from typing import TYPE_CHECKING
 
-from gradio import _components_package, components, layouts, mcp, themes, validators
+from gradio import _components_package, components, mcp, themes, validators
 from gradio.caching import Cache, cache
 from gradio.cli import deploy
 from gradio.components import Component, State, component
@@ -97,12 +97,29 @@ if TYPE_CHECKING:
         WorkflowCanvas,
     )
     from gradio_components.audio import MicrophoneOptions, WaveformOptions
+    from gradio_components.chat_interface import ChatInterface
+    from gradio_components.external import load, load_chat, load_openapi
+    from gradio_components.flagging import CSVLogger, FlaggingCallback, SimpleCSVLogger
     from gradio_components.image_editor import (
         Brush,
         Eraser,
         LayerOptions,
         WatermarkOptions,
         WebcamOptions,
+    )
+    from gradio_components.interface import Interface, TabbedInterface, close_all
+    from gradio_components.layouts import (
+        Accordion,
+        Column,
+        Draggable,
+        Group,
+        Row,
+        Sidebar,
+        Step,
+        Tab,
+        TabItem,
+        Tabs,
+        Walkthrough,
     )
     from gradio_components.templates import (
         Files,
@@ -119,32 +136,21 @@ if TYPE_CHECKING:
     )
 
     from gradio.blocks import Blocks
-    from gradio.chat_interface import ChatInterface
-    from gradio.external import load, load_chat, load_openapi
-    from gradio.flagging import CSVLogger, FlaggingCallback, SimpleCSVLogger
     from gradio.helpers import create_examples as Examples  # noqa: N812
-    from gradio.interface import Interface, TabbedInterface, close_all
-    from gradio.layouts import (
-        Accordion,
-        Column,
-        Draggable,
-        Group,
-        Row,
-        Sidebar,
-        Step,
-        Tab,
-        TabItem,
-        Tabs,
-        Walkthrough,
+    from gradio.media import (
+        get_audio,
+        get_file,
+        get_image,
+        get_model3d,
+        get_video,
     )
-    from gradio.media import get_audio, get_file, get_image, get_model3d, get_video
     from gradio.renderable import render
     from gradio.workflow import Workflow
 
 # Names that need `gradio_components`, and where each one is defined.
 _NEEDS_COMPONENTS: dict[str, tuple[str, str]] = {
     "Blocks": ("gradio.blocks", "Blocks"),
-    "ChatInterface": ("gradio.chat_interface", "ChatInterface"),
+    "ChatInterface": ("gradio_components.chat_interface", "ChatInterface"),
     "HTML": ("gradio_components", "HTML"),
     "JSON": ("gradio_components", "JSON"),
     "AnnotatedImage": ("gradio_components", "AnnotatedImage"),
@@ -208,27 +214,27 @@ _NEEDS_COMPONENTS: dict[str, tuple[str, str]] = {
     "LayerOptions": ("gradio_components.image_editor", "LayerOptions"),
     "WatermarkOptions": ("gradio_components.image_editor", "WatermarkOptions"),
     "WebcamOptions": ("gradio_components.image_editor", "WebcamOptions"),
-    "load": ("gradio.external", "load"),
-    "load_chat": ("gradio.external", "load_chat"),
-    "load_openapi": ("gradio.external", "load_openapi"),
-    "CSVLogger": ("gradio.flagging", "CSVLogger"),
-    "FlaggingCallback": ("gradio.flagging", "FlaggingCallback"),
-    "SimpleCSVLogger": ("gradio.flagging", "SimpleCSVLogger"),
+    "load": ("gradio_components.external", "load"),
+    "load_chat": ("gradio_components.external", "load_chat"),
+    "load_openapi": ("gradio_components.external", "load_openapi"),
+    "CSVLogger": ("gradio_components.flagging", "CSVLogger"),
+    "FlaggingCallback": ("gradio_components.flagging", "FlaggingCallback"),
+    "SimpleCSVLogger": ("gradio_components.flagging", "SimpleCSVLogger"),
     "Examples": ("gradio.helpers", "create_examples"),
-    "Interface": ("gradio.interface", "Interface"),
-    "TabbedInterface": ("gradio.interface", "TabbedInterface"),
-    "close_all": ("gradio.interface", "close_all"),
-    "Accordion": ("gradio.layouts", "Accordion"),
-    "Column": ("gradio.layouts", "Column"),
-    "Draggable": ("gradio.layouts", "Draggable"),
-    "Group": ("gradio.layouts", "Group"),
-    "Row": ("gradio.layouts", "Row"),
-    "Sidebar": ("gradio.layouts", "Sidebar"),
-    "Step": ("gradio.layouts", "Step"),
-    "Tab": ("gradio.layouts", "Tab"),
-    "TabItem": ("gradio.layouts", "TabItem"),
-    "Tabs": ("gradio.layouts", "Tabs"),
-    "Walkthrough": ("gradio.layouts", "Walkthrough"),
+    "Interface": ("gradio_components.interface", "Interface"),
+    "TabbedInterface": ("gradio_components.interface", "TabbedInterface"),
+    "close_all": ("gradio_components.interface", "close_all"),
+    "Accordion": ("gradio_components.layouts", "Accordion"),
+    "Column": ("gradio_components.layouts", "Column"),
+    "Draggable": ("gradio_components.layouts", "Draggable"),
+    "Group": ("gradio_components.layouts", "Group"),
+    "Row": ("gradio_components.layouts", "Row"),
+    "Sidebar": ("gradio_components.layouts", "Sidebar"),
+    "Step": ("gradio_components.layouts", "Step"),
+    "Tab": ("gradio_components.layouts", "Tab"),
+    "TabItem": ("gradio_components.layouts", "TabItem"),
+    "Tabs": ("gradio_components.layouts", "Tabs"),
+    "Walkthrough": ("gradio_components.layouts", "Walkthrough"),
     "get_audio": ("gradio.media", "get_audio"),
     "get_file": ("gradio.media", "get_file"),
     "get_image": ("gradio.media", "get_image"),
@@ -251,7 +257,19 @@ _NEEDS_COMPONENTS: dict[str, tuple[str, str]] = {
 
 
 # Submodules that moved to `gradio_components` and are still reachable as `gr.<name>`.
-_MOVED_SUBMODULES = ("templates", "_simple_templates", "image_utils", "pipelines_utils")
+_MOVED_SUBMODULES = (
+    "templates",
+    "_simple_templates",
+    "image_utils",
+    "pipelines_utils",
+    "interface",
+    "chat_interface",
+    "external",
+    "external_utils",
+    "flagging",
+    "pipelines",
+    "layouts",
+)
 
 _components_loaded = False
 

@@ -7,6 +7,7 @@ import importlib
 import importlib.abc
 import importlib.util
 import sys
+from pathlib import Path
 from types import ModuleType
 
 PACKAGE = "gradio_components"
@@ -22,6 +23,13 @@ _MOVED_MODULES = frozenset(
         "gradio._simple_templates",
         "gradio.image_utils",
         "gradio.pipelines_utils",
+        "gradio.interface",
+        "gradio.chat_interface",
+        "gradio.external",
+        "gradio.external_utils",
+        "gradio.flagging",
+        "gradio.pipelines",
+        "gradio.layouts",
     }
 )
 
@@ -61,6 +69,28 @@ def require(feature: str) -> ModuleType:
     if not is_installed():
         raise not_installed_error(feature)
     return importlib.import_module(PACKAGE)
+
+
+def bundled_dir(name: str, source_name: str) -> Path:
+    """A directory of files that `gradio_components` ships: the built frontend
+    (`_frontend`) and the sample media (`media_assets`). An installed
+    `gradio_components` has it inside the package. In a source checkout it is where
+    the frontend build and the repository keep it, at `gradio/<source_name>`. With
+    core Gradio alone, the path that is returned does not exist."""
+    try:
+        spec = importlib.util.find_spec(PACKAGE)
+    except (ImportError, ValueError):
+        spec = None
+    if spec is not None and spec.origin:
+        shipped = Path(spec.origin).parent / name
+        if shipped.exists():
+            return shipped
+    return Path(__file__).parent / source_name
+
+
+def frontend_dir() -> Path:
+    """The built frontend: `frontend/`, `node/`, `register.mjs` and `hooks.mjs`."""
+    return bundled_dir("_frontend", "templates")
 
 
 def loaded_class(module: str, name: str) -> type | None:

@@ -4,7 +4,6 @@ import inspect
 
 import click
 
-import gradio.layouts
 from gradio import _components_package
 from gradio.analytics import custom_component_analytics
 from gradio.blocks import BlockContext
@@ -31,7 +30,7 @@ _IGNORE = {
 _BEGINNER_FRIENDLY = {"Slider", "Radio", "Checkbox", "Number", "CheckboxGroup", "File"}
 
 
-def _get_table_items(module):
+def _get_table_items(module, layout_names=()):
     items = []
     for name in module.__all__:
         if name in _IGNORE:
@@ -46,7 +45,7 @@ def _get_table_items(module):
             tags.append("Beginner Friendly")
         if issubclass(gr_cls, FormComponent):
             tags.append("Form Component")
-        if name in gradio.layouts.__all__:
+        if name in layout_names:
             tags.append("Layout")
         doc = inspect.getdoc(gr_cls) or "No description available."
         doc = doc.split(".")[0]
@@ -67,11 +66,12 @@ def _show():
     )
     components = _components_package.require("`gradio cc show`")
     import gradio_components._simple_templates as simple_templates
+    from gradio_components import layouts
 
     items = (
         _get_table_items(simple_templates)
         + _get_table_items(components)
-        + _get_table_items(gradio.layouts)
+        + _get_table_items(layouts, layout_names=layouts.__all__)
     )
     click.echo_via_pager(format_table(("Name", "Description"), items) + "\n")
 

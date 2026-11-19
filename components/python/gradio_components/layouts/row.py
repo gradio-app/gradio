@@ -3,10 +3,9 @@ from __future__ import annotations
 import warnings
 from typing import Literal
 
-from gradio_client.documentation import document
-
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
+from gradio_client.documentation import document
 
 
 @document()

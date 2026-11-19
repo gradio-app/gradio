@@ -12,12 +12,11 @@ from multiprocessing import Lock
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from gradio_client import utils as client_utils
-from gradio_client.documentation import document
-
 import gradio as gr
 from gradio import utils
 from gradio.events import LikeData
+from gradio_client import utils as client_utils
+from gradio_client.documentation import document
 
 if TYPE_CHECKING:
     from gradio.components.base import Component

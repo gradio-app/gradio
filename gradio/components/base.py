@@ -28,7 +28,6 @@ from gradio.data_classes import (
 )
 from gradio.events import EventListener
 from gradio.i18n import I18nData
-from gradio.layouts import Form
 from gradio.processing_utils import move_files_to_cache
 
 if TYPE_CHECKING:
@@ -38,6 +37,7 @@ if TYPE_CHECKING:
         headers: list[str]
         data: list[list[str | int | bool]]
 
+    from gradio_components.layouts import Form
     from gradio_components.timer import Timer
 
 
@@ -368,6 +368,8 @@ class FormComponent(Component):
     def get_expected_parent(self) -> type[Form] | None:
         if getattr(self, "container", None) is False:
             return None
+        from gradio_components.layouts import Form
+
         return Form
 
     def preprocess(self, payload: Any) -> Any:

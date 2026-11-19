@@ -70,8 +70,13 @@ pattern = 'demo/([\S]*.gif)'
 replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<1>'
 
 [tool.hatch.build]
-artifacts = [
+# The built frontend (gradio/templates) and the sample media (gradio/media_assets)
+# are shipped by gradio_components: see components/python/hatch_build.py.
+exclude = [
   "/gradio/templates",
+  "/gradio/media_assets",
+]
+artifacts = [
   "/gradio/_frontend_code",
   "*.pyi",
   "/gradio/node",

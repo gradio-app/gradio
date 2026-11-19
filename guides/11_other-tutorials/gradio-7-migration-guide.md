@@ -8,7 +8,13 @@ Gradio 7 and its Python client require Python 3.11 or newer. Python 3.10 is no l
 
 ## Components are installed with `gradio[components]`
 
-`pip install gradio` now installs only the core of Gradio: the server, the queue, the API engine, the client and `gr.Server`. Everything that builds a user interface (`gr.Blocks`, `gr.Interface`, `gr.ChatInterface`, the layouts and every component such as `gr.Textbox` or `gr.Image`) is in a separate package, `gradio_components`, along with the dependencies that only components need (numpy, pandas and Pillow).
+`pip install gradio` now installs only the core of Gradio: the server, the queue, the API engine, the client and `gr.Server`. Everything that builds a user interface is in a separate package, `gradio_components`:
+
+- `gr.Blocks`, `gr.Interface`, `gr.ChatInterface`, `gr.load`, the layouts and every component such as `gr.Textbox` or `gr.Image`
+- the built frontend (the JavaScript and CSS of the Gradio UI) and the sample media returned by `gr.get_image` and similar functions
+- the dependencies that only components need: numpy, pandas and Pillow
+
+This makes the core install small: about 34 MB with its dependencies, instead of about 156 MB.
 
 Install it through the extra, which pins the version that matches your version of Gradio:
 
@@ -23,6 +29,7 @@ What you need to do:
 - In `requirements.txt`, `pyproject.toml` or a Dockerfile, replace `gradio` with `gradio[components]`, unless your app only uses `gr.Server`.
 - If your code imports numpy, pandas or Pillow without listing them, they are now installed by `gradio[components]` rather than by `gradio`.
 - Type checkers resolve `gr.Textbox`, `from gradio.components import Textbox` and `from gradio_components.textbox import Textbox`. An import from a component's old module, such as `from gradio.components.textbox import Textbox`, still runs, but a type checker cannot follow it: import from `gradio_components.textbox` instead.
+- A `gr.Server` app that relied on Gradio's own page being served at `/` now needs `gradio[components]`, or its own route for `/`. Without the components, `/` says that the user interface is not installed.
 - A logger configured by name for a component module, such as `gradio.components.video`, is now named `gradio_components.video`.
 
 ## 32-bit integer images cannot be encoded as PNG

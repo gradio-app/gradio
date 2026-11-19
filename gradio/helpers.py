@@ -29,7 +29,6 @@ from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
-from gradio.flagging import CSVLogger
 from gradio.i18n import I18nData
 from gradio.route_utils import Header
 from gradio.utils import UnhashableKeyDict
@@ -343,6 +342,8 @@ class Examples:
                 visible=visible,
                 sample_labels=example_labels,
             )
+
+        from gradio_components.flagging import CSVLogger
 
         self.cache_logger = CSVLogger(
             simplify_file_data=False, verbose=False, dataset_file_name="log.csv"

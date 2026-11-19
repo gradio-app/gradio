@@ -16,7 +16,6 @@ from gradio.components.base import (
     get_component_instance,
 )
 from gradio.components.state import State
-from gradio.layouts import Form
 
 if TYPE_CHECKING:
     # so that type checkers know the components that `__getattr__` returns below
@@ -24,7 +23,6 @@ if TYPE_CHECKING:
 
 __all__ = [
     "Component",
-    "Form",
     "FormComponent",
     "State",
     "StreamingInput",

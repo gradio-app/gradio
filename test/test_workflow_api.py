@@ -542,16 +542,9 @@ def _graph_two_fns() -> str:
 
 
 def _frontend_built() -> bool:
-    import gradio as gr
+    from gradio import _components_package
 
-    return os.path.exists(
-        os.path.join(
-            os.path.dirname(gr.__file__ or ""),
-            "templates",
-            "frontend",
-            "index.html",
-        )
-    )
+    return (_components_package.frontend_dir() / "frontend" / "index.html").exists()
 
 
 class TestEndToEndClient:

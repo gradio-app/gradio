@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from gradio_client.documentation import document
-
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio_client.documentation import document
 
 
 @document()

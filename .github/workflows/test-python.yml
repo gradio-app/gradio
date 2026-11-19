@@ -176,6 +176,15 @@ jobs:
         shell: bash
         run: |
           find gradio -name "__init__.py" -delete
+      # What `pip install gradio` gives: no gradio_components, so no components,
+      # no built frontend and no numpy, pandas or Pillow.
+      - name: Core-only install smoke test
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          uv venv core-venv --python 3.11
+          uv pip install --python core-venv/bin/python client-dist/*.whl dist/*.whl
+          cd test && ../core-venv/bin/python core_only_smoke.py
       - name: Run parallel tests
         shell: bash
         run: |

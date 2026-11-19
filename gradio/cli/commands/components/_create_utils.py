@@ -387,12 +387,13 @@ def _create_backend(
 
     components_package = _components_package.require("`gradio cc create`")
     import gradio_components._simple_templates as simple_templates
+    from gradio_components import layouts
 
     gradio_dir = Path(inspect.getfile(gradio)).parent
     components_dir = Path(inspect.getfile(components_package)).parent
     lists_to_search = [
         (components_package.__all__, components_dir),
-        (gradio.layouts.__all__, gradio_dir / "layouts"),
+        (layouts.__all__, components_dir / "layouts"),
         (simple_templates.__all__, components_dir / "_simple_templates"),
     ]
 

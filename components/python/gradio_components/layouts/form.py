@@ -4,8 +4,9 @@ from typing import TYPE_CHECKING
 
 from gradio.blocks import BlockContext, Blocks
 from gradio.component_meta import ComponentMeta
-from gradio.layouts.column import Column
-from gradio.layouts.row import Row
+
+from gradio_components.layouts.column import Column
+from gradio_components.layouts.row import Row
 
 if TYPE_CHECKING:
     from gradio.blocks import Block

@@ -9,7 +9,6 @@ from gradio.blocks import Block
 from gradio.components.base import Component
 from gradio.context import LocalContext, get_blocks_context, get_render_context
 from gradio.events import EventListener, EventListenerMethod
-from gradio.layouts import Column, Row
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction
@@ -35,6 +34,8 @@ class Renderable:
 
         self._id = len(blocks_config.renderables)
         blocks_config.renderables.append(self)
+        from gradio_components.layouts import Column, Row
+
         self.ContainerClass = Row if isinstance(get_render_context(), Row) else Column
         self.container = self.ContainerClass(show_progress=True)
         self.container_id = self.container._id

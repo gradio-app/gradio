@@ -50,7 +50,16 @@ fragments = [
 ]
 
 [tool.hatch.build]
-artifacts = ["*.pyi", "/gradio_components/py.typed"]
+artifacts = [
+  "*.pyi",
+  "/gradio_components/py.typed",
+  # copied in by hatch_build.py: the built frontend and the sample media
+  "/gradio_components/_frontend",
+  "/gradio_components/media_assets",
+]
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
 
 [tool.hatch.build.targets.wheel]
 core-metadata-version = "2.4"
@@ -61,6 +70,7 @@ include = [
   "/gradio_components",
   "/README.md",
   "/requirements.txt",
+  "/hatch_build.py",
 ]
 
 [tool.ruff]

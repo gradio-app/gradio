@@ -11,13 +11,6 @@ import warnings
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
-from gradio_client.documentation import document
-from gradio_components.button import Button
-from gradio_components.clear_button import ClearButton
-from gradio_components.deep_link_button import DeepLinkButton
-from gradio_components.duplicate_button import DuplicateButton
-from gradio_components.markdown import Markdown
-
 from gradio import Examples, utils
 from gradio.blocks import Blocks
 from gradio.components.base import Component, get_component_instance
@@ -25,10 +18,17 @@ from gradio.components.state import State
 from gradio.data_classes import InterfaceTypes
 from gradio.events import Dependency, Events, on
 from gradio.exceptions import RenderError
-from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.i18n import I18nData
-from gradio.layouts import Accordion, Column, Row, Tab, Tabs
-from gradio.pipelines import load_from_pipeline
+from gradio_client.documentation import document
+
+from gradio_components.button import Button
+from gradio_components.clear_button import ClearButton
+from gradio_components.deep_link_button import DeepLinkButton
+from gradio_components.duplicate_button import DuplicateButton
+from gradio_components.flagging import CSVLogger, FlaggingCallback, FlagMethod
+from gradio_components.layouts import Accordion, Column, Row, Tab, Tabs
+from gradio_components.markdown import Markdown
+from gradio_components.pipelines import load_from_pipeline
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from diffusers import DiffusionPipeline  # type: ignore

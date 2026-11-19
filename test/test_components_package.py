@@ -136,7 +136,7 @@ class TestWithoutComponents:
             print(summary["phases"]["total"]["p50"], summary["phases"]["total"]["max"])
 
             app = gr.Server()
-            favicon = os.path.join(os.path.dirname(gr.__file__), "media_assets", "images", "logo.png")
+            favicon = os.path.abspath("test/test_files/bus.png")
             _, url, _ = app.launch(
                 prevent_thread_lock=True, executor="thread", pwa=True,
                 favicon_path=favicon,

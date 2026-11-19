@@ -16,7 +16,6 @@ from gradio.components.base import (
     get_component_instance,
 )
 from gradio.components.state import State
-from gradio.layouts import Form
 
 from gradio_components.annotated_image import AnnotatedImage
 from gradio_components.audio import Audio
@@ -47,6 +46,7 @@ from gradio_components.image_editor import ImageEditor
 from gradio_components.imageslider import ImageSlider
 from gradio_components.json_component import JSON
 from gradio_components.label import Label
+from gradio_components.layouts import Form
 from gradio_components.login_button import LoginButton
 from gradio_components.markdown import Markdown
 from gradio_components.model3d import Model3D

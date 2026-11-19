@@ -12,17 +12,10 @@ from collections.abc import Callable, Generator
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
+import gradio as gr
 import httpx2
 import huggingface_hub
-from gradio_client import Client
-from gradio_client.client import Endpoint
-from gradio_client.documentation import document
-from gradio_client.utils import encode_url_or_file_to_base64, is_http_url_like
-from gradio_components.multimodal_textbox import MultimodalValue
-from packaging import version
-
-import gradio as gr
-from gradio import components, external_utils, utils
+from gradio import components, utils
 from gradio.context import Context
 from gradio.exceptions import (
     GradioVersionIncompatibleError,
@@ -30,15 +23,23 @@ from gradio.exceptions import (
 )
 from gradio.media import get_audio, get_image
 from gradio.processing_utils import save_base64_to_cache, to_binary
+from gradio_client import Client
+from gradio_client.client import Endpoint
+from gradio_client.documentation import document
+from gradio_client.utils import encode_url_or_file_to_base64, is_http_url_like
+from packaging import version
+
+from gradio_components import external_utils
+from gradio_components.multimodal_textbox import MultimodalValue
 
 if TYPE_CHECKING:
-    from gradio_components.chatbot import NormalizedMessageDict
-    from gradio_components.login_button import LoginButton
+    from gradio.blocks import Blocks
     from huggingface_hub.inference._providers import PROVIDER_T
 
-    from gradio.blocks import Blocks
-    from gradio.chat_interface import ChatInterface
-    from gradio.interface import Interface
+    from gradio_components.chat_interface import ChatInterface
+    from gradio_components.chatbot import NormalizedMessageDict
+    from gradio_components.interface import Interface
+    from gradio_components.login_button import LoginButton
 
 
 @document()
@@ -306,9 +307,9 @@ def from_model(
     elif p == "text-generation":
         # Example: meta-llama/Meta-Llama-3-8B-Instruct
         if tags and "conversational" in tags:
-            from gradio_components.chatbot import Chatbot
-
             from gradio import ChatInterface
+
+            from gradio_components.chatbot import Chatbot
 
             fn = external_utils.conversational_wrapper(client)
             examples = [
@@ -875,7 +876,7 @@ def load_chat(
         raise ImportError(
             "To use OpenAI API Client, you must install the `openai` package. You can install it with `pip install openai`."
         ) from e
-    from gradio.chat_interface import ChatInterface
+    from gradio_components.chat_interface import ChatInterface
 
     client = OpenAI(api_key=token or "***", base_url=base_url)
     start_message = (

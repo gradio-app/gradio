@@ -321,6 +321,18 @@ def toorjson(value) -> str:
     )
 
 
+NO_FRONTEND_PAGE = """<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Gradio</title></head>
+<body>
+<p>This Gradio server is running, and it has no page at this address.</p>
+<p>The Gradio user interface is in a separate package. To use it, install
+<code>gradio[components]</code>.</p>
+</body>
+</html>
+"""
+
+
 def render_page(
     template: str, config: Mapping[str, Any], gradio_api_info: Any, base_url: str = "./"
 ) -> str:
@@ -955,6 +967,10 @@ class App(FastAPI):
                     )
                 )
             except FileNotFoundError as err:
+                if not _components_package.is_installed():
+                    # The Gradio UI is shipped by `gradio_components`. A `gr.Server`
+                    # app without it serves its own routes and the API only.
+                    return HTMLResponse(NO_FRONTEND_PAGE)
                 if blocks.share:
                     raise ValueError(
                         "Did you install Gradio from source files? Share mode only "

@@ -52,6 +52,23 @@ jobs:
         run: |
           . venv/bin/activate
           python -c "import gradio"
+      # The built frontend is shipped by gradio_components. A preview Space installs
+      # gradio_components from the PR's commit, where the frontend is not built, and
+      # only the gradio wheel is uploaded for previews. So the preview build of the
+      # gradio wheel carries the frontend, which Gradio falls back to.
+      - name: Include the frontend in the preview wheel
+        run: |
+          python - <<'EOF'
+          from pathlib import Path
+
+          pyproject = Path("pyproject.toml")
+          text = pyproject.read_text()
+          excluded = '  "/gradio/templates",\n  "/gradio/media_assets",\n'
+          assert excluded in text
+          text = text.replace(excluded, '  "/gradio/media_assets",\n')
+          text = text.replace('artifacts = [\n', 'artifacts = [\n  "/gradio/templates",\n', 1)
+          pyproject.write_text(text)
+          EOF
       - name: Build pr package
         run: |
           python -c 'import json; j = json.load(open("gradio/package.json")); j["version"] = "${{ needs.changes.outputs.gradio_version }}"; json.dump(j, open("gradio/package.json", "w"))'
