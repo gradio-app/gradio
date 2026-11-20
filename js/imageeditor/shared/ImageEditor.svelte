@@ -799,7 +799,7 @@
 		on_files: handle_files,
 		accepted_types: "image/*",
 		disable_click: disable_click,
-		ignore_click_selector: ".toolbar-wrap"
+		ignore_click_selector: ".toolbar-wrap, .icon-button-wrapper"
 	}}
 	aria-label={"Click to upload or drop files"}
 	aria-dropeffect="copy"

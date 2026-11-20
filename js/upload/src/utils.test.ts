@@ -104,6 +104,36 @@ describe("create_drag", () => {
 		action.destroy();
 	});
 
+	test("ignores a click whose target is removed by its own handler", () => {
+		const click = vi
+			.spyOn(HTMLInputElement.prototype, "click")
+			.mockImplementation(() => {});
+		const node = document.createElement("div");
+		const wrapper = document.createElement("div");
+		const button = document.createElement("button");
+		const icon = document.createElement("span");
+
+		wrapper.className = "icon-button-wrapper";
+		button.appendChild(icon);
+		wrapper.appendChild(button);
+		node.appendChild(wrapper);
+		document.body.appendChild(node);
+
+		// e.g. the fullscreen button swapping its icon when clicked
+		button.addEventListener("click", () => icon.remove());
+
+		const { drag } = create_drag();
+		const action = drag(node, {
+			ignore_click_selector: ".toolbar-wrap, .icon-button-wrapper"
+		});
+
+		icon.click();
+
+		expect(click).not.toHaveBeenCalled();
+		action.destroy();
+		node.remove();
+	});
+
 	test("opens the file input when the dropzone is clicked", () => {
 		const click = vi
 			.spyOn(HTMLInputElement.prototype, "click")

@@ -70,6 +70,43 @@ describe("BlockLabel hover reveal", () => {
 		assert.isFalse(label.classList.contains("hovered"));
 	});
 
+	function add_buttons(left: number, top: number): HTMLElement {
+		const wrapper = target.appendChild(document.createElement("div"));
+		wrapper.className = "icon-button-wrapper";
+		Object.assign(wrapper.style, {
+			position: "absolute",
+			left: `${left}px`,
+			top: `${top}px`,
+			width: "100px",
+			height: "24px"
+		});
+		return wrapper;
+	}
+
+	test("does not cover the buttons when the pointer is between them", async () => {
+		const { label, rect } = await setup();
+		const t = target.getBoundingClientRect();
+		const wrapper = add_buttons(rect.left - t.left + 100, rect.top - t.top);
+		const w = wrapper.getBoundingClientRect();
+		await pointer_move(wrapper, w.left + 10, rect.top + 5);
+		assert.isFalse(label.classList.contains("hovered"));
+	});
+
+	test("only reacts to the visible part of the label, short of the buttons", async () => {
+		const { label, rect } = await setup();
+		const t = target.getBoundingClientRect();
+		const wrapper = add_buttons(rect.left - t.left + 100, rect.top - t.top);
+		const w = wrapper.getBoundingClientRect();
+
+		// Just to the left of the buttons: still part of the label, but too close
+		await pointer_move(target, w.left - 5, rect.top + 5);
+		assert.isFalse(label.classList.contains("hovered"));
+
+		// Clearly on the visible title
+		await pointer_move(target, rect.left + 5, rect.top + 5);
+		assert.isTrue(label.classList.contains("hovered"));
+	});
+
 	test("keeps letting clicks and drags through to what is underneath", async () => {
 		const { label, rect } = await setup();
 		await pointer_move(target, rect.left + 5, rect.top + 5);

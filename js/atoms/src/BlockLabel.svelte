@@ -21,22 +21,45 @@
 	// Buttons in the corner can cover a long label. Reveal it on hover by raising
 	// it above them. The label keeps `pointer-events: none`, so clicks and drags
 	// (e.g. drawing on an image editor canvas) still reach what is underneath:
-	// hover is detected from pointer moves on the parent instead.
+	// hover is detected from pointer moves on the parent instead. Only the part of
+	// the label that is visible counts, stopping short of the buttons so that
+	// moving the pointer towards them doesn't cover them with the label.
+	const BUTTONS_GAP = 24;
+
+	function visible_right_edge(el: HTMLElement, host: HTMLElement): number {
+		const rect = el.getBoundingClientRect();
+		let right = rect.right;
+		for (const wrapper of host.querySelectorAll(".icon-button-wrapper")) {
+			const w = wrapper.getBoundingClientRect();
+			const overlaps_vertically = w.top < rect.bottom && w.bottom > rect.top;
+			if (overlaps_vertically && w.left > rect.left && w.left < right) {
+				right = w.left - BUTTONS_GAP;
+			}
+		}
+		return right;
+	}
+
 	$effect(() => {
 		const el = label_el;
 		const host = el?.parentElement;
 		if (!el || !host || !float || !show_label || disable) return;
 
 		const on_move = (event: PointerEvent): void => {
-			const target = event.target as Element | null;
-			if (event.buttons !== 0 || target?.closest("button, a, input")) {
+			const over_controls = event
+				.composedPath()
+				.some(
+					(node) =>
+						node instanceof Element &&
+						node.matches("button, a, input, .icon-button-wrapper")
+				);
+			if (event.buttons !== 0 || over_controls) {
 				hovered = false;
 				return;
 			}
 			const rect = el.getBoundingClientRect();
 			hovered =
 				event.clientX >= rect.left &&
-				event.clientX <= rect.right &&
+				event.clientX <= visible_right_edge(el, host) &&
 				event.clientY >= rect.top &&
 				event.clientY <= rect.bottom;
 		};

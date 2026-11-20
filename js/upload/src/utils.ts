@@ -151,13 +151,20 @@ export function create_drag(): {
 			}
 
 			function handle_click(e: MouseEvent): void {
-				const target = e.target;
 				const ignored_click_selector = _options.ignore_click_selector;
+				// Check the event's path rather than `target.closest()`: a click
+				// handler can re-render the clicked element (e.g. the fullscreen
+				// button swaps its icon), detaching the target from the DOM before
+				// the event bubbles up to here.
 				if (
 					_options.disable_click ||
 					(ignored_click_selector &&
-						target instanceof Element &&
-						target.closest(ignored_click_selector) !== null)
+						e
+							.composedPath()
+							.some(
+								(el) =>
+									el instanceof Element && el.matches(ignored_click_selector)
+							))
 				) {
 					return;
 				}
