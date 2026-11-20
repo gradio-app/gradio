@@ -335,6 +335,16 @@ def api_stream(
             receive, emit = cls.receive, cls.emit
         params = [p for p in utils.get_function_params(receive) if p[0] != "self"]
         returns = _return_types(emit)
+    elif (sent := _sent_types(fn)) is not None:
+        # A generator sent the inputs' values: they are typed by what it is
+        # sent, `Generator[outputs, inputs, None]`
+        names = (
+            ["input"] if len(sent) == 1 else [f"input_{i}" for i in range(len(sent))]
+        )
+        params = [
+            (name, False, None, hint) for name, hint in zip(names, sent, strict=True)
+        ]
+        returns = _return_types(fn)
     else:
         params = utils.get_function_params(fn)
         returns = _return_types(fn)
@@ -407,6 +417,31 @@ def api_stream(
     )
     stream_fn.input_parameter_names = [p[0] for p in params]
     return stream_fn, index
+
+
+def _sent_types(fn: Callable) -> list | None:
+    """The types of the inputs that a generator function is sent, from its
+    return hint `Generator[Y, S, R]` or `AsyncGenerator[Y, S]`: S, one per
+    input (a tuple for several). None for a function that is not sent values
+    (no hint, or S is None)."""
+    import collections.abc
+    import typing
+
+    if not utils.is_generator_function(fn):
+        return None
+    hint = utils.get_type_hints(fn).get("return")
+    if typing.get_origin(hint) not in (
+        collections.abc.Generator,
+        collections.abc.AsyncGenerator,
+    ):
+        return None
+    args = typing.get_args(hint)
+    sent = args[1] if len(args) > 1 else None
+    if sent in (None, type(None)):
+        return None
+    if typing.get_origin(sent) is tuple:
+        return list(typing.get_args(sent))
+    return [sent]
 
 
 def _receive_extras(cls: type) -> dict[str, int]:

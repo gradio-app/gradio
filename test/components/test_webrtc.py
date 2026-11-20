@@ -1,7 +1,7 @@
 import asyncio
 import json
 import time
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator, Iterator
 from contextlib import asynccontextmanager, closing
 from types import SimpleNamespace
 from typing import Any, cast
@@ -4765,7 +4765,8 @@ class TestCleanUp:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "executor, mode", [("thread", "send-receive"), ("process", "send")]
+    "executor, mode",
+    [("thread", "send-receive"), ("process", "send"), ("thread", "generator")],
 )
 async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mode):
     forget_earlier_streams()
@@ -4776,6 +4777,20 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
         @server.api(name="echo", time_limit=30, transport="webrtc")
         def caption(frame: gr.VideoFrame, x: float) -> float:
             return x * 2
+
+        expected = [1.0]
+    elif mode == "generator":
+        # Sent each frame with the other input; its types are what it is sent
+        @server.api(name="echo", time_limit=30, transport="webrtc")
+        def total(
+            request: gr.Request,
+        ) -> Generator[float, tuple[gr.VideoFrame, float], None]:
+            total = 0.0
+            value = yield 0.0
+            while True:
+                _frame, x = value
+                total += x
+                value = yield 1.0 if total >= 1.0 else gr.skip()
 
         expected = [1.0]
     else:
@@ -4852,7 +4867,7 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
                 )
             ).json()
             assert answer["type"] == "answer", answer
-            if mode == "send":
+            if mode in ("send", "generator"):
                 assert "a=recvonly" in answer["sdp"]
             await pc.setRemoteDescription(
                 RTCSessionDescription(answer["sdp"], answer["type"])
