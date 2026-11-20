@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 import fastapi
 from anyio.to_thread import run_sync
 
-from gradio import caching, history, route_utils, routes
+from gradio import caching, history, route_utils, routes, utils
 from gradio.caching import CacheMissError, ProbeCache
 from gradio.data_classes import (
     PredictBodyInternal,
@@ -93,6 +93,9 @@ class Event:
         # A lease whose stream the queue ended at its time limit for an event
         # waiting for its slot: its page joins the queue again
         self.handed_over = False
+        # Whether the page heard that the stream goes on past its time limit
+        # (see Queue._went_on)
+        self.told_it_goes_on = False
 
     @property
     def streaming(self):
@@ -1788,6 +1791,23 @@ class Queue:
         time_limit = cast(float, fn.time_limit)
         while event.out_of_time:
             event.uncounted_time += time_limit
+        self._went_on(event)
+
+    def _went_on(self, event: Event) -> None:
+        """A stream went on past its time limit, as nobody waits for its slot.
+        On ZeroGPU, where a large concurrency limit means that nobody ever
+        waits, it keeps using the visitor's GPU quota until they stop it: say
+        so once per stream."""
+        if event.told_it_goes_on or not utils.is_zero_gpu_space():
+            return
+        event.told_it_goes_on = True
+        self.log_message(
+            event._id,
+            log="No one is waiting, so this stream keeps going past its time "
+            "limit, and keeps using your GPU quota. Stop it when you are done.",
+            title="Info",
+            level="info",
+        )
 
     def _slot_wanted(self, event: Event) -> bool:
         """Whether an event waits for a slot of `event`'s concurrency group: a
@@ -1805,7 +1825,10 @@ class Queue:
         `EventHandle.time_up`): ends its stream if an event waits for its
         slot, as the queue ends a stream that it runs itself."""
         close_stream = event.fn.close_stream
-        if close_stream is None or event.closed or not self._slot_wanted(event):
+        if close_stream is None or event.closed:
+            return
+        if not self._slot_wanted(event):
+            self._went_on(event)
             return
         event.handed_over = True
         closed = close_stream(event._id)

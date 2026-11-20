@@ -1625,9 +1625,11 @@ class TestStreams:
         "launched, offer", TIME_LIMIT_STREAMS, indirect=["launched"]
     )
     async def test_a_stream_goes_on_past_its_time_limit_while_nobody_waits(
-        self, launched, offer
+        self, launched, offer, monkeypatch
     ):
         h = launched
+        # Launched already: on ZeroGPU, the page hears once that it goes on
+        monkeypatch.setattr("gradio.utils.is_zero_gpu_space", lambda: True)
         pc = await make_offer(**offer)
         event_id = await h.start("one")
         await h.connect(pc, "one")
@@ -1635,8 +1637,14 @@ class TestStreams:
         # Read for the whole test, as the page does: a page that stops
         # reading has left
         reader = asyncio.ensure_future(h.messages("one", completed, timeout=30))
-        await asyncio.sleep(2.5)
+        # Its time limit counts from its first step
+        lease = stream_of(h.manager, "one").lease
+        await h.wait_until(lambda: lease.started_at is not None)
+        first_period = cast(float, lease.started_at)
         # Past two periods of its time limit (on_time_limit="rejoin")
+        await h.wait_until(
+            lambda: cast(float, lease.started_at) >= first_period + 2, timeout=6
+        )
         assert h.event_running(event_id)
         assert not stream_of(h.manager, "one").ended
         await h.http.post(f"{h.api}/stream/{event_id}/close")
@@ -1647,6 +1655,12 @@ class TestStreams:
         assert turn["time_limit"] == 1
         # Ended, not handed over: the page does not join the queue again
         assert messages[-1]["stream_ended"] is True
+        # (With processes, the queue's gateway runs in another process, which
+        # the patch does not reach)
+        if getattr(self, "executor", "thread") == "thread":
+            logs = [m for m in messages if m.get("msg") == "log"]
+            assert len(logs) == 1
+            assert "GPU quota" in logs[0]["log"]
         await pc.close()
 
     @pytest.mark.asyncio

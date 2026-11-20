@@ -1684,6 +1684,43 @@ def test_a_stream_that_runs_out_of_time_goes_on_while_nobody_waits(executor):
         demo.close()
 
 
+def test_on_zero_gpu_a_stream_that_goes_on_says_so_once(monkeypatch):
+    demo, api = _launch_text_stream(lambda chunk: f"got {chunk}", time_limit=0.5)
+    # After the launch, which sets up ZeroGPU itself when it is on
+    monkeypatch.setattr("gradio.utils.is_zero_gpu_space", lambda: True)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            response = http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            )
+            event_id = response.json()["event_id"]
+            started = time.monotonic()
+            logs = []
+            with http.stream(
+                "GET", f"{api}/queue/data", params={"session_hash": "s"}
+            ) as messages:
+                for line in messages.iter_lines():
+                    if not line.startswith("data:"):
+                        continue
+                    message = json.loads(line[5:])
+                    if message.get("msg") == "log":
+                        logs.append(message)
+                    elif message.get("msg") == "process_streaming":
+                        if time.monotonic() - started > 2:
+                            http.post(f"{api}/stream/{event_id}/close")
+                        else:
+                            time.sleep(0.1)
+                            _send_chunk(http, api, event_id, "s", "b")
+                    elif message.get("msg") == "process_completed":
+                        break
+            # Past three periods of its time limit, one notice
+            assert len(logs) == 1
+            assert "GPU quota" in logs[0]["log"]
+    finally:
+        demo.close()
+
+
 def test_a_stream_that_runs_out_of_time_hands_over_to_an_event_waiting():
     demo, api = _launch_text_stream(lambda chunk: f"got {chunk}", time_limit=1)
     try:
