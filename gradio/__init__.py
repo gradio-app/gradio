@@ -40,6 +40,8 @@ from gradio.themes import Base as Theme
 from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
 
 if TYPE_CHECKING:
+    from types import FrameType
+
     from gradio_components import (
         HTML,
         JSON,
@@ -282,9 +284,14 @@ _NEEDS_NUMPY: dict[str, tuple[str, str | None]] = {
     "VideoFrame": ("gradio.webrtc.options", "VideoFrame"),
     "AudioChunk": ("gradio.webrtc.options", "AudioChunk"),
 }
+try:
+    _has_numpy = importlib.util.find_spec("numpy") is not None
+except (ImportError, ValueError):
+    _has_numpy = False
 
 
-def _load_needing_numpy(name: str):
+def _load_needing_numpy(name: str, caller: "FrameType | None" = None):
+    import dis
     import importlib
 
     module_name, attribute = _NEEDS_NUMPY[name]
@@ -293,10 +300,23 @@ def _load_needing_numpy(name: str):
     except ModuleNotFoundError as error:
         if error.name != "numpy":
             raise
-        raise ImportError(
+        message = (
             f"`gr.{name}` needs numpy. Install it with the `webrtc` extra: "
             'pip install "gradio[webrtc]"'
-        ) from error
+        )
+        # As for the components: an AttributeError for attribute access, so that
+        # `hasattr()` and `inspect.getmembers(gr)` work, but an ImportError for
+        # `from gradio import ...`, where Python would replace an AttributeError
+        # with its own message.
+        instruction = None
+        if caller is not None:
+            try:
+                instruction = dis.opname[caller.f_code.co_code[caller.f_lasti]]
+            except Exception:
+                pass
+        if instruction == "IMPORT_FROM":
+            raise ImportError(message) from error
+        raise AttributeError(message) from error
     value = module if attribute is None else getattr(module, attribute)
     globals()[name] = value
     return value
@@ -332,12 +352,17 @@ def __getattr__(name: str):
         _components_package.require(f"`gr.{name}`")
         return importlib.import_module(f"gradio_components.{name}")
     if name in _NEEDS_NUMPY:
-        return _load_needing_numpy(name)
+        import sys
+
+        return _load_needing_numpy(name, sys._getframe(1))
     raise AttributeError(f"module 'gradio' has no attribute {name!r}")
 
 
 def __dir__():
-    return sorted(set(globals()) | set(_NEEDS_COMPONENTS) | set(_NEEDS_NUMPY))
+    names = set(globals()) | set(_NEEDS_COMPONENTS)
+    if _has_numpy:
+        names |= set(_NEEDS_NUMPY)
+    return sorted(names)
 
 
 def _load_components() -> None:
@@ -537,7 +562,7 @@ if not _components_package.is_installed():
     # so that `from gradio import *` works with core Gradio alone
     __all__ = [name for name in __all__ if name not in _NEEDS_COMPONENTS]  # noqa: PLE0605
 
-if importlib.util.find_spec("numpy") is None:
+if not _has_numpy:
     # likewise without numpy
     __all__ = [name for name in __all__ if name not in _NEEDS_NUMPY]  # noqa: PLE0605
 

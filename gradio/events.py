@@ -512,11 +512,10 @@ class EventListenerMethod:
 
 
 def _is_video_stream(block: Any, event_name: str) -> bool:
-    if event_name != "stream" or block is None:
-        return False
-    from gradio_components.video import Video
+    from gradio._components_package import loaded_class
 
-    return isinstance(block, Video)
+    video = loaded_class("video", "Video")
+    return event_name == "stream" and video is not None and isinstance(block, video)
 
 
 def _check_video_stream(block: Any, event_name: str) -> None:
