@@ -1448,6 +1448,7 @@ class Queue:
                     event.run_time += end - start
                     event.uncounted_time = uncounted
                     if event.streaming and not fn.lease:
+                        self._extend_if_idle(fn, event)
                         response["is_generating"] = (
                             not event.is_finished and self._stream_goes_on(fn, event)
                         )
@@ -1591,6 +1592,7 @@ class Queue:
                         for event in awake_events:
                             event.run_time += end - start
                             if event.streaming and not fn.lease:
+                                self._extend_if_idle(fn, event)
                                 response["is_generating"] = (
                                     not event.is_finished
                                     and self._stream_goes_on(fn, event)
@@ -1761,6 +1763,27 @@ class Queue:
                 )
 
                 self.event_ids_to_events.pop(event._id, None)
+
+    def _extend_if_idle(self, fn: BlockFunction, event: Event) -> None:
+        """With on_time_limit="rejoin", a stream whose time ran out goes on
+        unless an event waits for its slot: its clock starts the next period
+        of time_limit where the last one ended, as the page's countdown bar
+        starts over when it runs out. With an event waiting for a slot of its
+        concurrency group, it ends, and the page joins the queue again with
+        its next chunk."""
+        if fn.on_time_limit != "rejoin" or event.closed or not event.out_of_time:
+            return
+        group = self.event_queue_per_concurrency_id.get(event.concurrency_id)
+        if (
+            group is not None
+            and group.queue
+            and group.concurrency_limit is not None
+            and group.current_concurrency >= group.concurrency_limit
+        ):
+            return
+        time_limit = cast(float, fn.time_limit)
+        while event.out_of_time:
+            event.uncounted_time += time_limit
 
     def _stream_goes_on(self, fn: BlockFunction, event: Event) -> bool:
         """Whether a stream waits for its next chunk: always, unless its

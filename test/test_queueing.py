@@ -1560,7 +1560,8 @@ def test_a_stream_s_time_limit_counts_from_the_end_of_its_first_call():
         audio = gr.Audio(sources=["microphone"], streaming=True)
         text = gr.Textbox()
         heard = gr.Textbox()
-        audio.stream(respond, text, heard, time_limit=1)
+        # "stop", so that the stream ends when its time runs out
+        audio.stream(respond, text, heard, time_limit=1, on_time_limit="stop")
     _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     api = f"{local_url.rstrip('/')}{API_PREFIX}"
     try:
@@ -1631,7 +1632,7 @@ def test_a_stream_whose_time_runs_out_while_waiting_for_a_chunk_ends_with_stop()
         demo.close()
 
 
-def test_a_stream_that_runs_out_of_time_rejoins_by_default():
+def test_a_stream_that_gets_no_chunk_for_its_time_limit_rejoins_by_default():
     demo, api = _launch_text_stream(lambda chunk: f"got {chunk}", time_limit=1)
     try:
         with httpx2.Client(timeout=10) as http:
@@ -1642,6 +1643,87 @@ def test_a_stream_that_runs_out_of_time_rejoins_by_default():
             _, completed = _stream_outputs(http, api, "s", lambda n: None)
             # The page joins the queue again with its next chunk
             assert completed is not None and completed["stream_ended"] is False
+    finally:
+        demo.close()
+
+
+@pytest.mark.parametrize("executor", ["thread", "process"])
+def test_a_stream_that_runs_out_of_time_goes_on_while_nobody_waits(executor):
+    def respond():
+        total = 0
+        chunk = yield
+        while True:
+            total += 1
+            chunk = yield f"{chunk} {total}"
+
+    demo, api = _launch_text_stream(respond, executor=executor, time_limit=1)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            response = http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            )
+            event_id = response.json()["event_id"]
+            started = time.monotonic()
+
+            def next_chunk(n):
+                if time.monotonic() - started > 2.5:
+                    http.post(f"{api}/stream/{event_id}/close")
+                    return
+                time.sleep(0.1)
+                _send_chunk(http, api, event_id, "s", f"c{n}")
+
+            outputs, completed = _stream_outputs(http, api, "s", next_chunk)
+            # Past two periods of its time limit, and with the same generator
+            # all along: its count goes on
+            assert time.monotonic() - started > 2.5
+            assert outputs[-1] == [f"c{len(outputs) - 1} {len(outputs)}"]
+            # Closed by the page
+            assert completed is not None and completed["stream_ended"] is False
+    finally:
+        demo.close()
+
+
+def test_a_stream_that_runs_out_of_time_hands_over_to_an_event_waiting():
+    demo, api = _launch_text_stream(lambda chunk: f"got {chunk}", time_limit=1)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            response = http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "first"},
+            )
+            event_id = response.json()["event_id"]
+            second: list[str] = []
+
+            def next_chunk(n):
+                if n == 1:
+                    # Waits: the stream holds the only slot
+                    joined = http.post(
+                        f"{api}/queue/join",
+                        json={"data": ["b"], "fn_index": 0, "session_hash": "second"},
+                    )
+                    second.append(joined.json()["event_id"])
+                if time.monotonic() - started > 4:
+                    # It did not hand over: end it, for the assertion below
+                    http.post(f"{api}/stream/{event_id}/close")
+                    return
+                time.sleep(0.1)
+                _send_chunk(http, api, event_id, "first", f"c{n}")
+
+            started = time.monotonic()
+            _, completed = _stream_outputs(http, api, "first", next_chunk)
+            assert second
+            # Ends at its time limit, and the page joins the queue again
+            assert time.monotonic() - started < 2.5
+            assert completed is not None and completed["stream_ended"] is False
+            # The one that waited gets the slot
+            outputs, _ = _stream_outputs(
+                http,
+                api,
+                "second",
+                lambda n: http.post(f"{api}/stream/{second[0]}/close"),
+            )
+            assert outputs == [["got b"]]
     finally:
         demo.close()
 

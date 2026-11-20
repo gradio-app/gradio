@@ -1020,7 +1020,7 @@ def on(
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
         time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
-        on_time_limit: What happens when a stream reaches its `time_limit`: "rejoin" (default) has the page join the queue again with its next chunk, keeping the microphone or camera on, so that others waiting get their turn; "stop" ends the stream and turns the microphone or camera off. Parameter only used for the `.stream()` event.
+        on_time_limit: What happens when a stream reaches its `time_limit`. "rejoin" (default): if others wait for its slot, the page joins the queue again with its next chunk, keeping the microphone or camera on, so that they get their turn; if nobody waits, the stream goes on and its time limit counts again. "stop": the stream ends and the microphone or camera turns off. Parameter only used for the `.stream()` event.
         stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
         validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names. It should return a `gr.validate()` for each input value.
     Example:
@@ -1440,7 +1440,7 @@ class Events:
             {
                 "name": "on_time_limit",
                 "type": 'Literal["rejoin", "stop"] = "rejoin"',
-                "doc": 'What happens when a stream reaches its `time_limit`: "rejoin" (default) has the page join the queue again with its next chunk, keeping the microphone or camera on, so that others waiting get their turn; "stop" ends the stream and turns the microphone or camera off. Parameter only used for the `.stream()` event.',
+                "doc": 'What happens when a stream reaches its `time_limit`. "rejoin" (default): if others wait for its slot, the page joins the queue again with its next chunk, keeping the microphone or camera on, so that they get their turn; if nobody waits, the stream goes on and its time limit counts again. "stop": the stream ends and the microphone or camera turns off. Parameter only used for the `.stream()` event.',
                 "component_prop": "false",
             },
         ],
