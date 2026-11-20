@@ -297,35 +297,21 @@ def _return_types(fn: Callable) -> list:
     return [hint]
 
 
-def _sent_type(fn: Callable) -> Any:
-    """What a generator function is sent, from its `Generator[yielded, sent,
-    returned]` return hint; None if it is sent nothing."""
+def _sent_types(fn: Callable) -> list:
+    """The types of the inputs a generator function is sent, from its
+    `Generator[yielded, sent, returned]` return hint: one type, or a
+    `tuple[...]` of them. Empty if it is sent nothing."""
     import collections.abc
     import typing
 
     hint = utils.get_type_hints(fn).get("return")
     args = typing.get_args(hint)
     if typing.get_origin(hint) is not collections.abc.Generator or len(args) < 2:
-        return None
-    return None if args[1] in (None, type(None), typing.Any) else args[1]
-
-
-def _is_named_tuple(hint: Any) -> bool:
-    return (
-        inspect.isclass(hint) and issubclass(hint, tuple) and hasattr(hint, "_fields")
-    )
-
-
-def _sent_params(sent: Any) -> list[tuple[str | None, bool, Any, Any]]:
-    """The inputs of a generator function, from what it is sent: one type, a
-    `tuple[...]` of them, or a NamedTuple, whose fields name them."""
-    import typing
-
-    if _is_named_tuple(sent):
-        hints = typing.get_type_hints(sent)
-        return [(name, False, None, hints.get(name)) for name in sent._fields]
-    types = typing.get_args(sent) if typing.get_origin(sent) is tuple else [sent]
-    return [(None, False, None, hint) for hint in types]
+        return []
+    sent = args[1]
+    if sent in (None, type(None), typing.Any):
+        return []
+    return list(typing.get_args(sent)) if typing.get_origin(sent) is tuple else [sent]
 
 
 def api_stream(
@@ -371,9 +357,9 @@ def api_stream(
     else:
         params = utils.get_function_params(fn)
         returns = _return_types(fn)
-        if inspect.isgeneratorfunction(fn) and _sent_type(fn) is not None:
-            # Its inputs are what it is sent, not its parameters
-            params = _sent_params(_sent_type(fn))
+        if inspect.isgeneratorfunction(fn) and _sent_types(fn):
+            # Its inputs are what it is sent, not its parameters: no names
+            params = [(None, False, None, hint) for hint in _sent_types(fn)]
     # Optional too, as special_args takes `gr.Request | None`: returning None
     # sends the frame back as it came
     markers = {
@@ -811,9 +797,8 @@ def transport_event(
         # called with gr.Request and the like only, and runs to its first
         # `yield`, where it waits for the inputs: every call sends them to it,
         # the value itself with one input or a tuple with several, as a
-        # function returns its outputs (a NamedTuple if its `Generator[...]`
-        # hint has one). What it then yields is what a function returns, and
-        # the stream ends when it does.
+        # function returns its outputs. What it then yields is what a function
+        # returns, and the stream ends when it does.
         if utils.get_function_params(fn):
             raise ValueError(
                 "A generator function of a stream that takes media from the page "
@@ -822,7 +807,6 @@ def transport_event(
                 "On a gr.Server endpoint, their types are the second argument of "
                 "its Generator[...] return hint."
             )
-        sent_type = _sent_type(fn)
         count = len(inputs)
         # The tracks pass the inputs, then what bind_special_args fills in
         fixed = [
@@ -836,8 +820,6 @@ def transport_event(
             if modality == "video":
                 # Its track passes the frame first
                 values.insert(cast(int, media_in), values.pop(0))
-            if _is_named_tuple(sent_type):
-                return sent_type(*values)
             return values[0] if len(values) == 1 else tuple(values)
 
         def output(args: tuple[Any, ...], result: Any) -> Any:

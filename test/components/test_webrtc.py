@@ -4,7 +4,7 @@ import time
 from collections.abc import Callable, Generator, Iterator
 from contextlib import asynccontextmanager, closing
 from types import SimpleNamespace
-from typing import Any, NamedTuple, cast
+from typing import Any, cast
 from unittest.mock import patch
 
 import anyio
@@ -5376,17 +5376,11 @@ class TestGeneratorsThatTakeMedia:
         forget_earlier_streams()
         seen = []
 
-        class Sent(NamedTuple):
-            media: Any
-
         def three_times():
-            # Sent what its hint says: the inputs as the fields of a NamedTuple
-            sent = yield
+            media = yield
             for i in range(3):
                 seen.append(i)
-                sent = yield sent.media
-
-        three_times.__annotations__["return"] = Generator[Any, Sent, None]
+                media = yield media
 
         with gr.Blocks() as demo:
             if modality == "audio":
@@ -5427,25 +5421,15 @@ class TestGeneratorsThatTakeMedia:
                     frames, inputs=[camera], outputs=[camera], transport="webrtc"
                 )
 
-    @pytest.mark.parametrize("named", [True, False])
-    def test_a_server_endpoint_takes_a_generator(self, named):
+    def test_a_server_endpoint_takes_a_generator(self):
         from gradio.webrtc.transport import api_stream
 
-        class Inputs(NamedTuple):
-            frame: gr.VideoFrame
-            brightness: float
-
-        sent = Inputs if named else tuple[gr.VideoFrame, float]
-
-        def flip_frames():
+        def flip_frames() -> Generator[
+            tuple[gr.VideoFrame, float], tuple[gr.VideoFrame, float], None
+        ]:
             frame, brightness = yield
             while True:
                 frame, brightness = yield frame, brightness
-
-        # Set here: the names of this test are not in the module's scope
-        flip_frames.__annotations__["return"] = Generator[
-            tuple[gr.VideoFrame, float], sent, None
-        ]
 
         with gr.Blocks():
             stream_fn, _ = api_stream(
@@ -5462,9 +5446,8 @@ class TestGeneratorsThatTakeMedia:
         assert stream_fn.transport["media_input"] == 0
         assert stream_fn.transport["media_output"] == 0
         assert len(stream_fn.inputs) == 2
-        # Named after the fields of a NamedTuple; by position otherwise
-        names = ["frame", "brightness"] if named else [None, None]
-        assert stream_fn.input_parameter_names == names
+        # What it is sent has no names: the inputs go by position
+        assert stream_fn.input_parameter_names == [None, None]
 
 
 def test_a_stream_puts_its_component_in_streaming_mode():
