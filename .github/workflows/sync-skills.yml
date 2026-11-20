@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "gradio@*"
+      - "!gradio@*-*"
   workflow_dispatch:
 
 jobs:
@@ -45,13 +46,6 @@ jobs:
           rm -rf skills-repo/skills/huggingface-gradio
           cp -r .agents/skills/gradio skills-repo/skills/huggingface-gradio
           sed -i '0,/^name: gradio$/s//name: huggingface-gradio/' skills-repo/skills/huggingface-gradio/SKILL.md
-
-      - name: Copy hf-gradio and gradio-themes skill files
-        run: |
-          for skill in hf-gradio gradio-themes; do
-            rm -rf skills-repo/skills/$skill
-            cp -r .agents/skills/$skill skills-repo/skills/$skill
-          done
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
