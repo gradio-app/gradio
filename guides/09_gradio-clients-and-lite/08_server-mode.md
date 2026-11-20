@@ -169,7 +169,27 @@ Generator functions automatically stream results via SSE, just like in a regular
 
 ## WebRTC Streams
 
-To stream a webcam or microphone to your model and back with low latency, pass `transport="webrtc"` to `app.api()` and call the endpoint from the page with `client.submit()` of the JavaScript client, passing a `MediaStream`. The `gr.VideoFrame` or `gr.AudioChunk` type hint marks the media among the function's parameters (sent by the page) and its return values (sent back). The function is called with each frame, as in a [`.stream()` event with `transport="webrtc"`](/guides/object-detection-from-webcam-with-webrtc), takes one value per parameter, and returns one value for each type in its return hint. A generator (return hint `Iterator[...]`) with no media parameter only sends media to the page, which then calls `submit()` without a `MediaStream`. A generator that is sent each frame instead, with `value = yield outputs`, keeps its state in local variables for the whole stream; its return hint `Generator[outputs, inputs, None]` types both, for example `Generator[gr.VideoFrame, tuple[gr.VideoFrame, str], None]` for a frame and a text input (named `input_0` and `input_1`). For full-duplex audio, decorate a handler class from `gradio.streaming` (such as `AsyncStreamHandler`) instead of a function: the hints on its `receive()` and `emit()` mark the media. An `AudioVideoStreamHandler` streams the camera and microphone together, with the same hints on its audio methods. This needs the `webrtc` extra: `pip install "gradio[webrtc]"`.
+To stream a webcam or microphone to your model and back with low latency, pass `transport="webrtc"` to `app.api()` and call the endpoint from the page with `client.submit()` of the JavaScript client, passing a `MediaStream`. The `gr.VideoFrame` or `gr.AudioChunk` type hint marks the media among the function's parameters (sent by the page) and its return values (sent back). The function is called with each frame, as in a [`.stream()` event with `transport="webrtc"`](/guides/object-detection-from-webcam-with-webrtc), takes one value per parameter, and returns one value for each type in its return hint. A generator (return hint `Iterator[...]`) with no media parameter only sends media to the page, which then calls `submit()` without a `MediaStream`. A generator that is sent each frame instead, with `value = yield outputs`, keeps its state in local variables for the whole stream. Its return hint `Generator[outputs, inputs, None]` types both; for several inputs, give them as a `NamedTuple`, whose field names become the endpoint's parameter names and which is what the generator is sent:
+
+```python
+from collections.abc import Generator
+from typing import NamedTuple
+
+
+class Inputs(NamedTuple):
+    frame: gr.VideoFrame
+    prompt: str
+
+
+@app.api(name="track", transport="webrtc")
+def track(request: gr.Request) -> Generator[gr.VideoFrame, Inputs, None]:
+    model = load_model()  # once, when the stream starts
+    inputs = yield
+    while True:
+        inputs = yield model(inputs.frame, inputs.prompt)
+```
+
+A plain `tuple[...]` works too, with parameters named `input_0`, `input_1`, and so on. For full-duplex audio, decorate a handler class from `gradio.streaming` (such as `AsyncStreamHandler`) instead of a function: the hints on its `receive()` and `emit()` mark the media. An `AudioVideoStreamHandler` streams the camera and microphone together, with the same hints on its audio methods. This needs the `webrtc` extra: `pip install "gradio[webrtc]"`.
 
 ```python
 import numpy as np

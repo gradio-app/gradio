@@ -317,6 +317,7 @@ def api_stream(
     from gradio.streaming.reply_on_pause import ReplyOnPause
 
     audio_video = _is_a(fn, (AudioVideoStreamHandler, AsyncAudioVideoStreamHandler))
+    pack_sent = None
     # What the endpoint is named after and its hints are read from
     hinted = fn.fn if isinstance(fn, ReplyOnPause) else fn
     if isinstance(fn, ReplyOnPause):
@@ -335,14 +336,12 @@ def api_stream(
             receive, emit = cls.receive, cls.emit
         params = [p for p in utils.get_function_params(receive) if p[0] != "self"]
         returns = _return_types(emit)
-    elif (sent := _sent_types(fn)) is not None:
-        # A generator sent the inputs' values: they are typed by what it is
-        # sent, `Generator[outputs, inputs, None]`
-        names = (
-            ["input"] if len(sent) == 1 else [f"input_{i}" for i in range(len(sent))]
-        )
+    elif (sent := _sent_inputs(fn)) is not None:
+        # A generator sent the inputs' values: they are named and typed by
+        # what it is sent, `Generator[outputs, inputs, None]`
+        names, hints, pack_sent = sent
         params = [
-            (name, False, None, hint) for name, hint in zip(names, sent, strict=True)
+            (name, False, None, hint) for name, hint in zip(names, hints, strict=True)
         ]
         returns = _return_types(fn)
     else:
@@ -414,16 +413,21 @@ def api_stream(
         # left out of the MCP tools, which could not send media
         api_visibility="public",
         trigger_mode="once",
+        pack_sent=pack_sent,
     )
     stream_fn.input_parameter_names = [p[0] for p in params]
     return stream_fn, index
 
 
-def _sent_types(fn: Callable) -> list | None:
-    """The types of the inputs that a generator function is sent, from its
-    return hint `Generator[Y, S, R]` or `AsyncGenerator[Y, S]`: S, one per
-    input (a tuple for several). None for a function that is not sent values
-    (no hint, or S is None)."""
+def _sent_inputs(
+    fn: Callable,
+) -> tuple[list[str], list, Callable | None] | None:
+    """The names and types of the inputs that a generator function is sent,
+    from S in its return hint `Generator[Y, S, R]` or `AsyncGenerator[Y, S]`,
+    and what packs their values. A NamedTuple names them by its fields and is
+    what the generator is sent; a `tuple[...]` (inputs input_0, input_1, ...)
+    or a single type (input) leaves the values as they are. None for a
+    function that is not sent values (no hint, or S is None)."""
     import collections.abc
     import typing
 
@@ -439,9 +443,17 @@ def _sent_types(fn: Callable) -> list | None:
     sent = args[1] if len(args) > 1 else None
     if sent in (None, type(None)):
         return None
+    if inspect.isclass(sent) and issubclass(sent, tuple) and hasattr(sent, "_fields"):
+        fields = list(sent._fields)
+        try:
+            hints = typing.get_type_hints(sent)
+        except Exception:
+            hints = getattr(sent, "__annotations__", {})
+        return fields, [hints.get(f, Any) for f in fields], sent
     if typing.get_origin(sent) is tuple:
-        return list(typing.get_args(sent))
-    return [sent]
+        types = list(typing.get_args(sent))
+        return [f"input_{i}" for i in range(len(types))], types, None
+    return ["input"], [sent], None
 
 
 def _receive_extras(cls: type) -> dict[str, int]:
@@ -485,6 +497,15 @@ class _Carried:
         self.output = output
 
 
+def _packed(values: list[Any], pack: Callable | None) -> Any:
+    """What a generator is sent: a NamedTuple of the values (gr.Server, see
+    `_sent_inputs`), else the value itself for one input, a tuple for
+    several."""
+    if pack is not None:
+        return pack(*values)
+    return values[0] if len(values) == 1 else tuple(values)
+
+
 def _unboxed(args: list[Any] | tuple[Any, ...]) -> list[Any]:
     return [a.value if isinstance(a, _Carried) else a for a in args]
 
@@ -509,6 +530,7 @@ def _chunked_audio_handler(
     media_in: int,
     seconds: float,
     write_back: Callable[[list[Any], Any], None] | None = None,
+    pack_sent: Callable | None = None,
 ) -> type[StreamHandler]:
     """
     A handler class for a plain audio function, which gets at least `seconds`
@@ -517,7 +539,8 @@ def _chunked_audio_handler(
     the next call, so a function slower than real time gets longer chunks
     instead of falling further behind. `write_back` is given each call's
     arguments and result (it keeps the gr.State values the stream carries).
-    A generator function gets one generator per stream, sent each chunk.
+    A generator function gets one generator per stream, sent each chunk
+    (packed with `pack_sent` if given, see `transport_event`).
     """
     from gradio import routes
     from gradio.streaming.utils import CloseStream, bind_special_args
@@ -598,7 +621,7 @@ def _chunked_audio_handler(
 
         def _step(self, values: list[Any]) -> Any:
             generator = cast(utils.StreamGenerator, self.generator)
-            value = values[0] if len(values) == 1 else tuple(values)
+            value = _packed(values, pack_sent)
             if generator.is_async:
                 result = asyncio.run_coroutine_threadsafe(
                     _in_context(contextvars.copy_context(), generator.step(value)),
@@ -641,6 +664,7 @@ def transport_event(
     concurrency_id: str | None,
     show_progress: Any,
     preprocessed_inputs: list | None = None,
+    pack_sent: Callable | None = None,
     **kwargs: Any,
 ) -> tuple[BlockFunction, int]:
     """
@@ -843,7 +867,7 @@ def transport_event(
         def sent(frame: Any, args: tuple) -> Any:
             values = _unboxed(args)
             values.insert(cast(int, media_in), frame)
-            return values[0] if len(values) == 1 else tuple(values)
+            return _packed(values, pack_sent)
 
         def output(result: Any) -> Any:
             if result is utils.StreamGenerator.ENDED:
@@ -875,7 +899,7 @@ def transport_event(
         handler = generate
     elif modality == "audio":
         handler = _chunked_audio_handler(
-            fn, cast(int, media_in), stream_every or 0.5, write_back
+            fn, cast(int, media_in), stream_every or 0.5, write_back, pack_sent
         )
         is_handler_class = True
     elif sends_to_generator:

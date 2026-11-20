@@ -4,7 +4,7 @@ import time
 from collections.abc import Callable, Generator, Iterator
 from contextlib import asynccontextmanager, closing
 from types import SimpleNamespace
-from typing import Any, cast
+from typing import Any, NamedTuple, cast
 from unittest.mock import patch
 
 import anyio
@@ -4780,16 +4780,19 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
 
         expected = [1.0]
     elif mode == "generator":
-        # Sent each frame with the other input; its types are what it is sent
+        # Sent each frame with the other input, as the NamedTuple that names
+        # and types them
+        class Inputs(NamedTuple):
+            frame: gr.VideoFrame
+            x: float
+
         @server.api(name="echo", time_limit=30, transport="webrtc")
-        def total(
-            request: gr.Request,
-        ) -> Generator[float, tuple[gr.VideoFrame, float], None]:
+        def total(request: gr.Request) -> Generator[float, Inputs, None]:
             total = 0.0
             value = yield 0.0
             while True:
-                _frame, x = value
-                total += x
+                assert isinstance(value, Inputs)
+                total += value.x
                 value = yield 1.0 if total >= 1.0 else gr.skip()
 
         expected = [1.0]
@@ -4813,6 +4816,10 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
             fn_index = next(
                 d["id"] for d in config["dependencies"] if d["api_name"] == "echo"
             )
+            if mode == "generator":
+                info = (await http.get(f"{api}/info")).json()
+                parameters = info["named_endpoints"]["/echo"]["parameters"]
+                assert [p["parameter_name"] for p in parameters] == ["frame", "x"]
 
             async def read():
                 async with http.stream(
@@ -4902,6 +4909,31 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
     finally:
         await pc.close()
         gr.close_all()
+
+
+def test_a_server_generator_s_inputs_come_from_what_it_is_sent():
+    from gradio.webrtc.transport import _sent_inputs
+
+    class Inputs(NamedTuple):
+        frame: gr.VideoFrame
+        prompt: str
+
+    def named() -> Generator[gr.VideoFrame, Inputs, None]:
+        yield
+
+    def plain() -> Generator[gr.VideoFrame, tuple[gr.VideoFrame, str], None]:
+        yield
+
+    def single() -> Generator[gr.VideoFrame, gr.VideoFrame, None]:
+        yield
+
+    def receive_only() -> Generator[gr.VideoFrame, None, None]:
+        yield
+
+    assert _sent_inputs(named) == (["frame", "prompt"], [gr.VideoFrame, str], Inputs)
+    assert _sent_inputs(plain) == (["input_0", "input_1"], [gr.VideoFrame, str], None)
+    assert _sent_inputs(single) == (["input"], [gr.VideoFrame], None)
+    assert _sent_inputs(receive_only) is None
 
 
 def test_a_server_webrtc_handler_that_takes_the_token_asks_for_sign_in():
