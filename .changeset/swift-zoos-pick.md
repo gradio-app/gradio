@@ -1,6 +1,7 @@
 ---
 "@gradio/atoms": minor
 "@gradio/imageeditor": minor
+"@gradio/upload": minor
 "gradio": minor
 "gradio_components": minor
 ---
