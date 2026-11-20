@@ -952,6 +952,23 @@ def is_generator_function(fn: Any) -> bool:
     return inspect.isgeneratorfunction(fn) or inspect.isasyncgenfunction(fn)
 
 
+def check_stream_generator(fn: Callable) -> None:
+    """A generator function given to `.stream()` gets the inputs' values with
+    `send()`, so it is called with the special parameters only (gr.Request and
+    the like)."""
+    takes = [
+        p.name for p in get_positional_input_parameters(fn) if p.default is p.empty
+    ]
+    if takes:
+        name = getattr(fn, "__name__", "The function")
+        raise ValueError(
+            f"{name}() is a generator, so the stream sends it the inputs' values "
+            "with send() (`value = yield output`) instead of passing them as "
+            f"arguments, but it takes {', '.join(takes)}. Remove those "
+            "parameters, or make it a plain function that returns its outputs."
+        )
+
+
 class StreamGenerator:
     """
     The generator of one stream whose function is a generator: each value the

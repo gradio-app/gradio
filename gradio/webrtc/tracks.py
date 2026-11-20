@@ -182,11 +182,14 @@ class VideoCallback(VideoStreamTrack):
         skip_frames: bool = True,
         mirror: bool = False,
         inputs: StreamInputs | None = None,
+        on_close: Callable[[], Awaitable[None]] | None = None,
     ) -> None:
         super().__init__()
         self.track = track
         self.mirror = mirror
         self.event_handler = event_handler
+        # Cleans up after the stream (see `VideoOptions.close`)
+        self.on_close = on_close
         self.inputs = inputs if inputs is not None else StreamInputs()
         self.channel = channel
         self.set_additional_outputs = set_additional_outputs

@@ -566,8 +566,7 @@ class TestWebRTC:
                     outputs=[camera],
                     transport="http",  # type: ignore[arg-type]
                 )
-            # The page sends media, so the function takes one frame per call
-            # and returns its outputs; a generator would be its output
+            # A generator is sent the frames, so it takes no parameter for them
 
             def frames(frame, *args):
                 yield frame
@@ -576,7 +575,7 @@ class TestWebRTC:
                 yield frame
 
             for generator in (frames, async_frames):
-                with pytest.raises(ValueError, match="not a generator"):
+                with pytest.raises(ValueError, match="takes frame"):
                     camera.stream(
                         generator,
                         inputs=[camera],
@@ -5295,6 +5294,115 @@ class TestStateInStreams:
                 stored = demo.state_holder["one"][count._id]
                 assert stored - 1 in seen
                 assert stored > 6
+            finally:
+                await pc.close()
+                await h.http.aclose()
+
+
+class TestGeneratorStreams:
+    @staticmethod
+    def demo(kind, fn):
+        with gr.Blocks() as demo:
+            if kind == "audio":
+                media = gr.Audio(sources=["microphone"], streaming=True)
+            else:
+                media = webcam()
+            label = gr.Textbox()
+            text = gr.Textbox()
+            media.stream(
+                fn,
+                inputs=[media, label],
+                outputs=[text],
+                transport="webrtc",
+                # A chunk per 20 ms frame
+                stream_every=0.02 if kind == "audio" else None,
+            )
+        return demo, media
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("kind", ["video", "async video", "audio"])
+    async def test_one_generator_per_stream_is_sent_each_frame(self, kind, monkeypatch):
+        monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+        forget_earlier_streams()
+        log = []
+
+        def count(request: gr.Request):
+            log.append(("created", request.session_hash))
+            total = 0
+            try:
+                value = yield "first"
+                while True:
+                    _media, label = value
+                    total += 1
+                    log.append(total)
+                    value = yield f"{label} {total}"
+            finally:
+                log.append("closed")
+
+        async def count_async(request: gr.Request):
+            generator = count(request)
+            value = None
+            try:
+                while True:
+                    value = yield generator.send(value)
+            finally:
+                generator.close()
+
+        demo, media = self.demo(kind, count_async if kind == "async video" else count)
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            h = Harness(demo, local_url, media)
+            pc = await make_offer(audio=kind == "audio", video=kind != "audio")
+            try:
+                await h.start("one")
+                await h.connect(pc, "one")
+                await h.push_inputs("one", "x")
+                await h.wait_until(lambda: len(log) >= 4)
+                # Created once, with the special arguments only; the state
+                # lives in its locals
+                assert log[:4] == [("created", "one"), 1, 2, 3]
+                # Held, so that only the stream's end closes the generator,
+                # not garbage collection
+                held = list(tracks_of(h.manager, "one"))
+                await pc.close()
+                messages = await h.messages("one", completed)
+                await h.wait_until(lambda: "closed" in log)
+                assert log.count("closed") == 1 and log[-1] == "closed"
+                sent = json.dumps(messages)
+                # What it yields before anything is sent is dropped
+                assert '"x 1"' in sent or '"x 2"' in sent
+                assert '"first"' not in sent
+                del held
+            finally:
+                await pc.close()
+                await h.http.aclose()
+
+    @pytest.mark.asyncio
+    async def test_a_generator_that_returns_ends_its_stream(self, monkeypatch):
+        monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+        forget_earlier_streams()
+        log = []
+
+        def two_frames():
+            try:
+                yield
+                yield "one"
+                yield "two"
+            finally:
+                log.append("closed")
+
+        demo, media = self.demo("video", two_frames)
+        with closing(demo):
+            _, local_url, _ = demo.launch(prevent_thread_lock=True)
+            h = Harness(demo, local_url, media)
+            pc = await make_offer(video=True)
+            try:
+                await h.start("one")
+                await h.connect(pc, "one")
+                await h.push_inputs("one", "x")
+                # Ends without the page closing it
+                await h.messages("one", completed)
+                assert log == ["closed"]
             finally:
                 await pc.close()
                 await h.http.aclose()

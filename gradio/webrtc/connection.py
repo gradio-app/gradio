@@ -510,6 +510,9 @@ class Stream:
             track.stop()
             if isinstance(track, ServerToClientAudio | ServerToClientVideo):
                 manager._add_shutdown(track.close_generator())
+            elif isinstance(track, VideoCallback) and track.on_close is not None:
+                # A frame function's per-stream state, e.g. its generator
+                manager._add_shutdown(track.on_close())
         # Handler classes, once each: both tracks of an audio-video connection
         # share one handler
         for track in tracks:
@@ -576,6 +579,14 @@ def instantiate_handler(handler: HandlerType, request: Any = None) -> HandlerTyp
     elif isinstance(handler, StreamHandlerBase):
         instance = cast(StreamHandlerImpl, handler).copy()
     elif isinstance(handler, VideoOptions):
+        if handler.per_stream is not None:
+            frame_fn, close = handler.per_stream(request)
+            return VideoOptions(
+                callable=webrtc_error_handler(frame_fn),
+                fps=handler.fps,
+                skip_frames=handler.skip_frames,
+                close=close,
+            )
         return VideoOptions(
             callable=webrtc_error_handler(bind_special_args(handler.callable, request)),
             fps=handler.fps,
@@ -938,7 +949,11 @@ class ConnectionManager:
                 extra: dict[str, Any] = {}
                 if isinstance(handler, VideoOptions):
                     callback = handler.callable
-                    extra = {"fps": handler.fps, "skip_frames": handler.skip_frames}
+                    extra = {
+                        "fps": handler.fps,
+                        "skip_frames": handler.skip_frames,
+                        "on_close": handler.close,
+                    }
                 cb = VideoCallback(
                     relay.subscribe(track),
                     event_handler=cast(Callable, callback),

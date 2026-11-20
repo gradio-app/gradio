@@ -93,16 +93,9 @@ def _check_fn(fn: Any, mode: str, modality: Modality) -> None:
                 "A stream that only sends media to the page takes a generator "
                 "function (def ... yield) that yields one value per output."
             )
-    if (
-        mode != "receive"
-        and not handler
-        and (inspect.isgeneratorfunction(fn) or inspect.isasyncgenfunction(fn))
-    ):
-        raise ValueError(
-            "A stream that takes media from the page calls the function with "
-            "each frame (or chunk of audio), so it returns one value per "
-            "output and is not a generator."
-        )
+    if mode != "receive" and not handler and utils.is_generator_function(fn):
+        # One generator per stream, sent each frame (or chunk of audio)
+        utils.check_stream_generator(fn)
     if (
         handler
         and modality == "audio"
@@ -489,9 +482,12 @@ def _chunked_audio_handler(
     the next call, so a function slower than real time gets longer chunks
     instead of falling further behind. `write_back` is given each call's
     arguments and result (it keeps the gr.State values the stream carries).
+    A generator function gets one generator per stream, sent each chunk.
     """
     from gradio import routes
-    from gradio.streaming.utils import bind_special_args
+    from gradio.streaming.utils import CloseStream, bind_special_args
+
+    sends = utils.is_generator_function(fn)
 
     class ChunkedAudio(StreamHandler):
         def __init__(self) -> None:
@@ -502,10 +498,28 @@ def _chunked_audio_handler(
             self.lock = threading.Lock()
             self.results: queue.Queue = queue.Queue()
             self.call: Callable = fn
+            # Created on the first chunk, by when start_up() has bound the
+            # special parameters it is called with
+            self.generator = (
+                utils.StreamGenerator(
+                    lambda: self.call(), is_async=inspect.isasyncgenfunction(fn)
+                )
+                if sends
+                else None
+            )
 
         def start_up(self, request: Any = None) -> None:
             # The gr.Request / OAuth parameters of fn, for this connection
             self.call = bind_special_args(fn, request)
+
+        def shutdown(self) -> None:
+            generator = self.generator
+            if generator is None:
+                return
+            if generator.is_async:
+                asyncio.run_coroutine_threadsafe(generator.aclose(), self.loop).result()
+            else:
+                generator.close_sync()
 
         def receive(self, frame: tuple[int, np.ndarray]) -> None:
             rate, array = frame
@@ -528,6 +542,9 @@ def _chunked_audio_handler(
                 self.wait_for_args_sync()
                 args = list(self.latest_args)
                 args.insert(media_in, (rate, chunk))
+                if self.generator is not None:
+                    self.results.put(self._step(_unboxed(args)))
+                    return
                 result = self.call(*_unboxed(args))
                 if inspect.isawaitable(result):
                     # On the loop, as async video functions run, with this
@@ -543,6 +560,18 @@ def _chunked_audio_handler(
             finally:
                 with self.lock:
                     self.busy = False
+
+        def _step(self, values: list[Any]) -> Any:
+            generator = cast(utils.StreamGenerator, self.generator)
+            value = values[0] if len(values) == 1 else tuple(values)
+            if generator.is_async:
+                result = asyncio.run_coroutine_threadsafe(
+                    _in_context(contextvars.copy_context(), generator.step(value)),
+                    self.loop,
+                ).result()
+            else:
+                result = generator.step_sync(value)
+            return CloseStream() if result is utils.StreamGenerator.ENDED else result
 
         def emit(self) -> Any:
             try:
@@ -608,6 +637,10 @@ def transport_event(
             f"WebRTCOptions.output_every must be None or seconds >= 0, got {output_every!r}"
         )
     is_handler_class = _is_a(fn, (StreamHandlerBase,))
+    # A generator in the send modes is one per stream, sent each frame or chunk
+    sends_to_generator = (
+        not is_handler_class and mode != "receive" and utils.is_generator_function(fn)
+    )
     other_out = [i for i in range(len(outputs)) if i != media_out]
 
     # A gr.State input gets its value as it is when the stream's turn comes,
@@ -615,15 +648,15 @@ def transport_event(
     # over the data channel does not carry it. One that a plain function also
     # returns is kept by the stream, so that each call gets what the previous
     # call returned for it, as each chunk of an HTTP stream does. A handler
-    # class keeps its own state, and a receive-mode generator gets its inputs
-    # once. Each entry: the position among the event's inputs, among the
-    # extra inputs, and among the outputs (None if not kept).
+    # class or a generator keeps its own state, and a receive-mode generator
+    # gets its inputs once. Each entry: the position among the event's inputs,
+    # among the extra inputs, and among the outputs (None if not kept).
     from gradio.components import State
 
     def position(blocks: list, block: Any) -> int | None:
         return next((i for i, b in enumerate(blocks) if b is block), None)
 
-    keeps_state = not is_handler_class and mode != "receive"
+    keeps_state = not is_handler_class and mode != "receive" and not sends_to_generator
     carried_states: list[tuple[int, int, int | None]] = []
     for j, block in enumerate(preprocessed_inputs or []):
         k = position(inputs, block)
@@ -733,7 +766,11 @@ def transport_event(
     # The wrapper takes fn's own parameters in that order (gr.Request and the
     # other special ones included, which bind_special_args fills per
     # connection) and calls fn with them in fn's order.
-    params = [] if is_handler_class else list(inspect.signature(fn).parameters.values())
+    params = (
+        []
+        if is_handler_class or sends_to_generator
+        else list(inspect.signature(fn).parameters.values())
+    )
     if params and media_in is not None and modality == "video":
         media_name = [p[0] for p in utils.get_function_params(fn)][media_in]
         ordered = [p for p in params if p.name == media_name] + [
@@ -750,6 +787,47 @@ def transport_event(
         named = [by_name[p.name] for p in params if p.name in by_name]
         return named + list(args[len(fixed) :]) if var_args else named
 
+    # stream_every is the shortest interval between calls (for a receive-mode
+    # generator, between frames); unset, every frame of the camera
+    fps = 30 if not stream_every else 1 / stream_every
+
+    def generator_frames(request: Any) -> tuple[Callable, Callable]:
+        """A video generator's frame function for one stream, which sends each
+        frame (with the other inputs' values) to the stream's own generator,
+        and the coroutine function that closes that generator."""
+        from gradio.streaming.utils import bind_special_args
+        from gradio.webrtc.tracks import run_in_thread
+
+        bound = bind_special_args(fn, request)
+        generator = utils.StreamGenerator(
+            lambda: bound(),
+            is_async=inspect.isasyncgenfunction(fn),
+            run_in_thread=run_in_thread,
+        )
+
+        def sent(frame: Any, args: tuple) -> Any:
+            values = _unboxed(args)
+            values.insert(cast(int, media_in), frame)
+            return values[0] if len(values) == 1 else tuple(values)
+
+        def output(result: Any) -> Any:
+            if result is utils.StreamGenerator.ENDED:
+                return CloseStream()
+            return to_stream_output(result)
+
+        if generator.is_async:
+
+            async def step_async(frame: Any, *args: Any) -> Any:
+                return output(await generator.step(sent(frame, args)))
+
+            return step_async, generator.aclose
+
+        def step(frame: Any, *args: Any) -> Any:
+            # The track runs it in a worker thread
+            return output(generator.step_sync(sent(frame, args)))
+
+        return step, generator.aclose
+
     handler: Any
     if is_handler_class:
         handler = fn
@@ -765,6 +843,13 @@ def transport_event(
             fn, cast(int, media_in), stream_every or 0.5, write_back
         )
         is_handler_class = True
+    elif sends_to_generator:
+        handler = VideoOptions(
+            callable=fn,
+            fps=fps,
+            skip_frames=options.skip_frames,
+            per_stream=generator_frames,
+        )
     elif is_async(fn):
 
         async def call_async(*args: Any) -> Any:
@@ -782,7 +867,7 @@ def transport_event(
 
         handler = call
 
-    if not is_handler_class:
+    if not is_handler_class and not sends_to_generator:
         wrapper = cast(Any, handler)
         wrapper.__signature__ = inspect.Signature(
             [p.replace(kind=p.POSITIONAL_ONLY, default=p.empty) for p in fixed]
@@ -790,9 +875,6 @@ def transport_event(
         )
         wrapper.__annotations__ = utils.get_type_hints(fn)
         if modality == "video":
-            # stream_every is the shortest interval between calls (for a
-            # generator, between frames); unset, every frame of the camera
-            fps = 30 if not stream_every else 1 / stream_every
             handler = VideoOptions(
                 callable=wrapper, fps=fps, skip_frames=options.skip_frames
             )
