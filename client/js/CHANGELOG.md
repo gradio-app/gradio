@@ -1,5 +1,12 @@
 # @gradio/client
 
+## 2.9.0
+
+### Features
+
+- [#14037](https://github.com/gradio-app/gradio/pull/14037) [`ec06278`](https://github.com/gradio-app/gradio/commit/ec06278ed72e5eb73494a9d171ca851d553dc82a) - workflow: add embedded inference token.  Thanks @hannahblair!
+- [#14000](https://github.com/gradio-app/gradio/pull/14000) [`c9a6433`](https://github.com/gradio-app/gradio/commit/c9a643357c1fc43946adc57afb4d204ded5ed60e) - redact password field in run history.  Thanks @hannahblair!
+
 ## 2.8.0
 
 ### Features
