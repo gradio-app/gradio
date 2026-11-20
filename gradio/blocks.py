@@ -1007,6 +1007,12 @@ class BlocksConfig:
         sends_to_generator = connection == "stream" and utils.is_generator_function(fn)
         if sends_to_generator:
             utils.check_stream_generator(cast(Callable, fn))
+            if not queue:
+                # Each chunk would be a call of its own, with a new generator
+                raise ValueError(
+                    "A generator function given to .stream() keeps its state "
+                    "between chunks in the queue, so it cannot have queue=False."
+                )
         elif fn is not None and not cancels:
             check_function_inputs_match(
                 fn, positional_inputs, inputs_as_dict, inputs_kwargs

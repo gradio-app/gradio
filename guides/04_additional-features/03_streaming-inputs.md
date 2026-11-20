@@ -82,7 +82,9 @@ with gr.Blocks() as demo:
     mic.stream(transcribe_handler, mic, transcript, time_limit=10, stream_every=1)
 ```
 
-The generator is called without the inputs. It can still take special parameters such as `request: gr.Request`. If it returns, the stream ends. The same function works with `transport="webrtc"`.
+The generator is called without the inputs. It can still take special parameters such as `request: gr.Request`. If it returns, the stream ends and the microphone or webcam stops. The same function works with `transport="webrtc"`.
+
+A generator lives as long as its stream. When `time_limit` runs out, the page joins the queue again with a new stream, so a new generator starts from scratch. Keep anything that must outlast that in a `gr.State`.
 
 ## End-to-End Examples
 

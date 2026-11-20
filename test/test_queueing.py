@@ -1536,6 +1536,9 @@ def test_a_stream_generator_takes_no_parameter_for_the_inputs():
             audio.stream(takes_chunk, audio, heard)
         with pytest.raises(ValueError, match="gr.cache"):
             audio.stream(cached, audio, heard)
+        # Each chunk would get a new generator
+        with pytest.raises(ValueError, match="queue=False"):
+            audio.stream(cached.__wrapped__, audio, heard, queue=False)
 
 
 @pytest.mark.parametrize("executor", ["thread", "process"])
