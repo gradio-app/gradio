@@ -62,7 +62,7 @@ The Gradio demo is straightforward, but we'll implement a few specific features:
 
 1. Use a `gr.Image` with `sources=["webcam"]` and `streaming=True`, and attach the inference function with its `stream` method and `transport="webrtc"`.
 2. List the image among both the inputs and the outputs, so that the webcam is sent to the server and the processed frames play back in the same component. The function takes one value per input, as in any event: the frame, then the slider's value. When the slider changes, the running stream gets the new value.
-3. Utilize the `time_limit` parameter of `stream`. This parameter sets a processing time for each user's stream. In a multi-user setting, such as on Spaces, we'll stop processing the current user's stream after this period so that the next user can connect.
+3. Utilize the `time_limit` parameter of `stream`. This parameter sets how long each user's stream keeps its turn. In a multi-user setting, such as on Spaces, when the next user is waiting, the current user's stream hands its turn over after this period and waits in line again, with the webcam still on. If nobody is waiting, it goes on.
 
 We'll also apply custom CSS to center the webcam and slider on the page.
 
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     demo.launch(css=css)
 ```
 
-Each stream waits its turn in the queue like any other event, so `concurrency_limit` (1 by default) is the number of streams that run at once, and the image shows the visitor's place in line while they wait. `time_limit` is counted from the stream's turn.
+Each stream waits its turn in the queue like any other event, so `concurrency_limit` (1 by default) is the number of streams that run at once, and the image shows the visitor's place in line while they wait. `time_limit` is counted from the stream's first call, and the bar at the bottom of the image shows what is left of it. To end the stream at its time limit instead, whether or not someone is waiting, pass `on_time_limit="stop"`.
 
 To show the processed frames in a separate component, list a `gr.Image()` in `outputs` instead of the webcam. When several outputs could show the frames, pick one with `transport=gr.WebRTCOptions(media_output=...)`.
 
@@ -167,7 +167,7 @@ async def turn_credentials() -> dict:
     return response.json()
 ```
 
-Store the key as secrets of your Space. Since every visitor's traffic is billed to you, set `concurrency_limit` and `time_limit` in `stream()`: a page gets credentials only once its stream's turn has come, so together they cap how much TURN traffic the app can use at a time. A credential keeps working until its `ttl` runs out, so keep the `ttl` close to `time_limit`.
+Store the key as secrets of your Space. Since every visitor's traffic is billed to you, set `concurrency_limit`, `time_limit` and `on_time_limit="stop"` in `stream()`: a page gets credentials only once its stream's turn has come, and each stream ends at its time limit, so together they cap how much TURN traffic the app can use at a time. (With the default `on_time_limit="rejoin"`, a stream goes on past its time limit while nobody is waiting.) A credential keeps working until its `ttl` runs out, so keep the `ttl` close to `time_limit`.
 
 ### For testing only: your own Hugging Face token
 

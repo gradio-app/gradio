@@ -12,9 +12,11 @@ $demo_streaming_simple
 
 Try it out! The streaming event is triggered when the user starts recording. Under the hood, the webcam will take a photo every 0.1 seconds and send it to the server. The server will then return that image.
 
-There are two unique keyword arguments for the `stream` event:
+There are three unique keyword arguments for the `stream` event:
 
-* `time_limit` - This is the amount of time the gradio server will spend processing the event. Media streams are naturally unbounded so it's important to set a time limit so that one user does not hog the Gradio queue. The time limit only counts the time spent processing the stream, not the time spent waiting in the queue, and it starts once the first call has returned, so the time a function takes to get ready (for example, a generator waiting for a GPU) is not counted. The orange bar displayed at the bottom of the input image represents the remaining time. When the time limit expires, the user will automatically rejoin the queue.
+* `time_limit` - This is how long a stream keeps its turn while other users are waiting. Media streams are naturally unbounded so it's important to set a time limit so that one user does not hog the Gradio queue. The time limit only counts the time spent processing the stream, not the time spent waiting in the queue, and it starts once the first call has returned, so the time a function takes to get ready (for example, a generator waiting for a GPU) is not counted. The orange bar displayed at the bottom of the input image represents the remaining time, and starts over each time it runs out.
+
+* `on_time_limit` - What happens when the time limit runs out. With `"rejoin"` (the default), the stream goes on if nobody is waiting for its turn; if someone is, the user automatically rejoins the queue, with the webcam or microphone still on, and the others get their turn. With `"stop"`, the stream ends and the webcam or microphone turns off. Use `"stop"` when every stream must stay within the limit, for example because it costs you money or GPU quota.
 
 * `stream_every` - This is the frequency (in seconds) with which the stream will capture input and send it to the server. For demos like image detection or manipulation, setting a smaller value is desired to get a "real-time" effect. For demos like speech transcription, a higher value is useful so that the transcription algorithm has more context of what's being said.
 
@@ -84,7 +86,7 @@ with gr.Blocks() as demo:
 
 The generator is called without the inputs. It can still take special parameters such as `request: gr.Request`. If it returns, the stream ends and the microphone or webcam stops. The same function works with `transport="webrtc"`.
 
-A generator lives as long as its stream. When `time_limit` runs out, the page joins the queue again with a new stream, so a new generator starts from scratch. Keep anything that must outlast that in a `gr.State`.
+A generator lives as long as its stream. When `time_limit` runs out while nobody is waiting, the same generator goes on. When someone is waiting, the page joins the queue again with a new stream, so a new generator starts from scratch. Keep anything that must outlast that in a `gr.State`.
 
 ## End-to-End Examples
 
