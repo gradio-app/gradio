@@ -406,7 +406,8 @@ export function handle_message(
 						: undefined,
 					used_cache: data.used_cache,
 					cache_duration: data.cache_duration,
-					avg_time: data.avg_time
+					avg_time: data.avg_time,
+					stream_ended: data.stream_ended
 				},
 				data: data.success ? data.output : null
 			};

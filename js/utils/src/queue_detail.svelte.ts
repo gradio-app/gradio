@@ -3,7 +3,7 @@
 // ticks every second between estimates; only a new estimate restarts it.
 
 export interface QueueStatus {
-	stream_state?: "open" | "closed" | "waiting" | null;
+	stream_state?: "open" | "closed" | "waiting" | "ended" | null;
 	queue_position?: number | null;
 	queue_size?: number | null;
 	eta?: number | null;

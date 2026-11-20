@@ -78,7 +78,7 @@
 		stream_every: number;
 		time_limit: number;
 		show_fullscreen_button?: boolean;
-		stream_state?: "open" | "waiting" | "closed";
+		stream_state?: "open" | "waiting" | "closed" | "ended";
 		upload_promise?: Promise<any> | null;
 		onerror?: (error: string) => void;
 		uploading?: boolean;

@@ -51,7 +51,7 @@
 		onstop_recording,
 		onclose_stream
 	}: {
-		stream_state?: "open" | "waiting" | "closed";
+		stream_state?: "open" | "waiting" | "closed" | "ended";
 		streaming?: boolean;
 		stream_transport?: string | null;
 		live_stream?: MediaStream | null;
@@ -197,6 +197,12 @@
 	}
 
 	let recording = $state(false);
+
+	// A stream without transport= that its function ended stops sending
+	// frames, instead of joining the queue again with the next one
+	$effect(() => {
+		if (!stream_transport && stream_state === "ended") recording = false;
+	});
 
 	// A WebRTC stream that ended on the server (error, time limit)
 	// leaves the camera ready to start again, not "recording"

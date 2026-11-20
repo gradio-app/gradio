@@ -1607,6 +1607,8 @@ class Queue:
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
+                            stream_ended=success
+                            and self._generator_returned(fn, event),
                             used_cache=used_cache,
                             cache_duration=cache_source.get("duration"),  # type: ignore[arg-type]
                             avg_time=cache_source.get("average_duration"),  # type: ignore[arg-type]
@@ -1634,6 +1636,8 @@ class Queue:
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
+                            stream_ended=success
+                            and self._generator_returned(fn, event),
                             used_cache=used_cache,
                             cache_duration=output.get("duration"),  # type: ignore[arg-type]
                             avg_time=output.get("average_duration"),  # type: ignore[arg-type]
@@ -1744,6 +1748,15 @@ class Queue:
         if not fn.sends_to_generator or self.server_app is None:
             return True
         return self.server_app.iterators.get(event._id) is not None
+
+    def _generator_returned(self, fn: BlockFunction, event: Event) -> bool:
+        """Whether a stream ended because its generator returned, not because
+        the page closed it or its time ran out."""
+        return (
+            fn.sends_to_generator
+            and event.streaming
+            and not self._stream_goes_on(fn, event)
+        )
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route

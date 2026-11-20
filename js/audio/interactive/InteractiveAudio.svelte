@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
+	import { onDestroy, untrack } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { BlockLabel, ShareButton, CustomButton } from "@gradio/atoms";
@@ -114,7 +114,7 @@
 		initial_value?: FileData | null;
 		playback_position?: number;
 		time_limit?: number | null;
-		stream_state?: "open" | "waiting" | "closed";
+		stream_state?: "open" | "waiting" | "closed" | "ended";
 		onchange?: (value: FileData | null) => void;
 		onstream?: (value: FileData) => void;
 		/** A WebRTC stream starts: the microphone's media, sent over its own connection */
@@ -355,6 +355,18 @@
 
 	// What a WebRTC stream sends back (not the local microphone)
 	const remote = $derived(live_stream);
+
+	// A stream without transport= that its function ended stops recording, as
+	// Stop does, instead of joining the queue again with the next chunk. Only
+	// stream_state is tracked, so that the next take's Record, which comes
+	// while the state is still "ended", is not stopped again.
+	$effect(() => {
+		if (!stream_transport && stream_state === "ended") {
+			untrack(() => {
+				if (recording) stop();
+			});
+		}
+	});
 
 	// A WebRTC stream that ended on the server (error, time limit)
 	// releases the microphone and leaves the control ready to record again

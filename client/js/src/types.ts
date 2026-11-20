@@ -461,6 +461,8 @@ export interface Status {
 	used_cache?: "full" | "partial" | null;
 	cache_duration?: number;
 	avg_time?: number;
+	/** The stream's function ended it (a generator that returned). */
+	stream_ended?: boolean;
 }
 
 export interface StatusMessage extends Status {

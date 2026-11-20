@@ -325,6 +325,48 @@ describe("DependencyManager.dispatch", () => {
 		expect(input_states).not.toContain("closed");
 	});
 
+	test.each([
+		// Its generator returned: the inputs stop sending
+		[true, "ended"],
+		// The page closed it or its time ran out
+		[false, "closed"]
+	])(
+		"a stream completed with stream_ended=%s gives its inputs %s",
+		async (stream_ended, expected) => {
+			const stream = dependency(0, "stream", [10]);
+			stream.connection = "stream";
+			stream.targets = [[11, "stream"]];
+			stream.inputs = [11];
+			const client = {
+				submit: () =>
+					submission(
+						(async function* () {
+							yield { type: "status", stage: "pending", queue: true };
+							yield {
+								type: "status",
+								stage: "complete",
+								queue: true,
+								stream_ended
+							};
+						})()
+					)
+			} as unknown as Client;
+			const update_state = vi.fn().mockResolvedValue(undefined);
+			const dependency_manager = manager([stream], client, update_state);
+
+			await dependency_manager.dispatch({
+				type: "fn",
+				fn_index: 0,
+				event_data: null
+			});
+
+			const input_states = update_state.mock.calls
+				.filter(([id, state]) => id === 11 && "loading_status" in state)
+				.map(([, state]) => state.loading_status?.stream_state);
+			expect(input_states.at(-1)).toBe(expected);
+		}
+	);
+
 	test("an error in one run of an event leaves its other runs alone", async () => {
 		const handler = dependency(0, "handler", [10]);
 		handler.trigger_mode = "multiple";

@@ -1398,8 +1398,10 @@ def _launch_text_stream(fn, executor="thread"):
 
 def _stream_outputs(http, api, session_hash, after_output):
     """Reads a session's messages until its event completes, calling
-    `after_output(n)` after the n-th chunk's output; returns the outputs."""
+    `after_output(n)` after the n-th chunk's output; returns the outputs and
+    the completion message."""
     outputs = []
+    completed = None
     with http.stream(
         "GET", f"{api}/queue/data", params={"session_hash": session_hash}
     ) as messages:
@@ -1411,8 +1413,9 @@ def _stream_outputs(http, api, session_hash, after_output):
                 outputs.append(message["output"]["data"])
                 after_output(len(outputs))
             if message.get("msg") == "process_completed":
+                completed = message
                 break
-    return outputs
+    return outputs, completed
 
 
 def _send_chunk(http, api, event_id, session_hash, value):
@@ -1475,10 +1478,12 @@ def test_a_generator_stream_function_is_sent_each_chunk(executor, kind, tmp_path
                     held.append(demo.server_app.iterators.get(event_id))
                 http.post(f"{api}/stream/{event_id}/close")
 
-            outputs = _stream_outputs(http, api, "s", after_output)
+            outputs, completed = _stream_outputs(http, api, "s", after_output)
             # One generator for the stream: what it yields first is dropped,
             # and its count goes on from chunk to chunk
             assert outputs == [["a 1"], ["b 2"]]
+            # Closed by the page, not ended by the function
+            assert completed is not None and completed["stream_ended"] is False
             _wait_for(lambda: log_file.read_text().count("closed") == 1)
             assert log_file.read_text().splitlines() == ["created s", "closed"]
             assert executor != "thread" or held[0] is not None
@@ -1499,14 +1504,16 @@ def test_a_generator_stream_function_that_returns_ends_the_stream():
                 json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
             )
             event_id = response.json()["event_id"]
-            # Completes without the page closing it, so the page stops recording
-            outputs = _stream_outputs(
+            # Completes without the page closing it, and says so, so the page
+            # stops recording instead of joining the queue again
+            outputs, completed = _stream_outputs(
                 http,
                 api,
                 "s",
                 lambda n: _send_chunk(http, api, event_id, "s", "b"),
             )
             assert outputs == [["only a"]]
+            assert completed is not None and completed["stream_ended"] is True
             _wait_for(lambda: event_id not in demo._queue.event_ids_to_events)
     finally:
         demo.close()

@@ -587,7 +587,8 @@ export class DependencyManager {
 							});
 						});
 					} else {
-						let stream_state: "open" | "closed" | "waiting" | null = null;
+						let stream_state: "open" | "closed" | "waiting" | "ended" | null =
+							null;
 
 						if (
 							dep.connection_type === "stream" &&
@@ -630,9 +631,11 @@ export class DependencyManager {
 											? failure
 											: success;
 									// Only a stream closes: on any other event, "closed" would
-									// reach its inputs and end a stream one of them is running
+									// reach its inputs and end a stream one of them is running.
+									// "ended": its function ended it, so its inputs stop sending
+									// instead of joining the queue again.
 									if (dep.connection_type === "stream") {
-										stream_state = "closed";
+										stream_state = result.stream_ended ? "ended" : "closed";
 									}
 									chained.forEach((dep_id) => {
 										this.dispatch({

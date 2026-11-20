@@ -26,7 +26,7 @@
 		include_audio: boolean;
 		stream_transport?: string | null;
 		live_stream?: MediaStream | null;
-		stream_state?: "open" | "waiting" | "closed";
+		stream_state?: "open" | "waiting" | "closed" | "ended";
 		queue_detail?: string | null;
 		onlivestream?: (detail: { media: MediaStream; mirror?: boolean }) => void;
 		onclose_stream?: () => void;
