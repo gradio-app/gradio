@@ -6,8 +6,10 @@ import warnings
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
 from gradio_client import utils as client_utils
+from huggingface_hub.errors import BadRequestError
 
 import gradio as gr
 import gradio.workflow as workflow_module
@@ -656,6 +658,38 @@ class TestDispatchModelEndpoint:
             _dispatch_model_endpoint(
                 client, "chat_completion", {"text": "rebuild this page"}
             )
+
+    def test_chat_completion_retries_without_max_tokens_past_the_context(self):
+        client = MagicMock()
+        client.chat_completion.side_effect = [
+            BadRequestError(
+                "Bad request:",
+                response=httpx.Response(
+                    400,
+                    text='{"message":"Requested token count exceeds the model\'s '
+                    'maximum context length of 16384 tokens."}',
+                    request=httpx.Request("POST", "https://router.huggingface.co"),
+                ),
+            ),
+            self._chunks(content="ok"),
+        ]
+
+        out = _dispatch_model_endpoint(client, "chat_completion", {"text": "hello"})
+
+        assert json.loads(out) == ["ok"]
+        first, second = client.chat_completion.call_args_list
+        assert first.kwargs["max_tokens"] == workflow_module._CHAT_MAX_TOKENS
+        assert "max_tokens" not in second.kwargs
+
+    def test_chat_completion_after_context_retry_does_not_blame_our_limit(self):
+        client = MagicMock()
+        client.chat_completion.side_effect = [
+            ValueError("maximum context length exceeded"),
+            self._chunks(reasoning="thinking", finish_reason="length"),
+        ]
+        with pytest.raises(ValueError, match="provider-token limit") as exc:
+            _dispatch_model_endpoint(client, "chat_completion", {"text": "hello"})
+        assert "_CHAT_MAX_TOKENS" not in str(exc.value)
 
     def test_chat_completion_reports_finish_reason_when_empty(self):
         client = MagicMock()

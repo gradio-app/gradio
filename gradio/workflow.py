@@ -1127,41 +1127,52 @@ def _dispatch_model_endpoint(client, endpoint: str, kwargs: dict) -> str:
         if not content:
             raise ValueError("Connect a prompt or an image to this model.")
         extras = {k: v for k, v in clean.items() if k not in ("text", "image")}
+        defaulted = "max_tokens" not in extras
         extras.setdefault("max_tokens", _CHAT_MAX_TOKENS)
         chat_params = _partition_params(client.chat_completion, extras)
-        # Streamed, not buffered: the router's gateway times out a non-streaming
-        # request at ~120s, which a vision model writing a whole file routinely
-        # exceeds — reasoning alone can outlast it. Streaming keeps bytes moving,
-        # so the request is bounded by the model, not by an idle proxy.
-        parts: list[str] = []
-        reasoned = 0
-        finish_reason = None
-        for chunk in client.chat_completion(
-            [{"role": "user", "content": content}],
-            stream=True,
-            **chat_params,
-        ):
-            if not chunk.choices:
-                continue
-            choice = chunk.choices[0]
-            delta = getattr(choice, "delta", None)
-            if delta is not None:
-                if delta.content:
-                    parts.append(delta.content)
-                reasoned += len(getattr(delta, "reasoning_content", None) or "")
-            if choice.finish_reason:
-                finish_reason = choice.finish_reason
+
+        def stream(params: dict) -> tuple[list[str], int, str | None]:
+            parts: list[str] = []
+            reasoned = 0
+            finish_reason = None
+            for chunk in client.chat_completion(
+                [{"role": "user", "content": content}],
+                stream=True,
+                **params,
+            ):
+                if not chunk.choices:
+                    continue
+                choice = chunk.choices[0]
+                delta = getattr(choice, "delta", None)
+                if delta is not None:
+                    if delta.content:
+                        parts.append(delta.content)
+                    reasoned += len(getattr(delta, "reasoning_content", None) or "")
+                if choice.finish_reason:
+                    finish_reason = choice.finish_reason
+            return parts, reasoned, finish_reason
+
+        try:
+            parts, reasoned, finish_reason = stream(chat_params)
+        except Exception as e:
+            response = getattr(e, "response", None)
+            detail = f"{e} {getattr(response, 'text', '')}".lower()
+            if not (defaulted and "context" in detail):
+                raise
+            chat_params.pop("max_tokens", None)
+            parts, reasoned, finish_reason = stream(chat_params)
         text = "".join(parts).strip()
         if not text:
             model_name = getattr(client, "model", None) or "The model"
             if finish_reason == "length":
                 # Reasoning is billed against max_tokens, so a model can hit the
                 # cap while still thinking and return no visible answer at all.
+                limit = chat_params.get("max_tokens")
                 raise ValueError(
-                    f"{model_name} hit the {_CHAT_MAX_TOKENS}-token limit "
+                    f"{model_name} hit the {limit or 'provider'}-token limit "
                     f"({reasoned} characters of reasoning) before producing an "
-                    "answer. Simplify the prompt or use a smaller image, or "
-                    "raise gradio.workflow._CHAT_MAX_TOKENS."
+                    "answer. Simplify the prompt or use a smaller image"
+                    + (", or raise gradio.workflow._CHAT_MAX_TOKENS." if limit else ".")
                 )
             raise ValueError(
                 f"{model_name} returned no text (finish_reason={finish_reason})."
