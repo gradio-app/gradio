@@ -40,6 +40,44 @@ afterEach(() => {
 });
 
 describe.skipIf(!in_browser)("run history", () => {
+	test("blanks passwords left in runs saved before they were redacted", () => {
+		const text = { type: "textbox", component_class_id: "t", props: {} };
+		const password = {
+			type: "textbox",
+			component_class_id: "t",
+			props: { type: "password", value: "sk-default" }
+		};
+		const legacy = {
+			id: "old",
+			endpoint: "/ask",
+			api_name: "ask",
+			fn_index: 0,
+			page: "/",
+			inputs: ["hi", "sk-secret"],
+			outputs: [
+				"hi",
+				"sk-secret",
+				{ __type__: "update", type: "password", value: "sk-secret" }
+			],
+			input_components: [text, password],
+			output_components: [
+				{ type: "state", component_class_id: "s", props: {} },
+				text,
+				password,
+				text
+			],
+			status: "completed",
+			started_at: new Date().toISOString()
+		};
+		const key = `gradio:run-history:v2:${app_id}`;
+		window.localStorage.setItem(key, JSON.stringify([legacy]));
+
+		const [run] = read_run_history(scope);
+		expect(run.inputs).toEqual(["hi", null]);
+		expect(run.outputs).toEqual(["hi", null, null]);
+		expect(window.localStorage.getItem(key)).not.toContain("sk-");
+	});
+
 	test("uses this browser as the default history storage", () => {
 		expect(read_run_history_storage(scope)).toEqual({ type: "browser" });
 	});
@@ -400,6 +438,15 @@ describe.skipIf(!in_browser)("replaying a run", () => {
 			["prompt", "server side", stored.outputs[0], "described"]
 		);
 		expect(apply_run_history_replay(make_config())).toBe(false);
+	});
+
+	test("keeps a password textbox's current value, since it was never saved", () => {
+		stage_run_history_replay(scope, { ...stored, inputs: [null, null] });
+		const config = make_config();
+		config.components[0].props = { value: "sk-current", type: "password" };
+
+		expect(apply_run_history_replay(config)).toBe(true);
+		expect(config.components[0].props.value).toBe("sk-current");
 	});
 
 	test("matches the endpoint by api name when the fn index has moved", () => {
