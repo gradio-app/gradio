@@ -1,10 +1,10 @@
 import asyncio
 import json
 import time
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator, Iterator
 from contextlib import asynccontextmanager, closing
 from types import SimpleNamespace
-from typing import Any, cast
+from typing import Any, NamedTuple, cast
 from unittest.mock import patch
 
 import anyio
@@ -5261,7 +5261,8 @@ class TestStateInStreams:
         async def count_up_async(media, count):
             return count_up(media, count)
 
-        def count_up_generator(media, count):
+        def count_up_generator():
+            media, count = yield
             while True:
                 media, count = yield count_up(media, count)
 
@@ -5319,11 +5320,12 @@ class TestGeneratorsThatTakeMedia:
         seen = []
         released = []
 
-        def follow(value, media, request: gr.Request):
+        def follow(request: gr.Request):
             # One generator for the stream: what it sets up here lasts until
             # the stream ends
             host = request.headers["host"]
             try:
+                value, media = yield
                 while True:
                     seen.append((value, type(media).__name__, bool(host)))
                     value, media = yield media, f"{value}"
@@ -5374,10 +5376,17 @@ class TestGeneratorsThatTakeMedia:
         forget_earlier_streams()
         seen = []
 
-        def three_times(media):
+        class Sent(NamedTuple):
+            media: Any
+
+        def three_times():
+            # Sent what its hint says: the inputs as the fields of a NamedTuple
+            sent = yield
             for i in range(3):
                 seen.append(i)
-                media = yield media
+                sent = yield sent.media
+
+        three_times.__annotations__["return"] = Generator[Any, Sent, None]
 
         with gr.Blocks() as demo:
             if modality == "audio":
@@ -5406,16 +5415,37 @@ class TestGeneratorsThatTakeMedia:
                 await pc.close()
                 await h.http.aclose()
 
-    def test_a_server_endpoint_takes_a_generator(self):
-        from collections.abc import Generator
+    def test_a_generator_with_parameters_is_refused(self):
+        def frames(frame):
+            while True:
+                frame = yield frame
 
+        with gr.Blocks():
+            camera = webcam()
+            with pytest.raises(ValueError, match="gets the inputs from `yield`"):
+                camera.stream(
+                    frames, inputs=[camera], outputs=[camera], transport="webrtc"
+                )
+
+    @pytest.mark.parametrize("named", [True, False])
+    def test_a_server_endpoint_takes_a_generator(self, named):
         from gradio.webrtc.transport import api_stream
 
-        def flip_frames(
-            frame: gr.VideoFrame, brightness: float
-        ) -> Generator[tuple[gr.VideoFrame, float], tuple[gr.VideoFrame, float], None]:
+        class Inputs(NamedTuple):
+            frame: gr.VideoFrame
+            brightness: float
+
+        sent = Inputs if named else tuple[gr.VideoFrame, float]
+
+        def flip_frames():
+            frame, brightness = yield
             while True:
                 frame, brightness = yield frame, brightness
+
+        # Set here: the names of this test are not in the module's scope
+        flip_frames.__annotations__["return"] = Generator[
+            tuple[gr.VideoFrame, float], sent, None
+        ]
 
         with gr.Blocks():
             stream_fn, _ = api_stream(
@@ -5431,6 +5461,10 @@ class TestGeneratorsThatTakeMedia:
         assert stream_fn.transport["mode"] == "send-receive"
         assert stream_fn.transport["media_input"] == 0
         assert stream_fn.transport["media_output"] == 0
+        assert len(stream_fn.inputs) == 2
+        # Named after the fields of a NamedTuple; by position otherwise
+        names = ["frame", "brightness"] if named else [None, None]
+        assert stream_fn.input_parameter_names == names
 
 
 def test_a_stream_puts_its_component_in_streaming_mode():

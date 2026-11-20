@@ -297,6 +297,37 @@ def _return_types(fn: Callable) -> list:
     return [hint]
 
 
+def _sent_type(fn: Callable) -> Any:
+    """What a generator function is sent, from its `Generator[yielded, sent,
+    returned]` return hint; None if it is sent nothing."""
+    import collections.abc
+    import typing
+
+    hint = utils.get_type_hints(fn).get("return")
+    args = typing.get_args(hint)
+    if typing.get_origin(hint) is not collections.abc.Generator or len(args) < 2:
+        return None
+    return None if args[1] in (None, type(None), typing.Any) else args[1]
+
+
+def _is_named_tuple(hint: Any) -> bool:
+    return (
+        inspect.isclass(hint) and issubclass(hint, tuple) and hasattr(hint, "_fields")
+    )
+
+
+def _sent_params(sent: Any) -> list[tuple[str | None, bool, Any, Any]]:
+    """The inputs of a generator function, from what it is sent: one type, a
+    `tuple[...]` of them, or a NamedTuple, whose fields name them."""
+    import typing
+
+    if _is_named_tuple(sent):
+        hints = typing.get_type_hints(sent)
+        return [(name, False, None, hints.get(name)) for name in sent._fields]
+    types = typing.get_args(sent) if typing.get_origin(sent) is tuple else [sent]
+    return [(None, False, None, hint) for hint in types]
+
+
 def api_stream(
     fn: Callable,
     *,
@@ -340,6 +371,9 @@ def api_stream(
     else:
         params = utils.get_function_params(fn)
         returns = _return_types(fn)
+        if inspect.isgeneratorfunction(fn) and _sent_type(fn) is not None:
+            # Its inputs are what it is sent, not its parameters
+            params = _sent_params(_sent_type(fn))
     # Optional too, as special_args takes `gr.Request | None`: returning None
     # sends the frame back as it came
     markers = {
@@ -372,7 +406,7 @@ def api_stream(
         Api(
             None,
             media_schema if i == media_in else python_type_to_json_schema(hint),
-            name,
+            name or f"input {i}",
         )
         for i, (name, _, _, hint) in enumerate(params)
     ]
@@ -741,7 +775,12 @@ def transport_event(
     # other special ones included, which bind_special_args fills per
     # connection) and calls fn with them in fn's order.
     params = [] if is_handler_class else list(inspect.signature(fn).parameters.values())
-    if params and media_in is not None and modality == "video":
+    if (
+        params
+        and media_in is not None
+        and modality == "video"
+        and not inspect.isgeneratorfunction(fn)
+    ):
         media_name = [p[0] for p in utils.get_function_params(fn)][media_in]
         ordered = [p for p in params if p.name == media_name] + [
             p for p in params if p.name != media_name
@@ -768,19 +807,37 @@ def transport_event(
 
         handler = generate
     elif inspect.isgeneratorfunction(fn):
-        # One generator per stream (see `tracks.HandlerGenerator`): the first
-        # call starts it with its arguments like a function, and each later
-        # call sends it the inputs, the value itself with one input or a tuple
-        # with several, as a function returns its outputs. What it yields is
-        # what a function returns, and the stream ends when it does.
-        input_names = [p[0] for p in utils.get_function_params(fn)]
-        sent_names = [p.name for p in fixed if p.name in input_names]
+        # One generator per stream (see `tracks.HandlerGenerator`). It is
+        # called with gr.Request and the like only, and runs to its first
+        # `yield`, where it waits for the inputs: every call sends them to it,
+        # the value itself with one input or a tuple with several, as a
+        # function returns its outputs (a NamedTuple if its `Generator[...]`
+        # hint has one). What it then yields is what a function returns, and
+        # the stream ends when it does.
+        if utils.get_function_params(fn):
+            raise ValueError(
+                "A generator function of a stream that takes media from the page "
+                "takes no parameters besides gr.Request and the like: it gets the "
+                "inputs from `yield` (`frame = yield`, then `frame = yield result`). "
+                "On a gr.Server endpoint, their types are the second argument of "
+                "its Generator[...] return hint."
+            )
+        sent_type = _sent_type(fn)
+        count = len(inputs)
+        # The tracks pass the inputs, then what bind_special_args fills in
+        fixed = [
+            inspect.Parameter(f"input_{i}", inspect.Parameter.POSITIONAL_ONLY)
+            for i in range(count)
+        ] + fixed
         ended = CloseStream("")
 
         def sent(args: tuple[Any, ...]) -> Any:
-            by_name = dict(zip(sent_names, args, strict=False))
-            values = [by_name[name] for name in input_names if name in by_name]
-            values += args[len(sent_names) :]
+            values = _unboxed(args)
+            if modality == "video":
+                # Its track passes the frame first
+                values.insert(cast(int, media_in), values.pop(0))
+            if _is_named_tuple(sent_type):
+                return sent_type(*values)
             return values[0] if len(values) == 1 else tuple(values)
 
         def output(args: tuple[Any, ...], result: Any) -> Any:
@@ -791,14 +848,15 @@ def transport_event(
             return to_stream_output(result)
 
         def steps(*args: Any) -> Any:
-            with closing(fn(*in_fn_order(_unboxed(args)))) as generator:
-                result = next(generator, ended)
+            with closing(fn(*args[count:])) as generator:
+                next(generator, None)
+                args = args[:count]
                 while True:
-                    args = yield output(args, result)
                     try:
-                        result = generator.send(sent(tuple(_unboxed(args))))
+                        result = generator.send(sent(args))
                     except StopIteration:
                         result = ended
+                    args = yield output(args, result)
 
         handler = steps
     elif modality == "audio":
