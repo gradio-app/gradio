@@ -1076,8 +1076,10 @@ def _queue_messages(base_url: str, body: dict, on_message=None) -> list[dict]:
 
 
 def test_streamed_input_to_a_generator_answers_every_chunk():
-    def on_chunk(chunk):
-        yield "got a chunk"
+    def on_chunk():
+        yield
+        while True:
+            yield "got a chunk"
 
     with gr.Blocks() as demo:
         mic = gr.Audio(sources=["microphone"], streaming=True)
@@ -1156,41 +1158,6 @@ def test_an_ended_stream_lets_the_next_one_run(end):
         second.join(timeout=30)
         assert not second.is_alive()
         assert results["b"][-1]["success"]
-
-
-def test_a_chunk_does_not_continue_the_last_chunks_generator():
-    def on_chunk(chunk):
-        yield f"{chunk}-1"
-        yield f"{chunk}-2"
-
-    with gr.Blocks() as demo:
-        mic = gr.Audio(sources=["microphone"], streaming=True)
-        chunk = gr.Textbox()
-        out = gr.Textbox()
-        mic.stream(on_chunk, chunk, out)
-
-    with launched(demo) as client:
-        outputs = []
-        chunks = ["b"]
-
-        def send_next(http, event_id, message):
-            if message["msg"] != "process_streaming":
-                return
-            outputs.append(message["output"]["data"][0])
-            if chunks:
-                body = {
-                    "data": [chunks.pop(0)],
-                    "fn_index": 0,
-                    "session_hash": "s",
-                    "event_id": event_id,
-                }
-                http.post(f"gradio_api/stream/{event_id}", json=body)
-            else:
-                http.post(f"gradio_api/stream/{event_id}/close")
-
-        body = {"data": ["a"], "fn_index": 0, "session_hash": "s"}
-        _queue_messages(client.src, body, send_next)
-    assert outputs[:2] == ["a-1", "b-1"]
 
 
 def test_app_process_exits_when_the_gateway_dies(tmp_path):

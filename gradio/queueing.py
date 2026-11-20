@@ -1421,7 +1421,9 @@ class Queue:
                     record_history=fn.connection != "stream",
                     queue_event_id=queue_event_id,
                     run=route_utils.RunStep.alone()
-                    if events[0].streaming and not fn.lease
+                    if events[0].streaming
+                    and not fn.lease
+                    and not fn.sends_to_generator
                     else route_utils.RunStep.start(),
                 )
                 end = time.monotonic()
@@ -1430,7 +1432,9 @@ class Queue:
                 for event in awake_events:
                     event.run_time += end - start
                     if event.streaming and not fn.lease:
-                        response["is_generating"] = not event.is_finished
+                        response["is_generating"] = (
+                            not event.is_finished and self._stream_goes_on(fn, event)
+                        )
                     elif fn.lease and event.closed:
                         response["is_generating"] = False
 
@@ -1555,14 +1559,19 @@ class Queue:
                             record_history=fn.connection != "stream",
                             queue_event_id=queue_event_id,
                             run=route_utils.RunStep.alone(first=False)
-                            if awake_events[0].streaming and not fn.lease
+                            if awake_events[0].streaming
+                            and not fn.lease
+                            and not fn.sends_to_generator
                             else route_utils.RunStep.next(),
                         )
                         end = time.monotonic()
                         for event in awake_events:
                             event.run_time += end - start
                             if event.streaming and not fn.lease:
-                                response["is_generating"] = not event.is_finished
+                                response["is_generating"] = (
+                                    not event.is_finished
+                                    and self._stream_goes_on(fn, event)
+                                )
                             elif fn.lease and event.closed:
                                 response["is_generating"] = False
                     except Exception as e:
@@ -1727,6 +1736,14 @@ class Queue:
                 )
 
                 self.event_ids_to_events.pop(event._id, None)
+
+    def _stream_goes_on(self, fn: BlockFunction, event: Event) -> bool:
+        """Whether a stream waits for its next chunk: always, unless its
+        function is a generator that has returned (its stored iterator is
+        then None)."""
+        if not fn.sends_to_generator or self.server_app is None:
+            return True
+        return self.server_app.iterators.get(event._id) is not None
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route

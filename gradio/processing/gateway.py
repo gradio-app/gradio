@@ -957,6 +957,7 @@ def event_table(
         if settings.get("closes_streams") and close_stream is not None:
             fns[dep["id"]].close_stream = close_stream
         fns[dep["id"]].lease = bool(settings.get("lease"))
+        fns[dep["id"]].sends_to_generator = bool(settings.get("sends_to_generator"))
     return fns
 
 

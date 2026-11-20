@@ -112,6 +112,9 @@ class BlockFunction:
         # its wake wait has no timeout, and the function enforces its own time
         # limit and ends the run itself.
         self.lease = False
+        # A .stream() whose function is a generator: each of its events runs
+        # one generator, which each chunk is sent to (see `StreamGenerator`)
+        self.sends_to_generator = False
         # A stream with transport=: how the page connects (see webrtc.transport)
         self.transport: dict[str, Any] | None = None
         self.event_specific_args = event_specific_args

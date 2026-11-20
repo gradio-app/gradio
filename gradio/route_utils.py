@@ -525,6 +525,9 @@ async def call_process_api(
         iterator = output.pop("iterator", None)
         if event_id is not None and run.keeps:
             app.iterators[event_id] = iterator  # type: ignore
+        elif isinstance(iterator, utils.StreamGenerator):
+            # A stream's generator called once, e.g. through the API
+            await iterator.aclose()
         elif iterator is not None:
             # Nobody will come back for this run (see `RunStep`): its streams
             # are completed here, or they hold an encoder for the session's

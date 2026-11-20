@@ -1384,70 +1384,151 @@ def test_stream_chunks_keep_the_event_id():
         demo.close()
 
 
-def test_each_chunk_calls_a_generator_stream_function_afresh():
-    calls = []
+def _launch_text_stream(fn, executor="thread"):
+    """A stream event of a gr.Audio whose input is a gr.Textbox, so that a
+    chunk's value is plain text."""
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        text = gr.Textbox()
+        heard = gr.Textbox()
+        audio.stream(fn, text, heard)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
+    return demo, f"{local_url.rstrip('/')}{API_PREFIX}"
 
-    def respond(x):
-        calls.append(x)
-        yield "first"
-        yield "second"
 
-    demo, api, group = _launch_audio_stream(respond)
+def _stream_outputs(http, api, session_hash, after_output):
+    """Reads a session's messages until its event completes, calling
+    `after_output(n)` after the n-th chunk's output; returns the outputs."""
+    outputs = []
+    with http.stream(
+        "GET", f"{api}/queue/data", params={"session_hash": session_hash}
+    ) as messages:
+        for line in messages.iter_lines():
+            if not line.startswith("data:"):
+                continue
+            message = json.loads(line[5:])
+            if message.get("msg") == "process_streaming":
+                outputs.append(message["output"]["data"])
+                after_output(len(outputs))
+            if message.get("msg") == "process_completed":
+                break
+    return outputs
+
+
+def _send_chunk(http, api, event_id, session_hash, value):
+    http.post(
+        f"{api}/stream/{event_id}",
+        json={"data": [value], "fn_index": 0, "session_hash": session_hash},
+    )
+
+
+@pytest.mark.parametrize(
+    "executor,kind",
+    [("thread", "sync"), ("thread", "async"), ("process", "sync")],
+)
+def test_a_generator_stream_function_is_sent_each_chunk(executor, kind, tmp_path):
+    log_file = tmp_path / "log"
+
+    def log(line):
+        with open(log_file, "a") as f:
+            f.write(f"{line}\n")
+
+    def respond(request: gr.Request):
+        log(f"created {request.session_hash}")
+        total = 0
+        try:
+            chunk = yield "first"
+            while True:
+                total += 1
+                chunk = yield f"{chunk} {total}"
+        finally:
+            log("closed")
+
+    async def respond_async(request: gr.Request):
+        generator = respond(request)
+        value = None
+        try:
+            while True:
+                value = yield generator.send(value)
+        finally:
+            generator.close()
+
+    demo, api = _launch_text_stream(
+        respond_async if kind == "async" else respond, executor=executor
+    )
     try:
         with httpx2.Client(timeout=10) as http:
-            event_id = _join(http, api, "s")
-            _wait_for(lambda: len(calls) == 1)
-            http.post(
-                f"{api}/stream/{event_id}",
-                json={"data": [None], "fn_index": 0, "session_hash": "s"},
+            response = http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
             )
-            outputs = []
-            with http.stream(
-                "GET", f"{api}/queue/data", params={"session_hash": "s"}
-            ) as messages:
-                for line in messages.iter_lines():
-                    if line.startswith("data:"):
-                        message = json.loads(line[5:])
-                        if message.get("msg") == "process_streaming":
-                            outputs.append(message["output"]["data"])
-                            if len(outputs) == 2:
-                                break
-            # The second chunk runs the function with that chunk, instead of
-            # taking the next value from the first chunk's generator
-            assert len(calls) == 2
-            assert outputs == [["first"], ["first"]]
+            event_id = response.json()["event_id"]
+            held = []
+
+            def after_output(n):
+                if n == 1:
+                    _send_chunk(http, api, event_id, "s", "b")
+                    return
+                if executor == "thread":
+                    # Held, so that only the stream's end closes the
+                    # generator, not garbage collection
+                    held.append(demo.server_app.iterators.get(event_id))
+                http.post(f"{api}/stream/{event_id}/close")
+
+            outputs = _stream_outputs(http, api, "s", after_output)
+            # One generator for the stream: what it yields first is dropped,
+            # and its count goes on from chunk to chunk
+            assert outputs == [["a 1"], ["b 2"]]
+            _wait_for(lambda: log_file.read_text().count("closed") == 1)
+            assert log_file.read_text().splitlines() == ["created s", "closed"]
+            assert executor != "thread" or held[0] is not None
     finally:
         demo.close()
 
 
-@pytest.mark.parametrize("executor", ["thread", "process"])
-def test_a_cached_generator_stream_function_replays_its_cache_to_the_end(executor):
-    @gr.cache
-    def respond(x):
-        yield "first"
-        yield "second"
+def test_a_generator_stream_function_that_returns_ends_the_stream():
+    def respond():
+        chunk = yield
+        yield f"only {chunk}"
 
-    # A cache hit for a stream event is answered from the cache at its join
-    assert list(respond(None)) == ["first", "second"]
-    demo, api, group = _launch_audio_stream(respond, executor=executor)
+    demo, api = _launch_text_stream(respond)
     try:
-        with httpx2.Client(timeout=5) as http:
-            # The join returns once the whole cached run is replayed
-            _join(http, api, "s")
-            outputs = []
-            with http.stream(
-                "GET", f"{api}/queue/data", params={"session_hash": "s"}
-            ) as messages:
-                for line in messages.iter_lines():
-                    if line.startswith("data:"):
-                        message = json.loads(line[5:])
-                        if message.get("msg") == "process_generating":
-                            outputs.append(message["output"]["data"])
-                        if message.get("msg") == "process_completed":
-                            break
-            assert outputs == [["first"], ["second"]]
+        with httpx2.Client(timeout=10) as http:
+            response = http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            )
+            event_id = response.json()["event_id"]
+            # Completes without the page closing it, so the page stops recording
+            outputs = _stream_outputs(
+                http,
+                api,
+                "s",
+                lambda n: _send_chunk(http, api, event_id, "s", "b"),
+            )
+            assert outputs == [["only a"]]
+            _wait_for(lambda: event_id not in demo._queue.event_ids_to_events)
     finally:
         demo.close()
+
+
+def test_a_stream_generator_takes_no_parameter_for_the_inputs():
+    def takes_chunk(chunk):
+        yield chunk
+
+    @gr.cache
+    def cached():
+        chunk = yield
+        while True:
+            chunk = yield chunk
+
+    with gr.Blocks():
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        with pytest.raises(ValueError, match="takes chunk"):
+            audio.stream(takes_chunk, audio, heard)
+        with pytest.raises(ValueError, match="gr.cache"):
+            audio.stream(cached, audio, heard)
 
 
 @pytest.mark.parametrize("executor", ["thread", "process"])
@@ -1580,7 +1661,7 @@ def test_a_lease_runs_past_its_time_limit_until_it_ends_itself():
     handles = []
     end = []
 
-    async def lease(x):
+    async def lease(*args):
         blocks = cast(Any, LocalContext.blocks.get())
         handles.append(blocks._queue.event_handle(LocalContext.event_id.get()))
         yield "admitted"
@@ -1591,7 +1672,9 @@ def test_a_lease_runs_past_its_time_limit_until_it_ends_itself():
         audio = gr.Audio(sources=["microphone"], streaming=True)
         heard = gr.Textbox()
         audio.stream(lease, audio, heard, time_limit=0.5)
+    # As add_stream_event makes a WebRTC stream's event
     demo.fns[0].lease = True
+    demo.fns[0].sends_to_generator = False
     _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     api = f"{local_url.rstrip('/')}{API_PREFIX}"
     try:
@@ -1627,7 +1710,7 @@ def test_a_lease_completes_with_the_outputs_of_its_last_step():
 
     handles = []
 
-    async def lease(x):
+    async def lease(*args):
         blocks = cast(Any, LocalContext.blocks.get())
         handle = blocks._queue.event_handle(LocalContext.event_id.get())
         handles.append(handle)
@@ -1639,7 +1722,9 @@ def test_a_lease_completes_with_the_outputs_of_its_last_step():
         audio = gr.Audio(sources=["microphone"], streaming=True)
         heard = gr.Textbox()
         audio.stream(lease, audio, heard)
+    # As add_stream_event makes a WebRTC stream's event
     demo.fns[0].lease = True
+    demo.fns[0].sends_to_generator = False
     _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
     api = f"{local_url.rstrip('/')}{API_PREFIX}"
     try:

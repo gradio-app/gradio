@@ -89,4 +89,6 @@ def add_stream_event(
     )
     stream_fn.close_stream = connection.end_admitted_stream
     stream_fn.lease = True
+    # Its function is a generator that runs the stream, not one sent chunks
+    stream_fn.sends_to_generator = False
     return stream_fn, index

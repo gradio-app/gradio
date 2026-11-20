@@ -1003,7 +1003,11 @@ class BlocksConfig:
         if show_progress_on and not isinstance(show_progress_on, Sequence):
             show_progress_on = [show_progress_on]
 
-        if fn is not None and not cancels:
+        # A stream's generator is sent the inputs' values instead
+        sends_to_generator = connection == "stream" and utils.is_generator_function(fn)
+        if sends_to_generator:
+            utils.check_stream_generator(cast(Callable, fn))
+        elif fn is not None and not cancels:
             check_function_inputs_match(
                 fn, positional_inputs, inputs_as_dict, inputs_kwargs
             )
@@ -1152,6 +1156,7 @@ class BlocksConfig:
             validator=validator,
         )
 
+        block_fn.sends_to_generator = sends_to_generator
         self.fns[fn_id] = block_fn
         if not reuse_id:
             self.fn_id += 1
@@ -1928,6 +1933,18 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             state=state,
         )
 
+        if block_fn.sends_to_generator:
+            return await self._send_to_stream_generator(
+                block_fn,
+                fn,
+                processed_input,
+                cast(utils.StreamGenerator | None, iterator),
+                request,
+                event_data,
+                oauth_token,
+                start,
+            )
+
         if iterator is None:  # If not a generator function that has already run
             if block_fn.inputs_as_dict:
                 processed_input = [
@@ -2001,6 +2018,65 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "duration": duration,
             "is_generating": is_generating,
             "iterator": iterator,
+        }
+
+    async def _send_to_stream_generator(
+        self,
+        block_fn: BlockFunction,
+        fn: Callable,
+        processed_input: list[Any],
+        generator: utils.StreamGenerator | None,
+        request: Request | None,
+        event_data: EventData | None,
+        oauth_token: oauth.OAuthToken | None,
+        start: float,
+    ) -> dict[str, Any]:
+        """
+        `call_function` for a .stream() generator: the event's first chunk
+        creates its generator, called with the special parameters only, and
+        each chunk sends it the inputs' values (the value itself for one
+        input, a tuple for several), getting its outputs back. The generator
+        goes back as the call's iterator, which the queue keeps for the next
+        chunk and closes when the event ends.
+        """
+        if generator is None:
+            specials, *_ = special_args(
+                cast(Callable, block_fn.fn),
+                [],
+                request,
+                event_data,
+                token=oauth_token,
+            )
+            generator = utils.StreamGenerator(
+                lambda: fn(*specials),
+                is_async=inspect.isasyncgenfunction(fn),
+                run_in_thread=lambda f, *a: anyio.to_thread.run_sync(
+                    f, *a, limiter=self.limiter
+                ),
+            )
+        if block_fn.inputs_as_dict:
+            value: Any = dict(zip(block_fn.inputs, processed_input, strict=False))
+        else:
+            value = (
+                processed_input[0]
+                if len(processed_input) == 1
+                else tuple(processed_input)
+            )
+        prediction = await generator.step(value)
+        ended = prediction is utils.StreamGenerator.ENDED
+        if ended:
+            n_outputs = len(block_fn.outputs)
+            prediction = (
+                components._Keywords.FINISHED_ITERATING
+                if n_outputs == 1
+                else (components._Keywords.FINISHED_ITERATING,) * n_outputs
+            )
+        return {
+            "prediction": prediction,
+            "duration": time.time() - start,
+            # The outputs are whole values each chunk, as a function's are
+            "is_generating": False,
+            "iterator": None if ended else generator,
         }
 
     def serialize_data(self, fn_index: int, inputs: list[Any]) -> list[Any]:
@@ -2713,14 +2789,16 @@ Received inputs:
 
             old_iterator = iterator
             manual_cache_used = False
-            if old_iterator:
+            if old_iterator and not block_fn.sends_to_generator:
                 inputs = []
             else:
                 async with trace_phase("preprocess"):
                     inputs = await self.preprocess_data(
                         block_fn, inputs, state, explicit_call
                     )
-            was_generating = old_iterator is not None
+            was_generating = (
+                old_iterator is not None and not block_fn.sends_to_generator
+            )
             with TrackManualCacheUsage():
                 async with (
                     trace_phase("fn_call"),
