@@ -279,7 +279,7 @@ class Server(App):
         }
 
         def wrapper(func):
-            from gradio.streaming.handlers import check_transport
+            from gradio.utils import check_transport
 
             check_transport(func, transport)
             self._deferred_apis.append((func, kwargs))
@@ -378,7 +378,7 @@ class Server(App):
                         kwargs["stream_every"] = 0.5
                     gr_api(fn=fn, **kwargs)
                     continue
-                from gradio.webrtc.utils import require_webrtc
+                from gradio.webrtc import require_webrtc
 
                 require_webrtc()
                 from gradio.webrtc.transport import api_stream
@@ -458,13 +458,13 @@ class Server(App):
         streams to them with the visitor's session. A plain `api()` hint does
         not: its callers pass their own token, so such an app must be able to
         start without `gradio[oauth]`, `hf_oauth`, or an HF login."""
-        from gradio.webrtc.options import WebRTCOptions
-
         candidates: list[Any] = []
         for fn, api_kwargs in self._deferred_apis:
             transport = api_kwargs.get("transport")
             if transport is None:
                 continue
+            from gradio.webrtc.options import WebRTCOptions
+
             candidates.append(fn)
             if isinstance(transport, WebRTCOptions):
                 candidates.append(transport.rtc_configuration)

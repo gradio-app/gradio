@@ -1715,6 +1715,20 @@ def get_function_params(func: Callable) -> list[tuple[str, bool, Any, Any]]:
     return params_info
 
 
+def check_transport(fn: Any, transport: Any) -> None:
+    """Raises for a handler class from `gradio.streaming` without `transport=`:
+    it needs a transport that runs it for the whole stream. A handler exists
+    only once its module is imported, so this never imports it (nor numpy)."""
+    handlers = sys.modules.get("gradio.streaming.handlers")
+    if transport is None and handlers is not None and handlers.is_handler(fn):
+        name = getattr(fn, "__name__", type(fn).__name__)
+        raise ValueError(
+            f"{name} is a stream handler class, which runs only on a stream "
+            'with transport="webrtc". Pass transport="webrtc", or pass a '
+            "function instead."
+        )
+
+
 def get_return_types(func: Callable) -> list:
     return_hint = inspect.signature(func).return_annotation
 

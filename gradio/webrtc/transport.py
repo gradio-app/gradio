@@ -166,9 +166,10 @@ def blocks_stream(
     starts a stream the page only receives). Its type gives the kind of media;
     where it appears among the inputs and outputs gives the direction.
     """
-    from gradio.components.audio import Audio
-    from gradio.components.image import Image
-    from gradio.components.video import Video
+    from gradio_components.audio import Audio
+    from gradio_components.image import Image
+    from gradio_components.video import Video
+
     from gradio.events import EventListenerMethod
 
     def kind(c: Any) -> str | None:

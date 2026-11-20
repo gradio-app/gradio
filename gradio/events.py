@@ -28,7 +28,12 @@ if TYPE_CHECKING:
 from gradio_client.utils import python_type_to_json_schema
 
 from gradio.context import LocalContext, get_blocks_context
-from gradio.utils import get_cancelled_fn_indices, get_function_params, get_return_types
+from gradio.utils import (
+    check_transport,
+    get_cancelled_fn_indices,
+    get_function_params,
+    get_return_types,
+)
 
 
 def set_cancel_events(
@@ -507,9 +512,11 @@ class EventListenerMethod:
 
 
 def _is_video_stream(block: Any, event_name: str) -> bool:
-    from gradio.components.video import Video
+    if event_name != "stream" or block is None:
+        return False
+    from gradio_components.video import Video
 
-    return event_name == "stream" and isinstance(block, Video)
+    return isinstance(block, Video)
 
 
 def _check_video_stream(block: Any, event_name: str) -> None:
@@ -804,8 +811,6 @@ class EventListener(str):
 
             if transport is None:
                 _check_video_stream(block, _event_name)
-            from gradio.streaming.handlers import check_transport
-
             check_transport(fn, transport)
             if transport is not None:
                 unsupported = [
@@ -839,7 +844,7 @@ class EventListener(str):
                         "function; to switch between streams, use several "
                         "components and change their visibility."
                     )
-                from gradio.webrtc.utils import require_webrtc
+                from gradio.webrtc import require_webrtc
 
                 require_webrtc()
                 from gradio.webrtc.transport import blocks_stream
@@ -1127,8 +1132,6 @@ def on(
     root_block = get_blocks_context()
     if root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
-    from gradio.streaming.handlers import check_transport
-
     check_transport(fn, None)
     # Checked here as well as in set_event_trigger, because trigger inference below
     # would otherwise iterate a dict's keys first.
@@ -1272,8 +1275,6 @@ def api(
     root_block = get_blocks_context()
     if root_block is None:
         raise Exception("Cannot call api() outside of a gradio.Blocks context.")
-    from gradio.streaming.handlers import check_transport
-
     check_transport(fn, None)
 
     from gradio.components.api_component import Api

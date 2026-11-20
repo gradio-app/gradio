@@ -2460,10 +2460,14 @@ class App(FastAPI):
                     detail="webrtc_id must be a string.",
                 )
             # Without a stream handler, answer at once and do not import aiortc
-            from gradio.webrtc.utils import has_streams
-
+            # (nor numpy, which gradio.webrtc.utils needs)
             connection = sys.modules.get("gradio.webrtc.connection")
-            if connection is None or not has_streams(app.get_blocks()):
+            if connection is not None:
+                from gradio.webrtc.utils import has_streams
+
+                if not has_streams(app.get_blocks()):
+                    connection = None
+            if connection is None:
                 if name == "offer":
                     return {"status": "failed", "meta": {"error": "no_stream_handler"}}
                 return {"error": "No stream handler is attached to this app."}

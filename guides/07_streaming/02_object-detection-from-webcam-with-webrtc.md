@@ -13,12 +13,12 @@ height="600" width="600" style="display: block; margin: auto;" autoplay="true" l
 Start by installing all the dependencies. Add the following lines to a `requirements.txt` file and run `pip install -r requirements.txt`:
 
 ```bash
-gradio[webrtc]
+gradio[components,webrtc]
 opencv-python
 onnxruntime-gpu
 ```
 
-The `webrtc` extra installs [aiortc](https://github.com/aiortc/aiortc), which Gradio uses for the server side of the connection.
+The `components` extra installs the UI components (`gr.Blocks`, `gr.Image`, ...), and the `webrtc` extra installs [aiortc](https://github.com/aiortc/aiortc), which Gradio uses for the server side of the connection.
 
 We'll use the ONNX runtime to speed up YOLOv10 inference. This guide assumes you have access to a GPU. If you don't, change `onnxruntime-gpu` to `onnxruntime`. Without a GPU, the model will run slower, resulting in a laggy demo.
 

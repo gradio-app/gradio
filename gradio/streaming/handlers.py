@@ -351,15 +351,3 @@ def is_handler(fn: Any) -> bool:
     return (inspect.isclass(fn) and issubclass(fn, StreamHandlerBase)) or isinstance(
         fn, StreamHandlerBase
     )
-
-
-def check_transport(fn: Any, transport: Any) -> None:
-    """Raises for a handler class without `transport=`: it needs a transport
-    that runs it for the whole stream."""
-    if transport is None and is_handler(fn):
-        name = getattr(fn, "__name__", type(fn).__name__)
-        raise ValueError(
-            f"{name} is a stream handler class, which runs only on a stream "
-            'with transport="webrtc". Pass transport="webrtc", or pass a '
-            "function instead."
-        )
