@@ -172,7 +172,11 @@ def frames_forever(*args):
 TIME_LIMIT_STREAMS = [
     ({"stream_kwargs": {"time_limit": 1}}, {"video": True}),
     (
-        {"stream_kwargs": {"time_limit": 1}, "mode": "receive", "handler": frames_forever},
+        {
+            "stream_kwargs": {"time_limit": 1},
+            "mode": "receive",
+            "handler": frames_forever,
+        },
         {"receive": "video"},
     ),
 ]
