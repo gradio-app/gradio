@@ -1479,7 +1479,20 @@ describe("DependencyManager: WebRTC streams", () => {
 					(async function* () {
 						yield { type: "status", stage: "pending", queue: true };
 						yield starts;
+						// Progress of the running stream is a "pending" status too
+						yield {
+							type: "status",
+							stage: "pending",
+							queue: true,
+							progress_data: []
+						};
 						// submit_over_webrtc() joined the queue again
+						yield {
+							type: "status",
+							stage: "pending",
+							queue: true,
+							rejoining: true
+						};
 						yield { type: "status", stage: "pending", queue: true };
 						yield starts;
 						yield { type: "status", stage: "complete", queue: true };
@@ -1502,8 +1515,10 @@ describe("DependencyManager: WebRTC streams", () => {
 			.map(([, state]) => state.loading_status.stream_state);
 		const first_open = states.indexOf("open");
 		expect(first_open).toBeGreaterThan(-1);
+		// The progress leaves it open
+		expect(states[first_open + 1]).toBe("open");
 		const again = states.indexOf("waiting", first_open);
-		expect(again).toBeGreaterThan(first_open);
+		expect(again).toBe(first_open + 2);
 		expect(states.indexOf("open", again)).toBeGreaterThan(again);
 	});
 

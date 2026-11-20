@@ -529,6 +529,16 @@ export function submit_over_webrtc(
 				channel = null;
 				turn = false;
 				webrtc_id = new_webrtc_id();
+				// Says so explicitly: a "pending" status alone may be progress
+				push({
+					type: "status",
+					stage: "pending",
+					queue: true,
+					rejoining: true,
+					time: new Date(),
+					endpoint: String(endpoint),
+					fn_index
+				} as unknown as GradioEvent);
 				job = join();
 			}
 		} finally {

@@ -463,6 +463,8 @@ export interface Status {
 	avg_time?: number;
 	/** The stream ended for good: its generator returned or failed, or its time ran out with `on_time_limit="stop"`. Otherwise it joins the queue again; a WebRTC stream ended for good unless it handed its slot over at its time limit. */
 	stream_ended?: boolean;
+	/** A WebRTC stream that handed its slot over at its time limit joins the queue again (see `submit()` over WebRTC); its place in line follows. */
+	rejoining?: boolean;
 }
 
 export interface StatusMessage extends Status {

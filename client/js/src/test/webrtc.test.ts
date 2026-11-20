@@ -555,11 +555,13 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		// The caller sees the new wait in line, not the completion
 		next_job.send({ type: "status", stage: "pending", position: 1 });
 		const seen: any[] = [];
-		while (seen.at(-1)?.stage !== "pending") {
+		while (seen.at(-1)?.position !== 1) {
 			seen.push((await job_iter.next()).value);
 		}
 		expect(seen.at(-1)).toMatchObject({ stage: "pending", position: 1 });
 		expect(seen.some((msg) => msg?.stage === "complete")).toBe(false);
+		// Said explicitly, since progress is a "pending" status too
+		expect(seen.at(-2)).toMatchObject({ stage: "pending", rejoining: true });
 
 		next_job.send(turn);
 		await vi.waitFor(() =>

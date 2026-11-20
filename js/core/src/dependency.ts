@@ -623,12 +623,9 @@ export class DependencyManager {
 									stream_ran = true;
 								}
 								// A WebRTC stream that handed its slot over at its time
-								// limit waits its turn again (see submit_over_webrtc)
-								if (
-									result.stage === "pending" &&
-									dep.transport &&
-									stream_state === "open"
-								) {
+								// limit waits its turn again (see submit_over_webrtc). Not
+								// any "pending" status: progress of a running stream is one.
+								if (result.rejoining && dep.transport) {
 									stream_state = "waiting";
 								}
 								const { fn_index, ...status } = result;
