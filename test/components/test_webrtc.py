@@ -157,6 +157,27 @@ def three_frames(*args):
         yield np.zeros((16, 16, 3), dtype=np.uint8)
 
 
+def frames_forever(*args):
+    import numpy as np
+
+    while True:
+        time.sleep(0.05)
+        yield np.zeros((16, 16, 3), dtype=np.uint8)
+
+
+# A stream past its time limit, sending and receiving or only receiving (media
+# out only, started by a button): the server treats both the same, and the
+# page does not start one that only receives again without a click (see
+# submit_over_webrtc)
+TIME_LIMIT_STREAMS = [
+    ({"stream_kwargs": {"time_limit": 1}}, {"video": True}),
+    (
+        {"stream_kwargs": {"time_limit": 1}, "mode": "receive", "handler": frames_forever},
+        {"receive": "video"},
+    ),
+]
+
+
 class EchoHandler(AsyncStreamHandler):
     async def receive(self, frame):
         pass
@@ -1601,13 +1622,13 @@ class TestStreams:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "launched", [{"stream_kwargs": {"time_limit": 1}}], indirect=True
+        "launched, offer", TIME_LIMIT_STREAMS, indirect=["launched"]
     )
     async def test_a_stream_goes_on_past_its_time_limit_while_nobody_waits(
-        self, launched
+        self, launched, offer
     ):
         h = launched
-        pc = await make_offer(video=True)
+        pc = await make_offer(**offer)
         event_id = await h.start("one")
         await h.connect(pc, "one")
         await h.wait_until(lambda: stream_of(h.manager, "one").connected)
@@ -1630,13 +1651,13 @@ class TestStreams:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "launched", [{"stream_kwargs": {"time_limit": 1}}], indirect=True
+        "launched, offer", TIME_LIMIT_STREAMS, indirect=["launched"]
     )
     async def test_a_stream_hands_over_at_its_time_limit_to_an_event_waiting(
-        self, launched
+        self, launched, offer
     ):
         h = launched
-        pc = await make_offer(video=True)
+        pc = await make_offer(**offer)
         event_id = await h.start("one")
         started = time.monotonic()
         await h.connect(pc, "one")
