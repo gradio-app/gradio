@@ -244,7 +244,11 @@ export function webrtc_rejection_message(
  * slot; once its turn comes the media goes over a peer connection. The
  * remote media arrives as a data message with a MediaStream in the media
  * output's slot, the handler's toasts as log messages, and `send_chunk()`
- * sends new values of the other inputs over the data channel.
+ * sends new values of the other inputs over the data channel. A stream that
+ * hands its slot over at its time limit (its event completes with
+ * `stream_ended: false`, see `on_time_limit`) joins the queue again with a new
+ * stream id and the same media, unless it only receives: the caller sees the
+ * new wait in line, and not that completion.
  */
 export function submit_over_webrtc(
 	this: Client,
@@ -273,7 +277,7 @@ export function submit_over_webrtc(
 				: event_media instanceof MediaStream
 					? event_media
 					: null;
-	const webrtc_id = new_webrtc_id();
+	let webrtc_id = new_webrtc_id();
 	const others = (values: unknown[]): unknown[] =>
 		values.filter((_, i) => i !== media_index);
 	let inputs = others(data);
@@ -284,15 +288,9 @@ export function submit_over_webrtc(
 	let stopped = false;
 
 	// The media slot holds no value; the stream id travels in the event data
-	const payload = [...data];
-	if (media_index >= 0) payload[media_index] = null;
-	const job = this.submit(
-		endpoint,
-		payload,
-		{ webrtc_id },
-		trigger_id,
-		all_events
-	);
+	const join = (): ReturnType<Client["submit"]> =>
+		this.submit(endpoint, [...current], { webrtc_id }, trigger_id, all_events);
+	let job = join();
 
 	// Messages of the job, plus the ones the connection adds
 	const queue: GradioEvent[] = [];
@@ -344,15 +342,26 @@ export function submit_over_webrtc(
 		job.close_stream(options ?? { read_to_end: true });
 	};
 
+	// The connection ended without the page closing the stream: the server
+	// frees its slot, and the event's completion says whether the stream
+	// handed it over (and joins the queue again) or ended
+	const lose = (): void => {
+		close_webrtc(pc, { stop_tracks: false });
+		pc = null;
+		job.close_stream({ read_to_end: true });
+	};
+
 	const connect = async (): Promise<void> => {
-		const rtc_configuration = await this.webrtc_rtc_configuration(webrtc_id);
+		// A stream that joins the queue again gets a new id
+		const id = webrtc_id;
+		const rtc_configuration = await this.webrtc_rtc_configuration(id);
 		if (!rtc_configuration || "error" in rtc_configuration) {
 			throw new Error(
 				rtc_configuration?.error ??
 					"Could not get the connection settings from the server."
 			);
 		}
-		if (stopped) return;
+		if (stopped || id !== webrtc_id) return;
 		const connection = new RTCPeerConnection(rtc_configuration);
 		pc = connection;
 		if (transport.media_output !== null) {
@@ -369,12 +378,19 @@ export function submit_over_webrtc(
 				} as unknown as GradioEvent);
 			});
 		}
+		// What an earlier connection of a stream that joined the queue again
+		// reports is no longer news
 		on_webrtc_connection_state(connection, {
 			connected: () => {},
-			ended: () => close(),
-			failed: () => fail("The connection failed."),
+			ended: () => {
+				if (pc === connection) lose();
+			},
+			failed: () => {
+				if (pc === connection) fail("The connection failed.");
+			},
 			// e.g. a VPN or a strict NAT without a TURN server in the way
 			slow: () =>
+				pc === connection &&
 				push({
 					type: "log",
 					level: "warning",
@@ -390,7 +406,7 @@ export function submit_over_webrtc(
 		await negotiate_webrtc({
 			pc: connection,
 			offer: (body) => this.webrtc_offer(body),
-			webrtc_id,
+			webrtc_id: id,
 			// Only the kinds the stream takes (a gr.Video camera may also
 			// record the microphone for a video-only stream)
 			stream:
@@ -468,29 +484,52 @@ export function submit_over_webrtc(
 	let turn = false;
 	(async () => {
 		try {
-			for await (const msg of job) {
-				fn_index = (msg as any).fn_index ?? fn_index;
-				if (msg.type === "data" && Array.isArray((msg as any).data)) {
-					// An output the stream did not update this time
-					(msg as any).data = (msg as any).data.map((value: any) =>
-						value &&
-						typeof value === "object" &&
-						value.__type__ === "update" &&
-						Object.keys(value).length === 1
-							? undefined
-							: value
-					);
-				}
-				if (msg.type === "data" && !turn && (msg as any).data !== undefined) {
-					// The first data message means the stream's turn has come
-					turn = true;
-					if (!stopped) {
-						connect().catch((error: Error) => fail(error.message));
+			while (true) {
+				let rejoin = false;
+				for await (const msg of job) {
+					fn_index = (msg as any).fn_index ?? fn_index;
+					if (
+						msg.type === "status" &&
+						(msg as any).stage === "complete" &&
+						(msg as any).stream_ended === false &&
+						transport.mode !== "receive" &&
+						!stopped
+					) {
+						// Handed its slot over at its time limit
+						rejoin = true;
+						continue;
 					}
+					if (msg.type === "data" && Array.isArray((msg as any).data)) {
+						// An output the stream did not update this time
+						(msg as any).data = (msg as any).data.map((value: any) =>
+							value &&
+							typeof value === "object" &&
+							value.__type__ === "update" &&
+							Object.keys(value).length === 1
+								? undefined
+								: value
+						);
+					}
+					if (msg.type === "data" && !turn && (msg as any).data !== undefined) {
+						// The first data message means the stream's turn has come
+						turn = true;
+						if (!stopped) {
+							connect().catch((error: Error) => fail(error.message));
+						}
+					}
+					// No data: the stream left the line, or ended, without outputs
+					if (msg.type === "data" && (msg as any).data === undefined) continue;
+					push(msg);
 				}
-				// No data: the stream left the line, or ended, without outputs
-				if (msg.type === "data" && (msg as any).data === undefined) continue;
-				push(msg);
+				if (!rejoin || stopped) break;
+				// A new stream waits its turn with the same media and the
+				// current values of the other inputs
+				close_webrtc(pc, { stop_tracks: false });
+				pc = null;
+				channel = null;
+				turn = false;
+				webrtc_id = new_webrtc_id();
+				job = join();
 			}
 		} finally {
 			stopped = true;

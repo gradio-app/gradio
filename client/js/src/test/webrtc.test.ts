@@ -527,6 +527,100 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		expect(video.stop).not.toHaveBeenCalled();
 	});
 
+	it("a stream that hands its slot over joins the queue again with a new id and the same media", async () => {
+		const { video, job_iter } = start();
+		const first_id = client.submit.mock.calls[0][2].webrtc_id;
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		const first_pc = FakePeerConnection.instances[0];
+		first_pc.channel.open();
+		job_iter.send_chunk({ data: { brightness: 2 } });
+
+		const next_job = fake_job();
+		client.submit.mockImplementation(() => next_job);
+		// The server ends the connection, then the event: before the
+		// completion, the page cannot tell a hand-over from an end
+		first_pc.set_state("closed");
+		expect(job.close_stream).toHaveBeenCalledWith({ read_to_end: true });
+		job.send({ type: "status", stage: "complete", stream_ended: false });
+		job.end();
+
+		await vi.waitFor(() => expect(client.submit).toHaveBeenCalledTimes(2));
+		const [endpoint, data, event_data] = client.submit.mock.calls[1];
+		expect(endpoint).toBe("/flip");
+		// The current values of the other inputs, the media slot empty
+		expect(data).toEqual([null, 2]);
+		expect(event_data.webrtc_id).not.toBe(first_id);
+
+		// The caller sees the new wait in line, not the completion
+		next_job.send({ type: "status", stage: "pending", position: 1 });
+		const seen: any[] = [];
+		while (seen.at(-1)?.stage !== "pending") {
+			seen.push((await job_iter.next()).value);
+		}
+		expect(seen.at(-1)).toMatchObject({ stage: "pending", position: 1 });
+		expect(seen.some((msg) => msg?.stage === "complete")).toBe(false);
+
+		next_job.send(turn);
+		await vi.waitFor(() =>
+			expect(FakePeerConnection.instances).toHaveLength(2)
+		);
+		const second_pc = FakePeerConnection.instances[1];
+		await vi.waitFor(() =>
+			expect(second_pc.senders.map((s) => s.track)).toEqual([video])
+		);
+		expect(client.webrtc_offer.mock.calls.at(-1)[0]).toMatchObject({
+			type: "offer",
+			webrtc_id: event_data.webrtc_id
+		});
+		// The first connection's end is no longer news
+		first_pc.set_state("failed");
+		expect(next_job.close_stream).not.toHaveBeenCalled();
+		expect(video.stop).not.toHaveBeenCalled();
+	});
+
+	it("a stream that ended for good, that the page closed, or that only receives does not join the queue again", async () => {
+		const ended = start();
+		job.send(turn);
+		job.send({ type: "status", stage: "complete", stream_ended: true });
+		job.end();
+		const [, complete] = await read(ended.job_iter, 2);
+		expect(complete.stage).toBe("complete");
+		expect((await ended.job_iter.next()).done).toBe(true);
+
+		job = fake_job();
+		client.submit = vi.fn(() => job);
+		const closed = start();
+		job.send(turn);
+		closed.job_iter.close_stream();
+		job.send({ type: "status", stage: "complete", stream_ended: false });
+		job.end();
+		const [, closed_complete] = await read(closed.job_iter, 2);
+		expect(closed_complete.stage).toBe("complete");
+		expect((await closed.job_iter.next()).done).toBe(true);
+
+		job = fake_job();
+		client.submit = vi.fn(() => job);
+		const receiving = submit_over_webrtc.call(
+			client,
+			"/generate",
+			[1],
+			{ ...send_receive, mode: "receive", media_input: null },
+			{},
+			null,
+			true,
+			["brightness"]
+		);
+		job.send(turn);
+		job.send({ type: "status", stage: "complete", stream_ended: false });
+		job.end();
+		const [, received_complete] = await read(receiving, 2);
+		// Never starts again without a click
+		expect(received_complete.stage).toBe("complete");
+		expect((await receiving.next()).done).toBe(true);
+		expect(client.submit).toHaveBeenCalledTimes(1);
+	});
+
 	it("reports a rejected offer as the event's error", async () => {
 		client.webrtc_offer = vi.fn(async () => ({
 			status: "failed",

@@ -1624,6 +1624,8 @@ class TestStreams:
         # over when it runs out, in step with the stream's periods
         turn = next(m for m in messages if m.get("msg") == "process_streaming")
         assert turn["time_limit"] == 1
+        # Ended, not handed over: the page does not join the queue again
+        assert messages[-1]["stream_ended"] is True
         await pc.close()
 
     @pytest.mark.asyncio
@@ -1639,10 +1641,15 @@ class TestStreams:
         started = time.monotonic()
         await h.connect(pc, "one")
         await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        reader = asyncio.ensure_future(h.messages("one", completed, timeout=10))
         # Waits: the stream holds the only slot
         await h.join("two")
         await h.wait_until(lambda: not h.event_running(event_id))
         assert time.monotonic() - started < 3
+        # Handed over: the page joins the queue again (see submit_over_webrtc)
+        messages = await reader
+        assert messages[-1]["success"] is True
+        assert messages[-1]["stream_ended"] is False
         # The one that waited gets the slot
         await h.wait_until(lambda: has_stream(h.manager, "two"))
         await pc.close()

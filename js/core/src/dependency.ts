@@ -592,6 +592,8 @@ export class DependencyManager {
 					} else {
 						let stream_state: "open" | "closed" | "waiting" | "ended" | null =
 							null;
+						// Whether the stream's turn came, even if it waits in line again
+						let stream_ran = false;
 
 						if (
 							dep.connection_type === "stream" &&
@@ -618,6 +620,16 @@ export class DependencyManager {
 									!this.page_ended.has(dep_submission.data)
 								) {
 									stream_state = "open";
+									stream_ran = true;
+								}
+								// A WebRTC stream that handed its slot over at its time
+								// limit waits its turn again (see submit_over_webrtc)
+								if (
+									result.stage === "pending" &&
+									dep.transport &&
+									stream_state === "open"
+								) {
+									stream_state = "waiting";
 								}
 								const { fn_index, ...status } = result;
 
@@ -626,8 +638,7 @@ export class DependencyManager {
 									// A stream the page ended while in line never ran, so like a
 									// cancelled event it runs `.failure()`, not `.success()`
 									const stopped_in_line =
-										this.page_ended.has(dep_submission.data) &&
-										stream_state !== "open";
+										this.page_ended.has(dep_submission.data) && !stream_ran;
 									const chained = this.cancelled.has(dep_submission.data)
 										? []
 										: stopped_in_line

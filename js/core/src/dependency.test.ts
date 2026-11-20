@@ -1461,6 +1461,52 @@ describe("DependencyManager: WebRTC streams", () => {
 		}
 	);
 
+	test("a stream that hands its slot over shows that it waits its turn again", async () => {
+		const stream = dependency(0, "stream", [10]);
+		stream.inputs = [5];
+		stream.connection = "stream";
+		stream.targets = [[5, "stream"]];
+		(stream as any).transport = { type: "webrtc", media_output: null };
+		const starts = {
+			type: "status",
+			stage: "streaming",
+			queue: true,
+			original_msg: "process_starts"
+		};
+		const client = {
+			submit: () =>
+				submission(
+					(async function* () {
+						yield { type: "status", stage: "pending", queue: true };
+						yield starts;
+						// submit_over_webrtc() joined the queue again
+						yield { type: "status", stage: "pending", queue: true };
+						yield starts;
+						yield { type: "status", stage: "complete", queue: true };
+					})()
+				)
+		} as unknown as Client;
+		const update_state = vi.fn().mockResolvedValue(undefined);
+		const dependency_manager = manager([stream], client, update_state);
+
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "stream",
+			target_id: 5,
+			event_data: null
+		});
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		const states = update_state.mock.calls
+			.filter(([id, state]) => id === 5 && "loading_status" in state)
+			.map(([, state]) => state.loading_status.stream_state);
+		const first_open = states.indexOf("open");
+		expect(first_open).toBeGreaterThan(-1);
+		const again = states.indexOf("waiting", first_open);
+		expect(again).toBeGreaterThan(first_open);
+		expect(states.indexOf("open", again)).toBeGreaterThan(again);
+	});
+
 	test("the end of an older run leaves a newer run's live media", () => {
 		const stream = webrtc_stream();
 		const update_state = vi.fn().mockResolvedValue(undefined);

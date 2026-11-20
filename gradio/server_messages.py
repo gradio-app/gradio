@@ -49,7 +49,8 @@ class ProcessCompletedMessage(BaseMessage):
     success: bool
     # The stream ended for good (its generator returned or failed, or its
     # time ran out with on_time_limit="stop"), so the page stops sending,
-    # rather than joining the queue again as after time_limit by default
+    # rather than joining the queue again as after time_limit by default. A
+    # WebRTC stream ended for good unless it handed its slot over.
     stream_ended: bool = False
     title: str | None = None
     used_cache: Literal["full", "partial"] | None = None

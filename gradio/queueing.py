@@ -90,6 +90,9 @@ class Event:
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
         self.own_stream = False
+        # A lease whose stream the queue ended at its time limit for an event
+        # waiting for its slot: its page joins the queue again
+        self.handed_over = False
 
     @property
     def streaming(self):
@@ -1804,6 +1807,7 @@ class Queue:
         close_stream = event.fn.close_stream
         if close_stream is None or event.closed or not self._slot_wanted(event):
             return
+        event.handed_over = True
         closed = close_stream(event._id)
         if inspect.isawaitable(closed):
             task = asyncio.ensure_future(closed)
@@ -1822,9 +1826,12 @@ class Queue:
         """Whether a stream ended for good, so the page stops sending instead
         of joining the queue again: its generator returned or failed (a new
         stream from the same page would only start it again), or its time ran
-        out with on_time_limit="stop". Not when the page closed it."""
+        out with on_time_limit="stop". Not when the page closed it. A lease (a
+        WebRTC stream) ended for good unless it handed its slot over."""
         if not event.streaming:
             return False
+        if fn.lease:
+            return not event.handed_over
         if fn.on_time_limit == "stop" and not event.closed and event.out_of_time:
             return True
         if not fn.sends_to_generator:
