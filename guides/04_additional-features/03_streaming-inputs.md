@@ -65,6 +65,25 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
+You can also pass a generator function to `stream`. Each stream then gets one generator, and each chunk is sent to it with `send()`: the generator receives the inputs' values from `yield` (the value itself for one input, a tuple for several) and yields the outputs for that chunk. What you keep from one chunk to the next becomes a local variable, and code before the loop and in a `finally` block runs once when the stream starts and once when it ends:
+
+```python
+def transcribe_handler():
+    history, transcript = [], ""
+    current_audio = yield  # what is yielded here, before any chunk, is not shown
+    while True:
+        transcript += transcribe(current_audio, history=history)
+        history = (history + [current_audio])[-3:]
+        current_audio = yield transcript
+
+with gr.Blocks() as demo:
+    mic = gr.Audio(sources="microphone")
+    transcript = gr.Textbox(label="Transcript")
+    mic.stream(transcribe_handler, mic, transcript, time_limit=10, stream_every=1)
+```
+
+The generator is called without the inputs. It can still take special parameters such as `request: gr.Request`. If it returns, the stream ends. The same function works with `transport="webrtc"`.
+
 ## End-to-End Examples
 
 For an end-to-end example of streaming from the webcam, see the object detection from webcam [guide](/main/guides/object-detection-from-webcam-with-webrtc).
