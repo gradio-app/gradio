@@ -250,11 +250,10 @@ class Server(App):
         return values (sent back), and the function is called with each frame
         (or chunk of audio). In the browser, call it with `client.submit()` of
         `@gradio/client`, passing a MediaStream for the media parameter. Each
-        stream waits its turn in the queue like any call, and `time_limit` caps
-        its duration. `on_time_limit` is what happens when a stream reaches
-        it: "rejoin" (default) has it wait its turn again if others wait, or
-        go on if nobody does; "stop" ends it.
-        `stream_every` is the shortest interval between calls
+        stream waits its turn in the queue like any call. `on_time_limit` is
+        what happens when it reaches `time_limit`: with "rejoin" (default), it
+        waits its turn again if others wait, or goes on if nobody does; with
+        "stop", it ends. `stream_every` is the shortest interval between calls
         (unset: every frame).
         Instead of a function, such an endpoint can take a handler class from
         `gradio.streaming` or an instance of one, such as `ReplyOnPause(fn)`.

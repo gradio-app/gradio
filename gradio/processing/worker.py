@@ -116,6 +116,9 @@ class RemoteEventHandle:
     def finish(self) -> None:
         self._act("finish")
 
+    def time_up(self) -> None:
+        self._act("time_up")
+
     def stream_admitted(self, stream_id: str) -> None:
         self.admitted_stream = stream_id
 

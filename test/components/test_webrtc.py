@@ -1574,7 +1574,9 @@ class TestStreams:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "launched", [{"stream_kwargs": {"time_limit": 1}}], indirect=True
+        "launched",
+        [{"stream_kwargs": {"time_limit": 1, "on_time_limit": "stop"}}],
+        indirect=True,
     )
     async def test_time_limit_ends_the_event_and_the_connection(self, launched):
         h = launched
@@ -1595,6 +1597,54 @@ class TestStreams:
         # At its time limit, not after a timeout of the queue or the connection
         assert time.monotonic() - started < 4
         await h.wait_until(lambda: live_pc(h.manager, "one") is None)
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"stream_kwargs": {"time_limit": 1}}], indirect=True
+    )
+    async def test_a_stream_goes_on_past_its_time_limit_while_nobody_waits(
+        self, launched
+    ):
+        h = launched
+        pc = await make_offer(video=True)
+        event_id = await h.start("one")
+        await h.connect(pc, "one")
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        # Read for the whole test, as the page does: a page that stops
+        # reading has left
+        reader = asyncio.ensure_future(h.messages("one", completed, timeout=30))
+        await asyncio.sleep(2.5)
+        # Past two periods of its time limit (on_time_limit="rejoin")
+        assert h.event_running(event_id)
+        assert not stream_of(h.manager, "one").ended
+        await h.http.post(f"{h.api}/stream/{event_id}/close")
+        messages = await reader
+        # The page's countdown bar runs for the whole time limit, and starts
+        # over when it runs out, in step with the stream's periods
+        turn = next(m for m in messages if m.get("msg") == "process_streaming")
+        assert turn["time_limit"] == 1
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched", [{"stream_kwargs": {"time_limit": 1}}], indirect=True
+    )
+    async def test_a_stream_hands_over_at_its_time_limit_to_an_event_waiting(
+        self, launched
+    ):
+        h = launched
+        pc = await make_offer(video=True)
+        event_id = await h.start("one")
+        started = time.monotonic()
+        await h.connect(pc, "one")
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        # Waits: the stream holds the only slot
+        await h.join("two")
+        await h.wait_until(lambda: not h.event_running(event_id))
+        assert time.monotonic() - started < 3
+        # The one that waited gets the slot
+        await h.wait_until(lambda: has_stream(h.manager, "two"))
         await pc.close()
 
     @pytest.mark.asyncio
@@ -2705,6 +2755,13 @@ class TestStreamsWithProcesses:
     launched = TestStreams.launched
 
     test_a_quiet_stream_keeps_its_turn = TestStreams.test_a_quiet_stream_keeps_its_turn
+    # The gateway's queue decides whether an event waits for the slot
+    test_a_stream_goes_on_past_its_time_limit_while_nobody_waits = (
+        TestStreams.test_a_stream_goes_on_past_its_time_limit_while_nobody_waits
+    )
+    test_a_stream_hands_over_at_its_time_limit_to_an_event_waiting = (
+        TestStreams.test_a_stream_hands_over_at_its_time_limit_to_an_event_waiting
+    )
     # The page's close reaches the stream here, which delivers what is
     # pending; the media closes once the gateway says that the event ended
     test_closing_the_stream_delivers_the_pending_output = (
@@ -3183,6 +3240,7 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
             # Leaves time to connect on a loaded CI runner before the limit
             # ends the stream, and still ends it well before the busy job
             time_limit=2,
+            on_time_limit="stop",
             transport="webrtc",
         )
         busy = gr.Button()

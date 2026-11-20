@@ -137,6 +137,11 @@ class EventHandle:
         """Names the media stream the event runs, which its signalling asks
         for. With threads, signalling reaches the one process anyway."""
 
+    def time_up(self) -> None:
+        """The stream's time limit ran out with on_time_limit="rejoin" and the
+        stream went on: the queue ends it if an event waits for its slot."""
+        self._queue.time_up(self._event)
+
     @property
     def live(self) -> bool:
         return self._event.alive and self.id in self._queue.event_ids_to_events
@@ -1438,9 +1443,11 @@ class Queue:
                 end = time.monotonic()
                 first_iteration = end - start
                 # A stream's time limit counts from the end of its first call
+                # (A lease keeps its own clock; this only sets the countdown
+                # that the page shows)
                 uncounted = (
                     min(first_iteration, fn.time_limit)
-                    if events[0].streaming and not fn.lease and fn.time_limit
+                    if events[0].streaming and fn.time_limit
                     else 0.0
                 )
                 err = None
@@ -1773,17 +1780,35 @@ class Queue:
         its next chunk."""
         if fn.on_time_limit != "rejoin" or event.closed or not event.out_of_time:
             return
-        group = self.event_queue_per_concurrency_id.get(event.concurrency_id)
-        if (
-            group is not None
-            and group.queue
-            and group.concurrency_limit is not None
-            and group.current_concurrency >= group.concurrency_limit
-        ):
+        if self._slot_wanted(event):
             return
         time_limit = cast(float, fn.time_limit)
         while event.out_of_time:
             event.uncounted_time += time_limit
+
+    def _slot_wanted(self, event: Event) -> bool:
+        """Whether an event waits for a slot of `event`'s concurrency group: a
+        group without a limit, or with a free slot, never makes one wait."""
+        group = self.event_queue_per_concurrency_id.get(event.concurrency_id)
+        return (
+            group is not None
+            and bool(group.queue)
+            and group.concurrency_limit is not None
+            and group.current_concurrency >= group.concurrency_limit
+        )
+
+    def time_up(self, event: Event) -> None:
+        """A lease's time limit ran out with on_time_limit="rejoin" (see
+        `EventHandle.time_up`): ends its stream if an event waits for its
+        slot, as the queue ends a stream that it runs itself."""
+        close_stream = event.fn.close_stream
+        if close_stream is None or event.closed or not self._slot_wanted(event):
+            return
+        closed = close_stream(event._id)
+        if inspect.isawaitable(closed):
+            task = asyncio.ensure_future(closed)
+            self._asyncio_tasks.add(task)
+            task.add_done_callback(self._asyncio_tasks.discard)
 
     def _stream_goes_on(self, fn: BlockFunction, event: Event) -> bool:
         """Whether a stream waits for its next chunk: always, unless its

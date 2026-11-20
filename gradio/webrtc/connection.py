@@ -268,9 +268,15 @@ class QueueLease:
     stream's time limit, since the queue's own cut would drop pending outputs.
     """
 
-    def __init__(self, event: EventHandle, time_limit: float | None) -> None:
+    def __init__(
+        self,
+        event: EventHandle,
+        time_limit: float | None,
+        on_time_limit: Literal["rejoin", "stop"] = "rejoin",
+    ) -> None:
         self.event = event
         self.time_limit = time_limit
+        self.on_time_limit = on_time_limit
         self.admitted_at = time.monotonic()
         # When the time limit started: at the stream's first step
         self.started_at: float | None = None
@@ -306,10 +312,23 @@ class QueueLease:
             start = min(time.monotonic(), self.admitted_at + self.time_limit)
         return max(0.0, self.time_limit - (time.monotonic() - start))
 
+    def next_period(self) -> None:
+        """Starts the time limit again where it ran out, as the page's
+        countdown bar does (see `keep`)."""
+        if self.time_limit is None:
+            return
+        if self.started_at is None:
+            self.started_at = self.admitted_at + self.time_limit
+        while self.remaining_time() == 0:
+            self.started_at += self.time_limit
+
     async def keep(self, stream: Stream) -> None:
         """
         Runs until the queue event is over, however it ended: ends the stream
-        at its time limit or when it does not connect in time.
+        when it does not connect in time, and at its time limit with
+        on_time_limit="stop". With "rejoin", the stream goes on into its next
+        period of time_limit, and the queue ends it if an event waits for its
+        slot (see `EventHandle.time_up`).
         """
         while True:
             await asyncio.sleep(WATCH_INTERVAL)
@@ -324,7 +343,10 @@ class QueueLease:
                 never_connected = (
                     not stream.connected and now - self.admitted_at > CONNECT_TIMEOUT
                 )
-                if timed_out or never_connected:
+                if timed_out and not never_connected and self.on_time_limit == "rejoin":
+                    self.next_period()
+                    self.event.time_up()
+                elif timed_out or never_connected:
                     stream.close()
             except Exception:
                 # Watching goes on until the event is over: no re-admission
@@ -346,7 +368,7 @@ class Stream:
         self.id = webrtc_id
         self.manager = manager
         self.registry = registry
-        self.lease = QueueLease(event, manager.time_limit)
+        self.lease = QueueLease(event, manager.time_limit, manager.on_time_limit)
         self.state = StreamState.ADMITTED
         self.connected_at: float | None = None
         self.context = Context(
@@ -660,6 +682,7 @@ class ConnectionManager:
         time_limit: float | None,
         allow_extra_tracks: bool,
         server_rtc_configuration: dict[str, Any] | None,
+        on_time_limit: Literal["rejoin", "stop"] = "rejoin",
         video_bitrate: dict[str, int] | None = None,
         rtc_configuration: dict[str, Any] | Callable | None = None,
         output_every: float | None = None,
@@ -676,6 +699,7 @@ class ConnectionManager:
         self.mode = mode
         self.modality = modality
         self.time_limit = time_limit
+        self.on_time_limit: Literal["rejoin", "stop"] = on_time_limit
         self.allow_extra_tracks = allow_extra_tracks
         self.rtc_configuration = rtc_configuration
         self.server_rtc_configuration = to_rtc_configuration(server_rtc_configuration)

@@ -542,6 +542,8 @@ class Pool:
                 event.signal.set()
             elif action == "finish":
                 event.closed = True
+            elif action == "time_up":
+                self.blocks._queue.time_up(event)
 
     async def close_stream(self, event_id: str) -> bool:
         """`BlockFunction.close_stream` in the gateway, for a stream whose
