@@ -99,8 +99,12 @@ class Event:
     def is_finished(self):
         if not self.streaming:
             raise ValueError("Cannot access if_finished during a non-streaming event")
-        if self.closed:
-            return True
+        return self.closed or self.out_of_time
+
+    @property
+    def out_of_time(self) -> bool:
+        """Whether the queue ends a stream because its time limit ran out (a
+        lease enforces its own)."""
         if self.fn.time_limit is None or self.fn.lease:
             return False
         return self.run_time - self.uncounted_time >= self.fn.time_limit
@@ -1523,10 +1527,15 @@ class Queue:
                             # report its gr.State changes again (.change would rerun)
                             response = {**response, "changed_state_ids": []}
                             for closed_event in closed_events:
+                                # Its wait for a chunk timed out: with a time
+                                # limit, that is the limit running out
                                 self.send_message(
                                     closed_event,
                                     ProcessCompletedMessage(
-                                        output=response, success=True
+                                        output=response,
+                                        success=True,
+                                        stream_ended=fn.time_limit is not None
+                                        and fn.on_time_limit == "stop",
                                     ),
                                 )
                             # Woken because its session dropped it
@@ -1762,10 +1771,15 @@ class Queue:
         return self.server_app.iterators.get(event._id) is not None
 
     def _stream_ended(self, fn: BlockFunction, event: Event, success: bool) -> bool:
-        """Whether a stream's function ended it for good: its generator
-        returned or failed, so a new stream from the same page would only
-        start it again. Not when the page closed it or its time ran out."""
-        if not (fn.sends_to_generator and event.streaming):
+        """Whether a stream ended for good, so the page stops sending instead
+        of joining the queue again: its generator returned or failed (a new
+        stream from the same page would only start it again), or its time ran
+        out with on_time_limit="stop". Not when the page closed it."""
+        if not event.streaming:
+            return False
+        if fn.on_time_limit == "stop" and not event.closed and event.out_of_time:
+            return True
+        if not fn.sends_to_generator:
             return False
         return not success or not self._stream_goes_on(fn, event)
 

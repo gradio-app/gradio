@@ -1384,14 +1384,14 @@ def test_stream_chunks_keep_the_event_id():
         demo.close()
 
 
-def _launch_text_stream(fn, executor="thread"):
+def _launch_text_stream(fn, executor="thread", **stream_kwargs):
     """A stream event of a gr.Audio whose input is a gr.Textbox, so that a
     chunk's value is plain text."""
     with gr.Blocks() as demo:
         audio = gr.Audio(sources=["microphone"], streaming=True)
         text = gr.Textbox()
         heard = gr.Textbox()
-        audio.stream(fn, text, heard)
+        audio.stream(fn, text, heard, **stream_kwargs)
     _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
     return demo, f"{local_url.rstrip('/')}{API_PREFIX}"
 
@@ -1581,6 +1581,83 @@ def test_a_stream_s_time_limit_counts_from_the_end_of_its_first_call():
             assert len(outputs) >= 4
     finally:
         demo.close()
+
+
+@pytest.mark.parametrize("executor", ["thread", "process"])
+def test_a_stream_that_runs_out_of_time_ends_with_on_time_limit_stop(executor):
+    demo, api = _launch_text_stream(
+        lambda chunk: f"got {chunk}",
+        executor=executor,
+        time_limit=1,
+        on_time_limit="stop",
+    )
+    try:
+        with httpx2.Client(timeout=10) as http:
+            response = http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            )
+            event_id = response.json()["event_id"]
+
+            def next_chunk(n):
+                time.sleep(0.1)
+                _send_chunk(http, api, event_id, "s", f"c{n}")
+
+            outputs, completed = _stream_outputs(http, api, "s", next_chunk)
+            assert len(outputs) >= 2
+            # Ended for good: the page stops recording instead of joining the
+            # queue again
+            assert completed is not None and completed["success"] is True
+            assert completed["stream_ended"] is True
+    finally:
+        demo.close()
+
+
+def test_a_stream_whose_time_runs_out_while_waiting_for_a_chunk_ends_with_stop():
+    demo, api = _launch_text_stream(
+        lambda chunk: f"got {chunk}", time_limit=1, on_time_limit="stop"
+    )
+    try:
+        with httpx2.Client(timeout=10) as http:
+            http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            )
+            # No second chunk comes, so its time runs out while it waits
+            outputs, completed = _stream_outputs(http, api, "s", lambda n: None)
+            assert outputs == [["got a"]]
+            assert completed is not None and completed["stream_ended"] is True
+    finally:
+        demo.close()
+
+
+def test_a_stream_that_runs_out_of_time_rejoins_by_default():
+    demo, api = _launch_text_stream(lambda chunk: f"got {chunk}", time_limit=1)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            )
+            _, completed = _stream_outputs(http, api, "s", lambda n: None)
+            # The page joins the queue again with its next chunk
+            assert completed is not None and completed["stream_ended"] is False
+    finally:
+        demo.close()
+
+
+def test_on_time_limit_takes_rejoin_or_stop():
+    with gr.Blocks():
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        with pytest.raises(ValueError, match="on_time_limit"):
+            audio.stream(
+                lambda x: x,
+                audio,
+                heard,
+                time_limit=1,
+                on_time_limit="restart",  # type: ignore[arg-type]
+            )
 
 
 def test_a_stream_generator_takes_no_parameter_for_the_inputs():
@@ -1773,10 +1850,10 @@ def test_a_lease_is_not_finished_by_its_time_limit():
     event = SimpleNamespace(
         fn=fn, closed=False, run_time=5.0, uncounted_time=0.0, streaming=True
     )
-    is_finished = cast(Any, queueing.Event.is_finished).fget
-    assert is_finished(event) is False
+    out_of_time = cast(Any, queueing.Event.out_of_time).fget
+    assert out_of_time(event) is False
     fn.lease = False
-    assert is_finished(event) is True
+    assert out_of_time(event) is True
 
 
 def test_a_lease_completes_with_the_outputs_of_its_last_step():

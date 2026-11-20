@@ -47,9 +47,9 @@ class ProcessCompletedMessage(BaseMessage):
     msg: Literal[ServerMessage.process_completed] = ServerMessage.process_completed  # type: ignore
     output: dict
     success: bool
-    # The stream's function ended it (a generator that returned or failed),
-    # so the page stops sending, rather than joining the queue again as after
-    # time_limit
+    # The stream ended for good (its generator returned or failed, or its
+    # time ran out with on_time_limit="stop"), so the page stops sending,
+    # rather than joining the queue again as after time_limit by default
     stream_ended: bool = False
     title: str | None = None
     used_cache: Literal["full", "partial"] | None = None

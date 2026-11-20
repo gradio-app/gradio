@@ -635,8 +635,9 @@ export class DependencyManager {
 											: success;
 									// Only a stream closes: on any other event, "closed" would
 									// reach its inputs and end a stream one of them is running.
-									// "ended": its function ended it, so its inputs stop sending
-									// instead of joining the queue again.
+									// "ended": it ended for good (its function ended it, or its
+									// time ran out with on_time_limit="stop"), so its inputs stop
+									// sending instead of joining the queue again.
 									if (dep.connection_type === "stream") {
 										stream_state = result.stream_ended ? "ended" : "closed";
 									}

@@ -461,7 +461,7 @@ export interface Status {
 	used_cache?: "full" | "partial" | null;
 	cache_duration?: number;
 	avg_time?: number;
-	/** The stream's function ended it (a generator that returned). */
+	/** The stream ended for good: its generator returned or failed, or its time ran out with `on_time_limit="stop"`. */
 	stream_ended?: boolean;
 }
 

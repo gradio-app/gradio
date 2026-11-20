@@ -237,6 +237,7 @@ class Server(App):
         time_limit: int | None = None,
         stream_every: float | None = None,
         transport: Literal["webrtc"] | WebRTCOptions | None = None,
+        on_time_limit: Literal["rejoin", "stop"] = "rejoin",
     ):
         """Decorator to register a function as a Gradio API endpoint.
 
@@ -250,7 +251,9 @@ class Server(App):
         (or chunk of audio). In the browser, call it with `client.submit()` of
         `@gradio/client`, passing a MediaStream for the media parameter. Each
         stream waits its turn in the queue like any call, and `time_limit` caps
-        its duration. `stream_every` is the shortest interval between calls
+        its duration. `on_time_limit` is what happens when a stream reaches
+        it: "rejoin" (default) has it wait its turn again, "stop" ends it.
+        `stream_every` is the shortest interval between calls
         (unset: every frame).
         Instead of a function, such an endpoint can take a handler class from
         `gradio.streaming` or an instance of one, such as `ReplyOnPause(fn)`.
@@ -258,6 +261,10 @@ class Server(App):
         if transport is not None and (batch or not queue):
             raise ValueError(
                 "An endpoint with transport= runs in the queue and does not batch."
+            )
+        if transport is None and on_time_limit != "rejoin":
+            raise ValueError(
+                "on_time_limit= only applies to an endpoint with transport=."
             )
         if transport is not None and api_visibility != "public":
             raise ValueError(
@@ -276,6 +283,7 @@ class Server(App):
             "time_limit": time_limit,
             "stream_every": stream_every,
             "transport": transport,
+            "on_time_limit": on_time_limit,
         }
 
         def wrapper(func):
@@ -373,6 +381,7 @@ class Server(App):
             for fn, api_kwargs in self._deferred_apis:
                 kwargs = dict(api_kwargs)
                 transport = kwargs.pop("transport", None)
+                on_time_limit = kwargs.pop("on_time_limit", "rejoin")
                 if transport is None:
                     if kwargs["stream_every"] is None:
                         kwargs["stream_every"] = 0.5
@@ -389,6 +398,7 @@ class Server(App):
                     api_name=kwargs["api_name"],
                     api_description=kwargs["api_description"],
                     time_limit=kwargs["time_limit"],
+                    on_time_limit=on_time_limit,
                     stream_every=kwargs["stream_every"],
                     concurrency_limit=kwargs["concurrency_limit"],
                     concurrency_id=kwargs["concurrency_id"],

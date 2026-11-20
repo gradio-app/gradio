@@ -947,6 +947,7 @@ def event_table(
             is_cancel_function=dep["types"]["cancel"],
             connection=dep.get("connection", "sse"),
             time_limit=dep.get("time_limit"),
+            on_time_limit=dep.get("on_time_limit", "rejoin"),
             stream_every=dep.get("stream_every", 0.5),
             event_specific_args=dep.get("event_specific_args"),
             component_prop_inputs=dep.get("component_prop_inputs"),

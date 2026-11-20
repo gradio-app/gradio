@@ -5036,6 +5036,9 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         gr.Server().api(
             echo, name="echo", transport="webrtc", api_visibility="undocumented"
         )
+    # Without transport=, an endpoint is no stream
+    with pytest.raises(ValueError, match="on_time_limit"):
+        gr.Server().api(echo, name="echo", on_time_limit="stop")
 
     class Both(AsyncAudioVideoStreamHandler):
         async def receive(self, frame: gr.AudioChunk) -> None:  # type: ignore[override]  # the hint marks the media
@@ -5073,6 +5076,9 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         # Clients call it by name, with named arguments
         assert stream_fn.api_name == "echo"
         assert stream_fn.input_parameter_names == ["frame", "x"]
+        assert stream_fn.on_time_limit == "rejoin"
+        stream_fn, _ = api_stream(echo, **kwargs, on_time_limit="stop")
+        assert stream_fn.get_config()["on_time_limit"] == "stop"
 
         # Optional hints mark the media too
         def maybe(
@@ -5504,3 +5510,18 @@ def test_stream_every_is_the_interval_between_frame_calls(seconds):
     handler = manager_of(demo, camera).handler
     # Not rounded to whole frames a second (0.6 s would become 0.5 s, 2 s 1 s)
     assert handler.fps == pytest.approx(1 / seconds)
+
+
+def test_a_blocks_webrtc_stream_takes_on_time_limit():
+    with gr.Blocks() as demo:
+        camera = gr.Image(sources=["webcam"], streaming=True, type="numpy")
+        camera.stream(
+            flip,
+            inputs=[camera],
+            outputs=[camera],
+            transport="webrtc",
+            time_limit=5,
+            on_time_limit="stop",
+        )
+    (stream_fn,) = [fn for fn in demo.fns.values() if fn.lease]
+    assert stream_fn.get_config()["on_time_limit"] == "stop"

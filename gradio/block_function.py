@@ -49,6 +49,7 @@ class BlockFunction:
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
+        on_time_limit: Literal["rejoin", "stop"] = "rejoin",
         stream_every: float = 0.5,
         event_specific_args: list[str] | None = None,
         component_prop_inputs: list[int] | None = None,
@@ -103,6 +104,11 @@ class BlockFunction:
         # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
         self.time_limit = time_limit
+        if on_time_limit not in ("rejoin", "stop"):
+            raise ValueError(
+                f'on_time_limit must be "rejoin" or "stop", not {on_time_limit!r}.'
+            )
+        self.on_time_limit: Literal["rejoin", "stop"] = on_time_limit
         self.stream_every = stream_every
         self.connection = connection
         # Ends a running stream when the page closes it, given the queue event's
@@ -168,6 +174,7 @@ class BlockFunction:
             "render_id": self.renderable._id if self.renderable else None,
             "connection": self.connection,
             "time_limit": self.time_limit,
+            "on_time_limit": self.on_time_limit,
             "stream_every": self.stream_every,
             "transport": self.transport,
             "event_specific_args": self.event_specific_args,

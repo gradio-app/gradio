@@ -669,6 +669,7 @@ class EventListener(str):
             concurrency_id: str | None = None,
             api_visibility: Literal["public", "private", "undocumented"] = "public",
             time_limit: int | None = None,
+            on_time_limit: Literal["rejoin", "stop"] = "rejoin",
             stream_every: float | None = None,
             key: int | str | tuple[int | str, ...] | None = None,
             validator: Callable | None = None,
@@ -738,6 +739,7 @@ class EventListener(str):
                         concurrency_id=concurrency_id,
                         api_visibility=api_visibility,
                         time_limit=time_limit,
+                        on_time_limit=on_time_limit,
                         stream_every=stream_every,
                         key=key,
                         validator=validator,
@@ -774,6 +776,7 @@ class EventListener(str):
                         concurrency_id=concurrency_id,
                         api_visibility=api_visibility,
                         time_limit=time_limit,
+                        on_time_limit=on_time_limit,
                         stream_every=stream_every,
                         key=key,
                         validator=validator,
@@ -856,6 +859,7 @@ class EventListener(str):
                     transport=transport,
                     trigger=event_target,
                     time_limit=time_limit,
+                    on_time_limit=on_time_limit,
                     stream_every=stream_every,
                     concurrency_limit=concurrency_limit,
                     concurrency_id=concurrency_id,
@@ -900,6 +904,7 @@ class EventListener(str):
                 api_visibility=api_visibility,
                 connection=_connection,
                 time_limit=time_limit,
+                on_time_limit=on_time_limit,
                 stream_every=0.5 if stream_every is None else stream_every,
                 event_specific_args=[
                     d["name"]
@@ -983,6 +988,7 @@ def on(
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
     time_limit: int | None = None,
+    on_time_limit: Literal["rejoin", "stop"] = "rejoin",
     stream_every: float = 0.5,
     key: int | str | tuple[int | str, ...] | None = None,
     validator: Callable | None = None,
@@ -1014,6 +1020,7 @@ def on(
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
         time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
+        on_time_limit: What happens when a stream reaches its `time_limit`: "rejoin" (default) has the page join the queue again with its next chunk, keeping the microphone or camera on, so that others waiting get their turn; "stop" ends the stream and turns the microphone or camera off. Parameter only used for the `.stream()` event.
         stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
         validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names. It should return a `gr.validate()` for each input value.
     Example:
@@ -1076,6 +1083,7 @@ def on(
                 api_visibility=api_visibility,
                 trigger_mode=trigger_mode,
                 time_limit=time_limit,
+                on_time_limit=on_time_limit,
                 stream_every=stream_every,
                 key=key,
                 validator=validator,
@@ -1112,6 +1120,7 @@ def on(
                 api_visibility=api_visibility,
                 trigger_mode=trigger_mode,
                 time_limit=time_limit,
+                on_time_limit=on_time_limit,
                 stream_every=stream_every,
                 key=key,
                 validator=validator,
@@ -1186,6 +1195,7 @@ def on(
             for a in cast(list[str], t.event_specific_args or [])
         ],
         time_limit=time_limit,
+        on_time_limit=on_time_limit,
         stream_every=stream_every,
         key=key,
         validator=validator,
@@ -1425,6 +1435,12 @@ class Events:
                 "name": "time_limit",
                 "type": "float | None = None",
                 "doc": "The time limit for the function to run. It counts from the end of the stream's first call (or a handler class's start_up()), so getting ready, such as a generator waiting for its GPU, is not counted, up to the limit itself. Parameter only used for the `.stream()` event.",
+                "component_prop": "false",
+            },
+            {
+                "name": "on_time_limit",
+                "type": 'Literal["rejoin", "stop"] = "rejoin"',
+                "doc": 'What happens when a stream reaches its `time_limit`: "rejoin" (default) has the page join the queue again with its next chunk, keeping the microphone or camera on, so that others waiting get their turn; "stop" ends the stream and turns the microphone or camera off. Parameter only used for the `.stream()` event.',
                 "component_prop": "false",
             },
         ],

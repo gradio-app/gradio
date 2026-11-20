@@ -939,6 +939,7 @@ class BlocksConfig:
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
+        on_time_limit: Literal["rejoin", "stop"] = "rejoin",
         stream_every: float = 0.5,
         event_specific_args: list[str] | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
@@ -978,6 +979,7 @@ class BlocksConfig:
             is_cancel_function: whether this event cancels another running event.
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
+            on_time_limit: What happens when a stream reaches its `time_limit`: "rejoin" (default) has the page join the queue again with its next chunk, keeping the microphone or camera on, so that others waiting get their turn; "stop" ends the stream and turns the microphone or camera off. Parameter only used for the `.stream()` event.
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
             validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input. The validator receives the same keyword arguments as the main function when `inputs_kwargs` is used, so its signature must accept those keyword names.
         Returns: dependency information, dependency index
@@ -1154,6 +1156,7 @@ class BlocksConfig:
             is_cancel_function=is_cancel_function,
             connection=connection,
             time_limit=time_limit,
+            on_time_limit=on_time_limit,
             stream_every=stream_every,
             event_specific_args=event_specific_args,
             component_prop_inputs=component_prop_inputs,
