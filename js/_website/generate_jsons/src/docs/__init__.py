@@ -378,7 +378,8 @@ guides_llm_text = [
     "custom-CSS-and-JS",
     "streaming-outputs",
     "streaming-inputs",
-    "sharing-your-app"
+    "sharing-your-app",
+    "workflows"
     ]
 
 GUIDES_LLM_TEXT_CONTENT = ""
@@ -389,17 +390,11 @@ for guide_name in guides_llm_text:
             GUIDES_LLM_TEXT_CONTENT += guide["content"] + "\n\n"
             break
     
+GUIDE_TOC = "\n".join(f"- {name.replace('-', ' ').title()}" for name in guides_llm_text)
+
 INTRO = f"""This page contains the documentation for the Gradio library. It is organized into the following sections:
 
-- {guides_llm_text[0].replace('-', ' ').title()}
-- {guides_llm_text[1].replace('-', ' ').title()}
-- {guides_llm_text[2].replace('-', ' ').title()}
-- {guides_llm_text[3].replace('-', ' ').title()}
-- {guides_llm_text[4].replace('-', ' ').title()}
-- {guides_llm_text[5].replace('-', ' ').title()}
-- {guides_llm_text[6].replace('-', ' ').title()}
-- {guides_llm_text[7].replace('-', ' ').title()}
-- {guides_llm_text[8].replace('-', ' ').title()}
+{GUIDE_TOC}
 - API Reference: This section contains all the class and function signatures in the Gradio library.
 - End to End Demos: This section contains examples of full end-to-end Gradio apps.
 
