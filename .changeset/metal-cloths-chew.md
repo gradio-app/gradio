@@ -7,6 +7,7 @@
 "@gradio/video": minor
 "gradio": minor
 "gradio_client": minor
+"gradio_components": minor
 "website": minor
 ---
 
