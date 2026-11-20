@@ -33,6 +33,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import (
+    _components_package,
     analytics,
     components,
     networking,
@@ -560,12 +561,12 @@ def postprocess_update_dict(
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    from gradio.components import HTML
+    HTML = _components_package.loaded_class("html", "HTML")  # noqa: N806
 
     value = update_dict.pop("value", components._Keywords.NO_VALUE)
 
     props = None
-    if isinstance(block, HTML):
+    if HTML is not None and isinstance(block, HTML):
         sig = inspect.signature(HTML.__init__)
         constructor_params = set(sig.parameters.keys())
         props = {k: v for k, v in update_dict.items() if k not in constructor_params}
@@ -1424,6 +1425,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self._deprecated_head = deprecated_kwargs.get("head")
         self._deprecated_head_paths = deprecated_kwargs.get("head_paths")
 
+        if mode != "server":
+            # Only `gr.Server` works without components: it has no user interface.
+            _components_package.require("`gr.Blocks`")
+
         self.default_config = BlocksConfig(self)
         super().__init__(render=False, **kwargs)
 
@@ -1713,8 +1718,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     @property
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
-        return getattr(self, "_expects_oauth", False) or any(
-            isinstance(block, components.LoginButton) for block in self.blocks.values()
+        login_button = _components_package.loaded_class("login_button", "LoginButton")
+        return getattr(self, "_expects_oauth", False) or (
+            login_button is not None
+            and any(isinstance(block, login_button) for block in self.blocks.values())
         )
 
     def unload(self, fn: Callable[..., Any]) -> None:
@@ -2998,7 +3005,9 @@ Received inputs:
 
     def validate_navbar_settings(self):
         """Validates that only one Navbar component exists per page."""
-        from gradio.components.navbar import Navbar
+        Navbar = _components_package.loaded_class("navbar", "Navbar")  # noqa: N806
+        if Navbar is None:
+            return
 
         navbar_pages = set()
         for block in self.blocks.values():
@@ -4434,3 +4443,10 @@ Received inputs:
         self.pages.append((path, name, show_in_navbar))
         self.current_page = path
         return self
+
+
+def close_all(verbose: bool = True) -> None:
+    """Closes every running app in this process, including `gr.Server` apps."""
+    for instance in Blocks.get_instances():
+        if instance.is_running:
+            instance.close(verbose)

@@ -21,10 +21,11 @@ Usage:
 """
 
 import random
-from pathlib import Path
 from typing import Optional
 
-MEDIA_ROOT = Path(__file__).parent / "media_assets"
+from gradio._components_package import bundled_dir, not_installed_error
+
+MEDIA_ROOT = bundled_dir("media_assets", "media_assets")
 MEDIA_PATHS = [
     MEDIA_ROOT / "images",
     MEDIA_ROOT / "videos",
@@ -49,6 +50,10 @@ def _get_media_path(media_type: str, filename: Optional[str] = None) -> str:
         ValueError: If media_type is invalid
         FileNotFoundError: If the media file doesn't exist
     """
+    if not MEDIA_ROOT.exists():
+        # the sample files are shipped by `gradio_components`
+        raise not_installed_error("Gradio's sample media")
+
     media_dir = MEDIA_ROOT / media_type
 
     if not media_dir.exists():

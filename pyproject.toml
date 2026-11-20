@@ -57,6 +57,7 @@ oauth = ["requirements-oauth.txt"]
 mcp = ["requirements-mcp.txt"]
 webrtc = ["requirements-webrtc.txt"]
 vad = ["requirements-vad.txt"]
+components = ["requirements-components.txt"]
 
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
 content-type = "text/markdown"
@@ -71,8 +72,13 @@ pattern = 'demo/([\S]*.gif)'
 replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<1>'
 
 [tool.hatch.build]
-artifacts = [
+# The built frontend (gradio/templates) and the sample media (gradio/media_assets)
+# are shipped by gradio_components: see components/python/hatch_build.py.
+exclude = [
   "/gradio/templates",
+  "/gradio/media_assets",
+]
+artifacts = [
   "/gradio/_frontend_code",
   "*.pyi",
   "/gradio/node",
@@ -90,8 +96,10 @@ include = [
   "/README.md",
   "/requirements.txt",
   "/requirements-oauth.txt",
+  "/requirements-mcp.txt",
   "/requirements-webrtc.txt",
   "/requirements-vad.txt",
+  "/requirements-components.txt",
   "/.config/copy_frontend.py",
   "/js",
   "/client/js",
@@ -101,11 +109,17 @@ include = [
 environment.extra-paths = ["gradio/stubs"]
 
 [tool.ty.src]
-include = ["gradio/**/*.py", "demo/**/*.py", "test/**/*.py"]
+include = [
+  "gradio/**/*.py",
+  "components/python/**/*.py",
+  "demo/**/*.py",
+  "test/**/*.py",
+]
 exclude = [
   "gradio/themes/",
   "gradio/_frontend_code/",
-  "gradio/components/*_plot.py",
+  "components/python/gradio_components/*_plot.py",
+  "components/python/hatch_build.py",
   "gradio/node/*.py",
   "gradio/_frontend_code/*.py",
   "gradio/cli/commands/cli_env_info.py",
@@ -115,12 +129,13 @@ exclude = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = {gradio-client = false, spaces = false, starlette = false, safehttpx = false, pillow = false, brotli = false}
+exclude-newer-package = {gradio-client = false, gradio-components = false, spaces = false, starlette = false, safehttpx = false, pillow = false, brotli = false}
 
 # Use the in-repo client for development. An unpacked sdist has no
 # client/python, so pass --no-sources when installing from one with uv.
 [tool.uv.sources]
 gradio-client = { path = "client/python", editable = true }
+gradio-components = { path = "components/python", editable = true }
 
 [tool.ruff]
 exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py", "gradio/_vendor/*"]

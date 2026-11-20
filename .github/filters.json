@@ -1,6 +1,8 @@
 {
 	"gradio": [
 		"client/python/**",
+		"components/python/**",
+		"requirements-components.txt",
 		"demo/**",
 		"gradio/**",
 		"requirements.txt",
@@ -20,6 +22,7 @@
 	"functional": [
 		".github/**",
 		"client/**",
+		"components/**",
 		"demo/**",
 		"gradio/**",
 		"js/**",
@@ -46,6 +49,7 @@
 		"CHANGELOG.md",
 		"gradio/**",
 		"client/**",
+		"components/**",
 		"demo/**",
 		".github/deploy-website.yml"
 	]

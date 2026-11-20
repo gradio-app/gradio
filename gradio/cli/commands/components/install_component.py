@@ -82,7 +82,7 @@ def _get_frontend_dir(directory: Path) -> Path:
             site.main()
             module = importlib.import_module(package_name)  # type: ignore
         from gradio.blocks import BlockContext
-        from gradio.components import Component
+        from gradio.components.base import Component
 
         candidates = []
         for name in dir(module):

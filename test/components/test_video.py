@@ -20,16 +20,12 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+from gradio_components import video as video_module
+from gradio_components.video import _audio_lead_tolerance, _stream_states, _VideoStream
 
 import gradio as gr
 from gradio import processing_utils
 from gradio.audio_stream_encoder import AAC_FRAME_SAMPLES, AacStreamEncoder
-from gradio.components import video as video_module
-from gradio.components.video import (
-    _audio_lead_tolerance,
-    _stream_states,
-    _VideoStream,
-)
 from gradio.data_classes import FileData
 
 AUDIO_RATE = 44100
@@ -887,7 +883,7 @@ class TestVideo:
         video = gr.Video(streaming=True)
         stream_id = "session/0/1/silent.m3u8"
         try:
-            with caplog.at_level(logging.WARNING, logger="gradio.components.video"):
+            with caplog.at_level(logging.WARNING, logger="gradio_components.video"):
                 segment, _ = await video.stream_output(str(source), stream_id, True)
         finally:
             video.end_stream_output(stream_id)

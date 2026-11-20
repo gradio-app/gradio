@@ -44,7 +44,7 @@ from gradio.state_serialization import StateSerializationError
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
-    from gradio.components import State
+    from gradio.components.state import State
     from gradio.state_holder import SessionState
 
 TOKEN_PREFIX = "v2."
@@ -221,7 +221,7 @@ def app_fingerprint(blocks: Blocks, refresh: bool = False) -> str:
 
 def client_state_components(fn: BlockFunction) -> dict[int, State]:
     """The browser-stored `gr.State` components an event reads or writes."""
-    from gradio.components import State
+    from gradio.components.state import State
 
     return {
         block._id: block

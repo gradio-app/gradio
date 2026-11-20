@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
-    from gradio.components import State
+    from gradio.components.state import State
 
 
 class StateHolder:
@@ -99,7 +99,7 @@ class SessionState:
         return default
 
     def __setitem__(self, key: int, value: Any):
-        from gradio.components import State
+        from gradio.components.state import State
 
         block = self.blocks_config.blocks.get(key)
         if isinstance(block, State):
@@ -150,7 +150,7 @@ class SessionState:
 
     @property
     def state_components(self) -> Iterator[tuple[State, Any, bool]]:
-        from gradio.components import State
+        from gradio.components.state import State
 
         state_ids_to_delete = []
         for _id in self.state_data:

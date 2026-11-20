@@ -4,8 +4,6 @@ import os
 
 import click
 
-from gradio.external import load_chat as load_chat_external
-
 
 def main(
     base_url: str,
@@ -24,6 +22,8 @@ def main(
     for ft in file_types:
         if ft not in {"text_encoded", "image"}:
             raise click.BadParameter("file_types must be one of: text_encoded, image")
+
+    from gradio_components.external import load_chat as load_chat_external
 
     demo = load_chat_external(
         base_url=base_url,

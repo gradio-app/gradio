@@ -77,9 +77,10 @@ from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from gradio_components.button import Button
+
     from gradio.blocks import BlockContext, Blocks
-    from gradio.components import Component
-    from gradio.components.button import Button
+    from gradio.components.base import Component
     from gradio.routes import App, Request
     from gradio.state_holder import SessionState
 
@@ -834,7 +835,7 @@ def core_gradio_components():
     return [
         class_
         for class_ in get_all_components()
-        if class_.__module__.startswith("gradio.")
+        if class_.__module__.startswith(("gradio.", "gradio_components."))
     ]
 
 
@@ -849,16 +850,26 @@ def component_or_layout_class(cls_name: str) -> "type[Component] | type[BlockCon
     cls: the component class
     """
     import gradio.components as components_module
-    from gradio.components import Component
+    from gradio import _components_package
+    from gradio.components.base import Component
+
+    modules = [components_module]
+    if _components_package.is_installed():
+        # Importing it defines every built-in component, so that each is found below
+        modules.append(_components_package.require("this component"))
 
     components = {c.__name__.lower(): c for c in get_all_components()}
     # add aliases such as 'text'
-    for name, cls in components_module.__dict__.items():
-        if isinstance(cls, type) and issubclass(cls, Component):
-            components[name.lower()] = cls
+    for module in modules:
+        for name, cls in module.__dict__.items():
+            if isinstance(cls, type) and issubclass(cls, Component):
+                components[name.lower()] = cls
 
     if cls_name.replace("_", "") in components:
         return components[cls_name.replace("_", "")]
+
+    if not _components_package.is_installed():
+        raise _components_package.not_installed_error(f"the {cls_name!r} component")
 
     raise ValueError(
         f"No such component or layout: {cls_name}. "
@@ -1822,7 +1833,7 @@ def connect_heartbeat(config: BlocksConfigDict, blocks, fns=None) -> bool:
     Determines whether a heartbeat is required for a given config.
     """
     from gradio.caching import Cache
-    from gradio.components import State
+    from gradio.components.state import State
 
     any_state = any(isinstance(block, State) for block in blocks)
     any_unload = False
@@ -2212,7 +2223,7 @@ def set_default_buttons(
     buttons: "Sequence[str | Button] | None" = None,
     default_buttons: list[str] | None = None,
 ) -> "Sequence[str | Button]":
-    from gradio.components.button import Button
+    from gradio_components.button import Button
 
     if buttons is None:
         return default_buttons or []

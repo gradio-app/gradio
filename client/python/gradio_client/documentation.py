@@ -49,6 +49,12 @@ _module_prefixes = [
     ("gradio.block", "block"),
     ("gradio.chat", "chatinterface"),
     ("gradio.component", "component"),
+    ("gradio_components.chat_interface", "chatinterface"),
+    ("gradio_components.external", "helpers"),
+    ("gradio_components.flag", "flagging"),
+    ("gradio_components.interface", "interface"),
+    ("gradio_components.layout", "layout"),
+    ("gradio_components.", "component"),
     ("gradio.events", "helpers"),
     ("gradio.data_classes", "helpers"),
     ("gradio.exceptions", "helpers"),
@@ -99,8 +105,8 @@ def document(*fns, inherit=False, documentation_group=None):
         if _documentation_group is None:
             try:
                 modname = inspect.getmodule(cls).__name__  # type: ignore
-                if modname.startswith("gradio.") or modname.startswith(
-                    "gradio_client."
+                if modname.startswith(
+                    ("gradio.", "gradio_client.", "gradio_components.")
                 ):
                     documentation_group = _get_module_documentation_group(modname)
                 else:

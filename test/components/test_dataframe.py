@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import polars as pl
 import pytest
+from gradio_components.dataframe import DataframeData
 
 import gradio as gr
-from gradio.components.dataframe import DataframeData
 
 
 class TestDataframe:

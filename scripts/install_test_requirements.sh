@@ -10,3 +10,4 @@ pip install --upgrade pip
 pip install -r test/requirements.txt
 pip install -r requirements-oauth.txt
 pip install -e client/python
+pip install -e components/python

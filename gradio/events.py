@@ -19,8 +19,9 @@ from gradio_client.documentation import document
 from gradio.data_classes import FileData, FileDataDict
 
 if TYPE_CHECKING:
+    from gradio_components.timer import Timer
+
     from gradio.blocks import Block, BlockContext, Component
-    from gradio.components import Timer
     from gradio.streaming.handlers import StreamHandlerBase
     from gradio.webrtc.options import WebRTCOptions
 
@@ -54,7 +55,7 @@ def set_cancel_events(
             regular_cancels.append(cancel)
 
     if timers_to_cancel:
-        from gradio.components import Timer
+        from gradio_components.timer import Timer
 
         root_block.set_event_trigger(
             triggers,

@@ -63,7 +63,7 @@ rules:
     paths:
       include:
         - "**/gradio/components/"
-        - "**/gradio/image_utils.py"
+        - "**/gradio_components/"
         - "**/gradio/processing_utils.py"
     patterns:
       - pattern-either:

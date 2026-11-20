@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import transformers
+from gradio_components.pipelines_utils import handle_transformers_pipeline
 from transformers import (
     AudioClassificationPipeline,
     AutomaticSpeechRecognitionPipeline,
@@ -17,9 +18,6 @@ from transformers import (
 )
 
 import gradio as gr
-from gradio.pipelines_utils import (
-    handle_transformers_pipeline,
-)
 
 QuestionAnsweringPipeline = getattr(transformers, "QuestionAnsweringPipeline", None)
 VisualQuestionAnsweringPipeline = getattr(

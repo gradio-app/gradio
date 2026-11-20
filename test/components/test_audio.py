@@ -14,6 +14,7 @@ import anyio
 import numpy as np
 import pytest
 from gradio_client import utils as client_utils
+from gradio_components.audio import _stream_encoders
 
 import gradio as gr
 from gradio import processing_utils, utils
@@ -23,7 +24,6 @@ from gradio.audio_stream_encoder import (
     nearest_adts_rate,
     parse_adts_frames,
 )
-from gradio.components.audio import _stream_encoders
 from gradio.data_classes import FileData
 from gradio.media import get_audio
 

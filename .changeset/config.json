@@ -2,7 +2,7 @@
 	"$schema": "https://unpkg.com/@changesets/config@2.3.0/schema.json",
 	"changelog": ["./changeset.cjs", { "repo": "gradio-app/gradio" }],
 	"commit": false,
-	"fixed": [],
+	"fixed": [["gradio", "gradio_components"]],
 	"linked": [],
 	"access": "public",
 	"baseBranch": "main",
