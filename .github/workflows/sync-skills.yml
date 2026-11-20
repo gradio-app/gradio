@@ -2,10 +2,9 @@ name: Sync Gradio Skills to Hugging Face
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - ".agents/skills/**"
+    tags:
+      - "gradio@*"
+      - "!gradio@*-*"
   workflow_dispatch:
 
 jobs:
@@ -21,27 +20,35 @@ jobs:
         id: pr_title
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "title=Sync Gradio Skills (${{ github.sha }})" >> $GITHUB_OUTPUT
+            echo "title=Sync Gradio Skills (${{ github.ref_name }})" >> $GITHUB_OUTPUT
           else
             echo "title=Sync Gradio Skills (manual trigger)" >> $GITHUB_OUTPUT
           fi
+
+      - name: Create GitHub App token
+        id: app_token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ secrets.APP_ID_HUB_SKILLS_REPO }}
+          private-key: ${{ secrets.APP_SECRET_PREM_HUB_SKILLS_REPO }}
+          owner: huggingface
+          repositories: skills
 
       - name: Checkout skills repo
         uses: actions/checkout@v4
         with:
           repository: huggingface/skills
-          token: ${{ secrets.GRADIO_PAT }}
+          token: ${{ steps.app_token.outputs.token }}
           path: skills-repo
 
       - name: Copy gradio skill files
         run: |
-          mkdir -p skills-repo/skills/gradio/references
-          cp -r .agents/skills/gradio/* skills-repo/skills/gradio/
+          rm -rf skills-repo/skills/huggingface-gradio
+          cp -r .agents/skills/gradio skills-repo/skills/huggingface-gradio
+          sed -i '0,/^name: gradio$/s//name: huggingface-gradio/' skills-repo/skills/huggingface-gradio/SKILL.md
 
-      - name: Copy hf-gradio skill files
-        run: |
-          mkdir -p skills-repo/skills/hf-gradio
-          cp -r .agents/skills/hf-gradio/* skills-repo/skills/hf-gradio/
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
 
       - name: Regenerate skills repo artifacts
         working-directory: skills-repo
@@ -51,21 +58,21 @@ jobs:
         id: check_changes
         working-directory: skills-repo
         run: |
-          git diff --quiet && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+          [ -z "$(git status --porcelain)" ] && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GRADIO_PAT }}
+          token: ${{ steps.app_token.outputs.token }}
           path: skills-repo
-          branch: sync/gradio-skills-${{ github.run_id }}
+          branch: sync/gradio-skills
           delete-branch: true
           title: ${{ steps.pr_title.outputs.title }}
           body: |
             Auto-generated from [gradio@${{ github.sha }}](https://github.com/gradio-app/gradio/commit/${{ github.sha }})
 
-            Triggered by changes to `.agents/skills/`
+            Triggered by `${{ github.ref_name }}`
 
             ---
             This PR was created automatically by the [sync-skills](https://github.com/gradio-app/gradio/blob/main/.github/workflows/sync-skills.yml) workflow.
