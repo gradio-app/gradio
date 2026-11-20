@@ -3,6 +3,7 @@
 "@gradio/client": minor
 "@gradio/core": minor
 "@gradio/image": minor
+"@gradio/statustracker": minor
 "@gradio/utils": minor
 "@gradio/video": minor
 "gradio": minor
