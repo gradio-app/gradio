@@ -1,6 +1,6 @@
 ---
 name: gradio
-description: Build Gradio web UIs and demos in Python. Use when creating, modifying, debugging, or answering questions about Gradio and its capabilties, components, event listeners, or layouts.
+description: Build Gradio web UIs and demos in Python. Use when creating, modifying, debugging, or answering questions about Gradio and its capabilities, components, event listeners, or layouts.
 ---
 
 # Gradio
@@ -27,6 +27,8 @@ Detailed guides on specific topics (read these when relevant):
 - [Sharing Your App](https://www.gradio.app/guides/sharing-your-app)
 - [Custom HTML Components](https://www.gradio.app/guides/custom-HTML-components)
 - [Workflows](https://www.gradio.app/guides/workflows)
+- [Server Mode](https://www.gradio.app/guides/server-mode)
+- [Building an MCP Server with Gradio](https://www.gradio.app/guides/building-mcp-server-with-gradio)
 - [Getting Started with the Python Client](https://www.gradio.app/guides/getting-started-with-the-python-client)
 - [Getting Started with the JS Client](https://www.gradio.app/guides/getting-started-with-the-js-client)
 
@@ -87,6 +89,22 @@ gr.Workflow(
 ).launch()
 ```
 
+The graph is saved to `workflow.json` next to the script (or the path passed as
+`graph=`), and you can write or edit that file directly to build workflows
+programmatically. It has `references` (inputs), `operators` (processing steps)
+and `subjects` (outputs), connected by `edges` between typed ports (`image`,
+`audio`, `video`, `text`, `number`, `boolean`, `gallery`, `file`, `json`,
+`model3d`, `any`). Operator `kind` is one of:
+
+- `"space"`: a Gradio Space, with `space_id` and `endpoint`
+- `"model"`: a Hugging Face model via Inference Providers, with `model_id` and an `endpoint` such as `text_to_image`
+- `"dataset"`: one row of a Hub dataset per run, with `dataset_id`, `dataset_config` and `dataset_split`
+- `"fn"`: a Python function, whose `fn` value matches a key in `bind=`
+
+`edges=` only wires bound Python functions, and is ignored once the workflow file
+exists. See the [Workflows guide](https://www.gradio.app/guides/workflows) for
+the full JSON format, deployment and ZeroGPU quotas.
+
 ## Custom HTML Components
 
 If a task requires significant customization of an existing component or a component that doesn't exist in Gradio, you can create one with `gr.HTML`. It supports `html_template` (with `${}` JS expressions and `{{}}` Handlebars syntax), `css_template` for scoped styles, and `js_on_load` for interactivity — where `props.value` updates the component value and `trigger('event_name')` fires Gradio events. For reuse, subclass `gr.HTML` and define `api_info()` for API/MCP support. 
@@ -102,3 +120,9 @@ Use `gr.Server` instead of gr.Blocks when the users requests any of the followin
 See the [full guide](https://www.gradio.app/guides/server-mode) and example in `references/examples.md`.
 
 If the user's use case can be handled by Gradio's built-in components or customizable HTML components, prefer not to use `gr.Server`.
+
+## MCP Server
+
+Any Gradio app can also be an MCP server: `demo.launch(mcp_server=True)` (requires `pip install "gradio[mcp]"`). Each API endpoint becomes an MCP tool, served at `/gradio_api/mcp/`, with the tool description and argument schema taken from the function's docstring and type hints, so write both carefully.
+
+See the [full guide](https://www.gradio.app/guides/building-mcp-server-with-gradio).

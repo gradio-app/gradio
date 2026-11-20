@@ -46,10 +46,12 @@ jobs:
           cp -r .agents/skills/gradio skills-repo/skills/huggingface-gradio
           sed -i '0,/^name: gradio$/s//name: huggingface-gradio/' skills-repo/skills/huggingface-gradio/SKILL.md
 
-      - name: Copy hf-gradio skill files
+      - name: Copy hf-gradio and gradio-themes skill files
         run: |
-          rm -rf skills-repo/skills/hf-gradio
-          cp -r .agents/skills/hf-gradio skills-repo/skills/hf-gradio
+          for skill in hf-gradio gradio-themes; do
+            rm -rf skills-repo/skills/$skill
+            cp -r .agents/skills/$skill skills-repo/skills/$skill
+          done
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
