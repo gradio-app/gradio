@@ -2249,6 +2249,9 @@ class TestStreams:
         await h.connect(pc, "one")
         handler = h.handler("one")
         await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        # A handler's time limit counts from the end of its start_up()
+        lease = stream_of(h.manager, "one").lease
+        await h.wait_until(lambda: lease.started_at is not None)
         # Both tracks share the handler; closing must not shut it down twice
         await pc.close()
         await h.wait_until(lambda: not h.event_running(event_id), timeout=10)
@@ -5334,6 +5337,8 @@ class TestStateInStreams:
                 await h.push_inputs("one", None)
                 await h.wait_until(lambda: len(seen) >= 4)
                 assert seen[:4] == [5, 6, 7, 8]
+                # Its time limit counts from its first call
+                assert stream_of(h.manager, "one").lease.started_at is not None
                 await pc.close()
                 await h.messages("one", completed)
                 # The State's values reached the session too (closed abruptly,
@@ -5408,6 +5413,8 @@ class TestGeneratorStreams:
                 # Created once, with the special arguments only; the state
                 # lives in its locals
                 assert log[:4] == [("created", "one"), 1, 2, 3]
+                # Its time limit counts from its first step
+                assert stream_of(h.manager, "one").lease.started_at is not None
                 # Held, so that only the stream's end closes the generator,
                 # not garbage collection
                 held = list(tracks_of(h.manager, "one"))
@@ -5453,6 +5460,24 @@ class TestGeneratorStreams:
             finally:
                 await pc.close()
                 await h.http.aclose()
+
+
+def test_a_stream_s_time_limit_counts_from_its_first_step(monkeypatch):
+    now = [100.0]
+    monkeypatch.setattr(webrtc_connection.time, "monotonic", lambda: now[0])
+    lease = webrtc_connection.QueueLease(cast(Any, None), time_limit=10)
+    # Getting ready (connecting, waiting for a GPU) is not counted
+    now[0] += 4
+    assert lease.remaining_time() == 10
+    lease.start_clock()
+    now[0] += 3
+    assert lease.remaining_time() == 7
+    lease.start_clock()  # only the first one counts
+    assert lease.remaining_time() == 7
+    # A stream that never gets ready starts counting after the limit itself
+    late = webrtc_connection.QueueLease(cast(Any, None), time_limit=10)
+    now[0] += 12
+    assert late.remaining_time() == 8
 
 
 def test_a_stream_puts_its_component_in_streaming_mode():

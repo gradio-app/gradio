@@ -44,6 +44,7 @@ from gradio.streaming.utils import (
     StreamInputs,
     create_message,
     current_context,
+    first_step_done,
     send_to_page,
 )
 from gradio.webrtc.handlers import VideoEventHandler
@@ -447,6 +448,10 @@ class HandlerVideoTrack(VideoCallback):
                 await handler.start_up()
             elif isinstance(handler, VideoStreamHandler):
                 await run_in_thread(handler.start_up)
+            else:
+                return
+            # The time limit counts from here (see `first_step_done`)
+            first_step_done()
         except (HandlerFailedError, MediaStreamError):
             self.stop()
 
@@ -584,6 +589,13 @@ class AudioCallback(AudioStreamTrack):
         self.handler_context.apply()
         return cast(Callable, self.event_handler.emit)()
 
+    async def _start_up(self, start_up: Awaitable[Any]) -> None:
+        """Awaits the handler's start_up(), from which its time limit counts
+        (see `first_step_done`), unless it starts it itself."""
+        await start_up
+        if not getattr(self.event_handler, "starts_its_time_limit", False):
+            first_step_done()
+
     async def process_input_frames(self) -> None:
         while not self.thread_quit.is_set():
             try:
@@ -627,7 +639,7 @@ class AudioCallback(AudioStreamTrack):
                 callable = functools.partial(run_in_thread, self.event_handler_emit)
                 start_up = run_in_thread(self.event_handler.start_up)
             self.process_input_task = _spawn(self.process_input_frames())
-            self.start_up_task = _spawn(start_up)
+            self.start_up_task = _spawn(self._start_up(start_up))
             self.decode_task = _spawn(
                 player_worker_decode(
                     callable,

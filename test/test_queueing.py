@@ -1549,6 +1549,40 @@ def test_a_generator_stream_function_that_fails_ends_the_stream():
         demo.close()
 
 
+def test_a_stream_s_time_limit_counts_from_the_end_of_its_first_call():
+    def respond():
+        time.sleep(1.5)  # getting ready, e.g. waiting for a GPU
+        chunk = yield
+        while True:
+            chunk = yield f"got {chunk}"
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        text = gr.Textbox()
+        heard = gr.Textbox()
+        audio.stream(respond, text, heard, time_limit=1)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor="thread")
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    try:
+        with httpx2.Client(timeout=10) as http:
+            response = http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            )
+            event_id = response.json()["event_id"]
+
+            def next_chunk(n):
+                time.sleep(0.1)
+                _send_chunk(http, api, event_id, "s", f"c{n}")
+
+            outputs, _ = _stream_outputs(http, api, "s", next_chunk)
+            # Its 1.5 s first call is not counted, so it keeps answering chunks
+            # for its 1 s after that, instead of ending with the first output
+            assert len(outputs) >= 4
+    finally:
+        demo.close()
+
+
 def test_a_stream_generator_takes_no_parameter_for_the_inputs():
     def takes_chunk(chunk):
         yield chunk
@@ -1736,7 +1770,9 @@ def test_a_lease_is_not_finished_by_its_time_limit():
 
     fn = SimpleNamespace(connection="stream", time_limit=1, lease=True)
     # Its calls add up past its time limit; the stream keeps that limit itself
-    event = SimpleNamespace(fn=fn, closed=False, run_time=5.0, streaming=True)
+    event = SimpleNamespace(
+        fn=fn, closed=False, run_time=5.0, uncounted_time=0.0, streaming=True
+    )
     is_finished = cast(Any, queueing.Event.is_finished).fget
     assert is_finished(event) is False
     fn.lease = False

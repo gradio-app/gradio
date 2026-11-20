@@ -543,7 +543,11 @@ def _chunked_audio_handler(
     (packed with `pack_sent` if given, see `transport_event`).
     """
     from gradio import routes
-    from gradio.streaming.utils import CloseStream, bind_special_args
+    from gradio.streaming.utils import (
+        CloseStream,
+        bind_special_args,
+        first_step_done,
+    )
 
     sends = utils.is_generator_function(fn)
 
@@ -602,6 +606,7 @@ def _chunked_audio_handler(
                 args.insert(media_in, (rate, chunk))
                 if self.generator is not None:
                     self.results.put(self._step(_unboxed(args)))
+                    first_step_done()
                     return
                 result = self.call(*_unboxed(args))
                 if inspect.isawaitable(result):
@@ -610,6 +615,7 @@ def _chunked_audio_handler(
                     result = asyncio.run_coroutine_threadsafe(
                         _in_context(contextvars.copy_context(), result), self.loop
                     ).result()
+                first_step_done()
                 if write_back is not None:
                     write_back(args, result)
                 self.results.put(result)
@@ -642,6 +648,9 @@ def _chunked_audio_handler(
 
         def copy(self) -> ChunkedAudio:
             return ChunkedAudio()
+
+        # Its time limit starts with its first call, not with start_up()
+        starts_its_time_limit = True
 
     # Resolved here: this module's annotations are strings
     ChunkedAudio.start_up.__annotations__ = {"request": routes.Request, "return": None}
@@ -676,7 +685,11 @@ def transport_event(
     """
     from gradio.events import EventData
     from gradio.exceptions import Error
-    from gradio.streaming.utils import AdditionalOutputs, CloseStream
+    from gradio.streaming.utils import (
+        AdditionalOutputs,
+        CloseStream,
+        first_step_done,
+    )
     from gradio.webrtc import connection
 
     root_block = get_blocks_context()
@@ -877,13 +890,17 @@ def transport_event(
         if generator.is_async:
 
             async def step_async(frame: Any, *args: Any) -> Any:
-                return output(await generator.step(sent(frame, args)))
+                result = output(await generator.step(sent(frame, args)))
+                first_step_done()
+                return result
 
             return step_async, generator.aclose
 
         def step(frame: Any, *args: Any) -> Any:
             # The track runs it in a worker thread
-            return output(generator.step_sync(sent(frame, args)))
+            result = output(generator.step_sync(sent(frame, args)))
+            first_step_done()
+            return result
 
         return step, generator.aclose
 
@@ -894,6 +911,7 @@ def transport_event(
 
         def generate(*args: Any) -> Any:
             for item in fn(*in_fn_order(args)):
+                first_step_done()
                 yield to_stream_output(item)
 
         handler = generate
@@ -913,6 +931,7 @@ def transport_event(
 
         async def call_async(*args: Any) -> Any:
             result = await fn(*in_fn_order(_unboxed(args)))
+            first_step_done()
             write_back(args, result)
             return to_stream_output(result)
 
@@ -921,6 +940,7 @@ def transport_event(
 
         def call(*args: Any) -> Any:
             result = fn(*in_fn_order(_unboxed(args)))
+            first_step_done()
             write_back(args, result)
             return to_stream_output(result)
 

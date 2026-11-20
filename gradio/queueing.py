@@ -83,6 +83,10 @@ class Event:
         self.closed = False
         self.n_calls = 0
         self.run_time: float = 0
+        # A stream's first call, which its time limit does not count: it may
+        # include getting ready (a generator waiting for its GPU), up to the
+        # limit itself
+        self.uncounted_time: float = 0
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
         self.own_stream = False
@@ -99,7 +103,7 @@ class Event:
             return True
         if self.fn.time_limit is None or self.fn.lease:
             return False
-        return self.run_time >= self.fn.time_limit
+        return self.run_time - self.uncounted_time >= self.fn.time_limit
 
 
 class EventHandle:
@@ -1397,6 +1401,7 @@ class Queue:
                 root_path=app.root_path,
             )
             first_iteration = 0
+            uncounted = 0.0
             started_at = history.now_utc_iso()
 
             if PROFILING_ENABLED:
@@ -1428,9 +1433,16 @@ class Queue:
                 )
                 end = time.monotonic()
                 first_iteration = end - start
+                # A stream's time limit counts from the end of its first call
+                uncounted = (
+                    min(first_iteration, fn.time_limit)
+                    if events[0].streaming and not fn.lease and fn.time_limit
+                    else 0.0
+                )
                 err = None
                 for event in awake_events:
                     event.run_time += end - start
+                    event.uncounted_time = uncounted
                     if event.streaming and not fn.lease:
                         response["is_generating"] = (
                             not event.is_finished and self._stream_goes_on(fn, event)
@@ -1476,7 +1488,8 @@ class Queue:
                                 success=old_response is not None,
                                 time_limit=None
                                 if not fn.time_limit
-                                else cast(int, fn.time_limit) - first_iteration
+                                else cast(int, fn.time_limit)
+                                - (first_iteration - uncounted)
                                 if event.streaming
                                 else None,
                             ),
@@ -1502,7 +1515,7 @@ class Queue:
                                     None
                                     if fn.lease
                                     else cast(float, fn.time_limit or 30)
-                                    - first_iteration
+                                    - (first_iteration - uncounted)
                                 ]
                                 * len(awake_events),
                             )

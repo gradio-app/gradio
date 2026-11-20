@@ -272,6 +272,8 @@ class QueueLease:
         self.event = event
         self.time_limit = time_limit
         self.admitted_at = time.monotonic()
+        # When the time limit started: at the stream's first step
+        self.started_at: float | None = None
 
     @property
     def live(self) -> bool:
@@ -287,10 +289,22 @@ class QueueLease:
         """Makes the step running now the run's last (see `EventHandle.finish`)."""
         self.event.finish()
 
+    def start_clock(self) -> None:
+        """Starts the time limit, at the stream's first step (see
+        `first_step_done`); later calls change nothing."""
+        if self.started_at is None:
+            self.started_at = time.monotonic()
+
     def remaining_time(self) -> float | None:
+        """The time limit counts from the stream's first step, so that getting
+        ready (connecting, a generator waiting for its GPU) is not counted;
+        getting ready may take up to the limit itself before it starts anyway."""
         if self.time_limit is None:
             return None
-        return max(0.0, self.time_limit - (time.monotonic() - self.admitted_at))
+        start = self.started_at
+        if start is None:
+            start = min(time.monotonic(), self.admitted_at + self.time_limit)
+        return max(0.0, self.time_limit - (time.monotonic() - start))
 
     async def keep(self, stream: Stream) -> None:
         """
@@ -335,7 +349,9 @@ class Stream:
         self.lease = QueueLease(event, manager.time_limit)
         self.state = StreamState.ADMITTED
         self.connected_at: float | None = None
-        self.context = Context(stream_id=webrtc_id)
+        self.context = Context(
+            stream_id=webrtc_id, on_first_step=self.lease.start_clock
+        )
         self.inputs = StreamInputs()
         # The outputs the event has not taken yet; newer ones merge into them
         self.output: AdditionalOutputs | None = None

@@ -70,6 +70,8 @@ def create_message(type: MessageType, data: list[Any] | str) -> str:
 @dataclass
 class Context:
     stream_id: str
+    # Starts the stream's time limit (see `first_step_done`)
+    on_first_step: Callable[[], None] | None = None
 
 
 class StreamInputs:
@@ -89,6 +91,15 @@ class StreamInputs:
     def set(self, values: list[Any]) -> None:
         self.values = list(values)
         self.arrived.set()
+
+
+def first_step_done() -> None:
+    """Tells the running stream that its first step is done (a first call or
+    output, or a handler's start_up()): its time limit counts from then, not
+    while it got ready, e.g. waiting for a GPU."""
+    context = current_context.get()
+    if context is not None and context.on_first_step is not None:
+        context.on_first_step()
 
 
 current_context: ContextVar[Context | None] = ContextVar(
