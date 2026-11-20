@@ -367,6 +367,47 @@ describe("DependencyManager.dispatch", () => {
 		}
 	);
 
+	test.each([
+		// Its generator failed: the inputs stop sending
+		true,
+		// A plain function's stream keeps today's behavior
+		false
+	])(
+		"a stream that fails with stream_ended=%s ends its inputs only then",
+		async (stream_ended) => {
+			const stream = dependency(0, "stream", [10]);
+			stream.connection = "stream";
+			stream.targets = [[11, "stream"]];
+			stream.inputs = [11];
+			const client = {
+				submit: () =>
+					submission(
+						(async function* () {
+							yield { type: "status", stage: "pending", queue: true };
+							yield {
+								type: "status",
+								stage: "error",
+								queue: true,
+								message: "out of GPU time",
+								stream_ended
+							};
+						})()
+					)
+			} as unknown as Client;
+			const update_state = vi.fn().mockResolvedValue(undefined);
+			const dependency_manager = manager([stream], client, update_state);
+
+			await dependency_manager
+				.dispatch({ type: "fn", fn_index: 0, event_data: null })
+				.catch(() => undefined);
+
+			const input_states = update_state.mock.calls
+				.filter(([id, state]) => id === 11 && "loading_status" in state)
+				.map(([, state]) => state.loading_status?.stream_state);
+			expect(input_states.at(-1) === "ended").toBe(stream_ended);
+		}
+	);
+
 	test("an error in one run of an event leaves its other runs alone", async () => {
 		const handler = dependency(0, "handler", [10]);
 		handler.trigger_mode = "multiple";

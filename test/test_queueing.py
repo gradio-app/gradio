@@ -1519,6 +1519,36 @@ def test_a_generator_stream_function_that_returns_ends_the_stream():
         demo.close()
 
 
+def test_a_generator_stream_function_that_fails_ends_the_stream():
+    def respond():
+        chunk = yield
+        chunk = yield f"got {chunk}"
+        raise gr.Error("out of GPU time")
+
+    demo, api = _launch_text_stream(respond)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            response = http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            )
+            event_id = response.json()["event_id"]
+            outputs, completed = _stream_outputs(
+                http,
+                api,
+                "s",
+                lambda n: _send_chunk(http, api, event_id, "s", "b"),
+            )
+            assert outputs == [["got a"]]
+            # Failed, and for good: the page stops instead of starting the
+            # generator again with its next chunk
+            assert completed is not None
+            assert completed["success"] is False
+            assert completed["stream_ended"] is True
+    finally:
+        demo.close()
+
+
 def test_a_stream_generator_takes_no_parameter_for_the_inputs():
     def takes_chunk(chunk):
         yield chunk

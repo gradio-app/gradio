@@ -389,7 +389,8 @@ export function handle_message(
 						duration: data.output.duration as number,
 						stage: "error",
 						code: data.code,
-						success: data.success
+						success: data.success,
+						stream_ended: data.stream_ended
 					}
 				};
 			}

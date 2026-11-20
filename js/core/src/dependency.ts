@@ -488,6 +488,9 @@ export class DependencyManager {
 				// before its turn comes still closes it
 				const live_stream =
 					!!dep.transport && dep.connection_type === "stream" && !sends_chunk;
+				// A failed stream whose function cannot go on (a generator):
+				// its inputs stop sending instead of joining the queue again
+				let failed_stream_ended = false;
 				// No loading status or validation errors for js-only deps
 				if (dep.functions.backend) {
 					// Clear previously set validation errors before any listener of
@@ -746,6 +749,9 @@ export class DependencyManager {
 										return;
 									}
 
+									if (dep.connection_type === "stream" && result.stream_ended) {
+										failed_stream_ended = true;
+									}
 									const _message = result?.message?.replace(
 										MESSAGE_QUOTE_RE,
 										(_, b) => b
@@ -814,7 +820,11 @@ export class DependencyManager {
 						fn_index: dep.id,
 						eta: 0,
 						queue: false,
-						stream_state: live_stream ? "closed" : null
+						stream_state: live_stream
+							? "closed"
+							: failed_stream_ended
+								? "ended"
+								: null
 					});
 					this.update_loading_stati_state();
 					if (active_submission) {

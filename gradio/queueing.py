@@ -1451,6 +1451,7 @@ class Queue:
                             output=content,
                             title=content.get("title", "Error"),  # type: ignore
                             success=False,
+                            stream_ended=self._stream_ended(fn, event, False),
                         ),
                     )
                     await run_sync(
@@ -1607,8 +1608,7 @@ class Queue:
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
-                            stream_ended=success
-                            and self._generator_returned(fn, event),
+                            stream_ended=self._stream_ended(fn, event, success),
                             used_cache=used_cache,
                             cache_duration=cache_source.get("duration"),  # type: ignore[arg-type]
                             avg_time=cache_source.get("average_duration"),  # type: ignore[arg-type]
@@ -1636,8 +1636,7 @@ class Queue:
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
-                            stream_ended=success
-                            and self._generator_returned(fn, event),
+                            stream_ended=self._stream_ended(fn, event, success),
                             used_cache=used_cache,
                             cache_duration=output.get("duration"),  # type: ignore[arg-type]
                             avg_time=output.get("average_duration"),  # type: ignore[arg-type]
@@ -1749,14 +1748,13 @@ class Queue:
             return True
         return self.server_app.iterators.get(event._id) is not None
 
-    def _generator_returned(self, fn: BlockFunction, event: Event) -> bool:
-        """Whether a stream ended because its generator returned, not because
-        the page closed it or its time ran out."""
-        return (
-            fn.sends_to_generator
-            and event.streaming
-            and not self._stream_goes_on(fn, event)
-        )
+    def _stream_ended(self, fn: BlockFunction, event: Event, success: bool) -> bool:
+        """Whether a stream's function ended it for good: its generator
+        returned or failed, so a new stream from the same page would only
+        start it again. Not when the page closed it or its time ran out."""
+        if not (fn.sends_to_generator and event.streaming):
+            return False
+        return not success or not self._stream_goes_on(fn, event)
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
