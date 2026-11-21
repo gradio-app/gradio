@@ -43,6 +43,7 @@ INTERFACE_TEMPLATE = '''
         key: int | str | tuple[int | str, ...] | None = None,
         api_description: str | None | Literal[False] = None,
         validator: Callable[..., Any] | None = None,
+        eta: float | Callable[..., float | None] | None = None,
         inputs_kwargs: dict[str, Block] | None = None,
     {% for arg in event.event_specific_args %}
         {{ arg.name }}: {{ arg.type }},
@@ -73,6 +74,7 @@ INTERFACE_TEMPLATE = '''
             key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names.
+            eta: An estimate of how long, in seconds, the function takes to run, used for the ETA shown while the event waits in the queue instead of the average of past runs. Can be a number, or a function that receives the raw input values sent by the client (before preprocessing) and returns a number, e.g. `lambda prompt, steps: steps * 0.2`. If it returns None or raises, the average of past runs is used.
         {% for arg in event.event_specific_args %}
             {{ arg.name }}: {{ arg.doc }},
         {% endfor %}
