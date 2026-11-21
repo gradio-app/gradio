@@ -1,5 +1,12 @@
 # @gradio/model3d
 
+## 0.19.3-dev.1
+
+### Dependency updates
+
+- @gradio/client@2.8.0-dev.1
+- @gradio/statustracker@0.16.1-dev.0
+
 ## 0.19.3-dev.0
 
 ### Dependency updates

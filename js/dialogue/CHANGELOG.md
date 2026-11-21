@@ -1,5 +1,13 @@
 # @gradio/dialogue
 
+## 0.4.5-dev.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.16.1-dev.0
+- @gradio/dropdown@0.15.2-dev.0
+- @gradio/textbox@0.14.4-dev.0
+
 ## 0.4.4
 
 ### Dependency updates

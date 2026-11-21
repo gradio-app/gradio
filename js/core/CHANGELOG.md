@@ -1,5 +1,35 @@
 # @gradio/core
 
+## 1.14.0-dev.1
+
+### Features
+
+- [#14076](https://github.com/gradio-app/gradio/pull/14076) [`46762e2`](https://github.com/gradio-app/gradio/commit/46762e2c6c43495be3271f08b8d7ae46496e4177) - Reduce Gradio's third-party dependencies.  Thanks @abidlabs!
+
+### Fixes
+
+- [#13993](https://github.com/gradio-app/gradio/pull/13993) [`5adee78`](https://github.com/gradio-app/gradio/commit/5adee78e80a1c3cf4b0750b066b83c17cc36dd7b) - Start all listeners of an event at once.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/client@2.8.0-dev.1
+- @gradio/statustracker@0.16.1-dev.0
+- @gradio/markdown@0.14.4-dev.0
+- @gradio/model3d@0.19.3-dev.1
+- @gradio/code@0.20.2-dev.1
+- @gradio/html@0.14.2-dev.1
+- @gradio/paramviewer@0.12.2-dev.0
+- @gradio/column@0.5.0-dev.0
+- @gradio/gallery@0.20.0-dev.1
+- @gradio/plot@0.12.4-dev.0
+- @gradio/checkbox@0.8.5-dev.0
+- @gradio/dropdown@0.15.2-dev.0
+- @gradio/textbox@0.14.4-dev.0
+- @gradio/file@0.16.4-dev.1
+- @gradio/image@0.29.0-dev.1
+- @gradio/video@0.24.0-dev.1
+- @gradio/audio@0.25.0-dev.1
+
 ## 1.14.0-dev.0
 
 ### Features

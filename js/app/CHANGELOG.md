@@ -1,5 +1,17 @@
 # @self/app
 
+## 2.5.0-dev.1
+
+### Features
+
+- [#14048](https://github.com/gradio-app/gradio/pull/14048) [`0326cb3`](https://github.com/gradio-app/gradio/commit/0326cb3fcf752e03402d2fd3ba1a82c01f6e1158) - Pass the client's address through the Node proxy in SSR mode.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@2.8.0-dev.1
+- @gradio/core@1.14.0-dev.1
+- @self/build@0.7.0-dev.0
+
 ## 2.5.0-dev.0
 
 ### Features
