@@ -1,5 +1,21 @@
 # gradio
 
+## 7.0.0-dev.1
+
+### Features
+
+- [#13969](https://github.com/gradio-app/gradio/pull/13969) [`fd4aea5`](https://github.com/gradio-app/gradio/commit/fd4aea5defa510d9fbddb4a7f08a03a6b5ca1195) - ZeroGPU native support.  Thanks @cbensimon!
+- [#14076](https://github.com/gradio-app/gradio/pull/14076) [`46762e2`](https://github.com/gradio-app/gradio/commit/46762e2c6c43495be3271f08b8d7ae46496e4177) - Reduce Gradio's third-party dependencies.  Thanks @abidlabs!
+- [#14074](https://github.com/gradio-app/gradio/pull/14074) [`e6912a8`](https://github.com/gradio-app/gradio/commit/e6912a8c79716fc80310dad5a7888e82ae64f006) - Apply file-access checks and path env vars to apps mounted with mount_gradio_app.  Thanks @dawoodkhan82!
+- [#14037](https://github.com/gradio-app/gradio/pull/14037) [`ec06278`](https://github.com/gradio-app/gradio/commit/ec06278ed72e5eb73494a9d171ca851d553dc82a) - workflow: add embedded inference token.  Thanks @hannahblair!
+- [#14048](https://github.com/gradio-app/gradio/pull/14048) [`0326cb3`](https://github.com/gradio-app/gradio/commit/0326cb3fcf752e03402d2fd3ba1a82c01f6e1158) - Pass the client's address through the Node proxy in SSR mode.  Thanks @dawoodkhan82!
+- [#14073](https://github.com/gradio-app/gradio/pull/14073) [`88e0d3e`](https://github.com/gradio-app/gradio/commit/88e0d3e7a35b4f770d90b3d3022690004b7f3e7c) - ZeroGPU misc fixes.  Thanks @cbensimon!
+- [#14082](https://github.com/gradio-app/gradio/pull/14082) [`08a0e72`](https://github.com/gradio-app/gradio/commit/08a0e720e113f2a3e804dcf3db69ede0174dc432) - Move components to a separate gradio_components package behind gradio[components].  Thanks @abidlabs!
+
+### Fixes
+
+- [#13993](https://github.com/gradio-app/gradio/pull/13993) [`5adee78`](https://github.com/gradio-app/gradio/commit/5adee78e80a1c3cf4b0750b066b83c17cc36dd7b) - Start all listeners of an event at once.  Thanks @hysts!
+
 ## 7.0.0-dev.0
 
 ### Features

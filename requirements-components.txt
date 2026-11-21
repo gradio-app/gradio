@@ -1,1 +1,1 @@
-gradio_components==7.0.0-dev.0
+gradio_components==7.0.0-dev.1

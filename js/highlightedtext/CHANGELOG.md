@@ -1,5 +1,11 @@
 # @gradio/highlightedtext
 
+## 0.13.2-dev.0
+
+### Dependency updates
+
+- @gradio/statustracker@0.16.1-dev.0
+
 ## 0.13.1
 
 ### Dependency updates

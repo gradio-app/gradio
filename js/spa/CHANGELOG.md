@@ -1,5 +1,17 @@
 # @self/spa
 
+## 1.8.0-dev.1
+
+### Features
+
+- [#14076](https://github.com/gradio-app/gradio/pull/14076) [`46762e2`](https://github.com/gradio-app/gradio/commit/46762e2c6c43495be3271f08b8d7ae46496e4177) - Reduce Gradio's third-party dependencies.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/client@2.8.0-dev.1
+- @gradio/core@1.14.0-dev.1
+- @self/build@0.7.0-dev.0
+
 ## 1.8.0-dev.0
 
 ### Features

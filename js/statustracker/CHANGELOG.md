@@ -1,5 +1,11 @@
 # @gradio/statustracker
 
+## 0.16.1-dev.0
+
+### Fixes
+
+- [#13993](https://github.com/gradio-app/gradio/pull/13993) [`5adee78`](https://github.com/gradio-app/gradio/commit/5adee78e80a1c3cf4b0750b066b83c17cc36dd7b) - Start all listeners of an event at once.  Thanks @hysts!
+
 ## 0.16.0
 
 ### Features

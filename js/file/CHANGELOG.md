@@ -1,5 +1,12 @@
 # @gradio/file
 
+## 0.16.4-dev.1
+
+### Dependency updates
+
+- @gradio/client@2.8.0-dev.1
+- @gradio/statustracker@0.16.1-dev.0
+
 ## 0.16.4-dev.0
 
 ### Dependency updates

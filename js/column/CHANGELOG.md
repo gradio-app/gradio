@@ -2,6 +2,12 @@
 
 ## 0.5.0-dev.0
 
+### Dependency updates
+
+- @gradio/statustracker@0.16.1-dev.0
+
+## 0.5.0-dev.0
+
 ### Features
 
 - [#14011](https://github.com/gradio-app/gradio/pull/14011) [`1cb9ae3`](https://github.com/gradio-app/gradio/commit/1cb9ae34bdc2661795aa9f3cc0c3c4cb6ba826cf) - Remove `gr.Column` and `gr.Row` variants.  Thanks @dawoodkhan82!
