@@ -1,6 +1,7 @@
+from gradio_components.chatbot import MessageDict
+
 import gradio as gr
 from gradio import utils
-from gradio.components.chatbot import MessageDict
 
 
 class TestChatbot:

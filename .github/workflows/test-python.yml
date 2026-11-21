@@ -76,6 +76,11 @@ jobs:
           . venv/bin/activate
           cd client/python
           python -m build
+      - name: Build gradio_components wheel
+        run: |
+          . venv/bin/activate
+          cd components/python
+          python -m build
       - name: Upload gradio wheel
         uses: actions/upload-artifact@v4
         with:
@@ -86,6 +91,11 @@ jobs:
         with:
           name: gradio-client-wheel
           path: client/python/dist/*.whl
+      - name: Upload gradio_components wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradio-components-wheel
+          path: components/python/dist/*.whl
   test:
     permissions:
       contents: read
@@ -116,6 +126,11 @@ jobs:
         with:
           name: gradio-client-wheel
           path: client-dist/
+      - name: Download gradio_components wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: gradio-components-wheel
+          path: components-dist/
       - name: install dependencies
         id: install_deps
         uses: "gradio-app/gradio/.github/actions/install-all-deps@7.0-dev"
@@ -136,6 +151,11 @@ jobs:
         run: |
           . ${{steps.install_deps.outputs.venv_activate}}
           uv pip install "$(ls dist/*.whl)[oauth,mcp]"
+      - name: Install gradio_components wheel
+        shell: bash
+        run: |
+          . ${{steps.install_deps.outputs.venv_activate}}
+          uv pip install components-dist/*.whl
       - name: uv pip freeze
         shell: bash
         run: |
@@ -151,10 +171,20 @@ jobs:
         run: |
           cp dist/*.whl test/test_docker/
           cp client-dist/*.whl test/test_docker/
+          cp components-dist/*.whl test/test_docker/
       - name: Remove local gradio source to use installed wheel
         shell: bash
         run: |
           find gradio -name "__init__.py" -delete
+      # What `pip install gradio` gives: no gradio_components, so no components,
+      # no built frontend and no numpy, pandas or Pillow.
+      - name: Core-only install smoke test
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          uv venv core-venv --python 3.11
+          uv pip install --python core-venv/bin/python client-dist/*.whl dist/*.whl
+          cd test && ../core-venv/bin/python core_only_smoke.py
       - name: Run parallel tests
         shell: bash
         run: |

@@ -16,12 +16,11 @@ import json
 import re
 import subprocess
 import sys
-from typing import Annotated
 
-import typer
+import click
 from packaging.utils import canonicalize_name
-from rich.console import Console
-from rich.table import Table
+
+from gradio.cli.commands.display import format_table
 
 ENTRY_POINT_GROUP = "gradio.commands"
 RESERVED_COMMANDS = {
@@ -31,8 +30,6 @@ RESERVED_COMMANDS = {
     "sketch",
     "load",
     "skills",
-    "info",
-    "predict",
     "cc",
     "component",
     "build",
@@ -44,10 +41,6 @@ RESERVED_COMMANDS = {
     "upload-mcp",
     "extensions",
 }
-
-extensions_app = typer.Typer(
-    help="Install and manage optional CLI commands from GitHub.", no_args_is_help=True
-)
 
 
 def get_extensions() -> list[importlib.metadata.EntryPoint]:
@@ -96,33 +89,37 @@ def run_extension(name: str, args: list[str]) -> bool:
         sys.argv = original_argv
 
 
-@extensions_app.command("list")
 def list_extensions():
     """List installed commands and the packages that provide them."""
     entries = get_extensions()
     if not entries:
-        typer.echo(
+        click.echo(
             "No extensions installed. Use `gradio extensions install OWNER/REPO`."
         )
         return
-    table = Table(title="Extension commands")
-    for column in ("Command", "Package", "Version", "Status"):
-        table.add_column(column)
-    for entry in entries:
-        table.add_row(
+    rows = [
+        (
             entry.name,
             entry.dist.name if entry.dist else "",
             entry.dist.version if entry.dist else "",
             command_error(entry.name, entries) or "Available",
         )
-    Console().print(table)
+        for entry in entries
+    ]
+    click.echo(
+        format_table(
+            ("Command", "Package", "Version", "Status"),
+            rows,
+            title="Extension commands",
+        )
+    )
 
 
 def _github_url(repo: str) -> str:
     repo = repo.removeprefix("https://github.com/").removesuffix("/")
     repo = repo.removesuffix(".git")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_][A-Za-z0-9_.-]*", repo):
-        raise typer.BadParameter("Use OWNER/REPO or https://github.com/OWNER/REPO.")
+        raise click.BadParameter("Use OWNER/REPO or https://github.com/OWNER/REPO.")
     return f"https://github.com/{repo}.git"
 
 
@@ -130,27 +127,16 @@ def _pip(*args: str):
     try:
         importlib.metadata.distribution("pip")
     except importlib.metadata.PackageNotFoundError as error:
-        raise typer.BadParameter(
+        raise click.BadParameter(
             f"pip is required in Gradio's Python environment ({sys.executable}). "
             "Install pip in that environment, then retry."
         ) from error
     result = subprocess.run([sys.executable, "-m", "pip", *args], check=False)
     if result.returncode:
-        raise typer.Exit(code=result.returncode)
+        raise SystemExit(result.returncode)
 
 
-@extensions_app.command()
-def install(
-    repo: Annotated[
-        str, typer.Argument(help="GitHub repository: OWNER/REPO or HTTPS URL.")
-    ],
-    ref: Annotated[
-        str | None,
-        typer.Option(
-            help="Git branch, tag or commit. Defaults to the repository's default branch."
-        ),
-    ] = None,
-):
+def install(repo: str, ref: str | None = None):
     """Install or upgrade an extension in Gradio's Python environment.
 
     Requires Git and pip. Only install repositories you trust: their build and
@@ -161,9 +147,9 @@ def install(
     if ref is not None and (
         not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_./-]*", ref) or ".." in ref
     ):
-        raise typer.BadParameter("Invalid Git ref.", param_hint="--ref")
+        raise click.BadParameter("Invalid Git ref.", param_hint="--ref")
     requirement = f"git+{url}" + (f"@{ref}" if ref else "")
-    typer.echo(f"Installing {requirement} with {sys.executable}")
+    click.echo(f"Installing {requirement} with {sys.executable}")
     # GitHub-only projects may push new commits without bumping the package version.
     _pip("install", "--upgrade", "--force-reinstall", "--", requirement)
     entries = get_extensions()
@@ -178,35 +164,60 @@ def install(
         if isinstance(source, dict) and source.get("url", "").lower() == url.lower():
             installed.append(entry)
     if not installed:
-        typer.echo(
+        click.echo(
             "The repository was installed, but it did not register any gradio.commands "
             "entry points. Check the repository's pyproject.toml.",
             err=True,
         )
-        raise typer.Exit(code=1)
+        raise SystemExit(1)
     for entry in installed:
         if error := command_error(entry.name, entries):
-            typer.echo(
+            click.echo(
                 f"Installed {entry.name}, but it is unavailable: {error}", err=True
             )
         else:
-            typer.echo(f"Available: gradio {entry.name}")
+            click.echo(f"Available: gradio {entry.name}")
     if any(command_error(entry.name, entries) for entry in installed):
-        raise typer.Exit(code=1)
+        raise SystemExit(1)
 
 
-@extensions_app.command()
-def remove(
-    package: Annotated[
-        str, typer.Argument(help="Package name shown by `gradio extensions list`.")
-    ],
-):
+def remove(package: str):
     """Uninstall an extension package and all commands it provides. Keeps dependencies."""
     package_name = canonicalize_name(package)
     if package_name in {"gradio", "gradio-client"}:
-        raise typer.BadParameter("Cannot remove Gradio itself as an extension.")
+        raise click.BadParameter("Cannot remove Gradio itself as an extension.")
     for entry in get_extensions():
         if entry.dist and canonicalize_name(entry.dist.name) == package_name:
             _pip("uninstall", "--yes", "--", entry.dist.name)
             return
-    raise typer.BadParameter(f"No installed extension package named {package!r}.")
+    raise click.BadParameter(f"No installed extension package named {package!r}.")
+
+
+extensions_app = click.Group(
+    name="extensions",
+    help="Install and manage optional CLI commands from GitHub.",
+    no_args_is_help=True,
+    commands=[
+        click.Command(
+            name="list", callback=list_extensions, help=list_extensions.__doc__
+        ),
+        click.Command(
+            name="install",
+            callback=install,
+            help=install.__doc__,
+            params=[
+                click.Argument(["repo"], metavar="REPO"),
+                click.Option(
+                    ["--ref"],
+                    help="Git branch, tag or commit. Defaults to the repository's default branch.",
+                ),
+            ],
+        ),
+        click.Command(
+            name="remove",
+            callback=remove,
+            help=remove.__doc__,
+            params=[click.Argument(["package"], metavar="PACKAGE")],
+        ),
+    ],
+)

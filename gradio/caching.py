@@ -14,10 +14,7 @@ from collections.abc import Callable
 from contextvars import ContextVar
 from typing import Any
 
-import numpy as np
-import pandas as pd
 from gradio_client.documentation import document
-from PIL import Image
 from pydantic import BaseModel
 
 
@@ -48,13 +45,19 @@ def _hash_repr(obj: Any) -> str:
     if isinstance(obj, set):
         items = sorted(_hash_repr(x) for x in obj)
         return f"S{{{','.join(items)}}}"
-    if isinstance(obj, np.ndarray):
+    # An object can only come from numpy, Pillow or pandas if that library has
+    # already been imported, so there is no need to import one just to check. Core
+    # Gradio does not require any of them.
+    np = sys.modules.get("numpy")
+    pil_image = sys.modules.get("PIL.Image")
+    pd = sys.modules.get("pandas")
+    if np is not None and isinstance(obj, np.ndarray):
         return (
             f"np({obj.shape},{obj.dtype},{hashlib.sha256(obj.tobytes()).hexdigest()})"
         )
-    if isinstance(obj, Image.Image):
+    if pil_image is not None and isinstance(obj, pil_image.Image):
         return f"PIL({obj.mode},{obj.size},{hashlib.sha256(obj.tobytes()).hexdigest()})"
-    if isinstance(obj, pd.DataFrame):
+    if pd is not None and isinstance(obj, pd.DataFrame):
         col_hash = _hash_repr(list(obj.columns))
         val_hash = hashlib.sha256(
             pd.util.hash_pandas_object(obj, index=False).to_numpy().tobytes()
@@ -65,7 +68,7 @@ def _hash_repr(obj: Any) -> str:
         return f"DF({col_hash},{val_hash},{idx_hash})"
     if isinstance(obj, BaseModel):
         return _hash_repr(obj.model_dump())
-    if isinstance(obj, pd.Series):
+    if pd is not None and isinstance(obj, pd.Series):
         name_hash = _hash_repr(obj.name)
         val_hash = hashlib.sha256(
             pd.util.hash_pandas_object(obj, index=False).to_numpy().tobytes()
@@ -117,13 +120,19 @@ def resolve_generator(fn: Callable) -> tuple[Callable, list | None]:
 
 
 def _estimate_size(obj: Any) -> int:
-    if isinstance(obj, np.ndarray):
+    # An object can only come from numpy, Pillow or pandas if that library has
+    # already been imported, so there is no need to import one just to check. Core
+    # Gradio does not require any of them.
+    np = sys.modules.get("numpy")
+    pil_image = sys.modules.get("PIL.Image")
+    pd = sys.modules.get("pandas")
+    if np is not None and isinstance(obj, np.ndarray):
         return obj.nbytes
-    if isinstance(obj, Image.Image):
+    if pil_image is not None and isinstance(obj, pil_image.Image):
         return obj.size[0] * obj.size[1] * len(obj.getbands())
-    if isinstance(obj, pd.DataFrame):
+    if pd is not None and isinstance(obj, pd.DataFrame):
         return obj.memory_usage(deep=True).sum()
-    if isinstance(obj, pd.Series):
+    if pd is not None and isinstance(obj, pd.Series):
         return obj.memory_usage(deep=True)
     if isinstance(obj, (bytes, bytearray)):
         return len(obj)

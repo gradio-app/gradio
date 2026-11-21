@@ -31,7 +31,7 @@ class BlockFunction:
         tracks_progress: bool = False,
         api_name: str | None = None,
         api_description: str | None | Literal[False] = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         show_progress_on: Sequence[Component] | None = None,
         cancels: list[int] | None = None,
@@ -55,7 +55,6 @@ class BlockFunction:
         input_keyword_names: list[str] | None = None,
         input_parameter_names: list[str | None] | None = None,
         page: str = "",
-        js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
         eta: float | Callable[..., float | None] | None = None,
@@ -101,8 +100,6 @@ class BlockFunction:
         self.validator = validator
         self.eta = eta
         self.is_validator_function = is_validator_function
-        if js_implementation:
-            self.fn.__js_implementation__ = js_implementation  # type: ignore
 
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
@@ -164,5 +161,4 @@ class BlockFunction:
             "stream_every": self.stream_every,
             "event_specific_args": self.event_specific_args,
             "component_prop_inputs": self.component_prop_inputs,
-            "js_implementation": getattr(self.fn, "__js_implementation__", None),
         }

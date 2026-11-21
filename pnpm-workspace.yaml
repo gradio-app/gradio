@@ -3,6 +3,7 @@ packages:
   - gradio
   - client/*
   - client/*/*
+  - components/*/*
   - js/preview/test/**/*
 
 patchedDependencies:

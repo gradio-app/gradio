@@ -15,13 +15,13 @@ from typing import (
 )
 
 from gradio_client.documentation import document
-from jinja2 import Template
 
 from gradio.data_classes import FileData, FileDataDict
 
 if TYPE_CHECKING:
+    from gradio_components.timer import Timer
+
     from gradio.blocks import Block, BlockContext, Component
-    from gradio.components import Timer
 
 from gradio_client.utils import python_type_to_json_schema
 
@@ -53,7 +53,7 @@ def set_cancel_events(
             regular_cancels.append(cancel)
 
     if timers_to_cancel:
-        from gradio.components import Timer
+        from gradio_components.timer import Timer
 
         root_block.set_event_trigger(
             triggers,
@@ -582,8 +582,9 @@ class EventListener(str):
 
     def set_doc(self, component: str):
         if self.listener.__doc__:
-            doc = Template(self.listener.__doc__).render(component=component)
-            self.listener.__doc__ = doc
+            self.listener.__doc__ = self.listener.__doc__.replace(
+                "{{ component }}", component
+            )
 
     def copy(self):
         return EventListener(
@@ -637,7 +638,7 @@ class EventListener(str):
             postprocess: bool = True,
             cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
             trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-            js: str | Literal[True] | None = None,
+            js: str | None = None,
             concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
             api_visibility: Literal["public", "private", "undocumented"] = "public",
@@ -874,7 +875,7 @@ def on(
     postprocess: bool = True,
     cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-    js: str | Literal[True] | None = None,
+    js: str | None = None,
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
     time_limit: int | None = None,

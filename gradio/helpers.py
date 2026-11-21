@@ -29,13 +29,12 @@ from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Dependency, EventData
 from gradio.exceptions import Error
-from gradio.flagging import CSVLogger
 from gradio.i18n import I18nData
 from gradio.route_utils import Header
 from gradio.utils import UnhashableKeyDict
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.components import Component
+    from gradio.components.base import Component
 
 LOG_FILE = "log.csv"
 # Marks an input whose value should not change when an example is loaded
@@ -343,6 +342,8 @@ class Examples:
                 visible=visible,
                 sample_labels=example_labels,
             )
+
+        from gradio_components.flagging import CSVLogger
 
         self.cache_logger = CSVLogger(
             simplify_file_data=False, verbose=False, dataset_file_name="log.csv"

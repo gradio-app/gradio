@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from typer.testing import CliRunner
+from click.testing import CliRunner
 
 import gradio as gr
 from gradio.cli.commands.reload import _setup_config, build_app
@@ -112,10 +112,7 @@ class TestReloadCliArgs:
         later cannot change what an existing command means."""
         result, _, _ = run_cli("demo/calculator/run.py", "--name", "Gretel")
         assert result.exit_code != 0
-        # Rich wraps the message across panel lines.
-        assert "No such option" in " ".join(
-            result.output.replace("\u2502", " ").split()
-        )
+        assert "No such option" in result.output
 
 
 def test_reassign_pending_event_fns():

@@ -1,0 +1,82 @@
+[build-system]
+requires = ["hatchling>=1.27", "hatch-requirements-txt", "hatch-fancy-pypi-readme>=22.5.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gradio_components"
+dynamic = ["version", "dependencies", "readme"]
+description = "The UI components of Gradio: gr.Blocks, gr.Interface and every built-in component"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [
+  { name = "Abubakar Abid", email = "gradio-team@huggingface.co" },
+  { name = "Ali Abid", email = "gradio-team@huggingface.co" },
+  { name = "Ali Abdalla", email = "gradio-team@huggingface.co" },
+  { name = "Dawood Khan", email = "gradio-team@huggingface.co" },
+  { name = "Ahsen Khaliq", email = "gradio-team@huggingface.co" },
+  { name = "Pete Allen", email = "gradio-team@huggingface.co" },
+  { name = "Freddy Boulton", email = "gradio-team@huggingface.co" },
+  { name = "Hannah Blair", email = "gradio-team@huggingface.co" },
+]
+keywords = ["machine learning", "components", "UI"]
+
+classifiers = [
+  'Development Status :: 5 - Production/Stable',
+  'Operating System :: OS Independent',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3 :: Only',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.12',
+  'Programming Language :: Python :: 3.13',
+  'Topic :: Scientific/Engineering',
+  'Topic :: Scientific/Engineering :: Artificial Intelligence',
+  'Topic :: Software Development :: User Interfaces',
+]
+
+[project.urls]
+Homepage = "https://github.com/gradio-app/gradio"
+
+[tool.hatch.version]
+path = "gradio_components/package.json"
+pattern = ".*\"version\":\\s*\"(?P<version>[^\"]+)\""
+
+[tool.hatch.metadata.hooks.requirements_txt]
+filename = "requirements.txt"
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+fragments = [
+  { path = "README.md" },
+]
+
+[tool.hatch.build]
+artifacts = [
+  "*.pyi",
+  "/gradio_components/py.typed",
+  # copied in by hatch_build.py: the built frontend and the sample media
+  "/gradio_components/_frontend",
+  "/gradio_components/media_assets",
+]
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
+[tool.hatch.build.targets.wheel]
+core-metadata-version = "2.4"
+
+[tool.hatch.build.targets.sdist]
+core-metadata-version = "2.4"
+include = [
+  "/gradio_components",
+  "/README.md",
+  "/requirements.txt",
+  "/hatch_build.py",
+]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint.isort]
+known-first-party = [
+  "gradio_components"
+]

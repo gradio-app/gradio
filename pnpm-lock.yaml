@@ -426,6 +426,8 @@ importers:
 
   client/python/gradio_client: {}
 
+  components/python/gradio_components: {}
+
   gradio: {}
 
   js/_cdn-test: {}

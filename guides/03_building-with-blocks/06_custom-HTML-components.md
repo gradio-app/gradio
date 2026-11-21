@@ -159,7 +159,7 @@ to handle these arguments, but you do need to accept them in your component cons
 them to the parent `gr.HTML` class. Otherwise, your component may not behave correctly. The easiest
 way is to add `**kwargs` to your `__init__` method and pass it to `super().__init__()`, just like in the code example above.
 
-We've created several custom HTML components as reusable components as examples you can reference in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
+We've created several custom HTML components as reusable components as examples you can reference in [this directory](https://github.com/gradio-app/gradio/tree/main/components/python/gradio_components/custom_html_components).
 
 
 ## Embedding Components in HTML
@@ -245,5 +245,5 @@ You should also expect that any Python event listeners that take your `gr.HTML` 
 ## Next Steps
 
 - Browse the [HTML Components Gallery](https://www.gradio.app/custom-components/html-gallery) to see what the community has built and copy components into your own apps.
-- Check out more examples in [this directory](https://github.com/gradio-app/gradio/tree/main/gradio/components/custom_html_components).
+- Check out more examples in [this directory](https://github.com/gradio-app/gradio/tree/main/components/python/gradio_components/custom_html_components).
 - Share your own components with `push_to_hub` to help others!

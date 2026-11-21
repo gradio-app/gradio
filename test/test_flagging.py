@@ -4,9 +4,9 @@ import tempfile
 from unittest.mock import MagicMock
 
 import pytest
+from gradio_components import flagging
 
 import gradio as gr
-from gradio import flagging
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

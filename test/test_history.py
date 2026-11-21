@@ -20,6 +20,7 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 import httpx2
 import pytest
 from fastapi.testclient import TestClient
+from gradio_components.interface import close_all
 
 import gradio as gr
 import gradio.history as history_mod
@@ -31,7 +32,6 @@ from gradio.history import (
     new_record_id,
     validate_bucket_id,
 )
-from gradio.interface import close_all
 from gradio.route_utils import _split_batched_run
 
 
