@@ -54,6 +54,9 @@
 		current_tool = $bindable(),
 		webcam_options,
 		show_download_button = false,
+		show_fullscreen_button = false,
+		fullscreen = false,
+		onfullscreen,
 		theme_mode,
 		full_history = $bindable(null),
 		has_drawn = $bindable(false),
@@ -88,6 +91,9 @@
 		current_tool: ToolbarTool;
 		webcam_options: WebcamOptions;
 		show_download_button?: boolean;
+		show_fullscreen_button?: boolean;
+		fullscreen?: boolean;
+		onfullscreen?: (fullscreen: boolean) => void;
 		theme_mode: "dark" | "light";
 		full_history?: CommandNode | null;
 		has_drawn?: boolean;
@@ -677,12 +683,16 @@
 		brush?.set_brush_opacity(selected_opacity);
 	});
 
-	function remove_image(): void {
+	async function remove_image(): Promise<void> {
 		onclear?.();
-		editor.reset_canvas();
+		const reset = editor.reset_canvas();
 		handle_tool_change({ tool: "image" });
 		background_image = false;
 		has_drawn = false;
+		// reset_canvas() puts the canvas back at scale 1, so fit it to the
+		// container again (e.g. when clearing while fullscreen).
+		await reset;
+		zoom.set_zoom("fit");
 	}
 
 	export function handle_remove(): void {
@@ -789,7 +799,7 @@
 		on_files: handle_files,
 		accepted_types: "image/*",
 		disable_click: disable_click,
-		ignore_click_selector: ".toolbar-wrap"
+		ignore_click_selector: ".toolbar-wrap, .icon-button-wrapper"
 	}}
 	aria-label={"Click to upload or drop files"}
 	aria-dropeffect="copy"
@@ -812,6 +822,9 @@
 					handle_tool_change({ tool: "pan" });
 				}}
 				enable_download={show_download_button}
+				{show_fullscreen_button}
+				{fullscreen}
+				{onfullscreen}
 				ondownload={() => handle_download()}
 				{can_undo}
 				{can_redo}
