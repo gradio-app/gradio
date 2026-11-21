@@ -748,14 +748,11 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
             page=pages.get(dep["id"], ""),
             validator=make_stub(dep["id"]) if settings["has_validator"] else None,
             input_parameter_names=settings["parameter_names"],
-            # A number, or FORWARDED for a callable, which forward_eta calls
             eta=settings.get("eta"),
         )
     return fns
 
 
-# How long enqueuing an event waits for its `eta=` callable in the app's process,
-# which may be busy; past it, the queue uses the average of past runs instead.
 ETA_TIMEOUT = 1.0
 
 

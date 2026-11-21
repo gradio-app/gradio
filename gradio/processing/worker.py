@@ -483,8 +483,6 @@ class Worker:
             "has_validator": fn.validator is not None,
             "cached": hasattr(fn.fn, "cache"),
             "parameter_names": list(fn.input_parameter_names) or parameter_names(fn.fn),
-            # A number is used as is; a callable stays here, and the gateway's
-            # queue asks for its result with an "eta" call.
             "eta": protocol.FORWARDED if callable(fn.eta) else fn.eta,
         }
 

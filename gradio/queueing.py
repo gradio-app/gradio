@@ -86,7 +86,6 @@ class Event:
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
         self.own_stream = False
-        # Run time estimate from the event listener's `eta=` callable, if any.
         self.eta_hint: float | None = None
 
     @property
@@ -1161,7 +1160,7 @@ class Queue:
 
         try:
             return await forward_eta(pool, fn, body)
-        except Exception:  # noqa: BLE001 -- busy or restarting: use the average
+        except Exception:  # noqa: BLE001
             return None
 
     def get_status(self) -> EstimationMessage:
