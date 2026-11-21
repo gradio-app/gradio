@@ -329,7 +329,40 @@ Use `gr.Server` instead of gr.Blocks when the users requests any of the followin
 - Completely custom UI (your own HTML, React, Svelte, etc.) powered by Gradio's backend.
 - Full control of FastAPI server (custom GET/POST routes, middleware, dependency injection) alongside Gradio API endpoints
 
-See the [full guide](https://www.gradio.app/guides/server-mode) and example in `references/examples.md`.
+Register the functions that compute with `@app.api()`, and serve the frontend as static files mounted at `/`:
+
+```python
+from fastapi.staticfiles import StaticFiles
+import gradio as gr
+
+app = gr.Server()
+
+@app.api(name="hello")
+def hello(name: str) -> str:
+    return f"Hello, {{name}}!"
+
+app.mount("/", StaticFiles(directory="static", html=True))  # static/index.html is the page
+
+app.launch()
+```
+
+In `static/index.html`, call the endpoint with the JavaScript client:
+
+```html
+<script type="module">
+  import {{ Client }} from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+  const client = await Client.connect(location.origin);
+  const result = await client.predict("/hello", {{ name: "World" }});
+  console.log(result.data[0]);
+</script>
+```
+
+Always prefer this pattern for the frontend (HTML, JS, CSS, images, or the build output of a React/Svelte/Vue app) over returning HTML from a Python route such as `@app.get("/")`. A Gradio app runs in two processes: static files are served by the gateway process, so the page loads instantly while the model is busy, whereas a Python route runs in the same process as the model and waits for it. Rules:
+- Don't put files or folders named `gradio_api`, `config`, `login`, `logout` or `monitoring` at the top of the static folder: Gradio serves its API at those paths, and `launch()` raises an error.
+- Use `@app.get()`/`@app.post()` only for light routes. If a Python route must stay responsive while functions run, define it on a FastAPI `APIRouter` in a separate module and pass it as `gr.Server(gateway="web:router")`.
+- Don't call `app.add_middleware()`; define a `middleware` list in the `gateway` module instead.
+
+See the [full guide](https://www.gradio.app/guides/server-mode).
 
 If the user's use case can be handled by Gradio's built-in components or customizable HTML components, prefer not to use `gr.Server`.
 """
