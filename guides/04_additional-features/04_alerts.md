@@ -16,3 +16,9 @@ def start_process(name):
 
 Tip: Note that `gr.Error()` is an exception that has to be raised, while `gr.Warning()` and `gr.Info()` are functions that are called directly.
 
+
+## Unexpected errors
+
+If your function raises any other exception (for example a `ValueError` or a `KeyError`), Gradio shows the exception's message in an error modal, so users can see what went wrong instead of a generic "Error". Only the message is sent to the browser, never the traceback. Before it is sent, Gradio redacts Hugging Face tokens (`hf_...`), and in any URLs it masks `user:password@` credentials, query strings (which often carry API keys) and IP-address hosts (which usually point at a private backend).
+
+If your exception messages may contain information you don't want users to see, turn this off with `demo.launch(show_error=False)`. Users will then see a generic "Error", and the full exception is still printed in the terminal running your app. Errors you raise with `gr.Error()` are always shown.

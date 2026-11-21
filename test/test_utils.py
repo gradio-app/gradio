@@ -47,6 +47,7 @@ from gradio.utils import (
     parse_escaped_json,
     safe_aclose_iterator,
     safe_deepcopy,
+    sanitize_error_message,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
     tex2svg,
@@ -797,12 +798,85 @@ def test_get_icon_path():
     assert get_icon_path("huggingface-logo.svg").endswith("huggingface-logo.svg")
 
 
+@pytest.mark.parametrize(
+    "message,expected",
+    [
+        # requests.HTTPError from raise_for_status()
+        (
+            "401 Client Error: Unauthorized for url: https://api.example.com/v1/run?key=sk-123&x=1",
+            "401 Client Error: Unauthorized for url: https://api.example.com/v1/run?***",
+        ),
+        (
+            "Error for url: https://user:s3cret@db.example.com:5432/app",
+            "Error for url: https://***@db.example.com:5432/app",
+        ),
+        (
+            "404 Client Error: Not Found for url: http://u:p@10.1.2.3:8080/x?key=abc",
+            "404 Client Error: Not Found for url: http://***@***:8080/x?***",
+        ),
+        (
+            "Could not reach http://[::1]:7860/api",
+            "Could not reach http://***:7860/api",
+        ),
+        # httpx quotes the URL
+        (
+            "Client error '403 Forbidden' for url 'https://h.example.com/p?token=t'",
+            "Client error '403 Forbidden' for url 'https://h.example.com/p?***'",
+        ),
+        # requests.ConnectionError (urllib3)
+        (
+            "HTTPConnectionPool(host='10.0.0.5', port=8000): Max retries exceeded with "
+            'url: /api/tryon?key=abc (Caused by NewConnectionError("HTTPConnection('
+            "host='10.0.0.5', port=8000): Failed to establish a new connection\"))",
+            "HTTPConnectionPool(host='***', port=8000): Max retries exceeded with "
+            'url: /api/tryon?*** (Caused by NewConnectionError("HTTPConnection('
+            "host='***', port=8000): Failed to establish a new connection\"))",
+        ),
+        # A trailing ":" after the URL used to break parsing and skip redaction
+        (
+            "Failed to connect to http://10.0.0.5:8000: Connection refused",
+            "Failed to connect to http://***:8000: Connection refused",
+        ),
+        # A URL that can't be parsed is hidden entirely (fail closed)
+        (
+            "Failed to connect to http://10.0.0.5:99999999/x",
+            "Failed to connect to http://***",
+        ),
+        # Public hostnames and URLs without secrets are kept, so the message stays useful
+        (
+            "Could not fetch config for https://user-space.hf.space",
+            "Could not fetch config for https://user-space.hf.space",
+        ),
+        (
+            "HTTPSConnectionPool(host='huggingface.co', port=443): Read timed out.",
+            "HTTPSConnectionPool(host='huggingface.co', port=443): Read timed out.",
+        ),
+        (
+            "CUDA out of memory. Tried to allocate 2.00 GiB",
+            "CUDA out of memory. Tried to allocate 2.00 GiB",
+        ),
+    ],
+)
+def test_sanitize_error_message_redacts_urls(message, expected):
+    assert sanitize_error_message(RuntimeError(message)) == expected
+
+
 def test_error_payload():
     result = error_payload(None, False)
     assert result == {"error": None}
 
     result = error_payload(Exception("test error"), True)
     assert result == {"error": "test error", "visible": True}
+
+    result = error_payload(Exception("test error"), False)
+    assert result == {"error": None}
+
+    result = error_payload(ValueError(), True)
+    assert result == {"error": "ValueError", "visible": True}
+
+    token = "hf_" + "a1B2" * 9
+    result = error_payload(RuntimeError(f"401 for token {token}"), True)
+    assert result == {"error": "401 for token hf_***", "visible": True}
 
     gr_error = Error("custom error", duration=1.5, visible=True, title="Error Title")
     result = error_payload(gr_error, False)

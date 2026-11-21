@@ -258,7 +258,7 @@ class Server(App):
         ) = None,
         auth_message: str | None = None,
         prevent_thread_lock: bool = False,
-        show_error: bool = False,
+        show_error: bool = True,
         server_name: str | None = None,
         server_port: int | None = None,
         *,
