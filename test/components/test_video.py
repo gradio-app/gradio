@@ -366,6 +366,7 @@ class TestVideo:
             "preserved_by_key": ["value"],
             "loop": False,
             "streaming": False,
+            "streamable": False,
             "watermark": {"watermark": None, "position": "bottom-right"},
             "subtitles": None,
         }

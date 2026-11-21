@@ -101,6 +101,56 @@ class TestServer:
         finally:
             gr.close_all()
 
+    def test_server_api_generator_can_skip_an_output(self):
+        server = gr.Server()
+
+        @server.api(name="count")
+        def count(limit: int) -> Iterator[str]:
+            yield "0"
+            yield gr.skip()
+            yield "1"
+
+        _, local_url, _ = server.launch(prevent_thread_lock=True)
+        try:
+            client = Client(local_url)
+            try:
+                assert client.predict(2, api_name="/count") == "1"
+            finally:
+                client.close()
+        finally:
+            gr.close_all()
+
+    def test_server_api_taking_an_oauth_token_gets_the_callers_token_without_login(
+        self, monkeypatch
+    ):
+        # An API caller passes its token with Client(oauth_token=...), so the
+        # app needs no sign-in: it must start without gradio[oauth], an HF
+        # login on the machine, or `hf_oauth: true` on a Space
+        from gradio import oauth
+
+        def no_login():
+            raise ValueError("Your machine must be logged in to HF")
+
+        monkeypatch.setattr(oauth, "_get_mocked_oauth_info", no_login)
+        server = gr.Server()
+
+        @server.api(name="report")
+        def report(token: gr.OAuthToken | None) -> str:
+            return token.token if token else "none"
+
+        app, local_url, _ = server.launch(prevent_thread_lock=True, executor="thread")
+        try:
+            with TestClient(app) as client:
+                login = client.get("/login/huggingface", follow_redirects=False)
+            assert login.status_code == 404
+            client = Client(local_url, oauth_token="caller-token")
+            try:
+                assert client.predict(api_name="/report") == "caller-token"
+            finally:
+                client.close()
+        finally:
+            gr.close_all()
+
     def test_server_launch_enables_mcp(self):
         server = gr.Server()
 

@@ -55,6 +55,8 @@ filename = "requirements.txt"
 [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
 oauth = ["requirements-oauth.txt"]
 mcp = ["requirements-mcp.txt"]
+webrtc = ["requirements-webrtc.txt"]
+vad = ["requirements-vad.txt"]
 components = ["requirements-components.txt"]
 
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
@@ -95,6 +97,8 @@ include = [
   "/requirements.txt",
   "/requirements-oauth.txt",
   "/requirements-mcp.txt",
+  "/requirements-webrtc.txt",
+  "/requirements-vad.txt",
   "/requirements-components.txt",
   "/.config/copy_frontend.py",
   "/js",

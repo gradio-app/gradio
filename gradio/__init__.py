@@ -4,6 +4,7 @@ engine and `gr.Server`. The names that build a user interface (`gr.Blocks`,
 with `pip install "gradio[components]"`; using one without it raises an error that
 says so."""
 
+import importlib.util
 import json
 from typing import TYPE_CHECKING
 
@@ -39,6 +40,8 @@ from gradio.themes import Base as Theme
 from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
 
 if TYPE_CHECKING:
+    from types import FrameType
+
     from gradio_components import (
         HTML,
         JSON,
@@ -136,6 +139,7 @@ if TYPE_CHECKING:
         TextArea,
     )
 
+    from gradio import streaming
     from gradio.blocks import Blocks
     from gradio.helpers import create_examples as Examples  # noqa: N812
     from gradio.media import (
@@ -146,6 +150,7 @@ if TYPE_CHECKING:
         get_video,
     )
     from gradio.renderable import render
+    from gradio.webrtc.options import AudioChunk, VideoFrame, WebRTCOptions
     from gradio.workflow import Workflow
 
 # Names that need `gradio_components`, and where each one is defined.
@@ -271,6 +276,52 @@ _MOVED_SUBMODULES = (
     "layouts",
 )
 
+# Names whose modules import numpy, which core Gradio does without: it comes with
+# `gradio[webrtc]` or `gradio[components]`. Each one is loaded on first use.
+_NEEDS_NUMPY: dict[str, tuple[str, str | None]] = {
+    "streaming": ("gradio.streaming", None),
+    "WebRTCOptions": ("gradio.webrtc.options", "WebRTCOptions"),
+    "VideoFrame": ("gradio.webrtc.options", "VideoFrame"),
+    "AudioChunk": ("gradio.webrtc.options", "AudioChunk"),
+}
+try:
+    _has_numpy = importlib.util.find_spec("numpy") is not None
+except (ImportError, ValueError):
+    _has_numpy = False
+
+
+def _load_needing_numpy(name: str, caller: "FrameType | None" = None):
+    import dis
+    import importlib
+
+    module_name, attribute = _NEEDS_NUMPY[name]
+    try:
+        module = importlib.import_module(module_name)
+    except ModuleNotFoundError as error:
+        if error.name != "numpy":
+            raise
+        message = (
+            f"`gr.{name}` needs numpy. Install it with the `webrtc` extra: "
+            'pip install "gradio[webrtc]"'
+        )
+        # As for the components: an AttributeError for attribute access, so that
+        # `hasattr()` and `inspect.getmembers(gr)` work, but an ImportError for
+        # `from gradio import ...`, where Python would replace an AttributeError
+        # with its own message.
+        instruction = None
+        if caller is not None:
+            try:
+                instruction = dis.opname[caller.f_code.co_code[caller.f_lasti]]
+            except Exception:
+                pass
+        if instruction == "IMPORT_FROM":
+            raise ImportError(message) from error
+        raise AttributeError(message) from error
+    value = module if attribute is None else getattr(module, attribute)
+    globals()[name] = value
+    return value
+
+
 _components_loaded = False
 
 
@@ -300,11 +351,18 @@ def __getattr__(name: str):
 
         _components_package.require(f"`gr.{name}`")
         return importlib.import_module(f"gradio_components.{name}")
+    if name in _NEEDS_NUMPY:
+        import sys
+
+        return _load_needing_numpy(name, sys._getframe(1))
     raise AttributeError(f"module 'gradio' has no attribute {name!r}")
 
 
 def __dir__():
-    return sorted(set(globals()) | set(_NEEDS_COMPONENTS))
+    names = set(globals()) | set(_NEEDS_COMPONENTS)
+    if _has_numpy:
+        names |= set(_NEEDS_NUMPY)
+    return sorted(names)
 
 
 def _load_components() -> None:
@@ -324,6 +382,9 @@ def _load_components() -> None:
         _load(name)
     # not exported from `gr`, but registered as components and documented
     importlib.import_module("gradio_components._simple_templates")
+    # numpy comes with `gradio_components`; loading these registers their docs
+    for name in _NEEDS_NUMPY:
+        _load_needing_numpy(name)
 
     # `gradio.components.Textbox` and `from gradio.components import *`, as before
     package = importlib.import_module("gradio_components")
@@ -465,6 +526,9 @@ __all__ = [
     "Warning",
     "WaveformOptions",
     "WebcamOptions",
+    "WebRTCOptions",
+    "VideoFrame",
+    "AudioChunk",
     "WatermarkOptions",
     "__version__",
     "close_all",
@@ -497,5 +561,9 @@ __all__ = [
 if not _components_package.is_installed():
     # so that `from gradio import *` works with core Gradio alone
     __all__ = [name for name in __all__ if name not in _NEEDS_COMPONENTS]  # noqa: PLE0605
+
+if not _has_numpy:
+    # likewise without numpy
+    __all__ = [name for name in __all__ if name not in _NEEDS_NUMPY]  # noqa: PLE0605
 
 App = Server

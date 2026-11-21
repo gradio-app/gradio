@@ -24,6 +24,12 @@
 		show_label?: boolean;
 		webcam_options: WebcamOptions;
 		include_audio: boolean;
+		stream_transport?: string | null;
+		live_stream?: MediaStream | null;
+		stream_state?: "open" | "waiting" | "closed" | "ended";
+		queue_detail?: string | null;
+		onlivestream?: (detail: { media: MediaStream; mirror?: boolean }) => void;
+		onclose_stream?: () => void;
 		autoplay: boolean;
 		root: string;
 		i18n: I18nFormatter;
@@ -63,6 +69,12 @@
 		show_label = true,
 		webcam_options,
 		include_audio,
+		stream_transport = null,
+		live_stream = null,
+		stream_state = "closed",
+		queue_detail = null,
+		onlivestream,
+		onclose_stream,
 		autoplay,
 		root,
 		i18n,
@@ -156,6 +168,13 @@
 					mirror_webcam={webcam_options.mirror}
 					webcam_constraints={webcam_options.constraints}
 					{include_audio}
+					streaming={!!stream_transport}
+					{stream_transport}
+					{live_stream}
+					{stream_state}
+					{queue_detail}
+					{onlivestream}
+					{onclose_stream}
 					mode="video"
 					onerror={(detail) => onerror?.(detail)}
 					oncapture={(detail) => handle_capture({ detail } as CustomEvent)}

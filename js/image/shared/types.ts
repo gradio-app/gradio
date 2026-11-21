@@ -23,6 +23,8 @@ export interface ImageProps {
 	pending: boolean;
 	streaming: boolean;
 	stream_every: number;
+	/** Set by .stream(transport=...) */
+	stream_transport?: string | null;
 	input_ready: boolean;
 	placeholder: string;
 	watermark: FileData | null;

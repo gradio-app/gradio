@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
+	import { onDestroy, untrack } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { BlockLabel, ShareButton, CustomButton } from "@gradio/atoms";
@@ -12,6 +12,7 @@
 	import type { I18nFormatter } from "js/core/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
+	import LiveAudio from "../shared/LiveAudio.svelte";
 	import { init_media_recorder } from "../streaming/media_recorder";
 	import type { IMediaRecorderConstructor } from "extendable-media-recorder";
 	import { SelectSource } from "@gradio/atoms";
@@ -34,6 +35,9 @@
 		sources = ["microphone", "upload"],
 		pending = false,
 		streaming = false,
+		stream_transport = null,
+		live_stream = null,
+		queue_detail = null,
 		i18n,
 		waveform_settings,
 		trim_region_settings = {},
@@ -57,6 +61,7 @@
 		stream_state = "closed",
 		onchange,
 		onstream,
+		onlivestream,
 		onedit,
 		onplay,
 		onpause,
@@ -86,6 +91,9 @@
 			| ["upload", "microphone"];
 		pending?: boolean;
 		streaming?: boolean;
+		stream_transport?: string | null;
+		live_stream?: MediaStream | null;
+		queue_detail?: string | null;
 		i18n: I18nFormatter;
 		waveform_settings: Record<string, any>;
 		trim_region_settings?: Record<string, any>;
@@ -106,9 +114,11 @@
 		initial_value?: FileData | null;
 		playback_position?: number;
 		time_limit?: number | null;
-		stream_state?: "open" | "waiting" | "closed";
+		stream_state?: "open" | "waiting" | "closed" | "ended";
 		onchange?: (value: FileData | null) => void;
 		onstream?: (value: FileData) => void;
+		/** A WebRTC stream starts: the microphone's media, sent over its own connection */
+		onlivestream?: (detail: { media: MediaStream; mirror?: boolean }) => void;
 		onedit?: () => void;
 		onplay?: () => void;
 		onpause?: () => void;
@@ -192,6 +202,8 @@
 
 	onDestroy(() => {
 		destroyed = true;
+		// A transport stream would otherwise keep its place until time_limit
+		if (streaming && stream_transport && recording) onclose_stream?.();
 		if (streaming && recorder && recorder.state !== "inactive") {
 			recorder.stop();
 		}
@@ -220,7 +232,9 @@
 		}
 		if (stream == null) return;
 		media_stream = stream;
-		if (streaming) {
+		if (streaming && stream_transport) {
+			// The media goes over the transport's own connection
+		} else if (streaming) {
 			recorder = new streaming_media_recorder(stream, {
 				mimeType: "audio/wav"
 			});
@@ -293,6 +307,10 @@
 		}
 
 		header = undefined;
+		if (streaming && stream_transport) {
+			onlivestream?.({ media: media_stream });
+			return;
+		}
 		if (streaming && recorder.state != "recording") {
 			recorder.start(stream_every * 1000);
 		}
@@ -335,6 +353,39 @@
 		if (!recording && recorder && mode !== "") stop();
 	});
 
+	// What a WebRTC stream sends back (not the local microphone)
+	const remote = $derived(live_stream);
+
+	// A stream without transport= that its function ended stops recording, as
+	// Stop does, instead of joining the queue again with the next chunk. Only
+	// stream_state is tracked, so that the next take's Record, which comes
+	// while the state is still "ended", is not stopped again.
+	$effect(() => {
+		if (!stream_transport && stream_state === "ended") {
+			untrack(() => {
+				if (recording) stop();
+			});
+		}
+	});
+
+	// A WebRTC stream that ended on the server (error, time limit)
+	// releases the microphone and leaves the control ready to record again
+	let stream_started = false;
+	$effect(() => {
+		if (!stream_transport) return;
+		if (stream_state === "open" || stream_state === "waiting") {
+			stream_started = true;
+		} else if (stream_started) {
+			stream_started = false;
+			if (recording) {
+				recording = false;
+				take_announced = false;
+				release_media_stream();
+				onstop_recording?.();
+			}
+		}
+	});
+
 	$effect(() => {
 		if (recording && recorder) record();
 	});
@@ -360,6 +411,7 @@
 		{#if active_source === "microphone"}
 			<ModifyUpload {i18n} onclear={clear} />
 			{#if streaming}
+				{#if remote}<LiveAudio stream={remote} />{/if}
 				<StreamAudio
 					{record}
 					{recording}
@@ -369,6 +421,7 @@
 					{waveform_options}
 					{microphone_options}
 					waiting={stream_state === "waiting"}
+					{queue_detail}
 				/>
 			{:else}
 				<AudioRecorder

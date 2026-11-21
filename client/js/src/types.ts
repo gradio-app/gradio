@@ -113,7 +113,7 @@ export interface SubmitIterable<T> extends AsyncIterable<T> {
 	send_chunk: (payload: Record<string, unknown>) => void;
 	wait_for_id: () => Promise<string | null>;
 	acknowledge: () => Promise<void>;
-	close_stream: () => void;
+	close_stream: (options?: { read_to_end?: boolean }) => void;
 }
 
 export type PredictReturn<T = unknown> = {
@@ -305,9 +305,22 @@ export interface Dependency {
 	connection: "stream" | "sse";
 	time_limit: number;
 	stream_every: number;
+	/** Set by .stream(transport=...) */
+	transport?: StreamTransport | null;
 	like_user_message: boolean;
 	event_specific_args: string[];
 	component_prop_inputs: number[];
+}
+
+/** How a WebRTC stream connects (see .stream(transport=...)). */
+export interface StreamTransport {
+	type: "webrtc";
+	modality: "video" | "audio" | "audio-video";
+	mode: "send-receive" | "send" | "receive";
+	media_output: number | null;
+	media_input?: number | null;
+	/** Passed to `RTCRtpSender.setParameters` for the tracks the page sends. */
+	rtp_params?: Record<string, any>;
 }
 
 export interface DependencyTypes {
@@ -448,6 +461,10 @@ export interface Status {
 	used_cache?: "full" | "partial" | null;
 	cache_duration?: number;
 	avg_time?: number;
+	/** The stream ended for good: its generator returned or failed, or its time ran out with `on_time_limit="stop"`. Otherwise it joins the queue again; a WebRTC stream ended for good unless it handed its slot over at its time limit. */
+	stream_ended?: boolean;
+	/** A WebRTC stream that handed its slot over at its time limit joins the queue again (see `submit()` over WebRTC); its place in line follows. */
+	rejoining?: boolean;
 }
 
 export interface StatusMessage extends Status {

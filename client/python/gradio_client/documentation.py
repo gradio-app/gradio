@@ -70,6 +70,7 @@ _module_prefixes = [
     ("gradio.renderable", "renderable"),
     ("gradio.validators", "validators"),
     ("gradio.caching", "helpers"),
+    ("gradio.webrtc", "helpers"),
 ]
 
 

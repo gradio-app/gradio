@@ -389,7 +389,8 @@ export function handle_message(
 						duration: data.output.duration as number,
 						stage: "error",
 						code: data.code,
-						success: data.success
+						success: data.success,
+						stream_ended: data.stream_ended
 					}
 				};
 			}
@@ -406,7 +407,8 @@ export function handle_message(
 						: undefined,
 					used_cache: data.used_cache,
 					cache_duration: data.cache_duration,
-					avg_time: data.avg_time
+					avg_time: data.avg_time,
+					stream_ended: data.stream_ended
 				},
 				data: data.success ? data.output : null
 			};

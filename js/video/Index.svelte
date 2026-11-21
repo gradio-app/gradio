@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { onDestroy, tick } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import StaticVideo from "./shared/VideoPreview.svelte";
 	import Video from "./shared/InteractiveVideo.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
-	import { Gradio } from "@gradio/utils";
+	import { Gradio, QueueDetail } from "@gradio/utils";
 	import type { VideoProps, VideoEvents } from "./types";
 
 	const props = $props();
@@ -70,6 +70,11 @@
 		gradio.shared.loading_status.message = detail;
 		gradio.dispatch(level as "error" | "warning", detail);
 	}
+
+	// The place in line of a WebRTC stream that waits for its turn
+	const queue = new QueueDetail();
+	$effect(() => queue.update(gradio.shared.loading_status));
+	onDestroy(() => queue.destroy());
 </script>
 
 {#if !gradio.shared.interactive}
@@ -99,6 +104,7 @@
 
 		<StaticVideo
 			value={gradio.props.value}
+			live_stream={(gradio.props as any).live_stream ?? null}
 			subtitle={gradio.props.subtitles}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
@@ -162,6 +168,12 @@
 			{active_source}
 			webcam_options={gradio.props.webcam_options}
 			include_audio={gradio.props.include_audio}
+			stream_transport={(gradio.props as any).stream_transport ?? null}
+			live_stream={(gradio.props as any).live_stream ?? null}
+			stream_state={gradio.shared.loading_status?.stream_state}
+			queue_detail={queue.text}
+			onlivestream={(detail) => gradio.dispatch("stream" as any, detail)}
+			onclose_stream={() => gradio.dispatch("close_stream" as any)}
 			autoplay={gradio.props.autoplay}
 			root={gradio.shared.root}
 			loop={gradio.props.loop}

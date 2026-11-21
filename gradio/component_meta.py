@@ -18,10 +18,12 @@ INTERFACE_TEMPLATE = '''
     if TYPE_CHECKING:
         from gradio.components import Timer
         from gradio.components.base import Component
+        from gradio.streaming.handlers import StreamHandlerBase
+        from gradio.webrtc.options import WebRTCOptions
 
     {% for event in events %}
     def {{ event.event_name }}(self,
-        fn: Callable[..., Any] | None = None,
+        fn: Callable[..., Any] | StreamHandlerBase | None = None,
         inputs: Block | Sequence[Block] | set[Block] | None = None,
         outputs: Block | Sequence[Block] | None = None,
         api_name: str | None = None,
@@ -44,13 +46,14 @@ INTERFACE_TEMPLATE = '''
         api_description: str | None | Literal[False] = None,
         validator: Callable[..., Any] | None = None,
         inputs_kwargs: dict[str, Block] | None = None,
+        transport: Literal["webrtc"] | WebRTCOptions | None = None,
     {% for arg in event.event_specific_args %}
         {{ arg.name }}: {{ arg.type }},
     {% endfor %}
         ) -> Dependency:
         """
         Parameters:
-            fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
+            fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component. With `transport=`, it can also be a handler class from `gradio.streaming` or an instance of one, such as `ReplyOnPause(fn)`.
             inputs: list of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             inputs_kwargs: dictionary mapping function parameter names to gradio.components. The component values are passed to the function as keyword arguments.
             outputs: list of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
@@ -73,6 +76,7 @@ INTERFACE_TEMPLATE = '''
             key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
             api_description: Description of the API endpoint. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given description. If None, the function's docstring will be used as the API endpoint description. If False, then no description will be displayed in the API docs.
             validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names.
+            transport: how the media of a stream travels. None (default) sends it through the queue; "webrtc" or a `gr.WebRTCOptions` streams it over a WebRTC peer connection, for real-time audio and video. The function still takes one value per input and returns one value per output. Requires the `webrtc` extra.
         {% for arg in event.event_specific_args %}
             {{ arg.name }}: {{ arg.doc }},
         {% endfor %}

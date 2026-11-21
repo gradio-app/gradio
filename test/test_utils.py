@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import sys
@@ -21,6 +22,7 @@ from gradio import EventData, Request
 from gradio.exceptions import Error
 from gradio.utils import (
     FileSize,
+    StreamGenerator,
     SyncToAsyncIterator,
     UnhashableKeyDict,
     _parse_file_size,
@@ -33,6 +35,7 @@ from gradio.utils import (
     diff,
     download_if_url,
     error_payload,
+    function_wrapper,
     get_extension_from_file_path_or_url,
     get_function_description,
     get_function_params,
@@ -1152,3 +1155,97 @@ class TestSafeAcloseIterator:
         # After aclose, async generator should raise StopAsyncIteration
         with pytest.raises(StopAsyncIteration):
             await ag.__anext__()
+
+
+class TestStreamGenerator:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("is_async", [False, True])
+    async def test_sends_each_value_and_drops_the_first_yield(self, is_async):
+        created = []
+
+        def sync_echo():
+            created.append(True)
+            value = yield "dropped"
+            while value is not None:
+                value = yield value * 2
+
+        async def async_echo():
+            created.append(True)
+            value = yield "dropped"
+            while value is not None:
+                value = yield value * 2
+
+        stream = StreamGenerator(async_echo if is_async else sync_echo, is_async)
+        assert created == []
+        assert await stream.step(1) == 2
+        assert await stream.step(5) == 10
+        assert created == [True]
+        assert await stream.step(None) is StreamGenerator.ENDED
+        assert await stream.step(3) is StreamGenerator.ENDED
+
+    @pytest.mark.asyncio
+    async def test_close_waits_for_the_running_step(self):
+        import threading
+        import time
+
+        started = threading.Event()
+        log = []
+
+        def gen():
+            value = yield
+            try:
+                while True:
+                    started.set()
+                    time.sleep(0.2)
+                    log.append(f"step {value}")
+                    value = yield value
+            finally:
+                log.append("closed")
+
+        stream = StreamGenerator(gen, is_async=False)
+        step = asyncio.create_task(stream.step(1))
+        await asyncio.to_thread(started.wait)
+        await stream.aclose()
+        assert await step == 1
+        assert log == ["step 1", "closed"]
+        assert await stream.step(2) is StreamGenerator.ENDED
+
+    @pytest.mark.asyncio
+    async def test_an_error_ends_the_generator(self):
+        def gen():
+            yield
+            raise ValueError("bad chunk")
+
+        stream = StreamGenerator(gen, is_async=False)
+        with pytest.raises(ValueError, match="bad chunk"):
+            await stream.step(1)
+        assert await stream.step(2) is StreamGenerator.ENDED
+
+
+def test_function_wrapper_passes_sent_values_and_closes_in_context():
+    from contextlib import contextmanager
+
+    inside = []
+    log = []
+
+    @contextmanager
+    def context():
+        inside.append(True)
+        try:
+            yield
+        finally:
+            inside.pop()
+
+    def gen():
+        try:
+            value = yield "first"
+            while True:
+                value = yield value * 2
+        finally:
+            log.append(("closed", bool(inside)))
+
+    wrapped = function_wrapper(gen, context)()
+    assert next(wrapped) == "first"
+    assert wrapped.send(3) == 6
+    wrapped.close()
+    assert log == [("closed", True)]

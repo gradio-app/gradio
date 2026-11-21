@@ -98,7 +98,7 @@ export async function open_stream(this: Client): Promise<void> {
 			} else {
 				fn(_data);
 			}
-		} else {
+		} else if (!that.acknowledged_events?.has(event_id)) {
 			if (!pending_stream_messages[event_id]) {
 				pending_stream_messages[event_id] = [];
 			}

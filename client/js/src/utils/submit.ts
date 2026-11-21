@@ -10,13 +10,8 @@ import type {
 	SubmitIterable
 } from "../types";
 
-import {
-	skip_queue,
-	post_message,
-	handle_payload,
-	sign_file_urls
-} from "../helpers/data";
-import { get_zerogpu_origin } from "../helpers/zerogpu";
+import { skip_queue, handle_payload, sign_file_urls } from "../helpers/data";
+import { get_zerogpu_headers } from "../helpers/zerogpu";
 import {
 	handle_message,
 	map_data_to_params,
@@ -36,6 +31,7 @@ import { events } from "fetch-event-stream";
 import { apply_diff_stream, close_stream, streams_per_event } from "./stream";
 import { is_streaming_webcam } from "./browser_storage";
 import { clear_resumable_event, track_resumable_event } from "./session";
+import { submit_over_webrtc } from "./webrtc";
 import type { StatePayload } from "./session_store";
 import { Client } from "../client";
 import {
@@ -45,6 +41,9 @@ import {
 	update_run_history,
 	update_run_inputs
 } from "./run_history";
+
+// Late messages come within moments, so the oldest acknowledged events can be forgotten
+const MAX_ACKNOWLEDGED_EVENTS = 1000;
 
 export function submit(
 	this: Client,
@@ -91,6 +90,43 @@ export function submit(
 			api_map,
 			config
 		);
+
+		// A WebRTC stream sends its media over its own connection. Resuming one
+		// reattaches to its event like any other (the page then ends it)
+		const webrtc =
+			dependency.transport?.type === "webrtc" && !resume_event_id
+				? dependency.transport
+				: null;
+		// Named arguments (a gr.Server endpoint) in the endpoint's order
+		const transport_data =
+			webrtc && !Array.isArray(data)
+				? map_data_to_params(data, endpoint_info)
+				: data;
+		if (
+			webrtc &&
+			Array.isArray(transport_data) &&
+			typeof MediaStream !== "undefined" &&
+			// The job submit_over_webrtc() itself submits carries the stream id
+			!(
+				event_data &&
+				typeof event_data === "object" &&
+				"webrtc_id" in event_data
+			) &&
+			(webrtc.mode === "receive" ||
+				(event_data as any)?.media instanceof MediaStream ||
+				transport_data.some((value) => value instanceof MediaStream))
+		) {
+			return submit_over_webrtc.call(
+				this,
+				endpoint,
+				transport_data,
+				webrtc,
+				event_data,
+				trigger_id,
+				all_events,
+				endpoint_info?.parameters.map((param) => param.parameter_name) ?? []
+			);
+		}
 
 		// The gr.State values the server keeps in this client, for this event
 		const state_ids = new Set([...dependency.inputs, ...dependency.outputs]);
@@ -321,6 +357,18 @@ export function submit(
 		async function acknowledge(): Promise<void> {
 			if (!event_id_final) return;
 			if (!options.resume_sessions) return;
+			// The server drops the rest of an acknowledged event, so stop waiting:
+			// an event left open makes every close of the message stream reopen it.
+			unclosed_events.delete(event_id_final);
+			delete event_callbacks[event_id_final];
+			delete pending_diff_streams[event_id_final];
+			close();
+			const acknowledged = that.acknowledged_events;
+			acknowledged.add(event_id_final);
+			delete pending_stream_messages[event_id_final];
+			if (acknowledged.size > MAX_ACKNOWLEDGED_EVENTS) {
+				acknowledged.delete(acknowledged.values().next().value as string);
+			}
 			const response = await that
 				.fetch(`${config!.root}${api_prefix}/${RESET_URL}`, {
 					headers: { "Content-Type": "application/json" },
@@ -555,22 +603,7 @@ export function submit(
 		}
 
 		async function get_join_headers(): Promise<Record<string, string>> {
-			let hostname = "";
-			if (typeof window !== "undefined" && typeof document !== "undefined") {
-				hostname = window?.location?.hostname;
-			}
-
-			const origin = get_zerogpu_origin(hostname);
-
-			const is_zerogpu_iframe =
-				typeof window !== "undefined" &&
-				typeof document !== "undefined" &&
-				window.parent != window &&
-				!!origin &&
-				window.supports_zerogpu_headers;
-			const headers = is_zerogpu_iframe
-				? await post_message<Map<string, string>>("zerogpu-headers", origin)
-				: null;
+			const headers = await get_zerogpu_headers();
 			return { ...addt_headers, ...(headers || {}) } as Record<string, string>;
 		}
 
@@ -1217,8 +1250,9 @@ export function submit(
 					() => {}
 				);
 			},
-			close_stream: () => {
-				close();
+			close_stream: (options?: { read_to_end?: boolean }) => {
+				// With read_to_end, messages keep coming until the event is over
+				if (!options?.read_to_end) close();
 				post_to_event("/close", {});
 			},
 			event_id: () => event_id_final,

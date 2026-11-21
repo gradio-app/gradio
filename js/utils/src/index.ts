@@ -3,3 +3,4 @@ export * from "./url.js";
 export * from "./utils.svelte.js";
 export type * from "./types.js";
 export * from "./page_info.js";
+export * from "./queue_detail.svelte.js";

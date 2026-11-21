@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 import fastapi
 from anyio.to_thread import run_sync
 
-from gradio import caching, history, route_utils, routes
+from gradio import caching, history, route_utils, routes, utils
 from gradio.caching import CacheMissError, ProbeCache
 from gradio.data_classes import (
     PredictBodyInternal,
@@ -83,9 +83,19 @@ class Event:
         self.closed = False
         self.n_calls = 0
         self.run_time: float = 0
+        # A stream's first call, which its time limit does not count: it may
+        # include getting ready (a generator waiting for its GPU), up to the
+        # limit itself
+        self.uncounted_time: float = 0
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
         self.own_stream = False
+        # A lease whose stream the queue ended at its time limit for an event
+        # waiting for its slot: its page joins the queue again
+        self.handed_over = False
+        # Whether the page heard that the stream goes on past its time limit
+        # (see Queue._went_on)
+        self.told_it_goes_on = False
 
     @property
     def streaming(self):
@@ -95,11 +105,52 @@ class Event:
     def is_finished(self):
         if not self.streaming:
             raise ValueError("Cannot access if_finished during a non-streaming event")
-        if self.closed:
-            return True
-        if self.fn.time_limit is None:
+        return self.closed or self.out_of_time
+
+    @property
+    def out_of_time(self) -> bool:
+        """Whether the queue ends a stream because its time limit ran out (a
+        lease enforces its own)."""
+        if self.fn.time_limit is None or self.fn.lease:
             return False
-        return self.run_time >= self.fn.time_limit
+        return self.run_time - self.uncounted_time >= self.fn.time_limit
+
+
+class EventHandle:
+    """A queued event as the function running in it sees it, for work that
+    outlives a single call of the event (a WebRTC stream). With
+    executor="process", the app's process gets a stand-in with the same
+    methods, which relays them to the gateway's queue."""
+
+    def __init__(self, event: Event, queue: Queue):
+        self._event = event
+        self._queue = queue
+        self.id = event._id
+        self.session_hash: str | None = event.session_hash
+        group = queue.event_queue_per_concurrency_id.get(event.concurrency_id)
+        self.concurrency_limit = group.concurrency_limit if group else None
+
+    def wake(self) -> None:
+        """Has the queue step the event's run again (a stream event)."""
+        self._event.signal.set()
+
+    def finish(self) -> None:
+        """Makes the step running now the run's last: its outputs go out with
+        the event's completion, as a stream's last outputs do."""
+        self._event.closed = True
+
+    def stream_admitted(self, stream_id: str) -> None:
+        """Names the media stream the event runs, which its signalling asks
+        for. With threads, signalling reaches the one process anyway."""
+
+    def time_up(self) -> None:
+        """The stream's time limit ran out with on_time_limit="rejoin" and the
+        stream went on: the queue ends it if an event waits for its slot."""
+        self._queue.time_up(self._event)
+
+    @property
+    def live(self) -> bool:
+        return self._event.alive and self.id in self._queue.event_ids_to_events
 
 
 class EventQueue:
@@ -221,6 +272,7 @@ class Queue:
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = []
+        self.streams_waiting_for_worker = 0
         self.delete_lock = asyncio.Lock()
         self.server_app = None
         self.server_pid: int | None = None
@@ -320,6 +372,13 @@ class Queue:
             if self._event_forwarder is not None:
                 await asyncio.to_thread(self._event_forwarder.flush)
 
+    def event_handle(self, event_id: str | None) -> EventHandle | None:
+        if (worker := self.blocks._process_worker) is not None:
+            # The gateway's queue owns the event; RemoteEventHandle stands in
+            return cast("EventHandle | None", worker.event_handle(event_id))
+        event = self.event_ids_to_events.get(event_id or "")
+        return EventHandle(event, self) if event is not None else None
+
     def create_event_queue_for_fn(self, block_fn: BlockFunction):
         concurrency_id = block_fn.concurrency_id
         concurrency_limit: int | None
@@ -356,7 +415,17 @@ class Queue:
         # with such a client: the history would otherwise grow without bound
         resumable = self.resumable_sessions.get(event.session_hash)
         if resumable is not None and resumable.acknowledges:
-            resumable.history.append(event_message)
+            # Stream outputs are whole values, so keep only the latest of each
+            if event_message.msg == ServerMessage.process_streaming:
+                _merge_into_history(resumable.history, event_message)
+            elif event.fn.connection == "stream" and event_message.msg in (
+                ServerMessage.log,
+                ServerMessage.progress,
+            ):
+                # Not kept for a stream: they would pile up per chunk
+                pass
+            else:
+                resumable.history.append(event_message)
         if event.own_stream:
             own_messages = self.pending_messages_per_event.get(event._id)
             if own_messages is not None:
@@ -377,13 +446,18 @@ class Queue:
         if messages is None:
             messages = AsyncQueue()
             self.pending_messages_per_session[session_hash] = messages
+        resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
+        history = resumable.history
+        kept = {id(message) for message in history}
         waiting: list[EventMessage] = []
         while not messages.empty():
             message = messages.get_nowait()
-            if message.event_id not in requested_ids:
+            if message.event_id not in requested_ids or (
+                # A stream's logs are not in its history (see `send_message`),
+                # but a page that reconnects while the stream runs shows them
+                message.msg == ServerMessage.log and id(message) not in kept
+            ):
                 waiting.append(message)
-        resumable = self.resumable_sessions.setdefault(session_hash, ResumableSession())
-        history = resumable.history
         known_ids = {
             message.event_id for message in history if message.event_id is not None
         }
@@ -463,10 +537,19 @@ class Queue:
     def move_to_session_stream(self, event_id: str, session_hash: str) -> None:
         """Hands an sse_v4 event whose request closed early over to its session's
         `queue/data` stream, where a page resuming it after a refresh reads the
-        rest. Everything it sent so far is already in the session's history."""
-        self.pending_messages_per_event.pop(event_id, None)
+        rest. Everything it sent so far is already in the session's history,
+        except a stream's logs (see `send_message`), so the ones still waiting
+        move with it."""
+        own_messages = self.pending_messages_per_event.pop(event_id, None)
         if session_hash not in self.pending_messages_per_session:
             self.pending_messages_per_session[session_hash] = AsyncQueue()
+        resumable = self.resumable_sessions.get(session_hash)
+        if own_messages is not None and resumable is not None:
+            kept = {id(message) for message in resumable.history}
+            # asyncio.Queue keeps its items in _queue, which has no public view
+            for message in list(own_messages._queue):  # type: ignore[attr-defined]
+                if message.msg == ServerMessage.log and id(message) not in kept:
+                    self.pending_messages_per_session[session_hash].put_nowait(message)
         event = self.event_ids_to_events.get(event_id)
         if event is not None:
             event.own_stream = False
@@ -585,6 +668,7 @@ class Queue:
                         gr_request=gr_request,
                         fn=fn,
                         root_path=root_path,
+                        run=route_utils.RunStep.alone(),
                     )
                     for fn in unload_fns
                 ),
@@ -689,6 +773,7 @@ class Queue:
                     gr_request=gr_request,
                     fn=validator_fn,
                     root_path=root_path,
+                    run=route_utils.RunStep.alone(),
                 )
 
                 validation_response: list[dict[str, Any]] | dict[str, Any] | None = (
@@ -758,6 +843,8 @@ class Queue:
                         fn=fn,
                         root_path=root_path,
                         record_history=fn.connection != "stream",
+                        # A cache hit replays the whole run, even for a stream
+                        run=route_utils.RunStep.start(),
                     )
                     while response and response.get("is_generating", False):
                         self.send_message(
@@ -774,6 +861,7 @@ class Queue:
                             fn=fn,
                             root_path=root_path,
                             record_history=fn.connection != "stream",
+                            run=route_utils.RunStep.next(),
                         )
                 cache_duration = time.time() - cache_start
                 avg_time = (
@@ -821,7 +909,8 @@ class Queue:
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
         return True, event._id, "success"
 
-    async def remove_from_queue(self, event_id: str):
+    async def remove_from_queue(self, event_id: str) -> bool:
+        """Removes an event that is still waiting in line; False if it is not."""
         event = self.event_ids_to_events.get(event_id)
         if event:
             async with self.delete_lock:
@@ -830,7 +919,11 @@ class Queue:
                     q.queue.remove(event)
                     self.event_ids_to_events.pop(event_id, None)
                 except ValueError:
-                    pass
+                    return False
+            if self.live_updates:
+                self.broadcast_estimations(event.concurrency_id)
+            return True
+        return False
 
     def _cancel_asyncio_tasks(self):
         for task in list(self._asyncio_tasks):
@@ -890,13 +983,18 @@ class Queue:
                     await asyncio.sleep(self.sleep_when_free)
                     continue
 
-                if None not in self.active_jobs:
+                # Streams waiting to resume take free slots before new events
+                if None not in self.active_jobs or self.streams_waiting_for_worker:
                     await asyncio.sleep(self.sleep_when_free)
                     continue
 
                 # Using mutex to avoid editing a list in use
                 async with self.delete_lock:
-                    event_batch = self.get_events()
+                    # A stream may have taken the free slot while this waited
+                    # for the lock
+                    event_batch = (
+                        self.get_events() if None in self.active_jobs else None
+                    )
 
                 if event_batch:
                     events, batch, concurrency_id = event_batch
@@ -946,11 +1044,14 @@ class Queue:
                 continue
 
             for event in events:
-                if event.progress_pending and event.progress:
-                    event.progress_pending = False
-                    self.send_message(event, event.progress)
+                self.send_pending_progress(event)
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
+
+    def send_pending_progress(self, event: Event) -> None:
+        if event.progress_pending and event.progress:
+            event.progress_pending = False
+            self.send_message(event, event.progress)
 
     def dispatch_event_message(
         self,
@@ -968,15 +1069,20 @@ class Queue:
         if (worker := self.blocks._process_worker) is not None:
             worker.forward_message(event_id, message)
             return
-        events = [evt for job in self.active_jobs if job is not None for evt in job]
-        for event in events:
-            if event._id == event_id:
-                match message:
-                    case ProgressMessage():
+        match message:
+            case ProgressMessage():
+                events = [
+                    evt for job in self.active_jobs if job is not None for evt in job
+                ]
+                for event in events:
+                    if event._id == event_id:
                         event.progress = message
                         event.progress_pending = True
-                    case _:
-                        self.send_message(event, message)
+            case _:
+                # Not only running events: a stream's handler logs between calls
+                event = self.event_ids_to_events.get(event_id)
+                if event is not None:
+                    self.send_message(event, message)
 
     def set_progress(
         self,
@@ -1036,12 +1142,16 @@ class Queue:
 
         for event in events.values():
             event.alive = False
+            # Wake a waiting stream; a lease's wait has no timeout
+            event.signal.set()
 
+        left_lines: set[str] = set()
         async with self.delete_lock:
             for event in events.values():
                 queue = self.event_queue_per_concurrency_id[event.concurrency_id].queue
                 if event in queue:
                     queue.remove(event)
+                    left_lines.add(event.concurrency_id)
                 self.event_ids_to_events.pop(event._id, None)
 
             if session_hash:
@@ -1053,6 +1163,9 @@ class Queue:
                     pending_ids.discard(event_id)
                     if not pending_ids:
                         self.pending_event_ids_session.pop(current_session_hash)
+        if self.live_updates:
+            for concurrency_id in left_lines:
+                self.broadcast_estimations(concurrency_id)
 
     async def notify_clients(self) -> None:
         """
@@ -1074,11 +1187,12 @@ class Queue:
         if event_queue.current_concurrency == event_queue.concurrency_limit:
             expected_end_times = []
             for fn, start_times in event_queue.start_times_per_fn.items():
-                if fn not in self.process_time_per_fn:
+                # A stream holds its slot until it is closed or hits its time limit
+                if fn.connection == "stream" and fn.time_limit is not None:
+                    process_time = fn.time_limit
+                elif fn.connection == "stream" or fn not in self.process_time_per_fn:
                     time_till_available_worker = None
                     break
-                if fn.connection == "stream":
-                    process_time = fn.time_limit or 0
                 else:
                     process_time = self.process_time_per_fn[fn].avg_time
                 expected_end_times += [
@@ -1094,6 +1208,8 @@ class Queue:
             process_time_for_fn = (
                 self.process_time_per_fn[event.fn].avg_time
                 if event.fn in self.process_time_per_fn
+                else 0
+                if event.streaming
                 else None
             )
 
@@ -1120,13 +1236,15 @@ class Queue:
                 )
             if event_queue.concurrency_limit is None:
                 wait_so_far = 0
+            elif event.streaming and event.fn.time_limit is None:
+                wait_so_far = None
             elif wait_so_far is not None and process_time_for_fn is not None:
-                delta = process_time_for_fn / event_queue.concurrency_limit
-                if event.streaming:
-                    delta = (
-                        time_till_available_worker or 0
-                    ) / event_queue.concurrency_limit
-                wait_so_far += delta
+                held_for = (
+                    cast(float, event.fn.time_limit)
+                    if event.streaming
+                    else process_time_for_fn
+                )
+                wait_so_far += held_for / event_queue.concurrency_limit
             else:
                 wait_so_far = None
 
@@ -1141,46 +1259,78 @@ class Queue:
         return "signal"
 
     @staticmethod
-    async def timeout(timeout: float) -> str:
-        await asyncio.sleep(timeout)
+    async def timeout(timeout: float | None) -> str:
+        if timeout is None:
+            await asyncio.Event().wait()
+        else:
+            await asyncio.sleep(timeout)
         return "timeout"
 
     @staticmethod
     async def wait_for_event_or_timeout(
-        event: Event, timeout: float
+        event: Event, timeout: float | None
     ) -> Literal["signal", "timeout"]:
         t1 = asyncio.create_task(Queue.wait_for_event(event))
         t2 = asyncio.create_task(Queue.timeout(timeout))
-        done, _ = await asyncio.wait(
-            [t1, t2],
-            return_when=asyncio.FIRST_COMPLETED,
-        )
-        done = [d.result() for d in done]
+        try:
+            done, _ = await asyncio.wait(
+                [t1, t2],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+        finally:
+            # Otherwise the losing task sleeps out the whole timeout
+            for task in (t1, t2):
+                task.cancel()
         event.signal.clear()
-        return cast(Literal["signal", "timeout"], done[0])
+        # Both may be done: a wake wins
+        return "signal" if t1 in done else "timeout"
 
     @staticmethod
     async def wait_for_batch(
-        events: list[Event], timeouts: list[float]
+        events: list[Event], timeouts: list[float | None]
     ) -> tuple[list[Event], list[Event]]:
         tasks = []
         for event, timeout in zip(events, timeouts, strict=False):
             tasks.append(
                 asyncio.create_task(Queue.wait_for_event_or_timeout(event, timeout))
             )
-        done, _ = await asyncio.wait(
-            tasks,
-            return_when=asyncio.ALL_COMPLETED,
-        )
-        done = [d.result() for d in done]
+        try:
+            await asyncio.wait(
+                tasks,
+                return_when=asyncio.ALL_COMPLETED,
+            )
+        finally:
+            # On /cancel, the waits must not outlive the event's task
+            for task in tasks:
+                task.cancel()
+        # In the order of `events`: the set that asyncio.wait returns has none
+        results = [task.result() for task in tasks]
         awake_events = []
         closed_events = []
-        for result, event in zip(done, events, strict=False):
+        for result, event in zip(results, events, strict=False):
             if result == "signal":
                 awake_events.append(event)
             else:
                 closed_events.append(event)
         return awake_events, closed_events
+
+    async def take_worker_back(self, job: list[Event]) -> bool:
+        """
+        Waits for a worker slot for a stream that got its next chunk. Returns
+        False, without a slot, when its events were dropped meanwhile.
+        """
+        self.streams_waiting_for_worker += 1
+        try:
+            while None not in self.active_jobs:
+                if not any(event.alive for event in job):
+                    return False
+                await asyncio.sleep(self.sleep_when_free)
+            if not any(event.alive for event in job):
+                return False
+            self.active_jobs[self.active_jobs.index(None)] = job
+            return True
+        finally:
+            self.streams_waiting_for_worker -= 1
 
     async def process_events(
         self,
@@ -1191,6 +1341,7 @@ class Queue:
     ) -> None:
         awake_events: list[Event] = []
         success = False
+        job = events
         try:
             for event in events:
                 if event.alive:
@@ -1265,6 +1416,7 @@ class Queue:
                 root_path=app.root_path,
             )
             first_iteration = 0
+            uncounted = 0.0
             started_at = history.now_utc_iso()
 
             if PROFILING_ENABLED:
@@ -1288,14 +1440,33 @@ class Queue:
                     root_path=root_path,
                     record_history=fn.connection != "stream",
                     queue_event_id=queue_event_id,
+                    run=route_utils.RunStep.alone()
+                    if events[0].streaming
+                    and not fn.lease
+                    and not fn.sends_to_generator
+                    else route_utils.RunStep.start(),
                 )
                 end = time.monotonic()
                 first_iteration = end - start
+                # A stream's time limit counts from the end of its first call
+                # (A lease keeps its own clock; this only sets the countdown
+                # that the page shows)
+                uncounted = (
+                    min(first_iteration, fn.time_limit)
+                    if events[0].streaming and fn.time_limit
+                    else 0.0
+                )
                 err = None
                 for event in awake_events:
                     event.run_time += end - start
-                    if event.streaming:
-                        response["is_generating"] = not event.is_finished
+                    event.uncounted_time = uncounted
+                    if event.streaming and not fn.lease:
+                        self._extend_if_idle(fn, event)
+                        response["is_generating"] = (
+                            not event.is_finished and self._stream_goes_on(fn, event)
+                        )
+                    elif fn.lease and event.closed:
+                        response["is_generating"] = False
 
             except Exception as e:
                 if not isinstance(e, Error) or e.print_exception:
@@ -1310,6 +1481,7 @@ class Queue:
                             output=content,
                             title=content.get("title", "Error"),  # type: ignore
                             success=False,
+                            stream_ended=self._stream_ended(fn, event, False),
                         ),
                     )
                     await run_sync(
@@ -1334,7 +1506,8 @@ class Queue:
                                 success=old_response is not None,
                                 time_limit=None
                                 if not fn.time_limit
-                                else cast(int, fn.time_limit) - first_iteration
+                                else cast(int, fn.time_limit)
+                                - (first_iteration - uncounted)
                                 if event.streaming
                                 else None,
                             ),
@@ -1345,22 +1518,44 @@ class Queue:
                     try:
                         start = time.monotonic()
                         if awake_events[0].streaming:
+                            # Free the worker slot while waiting for the next chunk.
+                            # The progress loop skips events without a slot, so flush now.
+                            for event in awake_events:
+                                self.send_pending_progress(event)
+                            self.active_jobs[self.active_jobs.index(job)] = None
                             awake_events, closed_events = await Queue.wait_for_batch(
                                 awake_events,
                                 # We need to wait for all of the events to have the latest input data
                                 # the max time is the time limit of the function or 30 seconds (arbitrary) but should
                                 # never really take that long to make a request from the client to the server unless
                                 # the client disconnected.
-                                [cast(float, fn.time_limit or 30) - first_iteration]
+                                [
+                                    None
+                                    if fn.lease
+                                    else cast(float, fn.time_limit or 30)
+                                    - (first_iteration - uncounted)
+                                ]
                                 * len(awake_events),
                             )
+                            # The last response already went out, so do not
+                            # report its gr.State changes again (.change would rerun)
+                            response = {**response, "changed_state_ids": []}
                             for closed_event in closed_events:
+                                # Its wait for a chunk timed out: with a time
+                                # limit, that is the limit running out
                                 self.send_message(
                                     closed_event,
                                     ProcessCompletedMessage(
-                                        output=response, success=True
+                                        output=response,
+                                        success=True,
+                                        stream_ended=fn.time_limit is not None
+                                        and fn.on_time_limit == "stop",
                                     ),
                                 )
+                            # Woken because its session dropped it
+                            awake_events = [
+                                event for event in awake_events if event.alive
+                            ]
                             # Closed while waiting, so there is no new chunk and
                             # the last response is the final one
                             if awake_events and all(
@@ -1369,6 +1564,14 @@ class Queue:
                                 break
                         if not awake_events:
                             break
+                        if awake_events[0].streaming:
+                            if not await self.take_worker_back(job):
+                                break
+                            awake_events = [
+                                event for event in awake_events if event.alive
+                            ]
+                            if not awake_events:
+                                break
                         # Re-read the event's fn, which may have been swapped out
                         # if the app was hot-reloaded while this event was generating
                         fn = awake_events[0].fn
@@ -1392,12 +1595,23 @@ class Queue:
                             root_path=root_path,
                             record_history=fn.connection != "stream",
                             queue_event_id=queue_event_id,
+                            run=route_utils.RunStep.alone(first=False)
+                            if awake_events[0].streaming
+                            and not fn.lease
+                            and not fn.sends_to_generator
+                            else route_utils.RunStep.next(),
                         )
                         end = time.monotonic()
                         for event in awake_events:
                             event.run_time += end - start
-                            if event.streaming:
-                                response["is_generating"] = not event.is_finished
+                            if event.streaming and not fn.lease:
+                                self._extend_if_idle(fn, event)
+                                response["is_generating"] = (
+                                    not event.is_finished
+                                    and self._stream_goes_on(fn, event)
+                                )
+                            elif fn.lease and event.closed:
+                                response["is_generating"] = False
                     except Exception as e:
                         if not isinstance(e, Error) or e.print_exception:
                             traceback.print_exc()
@@ -1431,6 +1645,7 @@ class Queue:
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
+                            stream_ended=self._stream_ended(fn, event, success),
                             used_cache=used_cache,
                             cache_duration=cache_source.get("duration"),  # type: ignore[arg-type]
                             avg_time=cache_source.get("average_duration"),  # type: ignore[arg-type]
@@ -1458,6 +1673,7 @@ class Queue:
                         ProcessCompletedMessage(
                             output=output,
                             success=success,
+                            stream_ended=self._stream_ended(fn, event, success),
                             used_cache=used_cache,
                             cache_duration=output.get("duration"),  # type: ignore[arg-type]
                             avg_time=output.get("average_duration"),  # type: ignore[arg-type]
@@ -1520,7 +1736,9 @@ class Queue:
                 if not start_times:
                     del event_queue.start_times_per_fn[fn]
             try:
-                self.active_jobs[self.active_jobs.index(events)] = None
+                # The slot holds the list the job started with; `events` may
+                # since have dropped events that were already gone
+                self.active_jobs[self.active_jobs.index(job)] = None
             except ValueError:
                 # `events` can be absent from `self.active_jobs`
                 # when this coroutine is called from the `join_queue` endpoint handler in `routes.py`
@@ -1558,6 +1776,90 @@ class Queue:
                 )
 
                 self.event_ids_to_events.pop(event._id, None)
+
+    def _extend_if_idle(self, fn: BlockFunction, event: Event) -> None:
+        """With on_time_limit="rejoin", a stream whose time ran out goes on
+        unless an event waits for its slot: its clock starts the next period
+        of time_limit where the last one ended, as the page's countdown bar
+        starts over when it runs out. With an event waiting for a slot of its
+        concurrency group, it ends, and the page joins the queue again with
+        its next chunk."""
+        if fn.on_time_limit != "rejoin" or event.closed or not event.out_of_time:
+            return
+        if self._slot_wanted(event):
+            return
+        time_limit = cast(float, fn.time_limit)
+        while event.out_of_time:
+            event.uncounted_time += time_limit
+        self._went_on(event)
+
+    def _went_on(self, event: Event) -> None:
+        """A stream went on past its time limit, as nobody waits for its slot.
+        On ZeroGPU, where a large concurrency limit means that nobody ever
+        waits, it keeps using the visitor's GPU quota until they stop it: say
+        so once per stream."""
+        if event.told_it_goes_on or not utils.is_zero_gpu_space():
+            return
+        event.told_it_goes_on = True
+        self.log_message(
+            event._id,
+            log="No one is waiting, so this stream keeps going past its time "
+            "limit, and keeps using your GPU quota. Stop it when you are done.",
+            title="Info",
+            level="info",
+        )
+
+    def _slot_wanted(self, event: Event) -> bool:
+        """Whether an event waits for a slot of `event`'s concurrency group: a
+        group without a limit, or with a free slot, never makes one wait."""
+        group = self.event_queue_per_concurrency_id.get(event.concurrency_id)
+        return (
+            group is not None
+            and bool(group.queue)
+            and group.concurrency_limit is not None
+            and group.current_concurrency >= group.concurrency_limit
+        )
+
+    def time_up(self, event: Event) -> None:
+        """A lease's time limit ran out with on_time_limit="rejoin" (see
+        `EventHandle.time_up`): ends its stream if an event waits for its
+        slot, as the queue ends a stream that it runs itself."""
+        close_stream = event.fn.close_stream
+        if close_stream is None or event.closed:
+            return
+        if not self._slot_wanted(event):
+            self._went_on(event)
+            return
+        event.handed_over = True
+        closed = close_stream(event._id)
+        if inspect.isawaitable(closed):
+            task = asyncio.ensure_future(closed)
+            self._asyncio_tasks.add(task)
+            task.add_done_callback(self._asyncio_tasks.discard)
+
+    def _stream_goes_on(self, fn: BlockFunction, event: Event) -> bool:
+        """Whether a stream waits for its next chunk: always, unless its
+        function is a generator that has returned (its stored iterator is
+        then None)."""
+        if not fn.sends_to_generator or self.server_app is None:
+            return True
+        return self.server_app.iterators.get(event._id) is not None
+
+    def _stream_ended(self, fn: BlockFunction, event: Event, success: bool) -> bool:
+        """Whether a stream ended for good, so the page stops sending instead
+        of joining the queue again: its generator returned or failed (a new
+        stream from the same page would only start it again), or its time ran
+        out with on_time_limit="stop". Not when the page closed it. A lease (a
+        WebRTC stream) ended for good unless it handed its slot over."""
+        if not event.streaming:
+            return False
+        if fn.lease:
+            return not event.handed_over
+        if fn.on_time_limit == "stop" and not event.closed and event.out_of_time:
+            return True
+        if not fn.sends_to_generator:
+            return False
+        return not success or not self._stream_goes_on(fn, event)
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route
@@ -1651,3 +1953,72 @@ def process_validation_response(
     return all(
         x.get("is_valid", None) is True for x in validation_data
     ), validation_data
+
+
+def _merge_into_history(history: list[EventMessage], message: EventMessage) -> None:
+    """
+    Adds a streamed output to the history, taking out of the event's earlier
+    outputs what `message` sets again, and dropping those left with nothing.
+    Every message keeps its place, so a replay applies the writes of events
+    that share an output in the order the client saw them.
+    """
+    new = cast(dict, getattr(message, "output", None) or {})
+    for i in range(len(history) - 1, -1, -1):
+        previous = history[i]
+        if (
+            previous.event_id != message.event_id
+            or previous.msg != ServerMessage.process_streaming
+        ):
+            continue
+        old = cast(dict, getattr(previous, "output", None) or {})
+        rest = _output_without(old, new)
+        if not _sets_anything(rest):
+            del history[i]
+        elif rest != old:
+            # The message may still be waiting to go to the client as it is
+            history[i] = previous.model_copy(update={"output": rest})
+    if _sets_anything(new):
+        history.append(message)
+
+
+def _output_without(old: dict, new: dict) -> dict:
+    """What applying `old` sets that applying `new` afterwards does not."""
+    new_data = new.get("data") or []
+    data = [
+        _value_without(value, new_data[i]) if i < len(new_data) else value
+        for i, value in enumerate(old.get("data") or [])
+    ]
+    # A call's state and changed_state_ids hold only what that call changed
+    rest = {**old, "data": data}
+    if old.get("state"):
+        new_state = new.get("state") or {}
+        rest["state"] = {k: v for k, v in old["state"].items() if k not in new_state}
+    if old.get("changed_state_ids"):
+        new_changed = new.get("changed_state_ids") or []
+        rest["changed_state_ids"] = [
+            i for i in old["changed_state_ids"] if i not in new_changed
+        ]
+    if new.get("render_config") is not None:
+        rest["render_config"] = None
+    return rest
+
+
+def _value_without(old: Any, new: Any) -> Any:
+    """What an output value `old` sets that `new` afterwards does not."""
+    if isinstance(new, dict) and new.get("__type__") == "update":
+        keys = new.keys() - {"__type__"}
+    else:
+        # A plain value replaces only the value; props set before stay
+        keys = {"value"}
+    if isinstance(old, dict) and old.get("__type__") == "update":
+        return {k: v for k, v in old.items() if k not in keys}
+    return {"__type__": "update"} if "value" in keys else old
+
+
+def _sets_anything(output: dict) -> bool:
+    return bool(
+        any(value != {"__type__": "update"} for value in output.get("data") or [])
+        or output.get("state")
+        or output.get("changed_state_ids")
+        or output.get("render_config") is not None
+    )
