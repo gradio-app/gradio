@@ -1,0 +1,64 @@
+{
+ "app": "app.py",
+ "executor": "thread",
+ "rate": 80.0,
+ "seconds": 45.0,
+ "visitors": 3600,
+ "pages_loaded": 3600,
+ "errors": 1584,
+ "error_samples": [
+  "HTTPStatusError(\"Server error '503 Service Unavailable' for url 'http://127.0.0.1:7990/gradio_api/queue/join'\\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503\"",
+  "HTTPStatusError(\"Server error '503 Service Unavailable' for url 'http://127.0.0.1:7990/gradio_api/queue/join'\\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503\"",
+  "HTTPStatusError(\"Server error '503 Service Unavailable' for url 'http://127.0.0.1:7990/gradio_api/queue/join'\\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503\"",
+  "HTTPStatusError(\"Server error '503 Service Unavailable' for url 'http://127.0.0.1:7990/gradio_api/queue/join'\\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503\"",
+  "HTTPStatusError(\"Server error '503 Service Unavailable' for url 'http://127.0.0.1:7990/gradio_api/queue/join'\\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503\""
+ ],
+ "idle_page_ms_p50": 6.859250017441809,
+ "solo_fn_s_p50": 1.2973,
+ "page_ms": {
+  "n": 3600,
+  "p50": 11.357707990100607,
+  "p95": 64.86520799808204,
+  "p99": 196.6673340066336,
+  "max": 364.89525000797585
+ },
+ "page_over_1s": 0,
+ "page_ms_p50_by_10s": {
+  "0": 7,
+  "10": 10,
+  "20": 15,
+  "30": 12,
+  "40": 12
+ },
+ "join_ms": {
+  "n": 2024,
+  "p50": 2.203999989433214,
+  "p95": 17.201292008394375,
+  "p99": 44.63575000409037,
+  "max": 183.18787502357736
+ },
+ "first_update_ms": {
+  "n": 2024,
+  "p50": 1.729374984279275,
+  "p95": 19.33962499606423,
+  "p99": 39.36741701909341,
+  "max": 101.13783300039358
+ },
+ "completed": 15,
+ "throughput_per_min": 20.0,
+ "fn_s": {
+  "n": 15,
+  "p50": 1.4712,
+  "p95": 1.5886,
+  "p99": 1.5978,
+  "max": 1.5978
+ },
+ "cpu_percent": [
+  56,
+  0
+ ],
+ "rss_mb": [
+  1180,
+  19
+ ]
+}
