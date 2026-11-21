@@ -483,7 +483,9 @@ class Worker:
             "has_validator": fn.validator is not None,
             "cached": hasattr(fn.fn, "cache"),
             "parameter_names": list(fn.input_parameter_names) or parameter_names(fn.fn),
-            "eta": protocol.FORWARDED if callable(fn.eta) else fn.eta,
+            "eta": protocol.FORWARDED
+            if callable(fn.eta)
+            else (None if fn.eta is None else float(fn.eta)),
         }
 
     def reloaded(self, demo: Blocks) -> None:

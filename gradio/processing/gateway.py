@@ -753,25 +753,19 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
     return fns
 
 
-ETA_TIMEOUT = 1.0
-
-
 async def forward_eta(
     pool: Pool, fn: BlockFunction, body: PredictBodyInternal
 ) -> float | None:
     """The result of event `fn`'s `eta=` callable, called in the app's process
     that holds the event's session."""
     link = pool.for_session(body.session_hash)
-    return await asyncio.wait_for(
-        link.call(
-            "eta",
-            {
-                "fn_index": fn._id,
-                "session_hash": body.session_hash,
-                "data": body.data,
-            },
-        ),
-        ETA_TIMEOUT,
+    return await link.call(
+        "eta",
+        {
+            "fn_index": fn._id,
+            "session_hash": body.session_hash,
+            "data": body.data,
+        },
     )
 
 

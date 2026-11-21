@@ -850,6 +850,72 @@ class TestEtaHints:
         with pytest.warns(UserWarning, match="eta"):
             assert queueing.compute_eta_hint(demo.fns[0], ["a", 1]) is None
 
+    @pytest.mark.parametrize("eta", [-5, "5", float("inf"), float("nan"), True])
+    def test_invalid_eta_is_rejected_when_the_listener_is_created(self, eta):
+        with pytest.raises((TypeError, ValueError), match="eta"):
+            self.make_demo(eta)
+
+    def test_numpy_eta_is_accepted(self):
+        np = pytest.importorskip("numpy")
+        demo = self.make_demo(np.int64(5))
+        assert demo._queue.estimate_process_time(demo.fns[0]) == 5.0
+
+    @pytest.mark.parametrize(
+        "returned,expected",
+        [(float("inf"), None), (float("nan"), None), (1e300, queueing.MAX_ETA)],
+    )
+    def test_non_finite_or_huge_hints_are_rejected_or_capped(self, returned, expected):
+        demo = self.make_demo(lambda prompt, steps: returned)
+        assert queueing.compute_eta_hint(demo.fns[0], ["a", 1]) == expected
+
+    @pytest.mark.asyncio
+    async def test_slow_eta_does_not_block_the_event_loop(self):
+        def slow(prompt, steps):
+            time.sleep(3)
+            return 1
+
+        demo = self.make_demo(slow)
+        body = queueing.PredictBodyInternal(
+            data=["a", 1], fn_index=0, session_hash="s", request=None
+        )
+        ticks = 0
+
+        async def ticker():
+            nonlocal ticks
+            while True:
+                await asyncio.sleep(0.05)
+                ticks += 1
+
+        task = asyncio.create_task(ticker())
+        start = time.monotonic()
+        with patch.object(queueing, "ETA_TIMEOUT", 0.5):
+            hint = await demo._queue.request_eta_hint(demo.fns[0], body)
+        task.cancel()
+        assert hint is None
+        assert time.monotonic() - start < 2
+        assert ticks >= 5
+
+    def test_running_events_use_their_own_hint_without_history(self):
+        demo = self.make_demo(lambda prompt, steps: steps)
+        fn = demo.fns[0]
+        queue = demo._queue
+        queue.create_event_queue_for_fn(fn)
+        event_queue = queue.event_queue_per_concurrency_id[fn.concurrency_id]
+        event_queue.concurrency_limit = 1
+        event_queue.current_concurrency = 1
+        start = time.time()
+        event_queue.start_times_per_fn[fn].add(start)
+        event_queue.eta_hints_per_start_time[start] = 10.0
+
+        waiting = queueing.Event(None, fn, None, None)  # type: ignore
+        waiting.eta_hint = 2.0
+        event_queue.queue.append(waiting)
+
+        sent = []
+        with patch.object(queue, "send_message", lambda e, m: sent.append(m)):
+            queue.broadcast_estimations(fn.concurrency_id)
+        assert sent[0].rank_eta == pytest.approx(12.0, abs=0.5)
+
     def test_broadcast_uses_the_hint_of_each_queued_event(self):
         demo = self.make_demo(lambda prompt, steps: steps)
         fn = demo.fns[0]

@@ -984,6 +984,7 @@ class BlocksConfig:
             eta: a number of seconds, or a function of the raw input values returning one, used to estimate the function's run time for queue ETAs instead of the average of past runs.
         Returns: dependency information, dependency index
         """
+        utils.validate_eta(eta)
         # Support for singular parameter
         _targets = [
             (
