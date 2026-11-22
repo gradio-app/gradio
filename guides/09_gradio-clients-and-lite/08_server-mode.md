@@ -117,6 +117,24 @@ Gradio keeps the paths that its API needs: `/gradio_api`, `/config`, `/login`, `
 
 You can also mount static files under any other path, for example `app.mount("/site", StaticFiles(directory="static", html=True))`.
 
+Only static files can be mounted at `/`. Any other app mounted there (for example a FastAPI sub-application) would receive every request, including the ones for Gradio's API, so `launch()` raises an error. Mount such an app at its own path instead, such as `app.mount("/admin", admin_app)`.
+
+### Authentication
+
+If you pass `auth=` to `launch()`, Gradio protects its API: `/config` and the `/gradio_api` routes return `401` until the user has logged in. Your static files are not protected, so the page itself loads without logging in. Gradio's built-in login form is part of its own page at `/`, which your frontend replaces, so a custom frontend needs its own login flow.
+
+The simplest one is to ask for a username and password in your page and pass them to the JavaScript client, which logs in for you:
+
+```js
+const client = await Client.connect(location.origin, {
+	auth: [username, password]
+});
+```
+
+Alternatively, send them yourself as form fields named `username` and `password` in a `POST` request to `/login`. Gradio sets a session cookie, and later requests from the page are authenticated.
+
+Don't put anything private in the static folder, since those files are served to everyone.
+
 ## Custom Routes
 
 Since `gradio.Server` inherits from FastAPI, you can add any route directly:

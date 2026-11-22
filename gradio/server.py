@@ -392,14 +392,24 @@ class Server(App):
     def _check_static_mounts(self) -> None:
         """Lets `app.mount("/", StaticFiles(...))` serve the app's frontend
         without taking the paths of Gradio's API, and raises an error for
-        static files that would be served at those paths."""
+        static files that would be served at those paths, and for any other
+        app mounted at "/", which would take every path."""
         from starlette.routing import Mount
         from starlette.staticfiles import StaticFiles
 
         from gradio.route_utils import RESERVED_PATHS, RootStaticMount
 
         for i, route in enumerate(self.router.routes):
-            if not (isinstance(route, Mount) and isinstance(route.app, StaticFiles)):
+            if not isinstance(route, Mount):
+                continue
+            if not isinstance(route.app, StaticFiles):
+                if not route.path:
+                    raise ValueError(
+                        "An app mounted at '/' receives every request, so Gradio's "
+                        "own routes would not be reachable. Mount it at another "
+                        "path, such as '/app'. Only static files "
+                        "(fastapi.staticfiles.StaticFiles) can be mounted at '/'."
+                    )
                 continue
             if route.path.lstrip("/").split("/")[0] in RESERVED_PATHS:
                 raise ValueError(

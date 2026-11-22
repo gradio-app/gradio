@@ -191,7 +191,7 @@ def test_static_files_mounted_at_root_leave_gradio_routes(tmp_path, executor):
         app.get_blocks().close()
 
 
-def test_static_files_at_gradio_paths_raise(tmp_path):
+def test_mounts_that_hide_gradio_routes_raise(tmp_path):
     (tmp_path / "config").mkdir()
     app = gr.Server()
     app.mount("/", StaticFiles(directory=tmp_path, html=True))
@@ -201,4 +201,9 @@ def test_static_files_at_gradio_paths_raise(tmp_path):
     app = gr.Server()
     app.mount(f"{API_PREFIX}/files", StaticFiles(directory=tmp_path))
     with pytest.raises(ValueError, match="can't be mounted"):
+        app.launch(prevent_thread_lock=True)
+
+    app = gr.Server()
+    app.mount("/", gr.Server())
+    with pytest.raises(ValueError, match="receives every request"):
         app.launch(prevent_thread_lock=True)
