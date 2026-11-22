@@ -3,9 +3,11 @@ import time
 from collections.abc import Iterator
 from contextlib import asynccontextmanager
 
+import httpx2
 import pytest
 from fastapi import Request
 from fastapi.responses import PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 from gradio_client import Client
 
@@ -164,3 +166,44 @@ def test_server_launch_args_match_blocks_launch():
     assert not extra_params, (
         f"Parameters in Server.launch() but not in Blocks.launch(): {extra_params}"
     )
+
+
+@pytest.mark.parametrize("executor", ["thread", "process"])
+def test_static_files_mounted_at_root_leave_gradio_routes(tmp_path, executor):
+    (tmp_path / "index.html").write_text("<h1>home</h1>")
+    (tmp_path / "assets").mkdir()
+    (tmp_path / "assets" / "app.js").write_text("// app")
+    app = gr.Server()
+
+    @app.api(name="echo")
+    def echo(x: str) -> str:
+        return x
+
+    app.mount("/", StaticFiles(directory=tmp_path, html=True))
+    _, url, _ = app.launch(executor=executor, prevent_thread_lock=True)
+    try:
+        assert httpx2.get(url).text == "<h1>home</h1>"
+        assert httpx2.get(url + "assets/app.js").text == "// app"
+        assert httpx2.get(url + "missing").status_code == 404
+        assert "components" in httpx2.get(url + "config").json()
+        assert Client(url, verbose=False).predict("hi", api_name="/echo") == "hi"
+    finally:
+        app.get_blocks().close()
+
+
+def test_mounts_that_hide_gradio_routes_raise(tmp_path):
+    (tmp_path / "config").mkdir()
+    app = gr.Server()
+    app.mount("/", StaticFiles(directory=tmp_path, html=True))
+    with pytest.raises(ValueError, match="'config'"):
+        app.launch(prevent_thread_lock=True)
+
+    app = gr.Server()
+    app.mount(f"{API_PREFIX}/files", StaticFiles(directory=tmp_path))
+    with pytest.raises(ValueError, match="can't be mounted"):
+        app.launch(prevent_thread_lock=True)
+
+    app = gr.Server()
+    app.mount("/", gr.Server())
+    with pytest.raises(ValueError, match="receives every request"):
+        app.launch(prevent_thread_lock=True)
