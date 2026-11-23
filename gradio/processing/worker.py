@@ -485,7 +485,7 @@ class Worker:
             "parameter_names": list(fn.input_parameter_names) or parameter_names(fn.fn),
             "eta": protocol.FORWARDED
             if callable(fn.eta)
-            else (None if fn.eta is None else float(fn.eta)),
+            else (None if fn.eta is None else float(cast(float, fn.eta))),
         }
 
     def reloaded(self, demo: Blocks) -> None:
