@@ -1,4 +1,5 @@
 import type { Dependency, GradioEvent, StatusMessage } from "../types";
+import { spaces_storage_available } from "../helpers/spaces_storage";
 import {
 	app_scope_key,
 	apply_component_value,
@@ -52,7 +53,8 @@ export interface RunHistoryScope {
 	history_storage?: "spaces";
 }
 
-export const SPACES_STORAGE_BUCKET = "me/spaces-storage";
+/** Stands in for a bucket id: on Spaces the server picks the storage. */
+export const SPACES_STORAGE_BUCKET = "spaces";
 
 export type RunHistoryStorage =
 	| { type: "browser"; bucket_id?: string }
@@ -405,7 +407,7 @@ export async function load_run_history(
 function read_run_history_storage_impl(
 	scope: RunHistoryScope | null | undefined
 ): RunHistoryStorage {
-	if (scope?.history_storage === "spaces") {
+	if (scope?.history_storage === "spaces" && spaces_storage_available()) {
 		return { type: "bucket", bucket_id: SPACES_STORAGE_BUCKET };
 	}
 	const key = storage_key(scope);

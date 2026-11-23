@@ -123,6 +123,8 @@ You can use either a public Space or a private Space as an MCP server. If you'd 
 
 ## Authentication and Credentials
 
+If your app is launched with `auth=` (or with an `auth_dependency`), the MCP server requires the same credentials as the rest of the app, and requests without them get a `401` response. MCP clients need to send the login cookie with each request, or whatever headers your `auth_dependency` reads (e.g. an `Authorization` header). Tools, resources, and prompts then run as the logged-in user, so `request.username` is set in your functions.
+
 You may wish to authenticate users more precisely or let them provide other kinds of credentials or tokens in order to provide a custom experience for different users. 
 
 Gradio allows you to access the underlying `starlette.Request` that has made the tool call, which means that you can access headers, originating IP address, or any other information that is part of the network request. To do this, simply add a parameter in your function of the type `gr.Request`, and Gradio will automatically inject the request object as the parameter.

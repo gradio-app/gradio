@@ -1,5 +1,22 @@
 # @gradio/model3d
 
+## 0.19.3-dev.0
+
+### Dependency updates
+
+- @gradio/upload@0.19.2-dev.0
+- @gradio/client@2.8.0-dev.0
+
+## 0.20.0
+
+### Features
+
+- [#14057](https://github.com/gradio-app/gradio/pull/14057) [`ab27f92`](https://github.com/gradio-app/gradio/commit/ab27f920c293daeaec50fb1c3e21fac85e9fa308) - workflow: add 3d model node support.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/client@2.8.0
+
 ## 0.19.2
 
 ### Dependency updates

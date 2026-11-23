@@ -1,5 +1,18 @@
 # website
 
+## 0.82.0-dev.0
+
+### Features
+
+- [#13931](https://github.com/gradio-app/gradio/pull/13931) [`2c2b564`](https://github.com/gradio-app/gradio/commit/2c2b5642c3ed873bb53d1663fc2d36a6d53c00c9) - Let gr.Audio and gr.MultimodalTextbox pass media track constraints to the microphone.  Thanks @hysts!
+
+### Dependency updates
+
+- @gradio/button@0.8.5-dev.0
+- @gradio/html@0.14.2-dev.0
+- @gradio/tabitem@0.10.2-dev.0
+- @gradio/code@0.20.2-dev.0
+
 ## 0.81.2
 
 ### Dependency updates

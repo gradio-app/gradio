@@ -1,4 +1,4 @@
-from gradio.image_utils import extract_svg_content
+from gradio_components.image_utils import extract_svg_content
 
 
 def test_extract_svg_content_local_file():

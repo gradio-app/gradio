@@ -23,11 +23,11 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from gradio_client import Client
+from gradio_components.audio import _stream_encoders
 from PIL import Image
 
 import gradio as gr
 from gradio import blocks, helpers
-from gradio.components.audio import _stream_encoders
 from gradio.context import LocalContext
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
@@ -2341,7 +2341,7 @@ class TestHandleStreamingOutputs:
         # `call_process_api` and the queue find a run through
         # `app.iterators[event_id]`, which is assigned only after `process_api`
         # returns, so on a first call neither can end its streams.
-        from pydub.exceptions import CouldntDecodeError
+        from gradio._vendor.pydub.exceptions import CouldntDecodeError
 
         chunk = (
             pathlib.Path(__file__).parent / "test_files" / "audio_sample.wav"

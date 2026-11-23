@@ -28,12 +28,12 @@ import anyio
 import httpx2
 from gradio_client import Client, handle_file
 from gradio_client import utils as client_utils
+from gradio_components.workflowcanvas import WorkflowCanvas
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
 import gradio as gr
 from gradio.blocks import Blocks
-from gradio.components.workflowcanvas import WorkflowCanvas
 from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken
@@ -998,9 +998,8 @@ _ENDPOINT_OUTPUT_EXT: dict[str, str] = {
 
 
 # Legacy pipeline tags (as sent by older saved workflows and the browser
-# executor) → InferenceClient endpoint names. depth-estimation is absent on
-# purpose: InferenceClient has no such method, so it keeps its raw-POST branch
-# in call_model. Unmapped tags fall through to the chat/raw-POST fallback.
+# executor) → InferenceClient endpoint names. Unmapped tags fall through to the
+# chat/raw-POST fallback.
 _PIPELINE_TAG_TO_ENDPOINT: dict[str, str] = {
     "text-generation": "text_generation",
     "text2text-generation": "text_generation",
@@ -1251,22 +1250,6 @@ def call_model(
         task = pipeline_tag or "text-generation"
         a0 = args[0] if args else ""
         a1 = args[1] if len(args) > 1 else ""
-
-        if task == "depth-estimation":
-            headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-            resp = httpx2.post(
-                f"https://api-inference.huggingface.co/models/{model_id}",
-                headers=headers,
-                json={"inputs": _sendable_ref(a0)},
-                timeout=60,
-            )
-            resp.raise_for_status()
-            import io as _io
-
-            from PIL import Image as _Image
-
-            depth_img = _Image.open(_io.BytesIO(resp.content))
-            return json.dumps([_save_tmp(depth_img, "png")])
 
         endpoint = _PIPELINE_TAG_TO_ENDPOINT.get(task)
         if endpoint:

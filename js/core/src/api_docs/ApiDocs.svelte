@@ -81,7 +81,7 @@
 
 	let cli_flavor = $state<"hf" | "gradio">("gradio");
 
-	let cli_command = $derived(cli_flavor === "hf" ? "hf gradio" : "gradio");
+	let cli_command = $derived(cli_flavor === "hf" ? "hf gradio" : "hf-gradio");
 
 	function set_query_param(key: string, value: string) {
 		const url = new URL(window.location.href);
@@ -202,7 +202,13 @@
 	let mcp_json_stdio: any = $state();
 	let file_data_present = $state(false);
 	let selected_tools: Set<string> = $state(new Set());
-	let tool_prefix = space_id ? space_id.split("/").pop() + "_" : "";
+	// Matches the server's prefix, which sanitizes the Space name (e.g. my-space -> my_space_)
+	let tool_prefix = space_id
+		? space_id
+				.split("/")
+				.pop()!
+				.replace(/[^a-zA-Z0-9]/g, "_") + "_"
+		: "";
 
 	function remove_tool_prefix(toolName: string): string {
 		if (tool_prefix && toolName.startsWith(tool_prefix)) {
@@ -486,7 +492,7 @@
 								}}
 							>
 								<img src={gradio_logo} alt="Gradio" />
-								Gradio CLI
+								hf-gradio (pip)
 							</li>
 							<li
 								class="snippet {cli_flavor === 'hf'

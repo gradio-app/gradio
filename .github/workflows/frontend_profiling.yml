@@ -19,7 +19,7 @@ jobs:
       contents: read
       pull-requests: write
     name: "frontend-benchmark"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -113,6 +113,7 @@ jobs:
           . venv/bin/activate
           uv pip install -e client/python
           uv pip install -e ".[oauth,mcp]"
+          uv pip install -e components/python
           pnpm install --no-frozen-lockfile
           pnpm css && pnpm build
 

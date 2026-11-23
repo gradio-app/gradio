@@ -4,9 +4,9 @@ import tempfile
 from unittest.mock import MagicMock
 
 import pytest
+from gradio_components import flagging
 
 import gradio as gr
-from gradio import flagging
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -80,6 +80,20 @@ class TestDisableFlagging:
         )
         io.launch(prevent_thread_lock=True)
         io.close()
+
+
+class TestFlagMethod:
+    def test_failed_flag_re_enables_the_button(self):
+        callback = MagicMock()
+        callback.flag.side_effect = OSError("not writable")
+        flag_method = flagging.FlagMethod(callback, "Flag", None)
+        request = MagicMock(username=None)
+
+        button = flag_method(request, "input", "output")
+
+        assert isinstance(button, gr.Button)
+        assert button.value == "Error!"
+        assert button.interactive is True
 
 
 class TestInterfaceSetsUpFlagging:

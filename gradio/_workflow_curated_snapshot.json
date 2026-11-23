@@ -126,16 +126,18 @@
       }
     },
     {
-      "kind": "model",
-      "id": "depth-anything/Depth-Anything-V2-Small-hf",
+      "kind": "space",
+      "id": "depth-anything/Depth-Anything-V2",
       "task": "depth-estimation",
+      "space_category": "depth-estimation",
       "modality": "image",
       "title": "Depth Anything V2",
       "description": "Monocular depth estimation",
       "added_at": "2026-04-02T00:00:00Z",
       "featured": true,
+      "zero_gpu": true,
       "validation": {
-        "last_checked": "2026-06-08T03:14:00Z",
+        "last_checked": "2026-10-27T00:00:00Z",
         "status": "ok",
         "error": null
       }
@@ -181,7 +183,7 @@
       "id": "Helsinki-NLP/opus-mt-en-fr",
       "task": "translation",
       "modality": "text",
-      "title": "Opus EN\u2192FR",
+      "title": "Opus EN→FR",
       "description": "English-to-French translation",
       "added_at": "2026-04-02T00:00:00Z",
       "featured": false,

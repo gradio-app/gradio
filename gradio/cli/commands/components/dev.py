@@ -3,52 +3,25 @@ from __future__ import annotations
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Annotated
 
-import typer
-from rich import print
+import click
 
-import gradio
+from gradio import _components_package
 from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.components.install_component import (
     _get_executable_path,
     _get_frontend_dir,
 )
 
-gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"  # type: ignore
+gradio_template_path = _components_package.frontend_dir() / "frontend"
 
 
 def _dev(
-    app: Annotated[
-        Path,
-        typer.Argument(
-            help="The path to the app. By default, looks for demo/app.py in the current directory."
-        ),
-    ] = Path("demo") / "app.py",
-    component_directory: Annotated[
-        Path,
-        typer.Option(
-            help="The directory with the custom component source code. By default, uses the current directory."
-        ),
-    ] = Path("."),
-    host: Annotated[
-        str,
-        typer.Option(
-            help="The host to run the front end server on. Defaults to localhost.",
-        ),
-    ] = "localhost",
-    python_path: Annotated[
-        str | None,
-        typer.Option(
-            help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised."
-        ),
-    ] = None,
-    gradio_path: Annotated[
-        str | None,
-        typer.Option(
-            help="Path to gradio executable. If None, will use the default path found by `shutil.which`."
-        ),
-    ] = None,
+    app: Path = Path("demo") / "app.py",
+    component_directory: Path = Path("."),
+    host: str = "localhost",
+    python_path: str | None = None,
+    gradio_path: str | None = None,
 ):
     custom_component_analytics(
         "dev",
@@ -61,7 +34,7 @@ def _dev(
     )
     component_directory = component_directory.resolve()
 
-    print(f":recycle: [green]Launching[/] {app} in reload mode\n")
+    print(f"♻ Launching {app} in reload mode\n")
 
     node = shutil.which("node")
     if not node:
@@ -121,12 +94,12 @@ def _dev(
 
         text = (
             text.decode("utf-8")
-            .replace("Changes detected in:", "[orange3]Changed detected in:[/]")
-            .replace("Watching:", "[orange3]Watching:[/]")
-            .replace("* Running on:", "* [orange3]Backend Server[/]:")
+            .replace("Changes detected in:", "Changed detected in:")
+            .replace("Watching:", "Watching:")
+            .replace("* Running on:", "* Backend Server:")
         )
 
-        if "[orange3]Watching:[/]" in text:
+        if "Watching:" in text:
             text += f"'{str(frontend_dir).strip()}',"
         if text.startswith("* Tip:"):
             continue
@@ -137,3 +110,35 @@ def _dev(
         if proc.returncode is not None:
             print("Backend server failed to launch. Exiting.")
             return
+
+
+dev_command = click.Command(
+    name="dev",
+    callback=_dev,
+    help="Launch the custom component demo in development mode. APP is the path to the app (default: demo/app.py in the current directory).",
+    params=[
+        click.Argument(
+            ["app"], type=click.Path(path_type=Path), default=Path("demo") / "app.py"
+        ),
+        click.Option(
+            ["--component-directory"],
+            type=click.Path(path_type=Path),
+            default=Path("."),
+            help="The directory with the custom component source code. By default, uses the current directory.",
+        ),
+        click.Option(
+            ["--host"],
+            default="localhost",
+            show_default=True,
+            help="The host to run the front end server on.",
+        ),
+        click.Option(
+            ["--python-path"],
+            help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised.",
+        ),
+        click.Option(
+            ["--gradio-path"],
+            help="Path to gradio executable. If None, will use the default path found by `shutil.which`.",
+        ),
+    ],
+)

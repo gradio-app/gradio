@@ -426,6 +426,8 @@ importers:
 
   client/python/gradio_client: {}
 
+  components/python/gradio_components: {}
+
   gradio: {}
 
   js/_cdn-test: {}
@@ -2495,6 +2497,9 @@ importers:
       '@gradio/markdown':
         specifier: workspace:^
         version: link:../markdown
+      '@gradio/model3d':
+        specifier: workspace:^
+        version: link:../model3D
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker

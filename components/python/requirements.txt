@@ -1,0 +1,4 @@
+gradio>=7.0.0.dev0
+numpy>=1.23.2,<3.0
+pandas>=2.0,<4.0
+pillow>=9.2,<14.0

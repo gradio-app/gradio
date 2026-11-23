@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dataframe",
-	"version": "0.24.7",
+	"version": "0.24.8-dev.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",

@@ -12,7 +12,7 @@
 	import WorkflowHistoryPanel from "./WorkflowHistoryPanel.svelte";
 	import WorkflowHistoryConnect from "./WorkflowHistoryConnect.svelte";
 	import HfAuthControl from "./HfAuthControl.svelte";
-	import { asset_url } from "@gradio/client";
+	import { asset_url, disconnect_bucket } from "@gradio/client";
 	import type { WorkflowTemplate } from "./workflow-templates";
 	import CheckIcon from "./icons/CheckIcon.svelte";
 	import ChevronDownIcon from "./icons/ChevronDownIcon.svelte";
@@ -55,7 +55,7 @@
 		migrateToV2,
 		toLegacyShape
 	} from "./workflow-migration";
-	import { PORT_COLOR, ports_compatible } from "./workflow-types";
+	import { is_secret, PORT_COLOR, ports_compatible } from "./workflow-types";
 	import type {
 		PortType,
 		Port,
@@ -82,7 +82,12 @@
 		buildUpstreamSubgraph as buildUpstreamSubgraphImpl,
 		reusableUpstreamNodes
 	} from "./workflow-graph";
-	import { LIBRARY, getComponentForPortType } from "./node-library";
+	import {
+		API_KEY_TEMPLATE,
+		API_KEY_TYPE,
+		LIBRARY,
+		getComponentForPortType
+	} from "./node-library";
 	import { createHFAuth } from "./hf-auth.svelte";
 	import { load_viewport, save_viewport } from "./viewport-persistence";
 	import type { Viewport } from "./viewport-persistence";
@@ -94,6 +99,12 @@
 		load_layout,
 		save_layout
 	} from "./layout-persistence";
+	import {
+		apply_secrets,
+		extract_secrets,
+		load_secrets,
+		save_secrets
+	} from "./secret-persistence";
 	import { create_history } from "./workflow-history";
 
 	/**
@@ -348,7 +359,12 @@
 				const authored = unseen && !hasMissingNodeGeometry(parsed);
 				autoArrange = unseen && !authored;
 				checkOverlap = authored;
-				workflow.set(apply_layout(v2, stored, { park_unplaced: !authored }));
+				workflow.set(
+					apply_secrets(
+						apply_layout(v2, stored, { park_unplaced: !authored }),
+						load_secrets(layoutScope(v2.name))
+					)
+				);
 			}
 		} catch {}
 		const loaded = get(workflow);
@@ -410,6 +426,15 @@
 		return () => clearTimeout(timer);
 	});
 
+	$effect(() => {
+		const wf = $workflow;
+		if (!layoutReady) return;
+		const secrets = extract_secrets(wf);
+		const scope = layoutScope(wf.name);
+		const timer = setTimeout(() => save_secrets(scope, secrets), 250);
+		return () => clearTimeout(timer);
+	});
+
 	let pendingEditsRestored = false;
 	$effect(() => {
 		if (layoutKey === null || pendingEditsRestored) return;
@@ -424,7 +449,12 @@
 			...load_layout(layoutScope(restored.name)),
 			...extract_layout(get(workflow))
 		};
-		workflow.set(apply_layout(restored, geometry));
+		workflow.set(
+			apply_secrets(
+				apply_layout(restored, geometry),
+				load_secrets(layoutScope(restored.name))
+			)
+		);
 	});
 
 	$effect(() => {
@@ -2158,7 +2188,9 @@
 
 		if (
 			flatView.nodes.some((n) => n.source === "space" && n.space_id) &&
-			!auth.token
+			!auth.token &&
+			!(window as { supports_zerogpu_headers?: boolean })
+				.supports_zerogpu_headers
 		) {
 			showToast(
 				"Running as guest — GPU Spaces may hit quota limits. Sign in with HuggingFace for your own compute.",
@@ -2209,6 +2241,9 @@
 						server.call_space([spaceId, endpoint, argsJson, auth.token])
 				: undefined;
 
+		const can_stream =
+			flatView.nodes.some((n) => n.source === "model" && n.model_id) &&
+			!!(await auth.inferenceToken());
 		const callModelWithToken = server?.call_model
 			? async (
 					modelId: string,
@@ -2220,7 +2255,7 @@
 						modelId,
 						pipelineTag,
 						argsJson,
-						auth.token,
+						await auth.inferenceToken(),
 						provider ?? ""
 					])
 			: undefined;
@@ -2336,14 +2371,14 @@
 			callModelWithToken,
 			fetchDatasetWithToken,
 			callFnWithToken,
-			auth.token
-				? (modelId, content, provider, signal, onChunk, params) =>
+			can_stream
+				? async (modelId, content, provider, signal, onChunk, params) =>
 						stream_text_generation({
 							modelId,
 							content,
 							provider,
 							params,
-							hfToken: auth.token,
+							hfToken: await auth.inferenceToken(),
 							signal: signal ?? undefined,
 							onChunk
 						})
@@ -2364,6 +2399,7 @@
 					const node = flatView.nodes.find((n) => n.id === ref.id);
 					const outPort = node?.outputs?.[0];
 					if (!node || !outPort) continue;
+					if (is_secret(ref)) continue;
 					// User-supplied media lives in a `blob:` object URL that dies
 					// with the tab, and the server can only store a file it can
 					// reach. Upload it first so the record stays loadable.
@@ -2929,7 +2965,10 @@
 		} else {
 			pos = canvasCenter();
 		}
-		const template = getComponentForPortType(portType) ?? LIBRARY.components[0];
+		const template =
+			portType === API_KEY_TYPE
+				? API_KEY_TEMPLATE
+				: (getComponentForPortType(portType) ?? LIBRARY.components[0]);
 		const half = (template.width ?? 200) / 2;
 		const { x, y } = findFreeSpot(pos.x - half, pos.y - 45);
 		addNode("reference", template, x, y);
@@ -3091,6 +3130,12 @@
 							</div>
 						{/if}
 					</div>
+				{:else if auth.embedded}
+					<span
+						class="toolbar-user-chip"
+						title="Signed in by the page this workflow is embedded in: runs use your Hugging Face account."
+						>Signed in</span
+					>
 				{:else}
 					<HfAuthControl {auth} {onSpace} onsignin={signInPreservingEdits} />
 				{/if}
@@ -3638,6 +3683,7 @@
 			workflowName={$workflow.name}
 			username={auth.user ?? ""}
 			signedIn={!!auth.token}
+			oauthAvailable={auth.oauthAvailable}
 			onsignin={auth.signIn}
 			onconnected={(id) => {
 				setBucketId(id);
@@ -3661,6 +3707,11 @@
 			onchange={() => {
 				showHistoryPanel = false;
 				showHistoryConnect = true;
+			}}
+			ondisconnect={() => {
+				setBucketId("");
+				showHistoryPanel = false;
+				void disconnect_bucket(historyRoot);
 			}}
 			onload={({
 				record_id,

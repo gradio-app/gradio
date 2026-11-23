@@ -226,6 +226,11 @@ export interface Config {
 	 */
 	run_history?: boolean;
 	history_storage?: "spaces";
+	/**
+	 * Whether visitors can sign in with Hugging Face: the app has a
+	 * `gr.LoginButton` and runs on a Space. Elsewhere sign-in is mocked.
+	 */
+	oauth_available?: boolean;
 }
 
 // todo: DRY up types
@@ -304,7 +309,6 @@ export interface Dependency {
 	like_user_message: boolean;
 	event_specific_args: string[];
 	component_prop_inputs: number[];
-	js_implementation: string | null;
 }
 
 export interface DependencyTypes {

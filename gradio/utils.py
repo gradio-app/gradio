@@ -11,11 +11,13 @@ import importlib.resources
 import inspect
 import json
 import os
+import pickle as pkl
 import pkgutil
 import posixpath
 import re
 import shutil
 import site
+import socket
 import subprocess
 import sys
 import tempfile
@@ -31,12 +33,12 @@ from collections import OrderedDict
 from collections.abc import (
     Callable,
     Hashable,
-    Iterable,
     Iterator,
     MutableMapping,
     Sequence,
 )
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, ExitStack, contextmanager
+from contextvars import ContextVar
 from functools import wraps
 from io import BytesIO
 from pathlib import Path
@@ -75,9 +77,10 @@ from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from gradio_components.button import Button
+
     from gradio.blocks import BlockContext, Blocks
-    from gradio.components import Component
-    from gradio.components.button import Button
+    from gradio.components.base import Component
     from gradio.routes import App, Request
     from gradio.state_holder import SessionState
 
@@ -110,38 +113,6 @@ def get_package_version() -> str:
         return version
     except Exception:
         return ""
-
-
-_thread_event_loops = threading.local()
-
-
-def _set_thread_event_loop() -> None:
-    """Sets an event loop for this thread if none is running. It is the same
-    loop each time: a new one per call would leave the last one to be garbage
-    collected unclosed, which can raise when its sockets go first."""
-    try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        loop = getattr(_thread_event_loops, "loop", None)
-        if loop is None or loop.is_closed():
-            loop = asyncio.new_event_loop()
-            _thread_event_loops.loop = loop
-        asyncio.set_event_loop(loop)
-
-
-def safe_get_lock() -> asyncio.Lock:
-    """Get asyncio.Lock() without fear of getting an Exception.
-
-    Needed because in reload mode we import the Blocks object outside
-    the main thread.
-    """
-    _set_thread_event_loop()
-    return asyncio.Lock()
-
-
-def safe_get_stop_event() -> asyncio.Event:
-    _set_thread_event_loop()
-    return asyncio.Event()
 
 
 class DynamicBoolean(int):
@@ -641,7 +612,7 @@ def get_space() -> str | None:
 
 
 def is_zero_gpu_space() -> bool:
-    return os.getenv("SPACES_ZERO_GPU") == "true"
+    return os.getenv("SPACES_ZERO_GPU") in ("1", "true")
 
 
 def get_theme(theme: Theme | str | None) -> Theme:
@@ -787,6 +758,11 @@ def assert_configs_are_equivalent_besides_ids(
             config1["dependencies"], config2["dependencies"], strict=False
         ):
             for t1, t2 in zip(d1.pop("targets"), d2.pop("targets"), strict=False):
+                # Steps chained with .then() / .success() have no target component
+                if t1[0] is None or t2[0] is None:
+                    if t1 != t2:
+                        raise ValueError(f"{t1} does not match {t2}")
+                    continue
                 assert_same_components(t1[0], t2[0])
             for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs"), strict=False):
                 assert_same_components(i1, i2)
@@ -859,7 +835,7 @@ def core_gradio_components():
     return [
         class_
         for class_ in get_all_components()
-        if class_.__module__.startswith("gradio.")
+        if class_.__module__.startswith(("gradio.", "gradio_components."))
     ]
 
 
@@ -874,16 +850,26 @@ def component_or_layout_class(cls_name: str) -> "type[Component] | type[BlockCon
     cls: the component class
     """
     import gradio.components as components_module
-    from gradio.components import Component
+    from gradio import _components_package
+    from gradio.components.base import Component
+
+    modules = [components_module]
+    if _components_package.is_installed():
+        # Importing it defines every built-in component, so that each is found below
+        modules.append(_components_package.require("this component"))
 
     components = {c.__name__.lower(): c for c in get_all_components()}
     # add aliases such as 'text'
-    for name, cls in components_module.__dict__.items():
-        if isinstance(cls, type) and issubclass(cls, Component):
-            components[name.lower()] = cls
+    for module in modules:
+        for name, cls in module.__dict__.items():
+            if isinstance(cls, type) and issubclass(cls, Component):
+                components[name.lower()] = cls
 
     if cls_name.replace("_", "") in components:
         return components[cls_name.replace("_", "")]
+
+    if not _components_package.is_installed():
+        raise _components_package.not_installed_error(f"the {cls_name!r} component")
 
     raise ValueError(
         f"No such component or layout: {cls_name}. "
@@ -1082,43 +1068,31 @@ def is_prop_update(val):
 
 def function_wrapper(
     f: Callable,
-    before_fn: Callable | None = None,
-    before_args: Iterable | None = None,
-    after_fn: Callable | None = None,
-    after_args: Iterable | None = None,
+    context_factory: Callable[[], AbstractContextManager],
 ):
-    before_args = [] if before_args is None else before_args
-    after_args = [] if after_args is None else after_args
+    """Run each call or generator step in a fresh context, exiting before yielding."""
     if inspect.isasyncgenfunction(f):
 
         @functools.wraps(f)
         async def asyncgen_wrapper(*args, **kwargs):
-            iterator = f(*args, **kwargs)
+            with context_factory():
+                iterator = f(*args, **kwargs)
             while True:
-                if before_fn:
-                    before_fn(*before_args)
                 try:
-                    response = await iterator.__anext__()
+                    with context_factory():
+                        response = await iterator.__anext__()
                 except StopAsyncIteration:
-                    if after_fn:
-                        after_fn(*after_args)
                     break
-                if after_fn:
-                    after_fn(*after_args)
                 yield response
 
         return asyncgen_wrapper
 
-    elif asyncio.iscoroutinefunction(f):
+    elif inspect.iscoroutinefunction(f):
 
         @functools.wraps(f)
         async def async_wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
-            response = await f(*args, **kwargs)
-            if after_fn:
-                after_fn(*after_args)
-            return response
+            with context_factory():
+                return await f(*args, **kwargs)
 
         return async_wrapper
 
@@ -1126,18 +1100,14 @@ def function_wrapper(
 
         @functools.wraps(f)
         def gen_wrapper(*args, **kwargs):
-            iterator = f(*args, **kwargs)
+            with context_factory():
+                iterator = f(*args, **kwargs)
             while True:
-                if before_fn:
-                    before_fn(*before_args)
                 try:
-                    response = next(iterator)
+                    with context_factory():
+                        response = next(iterator)
                 except StopIteration:
-                    if after_fn:
-                        after_fn(*after_args)
                     break
-                if after_fn:
-                    after_fn(*after_args)
                 yield response
 
         return gen_wrapper
@@ -1146,12 +1116,8 @@ def function_wrapper(
 
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
-            response = f(*args, **kwargs)
-            if after_fn:
-                after_fn(*after_args)
-            return response
+            with context_factory():
+                return f(*args, **kwargs)
 
         return wrapper
 
@@ -1164,29 +1130,25 @@ def get_function_with_locals(
     request: "Request | None",
     state: "SessionState | None",
 ):
-    def before_fn(blocks, event_id):
+    def set_and_reset(stack: ExitStack, var: ContextVar[V], value: V):
+        stack.callback(var.reset, var.set(value))
+
+    @contextmanager
+    def context():
         from gradio.context import LocalContext
+        from gradio.zerogpu import maybe_setup_zerogpu_context
 
-        LocalContext.blocks.set(blocks)
-        LocalContext.in_event_listener.set(in_event_listener)
-        LocalContext.event_id.set(event_id)
-        LocalContext.request.set(request)
-        if state:
-            LocalContext.blocks_config.set(state.blocks_config)
+        with ExitStack() as stack:
+            set_and_reset(stack, LocalContext.blocks, blocks)
+            set_and_reset(stack, LocalContext.in_event_listener, in_event_listener)
+            set_and_reset(stack, LocalContext.event_id, event_id)
+            set_and_reset(stack, LocalContext.request, request)
+            if state:
+                set_and_reset(stack, LocalContext.blocks_config, state.blocks_config)
+            with maybe_setup_zerogpu_context(blocks, request):
+                yield
 
-    def after_fn():
-        from gradio.context import LocalContext
-
-        LocalContext.in_event_listener.set(False)
-        LocalContext.request.set(None)
-        LocalContext.blocks_config.set(None)
-
-    return function_wrapper(
-        fn,
-        before_fn=before_fn,
-        before_args=(blocks, event_id),
-        after_fn=after_fn,
-    )
+    return function_wrapper(fn, context)
 
 
 async def cancel_tasks(task_ids: set[str]) -> list[str]:
@@ -1871,7 +1833,7 @@ def connect_heartbeat(config: BlocksConfigDict, blocks, fns=None) -> bool:
     Determines whether a heartbeat is required for a given config.
     """
     from gradio.caching import Cache
-    from gradio.components import State
+    from gradio.components.state import State
 
     any_state = any(isinstance(block, State) for block in blocks)
     any_unload = False
@@ -2261,7 +2223,7 @@ def set_default_buttons(
     buttons: "Sequence[str | Button] | None" = None,
     default_buttons: list[str] | None = None,
 ) -> "Sequence[str | Button]":
-    from gradio.components.button import Button
+    from gradio_components.button import Button
 
     if buttons is None:
         return default_buttons or []
@@ -2277,3 +2239,24 @@ def resolve_resume_sessions(resume_sessions: bool | None) -> bool:
         return resume_sessions
     value = os.environ.get("GRADIO_RESUME_SESSIONS", "True").strip().lower()
     return value not in ("false", "0", "no", "off")
+
+
+class ShmFdQueue(Generic[T]):
+    def __init__(self):
+        self._rx, self._tx = socket.socketpair(socket.AF_UNIX, socket.SOCK_DGRAM)
+
+    def close(self):
+        self._rx.close()
+        self._tx.close()
+
+    def get(self) -> T:
+        _, (fd,), _, _ = socket.recv_fds(self._rx, 1, 1)
+        with open(fd, "rb") as f:
+            f.seek(0)
+            return pkl.load(f)
+
+    def put(self, obj: T):
+        with tempfile.TemporaryFile(dir="/dev/shm") as f:
+            pkl.dump(obj, f)
+            f.flush()
+            socket.send_fds(self._tx, [b"\0"], [f.fileno()])

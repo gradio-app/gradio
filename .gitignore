@@ -111,3 +111,7 @@ tmp_input
 
 # ffmpeg that install-all-deps downloads into the workspace
 ffmpeg-bin/
+
+# copied in while building the gradio_components wheel (components/python/hatch_build.py)
+components/python/gradio_components/_frontend/
+components/python/gradio_components/media_assets/

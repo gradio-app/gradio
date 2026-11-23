@@ -1,5 +1,11 @@
 # @gradio/accordion
 
+## 0.7.3-dev.0
+
+### Dependency updates
+
+- @gradio/column@0.5.0-dev.0
+
 ## 0.7.2
 
 ### Dependency updates

@@ -23,7 +23,7 @@ from functools import partial
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Literal, Union, cast
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import quote, urlencode, urlparse, urlunparse
 
 import anyio
 import fastapi
@@ -31,9 +31,9 @@ import httpx2
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from groovy import transpile
 
 from gradio import (
+    _components_package,
     analytics,
     components,
     networking,
@@ -80,7 +80,7 @@ from gradio.exceptions import (
 )
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.i18n import I18n, I18nData
-from gradio.node_server import start_node_server
+from gradio.node_server import node_proxy_forwarded_allow_ips, start_node_server
 from gradio.route_utils import API_PREFIX, MediaStream, slugify
 from gradio.routes import INTERNAL_ROUTES, VERSION, App, Request
 from gradio.state_holder import SessionState, StateHolder
@@ -101,16 +101,12 @@ from gradio.utils import (
     get_package_version,
     get_upload_folder,
 )
-
-try:
-    import spaces  # type: ignore
-except Exception:
-    spaces = None  # type: ignore[assignment]
-
+from gradio.zerogpu import maybe_setup_zerogpu_middleware
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components.base import Component
     from gradio.mcp import GradioMCPServer
+    from gradio.processing.worker import Worker
     from gradio.renderable import Renderable
 
 
@@ -565,12 +561,12 @@ def postprocess_update_dict(
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    from gradio.components import HTML
+    HTML = _components_package.loaded_class("html", "HTML")  # noqa: N806
 
     value = update_dict.pop("value", components._Keywords.NO_VALUE)
 
     props = None
-    if isinstance(block, HTML):
+    if HTML is not None and isinstance(block, HTML):
         sig = inspect.signature(HTML.__init__)
         constructor_params = set(sig.parameters.keys())
         props = {k: v for k, v in update_dict.items() if k not in constructor_params}
@@ -925,7 +921,7 @@ class BlocksConfig:
         show_progress_on: Component | Sequence[Component] | None = None,
         api_name: str | None = None,
         api_description: str | None | Literal[False] = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         no_target: bool = False,
         queue: bool = True,
         batch: bool = False,
@@ -945,7 +941,6 @@ class BlocksConfig:
         time_limit: float | None = None,
         stream_every: float = 0.5,
         event_specific_args: list[str] | None = None,
-        js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
         component_prop_inputs: list[int] | None = None,
@@ -1090,10 +1085,15 @@ class BlocksConfig:
 
         rendered_in = LocalContext.renderable.get(None)
 
-        if js is True and inputs:
-            raise ValueError(
-                "Cannot create event: events with js=True cannot have inputs."
+        if js is True:
+            warnings.warn(
+                "`js=True` is no longer supported: Gradio 7 does not convert "
+                "Python functions to JavaScript, so this function will run on "
+                "the server. Remove `js=True`, or pass the JavaScript to run "
+                "in the browser as a string.",
+                stacklevel=3,
             )
+            js = None
 
         reuse_id = False
         fn_id = self.fn_id
@@ -1148,7 +1148,6 @@ class BlocksConfig:
             event_specific_args=event_specific_args,
             component_prop_inputs=component_prop_inputs,
             page=self.root_block.current_page,
-            js_implementation=js_implementation,
             key=key,
             validator=validator,
         )
@@ -1365,6 +1364,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
 
+        self._process_worker: Worker | None = None
         self.limiter = None
         self.encrypt = False
         self.mcp_server_obj: None | GradioMCPServer = None
@@ -1424,6 +1424,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self._deprecated_js = deprecated_kwargs.get("js")
         self._deprecated_head = deprecated_kwargs.get("head")
         self._deprecated_head_paths = deprecated_kwargs.get("head_paths")
+
+        if mode != "server":
+            # Only `gr.Server` works without components: it has no user interface.
+            _components_package.require("`gr.Blocks`")
 
         self.default_config = BlocksConfig(self)
         super().__init__(render=False, **kwargs)
@@ -1711,8 +1715,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     @property
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
-        return getattr(self, "_expects_oauth", False) or any(
-            isinstance(block, components.LoginButton) for block in self.blocks.values()
+        login_button = _components_package.loaded_class("login_button", "LoginButton")
+        return getattr(self, "_expects_oauth", False) or (
+            login_button is not None
+            and any(isinstance(block, login_button) for block in self.blocks.values())
         )
 
     def unload(self, fn: Callable[..., Any]) -> None:
@@ -2667,17 +2673,18 @@ Received inputs:
                 for i in zip(*inputs, strict=False)
             ]
             with TrackManualCacheUsage():
-                result = await self.call_function(
-                    block_fn,
-                    list(zip(*inputs, strict=False)),
-                    None,
-                    request,
-                    event_id,
-                    event_data,
-                    in_event_listener,
-                    state,
-                    oauth_token,
-                )
+                async with self._queue.flush_event_forwarder():
+                    result = await self.call_function(
+                        block_fn,
+                        list(zip(*inputs, strict=False)),
+                        None,
+                        request,
+                        event_id,
+                        event_data,
+                        in_event_listener,
+                        state,
+                        oauth_token,
+                    )
                 manual_cache_used = used_manual_cache()
             preds = result["prediction"]
             data = [
@@ -2702,7 +2709,10 @@ Received inputs:
                     )
             was_generating = old_iterator is not None
             with TrackManualCacheUsage():
-                async with trace_phase("fn_call"):
+                async with (
+                    trace_phase("fn_call"),
+                    self._queue.flush_event_forwarder(),
+                ):
                     result = await self.call_function(
                         block_fn,
                         inputs,
@@ -2840,6 +2850,8 @@ Received inputs:
             "head": self.head,
             "title": self.title or "Gradio",
             "space_id": self.space_id,
+            # Off Spaces, the login routes are mocked and give no real token.
+            "oauth_available": self.space_id is not None and self.expects_oauth,
             "enable_queue": True,  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "footer_links": getattr(self, "footer_links", []),
@@ -2884,30 +2896,6 @@ Received inputs:
             config, self.blocks.values(), self.fns.values()
         )
         return config
-
-    def transpile_to_js(self, quiet: bool = False):
-        fns_to_transpile = [
-            fn.fn for fn in self.fns.values() if fn.fn and fn.js is True
-        ]
-        num_to_transpile = len(fns_to_transpile)
-        if not quiet and num_to_transpile > 0:
-            print("********************************************")
-            print("* Trying to transpile functions from Python -> JS for performance\n")
-        for index, fn in enumerate(fns_to_transpile):
-            if not quiet:
-                print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")  # type: ignore
-            if getattr(fn, "__js_implementation__", None) is None:  # type: ignore
-                try:
-                    fn.__js_implementation__ = transpile(fn, validate=True)  # type: ignore
-                    if not quiet:
-                        print("✅")
-                except Exception as e:
-                    if not quiet:
-                        print("❌", e, end="\n\n")
-            elif not quiet:
-                print("✅")
-        if not quiet and num_to_transpile > 0:
-            print("********************************************\n")
 
     def __enter__(self):
         render_context = get_render_context()
@@ -2976,8 +2964,6 @@ Received inputs:
         """
         if api_open is not None:
             self.api_open = api_open
-        if utils.is_zero_gpu_space():
-            max_size = 1 if max_size is None else max_size
         self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=self.max_threads,
@@ -3003,7 +2989,9 @@ Received inputs:
 
     def validate_navbar_settings(self):
         """Validates that only one Navbar component exists per page."""
-        from gradio.components.navbar import Navbar
+        Navbar = _components_package.loaded_class("navbar", "Navbar")  # noqa: N806
+        if Navbar is None:
+            return
 
         navbar_pages = set()
         for block in self.blocks.values():
@@ -3104,7 +3092,7 @@ Received inputs:
         theme: Theme | str | None = None,
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         executor: Literal["thread", "process"] | None = None,
@@ -3299,7 +3287,6 @@ Received inputs:
         self.resume_sessions = utils.resolve_resume_sessions(resume_sessions)
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
-        self.transpile_to_js(quiet=quiet)
         self.i18n_instance = i18n
         self.config = self.get_config_file()
 
@@ -3321,7 +3308,7 @@ Received inputs:
                         "It looks like you are running Gradio on a hosted Jupyter notebook, which requires `share=True`. Automatically setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
                     )
                 launch_kwargs["share"] = True
-            if getattr(self, "_process_worker", None) is not None and self.is_running:
+            if self._process_worker is not None and self.is_running:
                 if not quiet:
                     print(
                         "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
@@ -3339,7 +3326,8 @@ Received inputs:
                     launch_kwargs=launch_kwargs,
                 )
                 if not quiet:
-                    worker = self._process_worker  # type: ignore[attr-defined]
+                    worker = self._process_worker
+                    assert worker is not None and worker.gateway is not None  # noqa: S101
                     self._print_running(
                         str(self.local_url).rstrip("/"),
                         self.share_url,
@@ -3349,10 +3337,7 @@ Received inputs:
                 if self.mcp_server_obj:
                     self.mcp_server_obj._local_url = self.local_url
                 if self.mcp_server:
-                    print(
-                        "\n🔨 Launching MCP server:"
-                        f"\n* Streamable HTTP URL: {str(self.share_url or self.local_url).rstrip('/')}{API_PREFIX}/mcp/"
-                    )
+                    self._print_mcp_server()
             if inbrowser:
                 webbrowser.open(
                     str(
@@ -3395,6 +3380,7 @@ Received inputs:
         # `if _pending_node_proxy_kwargs is not None:` block further
         # down for the rationale.
         _pending_node_proxy_kwargs: dict | None = None
+        python_forwarded_allow_ips: list[str] | None = None
 
         if self.ssr_mode:
             self.node_path = os.environ.get("GRADIO_NODE_PATH", get_node_path())
@@ -3456,6 +3442,7 @@ Received inputs:
                 # left listening on the internal port — a degraded but
                 # working state we surface via a warning below.
                 server_port = python_internal_port
+                python_forwarded_allow_ips = node_proxy_forwarded_allow_ips(python_host)
                 _pending_node_proxy_kwargs = {
                     "server_name": node_server_name or python_host,
                     "server_port": user_port,
@@ -3489,6 +3476,9 @@ Received inputs:
             mcp_server=mcp_server,
             debug=debug,
         )
+
+        maybe_setup_zerogpu_middleware(self.app)
+
         if self.mcp_error and not quiet:
             print(self.mcp_error)
 
@@ -3514,6 +3504,7 @@ Received inputs:
                 ssl_keyfile=ssl_keyfile,
                 ssl_certfile=ssl_certfile,
                 ssl_keyfile_password=ssl_keyfile_password,
+                forwarded_allow_ips=python_forwarded_allow_ips,
             )
             self.server_name = server_name
             self.local_url = local_url
@@ -3736,12 +3727,8 @@ Received inputs:
         elif self.share_url and self.is_colab:
             print(f"* Running on public URL: {self.share_url}")
 
-        mcp_subpath = API_PREFIX + "/mcp"
         if self.mcp_server:
-            print(
-                "\n🔨 Launching MCP server:"
-                f"\n* Streamable HTTP URL: {self.share_url or self.local_url.rstrip('/')}/{mcp_subpath.lstrip('/')}/"
-            )
+            self._print_mcp_server()
 
         if inbrowser:
             link = self.share_url if self.share and self.share_url else self.local_url
@@ -4079,6 +4066,23 @@ Received inputs:
                 "\nThis share link is temporary and will last for up to 1 week (best effort). For free permanent hosting and GPU upgrades, run `gradio deploy` from the terminal in the working directory to deploy to Hugging Face Spaces (https://huggingface.co/spaces)"
             )
 
+    def _print_mcp_server(self) -> None:
+        mcp_url = (
+            f"{str(self.share_url or self.local_url).rstrip('/')}{API_PREFIX}/mcp/"
+        )
+        lines = ["\n🔨 Launching MCP server:", f"* Streamable HTTP URL: {mcp_url}"]
+        if self.share_url:
+            title = self.title
+            if isinstance(title, I18nData):
+                i18n = getattr(self, "i18n_instance", None)
+                translations = i18n.translations.get("en", {}) if i18n else {}
+                title = translations.get(title.key, title.key)
+            query = urlencode({"mcp": mcp_url, "mcp_name": title}, quote_via=quote)
+            lines.append(
+                f"* Try it in HuggingChat: https://huggingface.co/chat/?{query}"
+            )
+        print("\n".join(lines))
+
     def _launch_tip(
         self, share_url: str | None, app_processes: int, process: bool
     ) -> str | None:
@@ -4161,10 +4165,9 @@ Received inputs:
         """
         Closes the Interface that was launched and frees the port.
         """
-        worker = getattr(self, "_process_worker", None)
+        worker = self._process_worker
         if worker is not None:
             worker.close()
-            self._queue = getattr(self._queue, "original", self._queue)
             self._process_worker = None
             self.server = None
             self.is_running = False
@@ -4202,7 +4205,7 @@ Received inputs:
                 time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
-            if getattr(self, "_process_worker", None) is not None:
+            if self._process_worker is not None:
                 self.close()
             if self.server:
                 self.server.close()
@@ -4424,3 +4427,10 @@ Received inputs:
         self.pages.append((path, name, show_in_navbar))
         self.current_page = path
         return self
+
+
+def close_all(verbose: bool = True) -> None:
+    """Closes every running app in this process, including `gr.Server` apps."""
+    for instance in Blocks.get_instances():
+        if instance.is_running:
+            instance.close(verbose)

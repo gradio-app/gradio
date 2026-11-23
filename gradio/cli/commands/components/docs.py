@@ -3,15 +3,15 @@ from __future__ import annotations
 import importlib
 import re
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Any
 
+import click
 import httpx2
-import tomlkit as toml
-from typer import Argument, Option
 
 from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.display import LivePanelDisplay
 
+from . import _pyproject
 from ._docs_assets import css
 from ._docs_utils import (
     RUFF_INSTALLED,
@@ -23,34 +23,14 @@ from ._docs_utils import (
 
 
 def _docs(
-    path: Annotated[
-        Path, Argument(help="The directory of the custom component.")
-    ] = Path("."),
-    demo_dir: Annotated[Path | None, Option(help="Path to the demo directory.")] = None,
-    demo_name: Annotated[str | None, Option(help="Name of the demo file.")] = None,
-    readme_path: Annotated[
-        Path | None, Option(help="Path to the README.md file.")
-    ] = None,
-    space_url: Annotated[
-        str | None, Option(help="URL of the Space to use for the demo.")
-    ] = None,
-    generate_space: Annotated[
-        bool,
-        Option(
-            help="Create a documentation space for the custom compone.", is_flag=True
-        ),
-    ] = True,
-    generate_readme: Annotated[
-        bool,
-        Option(help="Create a README.md file for the custom component.", is_flag=True),
-    ] = True,
-    suppress_demo_check: Annotated[
-        bool,
-        Option(
-            help="Suppress demo warnings and errors.",
-            is_flag=True,
-        ),
-    ] = False,
+    path: Path = Path("."),
+    demo_dir: Path | None = None,
+    demo_name: str | None = None,
+    readme_path: Path | None = None,
+    space_url: str | None = None,
+    generate_space: bool = True,
+    generate_readme: bool = True,
+    suppress_demo_check: bool = False,
 ):
     """Runs the documentation generator."""
     custom_component_analytics(
@@ -74,20 +54,17 @@ def _docs(
 
     with LivePanelDisplay() as live:
         live.update(
-            f":page_facing_up: Generating documentation for [orange3]{str(_component_dir.name)}[/]",
+            f"📄 Generating documentation for {str(_component_dir.name)}",
             add_sleep=0.2,
         )
         live.update(
-            f":eyes: Reading project metadata from [orange3]{_component_dir}/pyproject.toml[/]\n"
+            f"👀 Reading project metadata from {_component_dir}/pyproject.toml\n"
         )
 
         if not (_component_dir / "pyproject.toml").exists():
-            raise ValueError(
-                f"Cannot find pyproject.toml file in [orange3]{_component_dir}[/]"
-            )
+            raise ValueError(f"Cannot find pyproject.toml file in {_component_dir}")
 
-        with open(_component_dir / "pyproject.toml", encoding="utf-8") as f:
-            data = toml.loads(f.read())
+        data = _pyproject.load(_component_dir / "pyproject.toml")
 
         name = get_deep(data, ["project", "name"])
 
@@ -96,7 +73,7 @@ def _docs(
 
         if not RUFF_INSTALLED:
             live.update(
-                "\n:warning: [yellow]Ruff is not installed. Code snippets will not be formatted. To install, run `pip install ruff`.[/]"
+                "\n⚠ Ruff is not installed. Code snippets will not be formatted. To install, run `pip install ruff`."
             )
 
         run_command(
@@ -148,14 +125,14 @@ def run_command(
 
     if not local_version and not pypi_exists:
         raise ValueError(
-            f"Cannot find version in pyproject.toml or on PyPI for [orange3]{name}[/].\nIf you have just published to PyPI, please wait a few minutes and try again."
+            f"Cannot find version in pyproject.toml or on PyPI for {name}.\nIf you have just published to PyPI, please wait a few minutes and try again."
         )
     module = importlib.import_module(name)
     (docs, type_mode) = extract_docstrings(module)
 
     if generate_space:
         if not simple:
-            live.update(":computer: [blue]Generating space.[/]")
+            live.update("💻 Generating space.")
 
         source = make_space(
             docs=docs,
@@ -174,15 +151,13 @@ def run_command(
         with open(_demo_dir / "space.py", "w", encoding="utf-8") as f:
             f.write(source)
             if not simple:
-                live.update(
-                    f":white_check_mark: Space created in [orange3]{_demo_dir}/space.py[/]\n"
-                )
+                live.update(f"✅ Space created in {_demo_dir}/space.py\n")
         with open(_demo_dir / "css.css", "w", encoding="utf-8") as f:
             f.write(css)
 
     if generate_readme:
         if not simple:
-            live.update(":pencil: [blue]Generating README.[/]")
+            live.update("📝 Generating README.")
         readme = make_markdown(
             docs, name, description, local_version, demo, space, repo, pypi_exists
         )
@@ -197,17 +172,55 @@ def run_command(
                 readme = readme_content[: yaml_regex.span()[-1]] + readme
             f.write(readme)
             if not simple:
-                live.update(
-                    f":white_check_mark: README generated in [orange3]{_readme_path}[/]"
-                )
+                live.update(f"✅ README generated in {_readme_path}")
     if simple:
         short_readme_path = Path(_readme_path).relative_to(_component_dir)
         short_demo_path = Path(_demo_dir / "space.py").relative_to(_component_dir)
         live.update(
-            f":white_check_mark: Documentation generated in [orange3]{short_demo_path}[/] and [orange3]{short_readme_path}[/]. Pass --no-generate-docs to disable auto documentation."
+            f"✅ Documentation generated in {short_demo_path} and {short_readme_path}. Pass --no-generate-docs to disable auto documentation."
         )
 
     if type_mode == "simple":
         live.update(
-            "\n:orange_circle: [red]The docs were generated in simple mode. Updating python to a more recent version will result in richer documentation.[/]"
+            "\n🟠 The docs were generated in simple mode. Updating python to a more recent version will result in richer documentation."
         )
+
+
+docs_command = click.Command(
+    name="docs",
+    callback=_docs,
+    help="Generate documentation for a custom component. PATH is the directory of the custom component (default: the current directory).",
+    params=[
+        click.Argument(["path"], type=click.Path(path_type=Path), default=Path(".")),
+        click.Option(
+            ["--demo-dir"],
+            type=click.Path(path_type=Path),
+            help="Path to the demo directory.",
+        ),
+        click.Option(["--demo-name"], help="Name of the demo file."),
+        click.Option(
+            ["--readme-path"],
+            type=click.Path(path_type=Path),
+            help="Path to the README.md file.",
+        ),
+        click.Option(["--space-url"], help="URL of the Space to use for the demo."),
+        click.Option(
+            ["--generate-space/--no-generate-space"],
+            default=True,
+            show_default=True,
+            help="Create a documentation space for the custom component.",
+        ),
+        click.Option(
+            ["--generate-readme/--no-generate-readme"],
+            default=True,
+            show_default=True,
+            help="Create a README.md file for the custom component.",
+        ),
+        click.Option(
+            ["--suppress-demo-check/--no-suppress-demo-check"],
+            default=False,
+            show_default=True,
+            help="Suppress demo warnings and errors.",
+        ),
+    ],
+)

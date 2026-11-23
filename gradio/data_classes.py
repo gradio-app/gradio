@@ -405,10 +405,11 @@ class BlocksConfigDict(TypedDict):
     components: list[dict[str, Any]]
     css: str | None
     connect_heartbeat: bool
-    js: str | Literal[True] | None
+    js: str | None
     head: str | None
     title: str | I18nData
     space_id: str | None
+    oauth_available: NotRequired[bool]
     enable_queue: bool
     show_error: bool
     is_colab: bool

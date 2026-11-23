@@ -17,6 +17,7 @@ import {
 	sign_file_urls
 } from "../helpers/data";
 import { get_zerogpu_origin } from "../helpers/zerogpu";
+import { spaces_storage_headers } from "../helpers/spaces_storage";
 import {
 	handle_message,
 	map_data_to_params,
@@ -41,6 +42,7 @@ import { Client } from "../client";
 import {
 	is_automatic_run,
 	read_run_history_storage,
+	SPACES_STORAGE_BUCKET,
 	start_run_history,
 	update_run_history,
 	update_run_inputs
@@ -182,12 +184,24 @@ export function submit(
 			history_storage: config.history_storage
 		};
 		const history_storage = read_run_history_storage(history_scope);
+		const on_spaces_storage =
+			history_storage.type === "bucket" &&
+			history_storage.bucket_id === SPACES_STORAGE_BUCKET;
 		const addt_headers = {
 			...base_headers,
-			...(history_enabled && history_storage.type === "bucket"
+			...(history_enabled &&
+			history_storage.type === "bucket" &&
+			!on_spaces_storage
 				? { "x-gradio-history-bucket": history_storage.bucket_id }
 				: {})
 		};
+		// The viewer token is renewed by the Space page, so it is fetched per run.
+		const with_history_headers = async (): Promise<Record<string, string>> => ({
+			...addt_headers,
+			...(history_enabled && on_spaces_storage
+				? await spaces_storage_headers()
+				: {})
+		});
 		const history_run_id =
 			resume_event_id ||
 			!history_enabled ||
@@ -572,7 +586,10 @@ export function submit(
 			const headers = is_zerogpu_iframe
 				? await post_message<Map<string, string>>("zerogpu-headers", origin)
 				: null;
-			return { ...addt_headers, ...(headers || {}) } as Record<string, string>;
+			return {
+				...(await with_history_headers()),
+				...(headers || {})
+			} as Record<string, string>;
 		}
 
 		function report_join_error(response: any, status: number): boolean {
@@ -835,16 +852,19 @@ export function submit(
 					time: new Date()
 				});
 
-				post_with_state(
-					`${config.root}${api_prefix}/run${
-						_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
-					}${url_params ? "?" + url_params : ""}`,
-					{
-						...payload,
-						session_hash
-					},
-					addt_headers
-				)
+				with_history_headers()
+					.then((headers) =>
+						post_with_state(
+							`${config.root}${api_prefix}/run${
+								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+							}${url_params ? "?" + url_params : ""}`,
+							{
+								...payload,
+								session_hash
+							},
+							headers
+						)
+					)
 					.then(async ([output, status_code]: any) => {
 						const data = output.data;
 

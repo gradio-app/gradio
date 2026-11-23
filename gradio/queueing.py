@@ -5,17 +5,20 @@ import inspect
 import os
 import platform
 import random
+import sys
 import time
 import traceback
 import uuid
+import warnings
 from asyncio import Queue as AsyncQueue
 from collections import defaultdict
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from threading import Barrier, Lock, Thread
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
-import numpy as np
 from anyio.to_thread import run_sync
 
 from gradio import caching, history, route_utils, routes
@@ -46,17 +49,16 @@ from gradio.server_messages import (
 )
 from gradio.utils import (
     LRUCache,
+    ShmFdQueue,
     error_payload,
     run_coro_in_background,
     safe_aclose_iterator,
-    safe_get_lock,
     set_task_name,
 )
 
 from .block_function import BlockFunction
 
 if TYPE_CHECKING:
-    from gradio.block_function import BlockFunction
     from gradio.blocks import Blocks
 
 
@@ -141,6 +143,59 @@ class ProcessTime:
         self.avg_time = self.process_time / self.count
 
 
+class QueueEventForwarder:
+    def __init__(self, dispatch: Callable[[str, EventMessage], None]):
+        self._queue: ShmFdQueue[tuple[str, EventMessage] | None] = ShmFdQueue()
+        self._dispatch = dispatch
+        self._barrier = Barrier(2)
+        self._flush_lock = Lock()
+
+    def send(self, event_id: str, message: EventMessage) -> None:
+        self._queue.put((event_id, message))
+
+    def run(self) -> None:
+        while True:
+            try:
+                message = self._queue.get()
+                if message is None:
+                    self._barrier.wait()
+                else:
+                    self._dispatch(*message)
+            except Exception:
+                traceback.print_exc()
+
+    def flush(self) -> None:
+        with self._flush_lock:
+            self._queue.put(None)
+            self._barrier.wait()
+
+    def close(self) -> None:
+        self._queue.close()
+
+
+def _percentiles(values: list[float | None], percents: list[float]) -> list[float]:
+    """The given percentiles of `values`, interpolated linearly between the two
+    nearest values (the default of `numpy.percentile`, which this replaces). An event
+    that has not finished has no process time yet (None), and, as with numpy and a
+    NaN, every percentile is then NaN."""
+    if not values or any(value is None for value in values):
+        return [float("nan")] * len(percents)
+    ordered = sorted(cast(list[float], values))
+    results = []
+    for percent in percents:
+        position = (len(ordered) - 1) * percent / 100
+        lower = int(position)
+        upper = min(lower + 1, len(ordered) - 1)
+        fraction = position - lower
+        low, high = ordered[lower], ordered[upper]
+        # The same form of interpolation as numpy, so the results are identical.
+        if fraction < 0.5:
+            results.append(low + (high - low) * fraction)
+        else:
+            results.append(high - (high - low) * (1 - fraction))
+    return results
+
+
 class Queue:
     def __init__(
         self,
@@ -158,7 +213,7 @@ class Queue:
         self.pending_event_ids_session: dict[str, set[str]] = {}
         self.resumable_sessions: dict[str, ResumableSession] = {}
         self.event_ids_to_events: dict[str, Event] = {}
-        self.pending_message_lock = safe_get_lock()
+        self.pending_message_lock = asyncio.Lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.can_start: Callable[[Event], bool] | None = None
         self.end_event: Callable[[Event], None] | None = None
@@ -166,8 +221,10 @@ class Queue:
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = []
-        self.delete_lock = safe_get_lock()
+        self.delete_lock = asyncio.Lock()
         self.server_app = None
+        self.server_pid: int | None = None
+        self._event_forwarder: QueueEventForwarder | None = None
         self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -197,22 +254,6 @@ class Queue:
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
         )
 
-    @staticmethod
-    def _get_df(records):
-        import pandas as pd
-
-        try:
-            with pd.option_context("future.no_silent_downcasting", True):
-                return (
-                    pd.DataFrame(records).fillna(value=np.nan).infer_objects(copy=False)  # type: ignore
-                )
-        except Exception as e:
-            if "No such keys(s)" in str(e):
-                return (
-                    pd.DataFrame(records).fillna(value=np.nan).infer_objects(copy=False)  # type: ignore
-                )
-            raise e
-
     def compute_analytics_summary(self, records):
         if not records:
             return self.cached_event_analytics_summary
@@ -220,26 +261,32 @@ class Queue:
             self.events_recorded - self.event_count_at_last_cache
             >= self.ANAYLTICS_CACHE_FREQUENCY
         ):
-            df = self._get_df(records)
             self.event_count_at_last_cache = self.events_recorded
-            grouped = df.groupby("function")
+            # Plain Python rather than numpy or pandas: core Gradio does not require
+            # either, and this runs after every event.
+            by_function: dict[str, list[dict]] = defaultdict(list)
+            for record in records:
+                if record.get("function") is not None:
+                    by_function[record["function"]].append(record)
             metrics = {"functions": {}}
-            for fn_name, fn_df in grouped:
-                status = fn_df["status"].values
-                success = np.sum(status == "success")
-                failure = np.sum(status == "failed")
+            for fn_name in sorted(by_function):
+                fn_records = by_function[fn_name]
+                success = sum(r["status"] == "success" for r in fn_records)
+                failure = sum(r["status"] == "failed" for r in fn_records)
                 total = success + failure
                 success_rate = success / total if total > 0 else None
-                percentiles = np.percentile(fn_df["process_time"].values, [50, 90, 99])  # type: ignore
+                percentiles = _percentiles(
+                    [r["process_time"] for r in fn_records], [50, 90, 99]
+                )
                 metrics["functions"][fn_name] = {
                     "success_rate": success_rate,
                     "process_time_percentiles": {
-                        "50th": percentiles[0],  # type: ignore
-                        "90th": percentiles[1],  # type: ignore
-                        "99th": percentiles[2],  # type: ignore
+                        "50th": percentiles[0],
+                        "90th": percentiles[1],
+                        "99th": percentiles[2],
                     },
                     "total_requests": self.events_recorded_per_fn.get(
-                        fn_name, fn_df.shape[0]
+                        fn_name, len(fn_records)
                     ),
                 }
             self.cached_event_analytics_summary = metrics
@@ -252,6 +299,26 @@ class Queue:
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
+        self.start_event_forwarder()
+
+    def start_event_forwarder(self):
+        if os.getenv("GRADIO_QUEUE_MULTIPROCESSING_ENABLED") != "true":
+            return
+        if self._event_forwarder is not None:
+            return
+        if sys.platform != "linux":
+            warnings.warn("GRADIO_QUEUE_MULTIPROCESSING_ENABLED only works on Linux")
+            return
+        self._event_forwarder = QueueEventForwarder(self.dispatch_event_message)
+        Thread(target=self._event_forwarder.run, daemon=True).start()
+
+    @asynccontextmanager
+    async def flush_event_forwarder(self):
+        try:
+            yield
+        finally:
+            if self._event_forwarder is not None:
+                await asyncio.to_thread(self._event_forwarder.flush)
 
     def create_event_queue_for_fn(self, block_fn: BlockFunction):
         concurrency_id = block_fn.concurrency_id
@@ -771,6 +838,7 @@ class Queue:
         self._asyncio_tasks.clear()
 
     def set_server_app(self, app: routes.App):
+        self.server_pid = os.getpid()
         self.server_app = app
 
     def get_active_worker_count(self) -> int:
@@ -861,6 +929,8 @@ class Queue:
         finally:
             self.stopped = True
             self._cancel_asyncio_tasks()
+            if self._event_forwarder is not None:
+                self._event_forwarder.close()
 
     async def start_progress_updates(self) -> None:
         """
@@ -882,6 +952,32 @@ class Queue:
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
+    def dispatch_event_message(
+        self,
+        event_id: str,
+        message: EventMessage,
+    ):
+        if self.server_pid is not None and self.server_pid != os.getpid():
+            if self._event_forwarder is None:
+                warnings.warn(
+                    "Queue event from forked process without GRADIO_QUEUE_MULTIPROCESSING_ENABLED"
+                )
+                return
+            self._event_forwarder.send(event_id, message)
+            return
+        if (worker := self.blocks._process_worker) is not None:
+            worker.forward_message(event_id, message)
+            return
+        events = [evt for job in self.active_jobs if job is not None for evt in job]
+        for event in events:
+            if event._id == event_id:
+                match message:
+                    case ProgressMessage():
+                        event.progress = message
+                        event.progress_pending = True
+                    case _:
+                        self.send_message(event, message)
+
     def set_progress(
         self,
         event_id: str,
@@ -889,23 +985,18 @@ class Queue:
     ):
         if iterables is None:
             return
-        for job in self.active_jobs:
-            if job is None:
-                continue
-            for evt in job:
-                if evt._id == event_id:
-                    progress_data: list[ProgressUnit] = []
-                    for iterable in iterables:
-                        progress_unit = ProgressUnit(
-                            index=iterable.index,
-                            length=iterable.length,
-                            unit=iterable.unit,
-                            progress=iterable.progress,
-                            desc=iterable.desc,
-                        )
-                        progress_data.append(progress_unit)
-                    evt.progress = ProgressMessage(progress_data=progress_data)
-                    evt.progress_pending = True
+        progress_data: list[ProgressUnit] = []
+        for iterable in iterables:
+            progress_unit = ProgressUnit(
+                index=iterable.index,
+                length=iterable.length,
+                unit=iterable.unit,
+                progress=iterable.progress,
+                desc=iterable.desc,
+            )
+            progress_data.append(progress_unit)
+        message = ProgressMessage(progress_data=progress_data)
+        self.dispatch_event_message(event_id, message)
 
     def log_message(
         self,
@@ -916,17 +1007,14 @@ class Queue:
         duration: float | None = 10,
         visible: bool = True,
     ):
-        events = [evt for job in self.active_jobs if job is not None for evt in job]
-        for event in events:
-            if event._id == event_id:
-                log_message = LogMessage(
-                    log=log,
-                    level=level,
-                    duration=duration,
-                    visible=visible,
-                    title=title,
-                )
-                self.send_message(event, log_message)
+        log_message = LogMessage(
+            log=log,
+            level=level,
+            duration=duration,
+            visible=visible,
+            title=title,
+        )
+        self.dispatch_event_message(event_id, log_message)
 
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None
