@@ -1,5 +1,18 @@
 # gradio
 
+## 6.33.0
+
+### Features
+
+- [#14049](https://github.com/gradio-app/gradio/pull/14049) [`c847c38`](https://github.com/gradio-app/gradio/commit/c847c385c21720a153227a876e7c335c5c427b60) - workflow: improve responsiveness.  Thanks @hannahblair!
+- [#14037](https://github.com/gradio-app/gradio/pull/14037) [`ec06278`](https://github.com/gradio-app/gradio/commit/ec06278ed72e5eb73494a9d171ca851d553dc82a) - workflow: add embedded inference token.  Thanks @hannahblair!
+- [#14066](https://github.com/gradio-app/gradio/pull/14066) [`2c85ef1`](https://github.com/gradio-app/gradio/commit/2c85ef186a65f5c503d1e1be8c5b0d7f0ba6ed1e) - workflow: use theme fonts and weights.  Thanks @hannahblair!
+- [#14000](https://github.com/gradio-app/gradio/pull/14000) [`c9a6433`](https://github.com/gradio-app/gradio/commit/c9a643357c1fc43946adc57afb4d204ded5ed60e) - redact password field in run history.  Thanks @hannahblair!
+
+### Fixes
+
+- [#14020](https://github.com/gradio-app/gradio/pull/14020) [`ec6658f`](https://github.com/gradio-app/gradio/commit/ec6658fe10a240751cf956fad1f50e829c12ab0a) - workflow: handle max context length exceeding canvas token limit.  Thanks @hannahblair!
+
 ## 6.32.0
 
 ### Features
