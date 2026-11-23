@@ -7,6 +7,15 @@ import {
 	list_bucket_records,
 	list_user_buckets
 } from "../utils/bucket_sync";
+import { SPACES_STORAGE_BUCKET } from "../utils/run_history";
+
+const { spaces_storage_headers } = vi.hoisted(() => ({
+	spaces_storage_headers: vi.fn()
+}));
+vi.mock("../helpers/spaces_storage", () => ({
+	spaces_storage_headers,
+	spaces_storage_available: () => true
+}));
 
 describe("is_valid_bucket_id", () => {
 	it("accepts user/name form", () => {
@@ -45,6 +54,32 @@ describe("list_bucket_records", () => {
 		expect(res.ok).toBe(false);
 		expect(res.status).toBe(401);
 		expect(res.data).toEqual([]);
+	});
+
+	it("asks for a fresh viewer token once when Spaces storage says 401", async () => {
+		spaces_storage_headers
+			.mockResolvedValueOnce({ "X-HF-Viewer-Token": "old" })
+			.mockResolvedValueOnce({ "X-HF-Viewer-Token": "new" });
+		const spy = vi
+			.fn()
+			.mockResolvedValueOnce({
+				ok: false,
+				status: 401,
+				json: async () => ({ detail: "expired" })
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ records: [{ record_id: "r1" }] })
+			});
+		globalThis.fetch = spy as any;
+		const res = await list_bucket_records("http://x", SPACES_STORAGE_BUCKET);
+		expect(res.ok).toBe(true);
+		expect(spaces_storage_headers.mock.calls).toEqual([[], [true]]);
+		expect(spy.mock.calls.map(([, init]) => init.headers)).toEqual([
+			{ "X-HF-Viewer-Token": "old" },
+			{ "X-HF-Viewer-Token": "new" }
+		]);
 	});
 
 	it("returns records on success", async () => {

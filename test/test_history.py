@@ -400,6 +400,66 @@ def _wait_for(predicate, timeout=30.0):
     return False
 
 
+class FakeStorage:
+    """The Spaces storage HTTP API, in memory."""
+
+    def __init__(self):
+        self.files: dict[str, bytes] = {}
+        self.auth: set[str] = set()
+        self.status: int | None = None
+        self.page_size = 1000
+
+    def handle(self, request: httpx2.Request) -> httpx2.Response:
+        self.auth.add(request.headers["authorization"])
+        if self.status:
+            return httpx2.Response(self.status, json={"error": "forced"})
+        path = request.url.path.removeprefix("/files").lstrip("/")
+        if request.method == "PUT":
+            self.files[path] = request.read()
+            return httpx2.Response(201, json={"path": path})
+        if path:
+            return httpx2.Response(200, content=self.files[path])
+        prefix = request.url.params["prefix"]
+        listed = sorted(p for p in self.files if p.startswith(prefix))
+        start = int(request.url.params.get("cursor", 0))
+        end = start + self.page_size
+        return httpx2.Response(
+            200,
+            json={
+                "files": [{"path": p} for p in listed[start:end]],
+                "cursor": str(end) if end < len(listed) else None,
+            },
+        )
+
+    def client(self, target) -> httpx2.Client:
+        return httpx2.Client(
+            base_url=target.endpoint,
+            headers={"Authorization": f"Bearer {target.token}"},
+            transport=httpx2.MockTransport(self.handle),
+        )
+
+
+@pytest.fixture
+def spaces_storage(monkeypatch):
+    monkeypatch.setenv("HF_STORAGE_ENDPOINT", "http://storage.internal")
+    storage = FakeStorage()
+    with patch("gradio.history._storage", side_effect=storage.client):
+        yield storage
+
+
+def test_spaces_storage_listing_follows_the_cursor(spaces_storage):
+    spaces_storage.page_size = 2
+    for i in range(5):
+        spaces_storage.files[f"runs/gradio/greet/{i}.json"] = b"{}"
+    spaces_storage.files["assets/gradio/greet/0/a.png"] = b""
+    target = history_mod.HistoryTarget(
+        "spaces-storage", "tok", "gradio", "http://storage.internal"
+    )
+    assert history_mod._list_paths(target, "runs/") == [
+        f"runs/gradio/greet/{i}.json" for i in range(5)
+    ]
+
+
 @pytest.fixture
 def recording_app(monkeypatch):
     """A normal gradio app wired to a fake bucket, with no history-specific
@@ -452,48 +512,53 @@ class TestServerSideRecording:
             "schema_version",
         }
 
-    def test_spaces_storage_needs_no_sign_in(self, recording_app, monkeypatch):
+    def test_spaces_storage_needs_no_sign_in(self, recording_app, spaces_storage):
         """On Spaces the viewer's token addresses their own storage, and any
         bucket the browser names is ignored."""
         client, hub, io = recording_app
-        monkeypatch.setenv("HF_STORAGE_ENDPOINT", "http://storage.internal")
-        files: dict[str, bytes] = {}
-        auth: set[str] = set()
-
-        def handle(request: httpx2.Request) -> httpx2.Response:
-            auth.add(request.headers["authorization"])
-            path = request.url.path.removeprefix("/files").lstrip("/")
-            if request.method == "PUT":
-                files[path] = request.read()
-                return httpx2.Response(201, json={"path": path})
-            if path:
-                return httpx2.Response(200, content=files[path])
-            prefix = request.url.params["prefix"]
-            listed = [{"path": p} for p in files if p.startswith(prefix)]
-            return httpx2.Response(200, json={"files": listed, "cursor": None})
-
-        def storage(target):
-            return httpx2.Client(
-                base_url=target.endpoint,
-                headers={"Authorization": f"Bearer {target.token}"},
-                transport=httpx2.MockTransport(handle),
-            )
-
         headers = {"x-hf-viewer-token": "viewer-tok"}
-        with patch("gradio.history._storage", side_effect=storage):
-            r = client.post(
-                "/gradio_api/run/greet", json={"data": ["world"]}, headers=headers
-            )
-            assert r.status_code == 200, r.text
-            assert _wait_for(lambda: len(files) == 1), "no record was written"
-            r = client.get(
-                "/gradio_api/run-history/records?bucket=spaces", headers=headers
-            )
+        r = client.post(
+            "/gradio_api/run/greet", json={"data": ["world"]}, headers=headers
+        )
+        assert r.status_code == 200, r.text
+        assert _wait_for(lambda: len(spaces_storage.files) == 1), "nothing written"
+        r = client.get("/gradio_api/run-history/records?bucket=spaces", headers=headers)
         assert r.status_code == 200, r.text
         assert [rec["outputs"] for rec in r.json()["records"]] == [["hello world"]]
-        assert auth == {"Bearer viewer-tok"}
+        assert spaces_storage.auth == {"Bearer viewer-tok"}
         assert not hub.files
         assert client.get("/config").json()["history_storage"] == "spaces"
+
+    def test_spaces_storage_needs_the_viewer_token(self, recording_app, spaces_storage):
+        """A logged-out viewer, or one outside the Space page, sends no token,
+        so nothing goes to anyone's storage."""
+        client, hub, io = recording_app
+        targets = []
+        resolve = history_mod.resolve_target
+
+        def spy(*args, **kwargs):
+            targets.append(resolve(*args, **kwargs))
+            return targets[-1]
+
+        with patch("gradio.history.resolve_target", side_effect=spy):
+            r = client.post("/gradio_api/run/greet", json={"data": ["world"]})
+            assert r.status_code == 200, r.text
+            assert _wait_for(lambda: targets), "the run was never considered"
+        assert targets == [None]
+        assert not spaces_storage.files
+        assert not hub.files
+
+    def test_an_expired_viewer_token_reaches_the_browser_as_401(
+        self, recording_app, spaces_storage
+    ):
+        """The frontend asks the Space page for a new token on a 401."""
+        client, hub, io = recording_app
+        spaces_storage.status = 401
+        r = client.get(
+            "/gradio_api/run-history/records?bucket=spaces",
+            headers={"x-hf-viewer-token": "expired-tok"},
+        )
+        assert r.status_code == 401, r.text
 
     def test_a_hub_failure_does_not_fail_the_prediction(self, recording_app):
         client, hub, io = recording_app
