@@ -13,6 +13,7 @@ vi.mock("../helpers/zerogpu", () => ({
 
 // The Space page handshake only exists in a browser frame.
 const in_browser = typeof window !== "undefined";
+const here = typeof window !== "undefined" ? window.location.href : "";
 const spaces_scope = { root: "http://x/", history_storage: "spaces" as const };
 
 describe.skipIf(!in_browser)("spaces_storage_headers", () => {
@@ -27,19 +28,19 @@ describe.skipIf(!in_browser)("spaces_storage_headers", () => {
 		// Outside the Space page nothing answers, so the request times out.
 		vi.useFakeTimers();
 		post_message.mockReturnValue(new Promise(() => {}));
-		const pending = spaces_storage_headers(true);
+		const pending = spaces_storage_headers(here, true);
 		await vi.advanceTimersByTimeAsync(3000);
 		expect(await pending).toEqual({});
 		expect(read_run_history_storage(spaces_scope).type).toBe("browser");
 		// A logged-out viewer gets an empty answer.
 		post_message.mockResolvedValue({});
-		expect(await spaces_storage_headers(true)).toEqual({});
+		expect(await spaces_storage_headers(here, true)).toEqual({});
 		expect(read_run_history_storage(spaces_scope).type).toBe("browser");
 	});
 
 	it("saves to Spaces storage once the page hands out a token", async () => {
 		post_message.mockResolvedValue({ "X-HF-Viewer-Token": "a" });
-		expect(await spaces_storage_headers(true)).toEqual({
+		expect(await spaces_storage_headers(here, true)).toEqual({
 			"X-HF-Viewer-Token": "a"
 		});
 		expect(read_run_history_storage(spaces_scope)).toEqual({
@@ -48,15 +49,23 @@ describe.skipIf(!in_browser)("spaces_storage_headers", () => {
 		});
 	});
 
+	it("never hands the token to another origin", async () => {
+		post_message.mockResolvedValue({ "X-HF-Viewer-Token": "a" });
+		expect(
+			await spaces_storage_headers("https://other.hf.space/gradio_api/", true)
+		).toEqual({});
+		expect(post_message).not.toHaveBeenCalled();
+	});
+
 	it("reuses an answer until asked to refresh", async () => {
 		post_message
 			.mockResolvedValueOnce({ "X-HF-Viewer-Token": "a" })
 			.mockResolvedValueOnce({ "X-HF-Viewer-Token": "b" });
-		await spaces_storage_headers(true);
-		expect(await spaces_storage_headers()).toEqual({
+		await spaces_storage_headers(here, true);
+		expect(await spaces_storage_headers(here)).toEqual({
 			"X-HF-Viewer-Token": "a"
 		});
-		expect(await spaces_storage_headers(true)).toEqual({
+		expect(await spaces_storage_headers(here, true)).toEqual({
 			"X-HF-Viewer-Token": "b"
 		});
 		expect(post_message).toHaveBeenCalledTimes(2);

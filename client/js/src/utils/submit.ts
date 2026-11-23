@@ -199,7 +199,7 @@ export function submit(
 		const with_history_headers = async (): Promise<Record<string, string>> => ({
 			...addt_headers,
 			...(history_enabled && on_spaces_storage
-				? await spaces_storage_headers()
+				? await spaces_storage_headers(config.root)
 				: {})
 		});
 		const history_run_id =

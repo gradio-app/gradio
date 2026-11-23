@@ -36,12 +36,18 @@ export function initialize_spaces_storage_handshake(): void {
 	window.parent.postMessage(PROBE_MESSAGE, origin);
 }
 
-/** The headers that address the viewer's Spaces storage, or `{}`. */
+/** The headers that address the viewer's Spaces storage, for a request to
+ * `url`, or `{}`. The token is for this Space only, so it is never sent to
+ * another origin, such as another app this page's client connects to. */
 export async function spaces_storage_headers(
+	url: string,
 	refresh = false
 ): Promise<Record<string, string>> {
 	const origin = space_page_origin();
 	if (!origin) return {};
+	if (new URL(url, window.location.href).origin !== window.location.origin) {
+		return {};
+	}
 	if (!refresh && cached && Date.now() - cached.at < CACHE_MS) {
 		return cached.headers;
 	}

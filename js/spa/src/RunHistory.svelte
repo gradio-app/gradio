@@ -199,7 +199,7 @@
 	async function start(): Promise<void> {
 		// The Space page may not have answered the client's probe yet, so ask it
 		// directly whether the viewer's storage is usable before reading runs.
-		if (scope.history_storage === "spaces") await spaces_storage_headers();
+		if (scope.history_storage === "spaces") await spaces_storage_headers(root);
 		storage = read_run_history_storage(scope);
 		// Embedded on Spaces this page loads inside an iframe the parent has
 		// already scrolled past, so it opens mid-list unless we ask for the top.

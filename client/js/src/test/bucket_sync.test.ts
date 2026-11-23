@@ -75,7 +75,11 @@ describe("list_bucket_records", () => {
 		globalThis.fetch = spy as any;
 		const res = await list_bucket_records("http://x", SPACES_STORAGE_BUCKET);
 		expect(res.ok).toBe(true);
-		expect(spaces_storage_headers.mock.calls).toEqual([[], [true]]);
+		const target = "http://x/gradio_api/run-history/records?bucket=spaces";
+		expect(spaces_storage_headers.mock.calls).toEqual([
+			[target],
+			[target, true]
+		]);
 		expect(spy.mock.calls.map(([, init]) => init.headers)).toEqual([
 			{ "X-HF-Viewer-Token": "old" },
 			{ "X-HF-Viewer-Token": "new" }

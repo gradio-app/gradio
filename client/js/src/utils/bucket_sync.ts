@@ -159,12 +159,13 @@ export async function list_user_buckets(
  * there means the token expired, so ask the Space page again and retry once. */
 async function with_storage_headers<T>(
 	bucket: string,
+	target: string,
 	send: (headers: Record<string, string>) => Promise<HistoryResult<T>>
 ): Promise<HistoryResult<T>> {
 	if (bucket !== SPACES_STORAGE_BUCKET) return send({});
-	const result = await send(await spaces_storage_headers());
+	const result = await send(await spaces_storage_headers(target));
 	return result.status === 401
-		? send(await spaces_storage_headers(true))
+		? send(await spaces_storage_headers(target, true))
 		: result;
 }
 
@@ -172,8 +173,9 @@ export async function list_bucket_records(
 	root: string,
 	bucket: string
 ): Promise<HistoryResult<HistoryRecord[]>> {
-	return with_storage_headers(bucket, (headers) =>
-		request(url(root, "records", { bucket }), { headers }, [], (b) =>
+	const target = url(root, "records", { bucket });
+	return with_storage_headers(bucket, target, (headers) =>
+		request(target, { headers }, [], (b) =>
 			Array.isArray(b?.records) ? b.records : []
 		)
 	);
@@ -190,7 +192,7 @@ export async function fetch_asset_url(
 ): Promise<string> {
 	const src = asset_url(root, bucket, endpoint, record_id, filename);
 	if (bucket !== SPACES_STORAGE_BUCKET) return src;
-	const result = await with_storage_headers(bucket, async (headers) => {
+	const result = await with_storage_headers(bucket, src, async (headers) => {
 		try {
 			const res = await fetch(src, { credentials: "include", headers });
 			return {
