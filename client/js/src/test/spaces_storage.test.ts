@@ -11,9 +11,11 @@ vi.mock("../helpers/zerogpu", () => ({
 	get_zerogpu_origin: () => "https://huggingface.co"
 }));
 
+// The Space page handshake only exists in a browser frame.
+const in_browser = typeof window !== "undefined";
 const spaces_scope = { root: "http://x/", history_storage: "spaces" as const };
 
-describe("spaces_storage_headers", () => {
+describe.skipIf(!in_browser)("spaces_storage_headers", () => {
 	beforeEach(() => {
 		post_message.mockReset();
 	});
