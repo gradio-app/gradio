@@ -3,6 +3,7 @@ import json
 import sys
 import threading
 import time
+from pathlib import Path
 from unittest.mock import patch
 
 import fastapi
@@ -12,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import gradio as gr
-from gradio import queueing
+from gradio import queueing, utils
 from gradio.route_utils import API_PREFIX
 from gradio.server_messages import ProcessCompletedMessage
 
@@ -894,6 +895,96 @@ class TestEtaHints:
         assert hint is None
         assert time.monotonic() - start < 2
         assert ticks >= 5
+
+    def test_eta_is_not_called_with_files_the_user_did_not_upload(self, tmp_path):
+        seen = []
+        demo = self.make_demo(lambda f, steps: seen.append(f) or 1)
+        fn = demo.fns[0]
+
+        def file(path):
+            return {"path": str(path), "meta": {"_type": "gradio.FileData"}}
+
+        assert queueing.compute_eta_hint(fn, [file("/etc/passwd"), 1]) is None
+        assert queueing.compute_eta_hint(fn, [{"path": "/etc/passwd"}, 1]) is None
+        assert seen == []
+
+        uploaded = Path(utils.get_upload_folder()) / "eta-test" / "a.txt"
+        assert queueing.compute_eta_hint(fn, [file(uploaded), 1]) == 1.0
+        assert queueing.compute_eta_hint(fn, [file("https://x.co/a.png"), 1]) == 1.0
+        assert len(seen) == 2
+
+    def test_eta_files_respect_blocked_paths(self):
+        demo = self.make_demo(lambda f, steps: 1)
+        uploaded = Path(utils.get_upload_folder()) / "eta-test" / "a.txt"
+        data = [{"path": str(uploaded)}, 1]
+        blocked = [str(uploaded.parent)]
+        assert queueing.compute_eta_hint(demo.fns[0], data, blocked) is None
+
+    def test_async_eta_is_rejected_when_the_listener_is_created(self):
+        async def eta(prompt, steps):
+            return 1
+
+        with pytest.raises(TypeError, match="async"):
+            self.make_demo(eta)
+
+    def test_eta_returning_an_awaitable_falls_back(self):
+        async def later():
+            return 1
+
+        demo = self.make_demo(lambda prompt, steps: later())
+        with pytest.warns(UserWarning, match="eta"):
+            assert queueing.compute_eta_hint(demo.fns[0], ["a", 1]) is None
+
+    def test_eta_warning_does_not_include_client_input(self):
+        demo = self.make_demo(lambda prompt, steps: float(steps))
+        with pytest.warns(UserWarning) as record:
+            queueing.compute_eta_hint(demo.fns[0], ["a", "junk-123"])
+        assert "junk-123" not in str(record[0].message)
+
+    @pytest.mark.asyncio
+    async def test_concurrent_eta_calls_are_capped_per_listener(self):
+        release = threading.Event()
+        running = 0
+        most = 0
+        lock = threading.Lock()
+
+        def slow(prompt, steps):
+            nonlocal running, most
+            with lock:
+                running += 1
+                most = max(most, running)
+            release.wait(10)
+            with lock:
+                running -= 1
+            return 1
+
+        demo = self.make_demo(slow)
+        body = queueing.PredictBodyInternal(
+            data=["a", 1], fn_index=0, session_hash="s", request=None
+        )
+        try:
+            with patch.object(queueing, "ETA_TIMEOUT", 0.3):
+                start = time.monotonic()
+                hints = await asyncio.gather(
+                    *[
+                        demo._queue.request_eta_hint(demo.fns[0], body)
+                        for _ in range(10)
+                    ]
+                )
+                assert time.monotonic() - start < 1
+                start = time.monotonic()
+                assert await demo._queue.request_eta_hint(demo.fns[0], body) is None
+                assert time.monotonic() - start < 0.1
+            assert hints == [None] * 10
+            assert most == queueing.MAX_ETA_CALLS_PER_FN
+        finally:
+            release.set()
+        for _ in range(50):
+            if demo.fns[0] not in queueing._eta_calls:
+                break
+            await asyncio.sleep(0.05)
+        assert demo.fns[0] not in queueing._eta_calls
+        assert await demo._queue.request_eta_hint(demo.fns[0], body) == 1.0
 
     def test_running_events_use_their_own_hint_without_history(self):
         demo = self.make_demo(lambda prompt, steps: steps)

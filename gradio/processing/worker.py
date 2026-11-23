@@ -384,9 +384,7 @@ class Worker:
     async def run_eta(self, p: dict) -> float | None:
         """An event listener's `eta=` callable, for an event the gateway's queue
         is enqueuing."""
-        import anyio
-
-        from gradio.queueing import compute_eta_hint
+        from gradio.queueing import ETA_TIMEOUT, run_eta_hint
 
         session_hash = p["session_hash"]
         fns = (
@@ -394,8 +392,8 @@ class Worker:
             if session_hash is not None
             else self.blocks.fns
         )
-        return await anyio.to_thread.run_sync(
-            compute_eta_hint, fns[p["fn_index"]], p["data"]
+        return await run_eta_hint(
+            fns[p["fn_index"]], p["data"], self.blocks.blocked_paths, ETA_TIMEOUT
         )
 
     async def run_auth(self, p: dict) -> bool:

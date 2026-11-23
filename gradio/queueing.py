@@ -16,11 +16,13 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
 from threading import Barrier, Lock, Thread
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
 from anyio.to_thread import run_sync
+from gradio_client import utils as client_utils
 
 from gradio import caching, history, route_utils, routes
 from gradio.caching import CacheMissError, ProbeCache
@@ -52,6 +54,8 @@ from gradio.utils import (
     LRUCache,
     ShmFdQueue,
     error_payload,
+    get_upload_folder,
+    is_allowed_file,
     is_eta_number,
     run_coro_in_background,
     safe_aclose_iterator,
@@ -1170,13 +1174,13 @@ class Queue:
         """
         pool = getattr(self.blocks, "_process_pool", None)
         try:
-            if pool is None:
-                hint = run_sync(compute_eta_hint, fn, body.data, abandon_on_cancel=True)
-            else:
+            if pool is not None:
                 from gradio.processing.gateway import forward_eta
 
-                hint = forward_eta(pool, fn, body)
-            return await asyncio.wait_for(hint, ETA_TIMEOUT)
+                return await asyncio.wait_for(forward_eta(pool, fn, body), ETA_TIMEOUT)
+            return await run_eta_hint(
+                fn, body.data, self.blocks.blocked_paths, ETA_TIMEOUT
+            )
         except Exception:  # noqa: BLE001
             return None
 
@@ -1625,29 +1629,135 @@ class Queue:
 
 ETA_TIMEOUT = 1.0
 MAX_ETA = 24 * 60 * 60
+MAX_ETA_CALLS_PER_FN = 4
+
+_eta_calls: dict[BlockFunction, int] = defaultdict(int)
+_eta_calls_lock = Lock()
 
 
-def compute_eta_hint(fn: BlockFunction, data: list[Any] | None) -> float | None:
+class EtaSlot:
+    """
+    One of the MAX_ETA_CALLS_PER_FN concurrent `eta=` calls of a listener. A call
+    that times out keeps running in its thread, so without a cap a slow `eta` would
+    leave a thread behind for every request. Whichever of the thread and its caller
+    claims the slot first releases it, so a thread that never started (cancelled
+    while waiting for the thread pool) does not hold it forever.
+    """
+
+    def __init__(self, fn: BlockFunction):
+        self.fn = fn
+        self._lock = Lock()
+        self._claimed = False
+
+    @classmethod
+    def acquire(cls, fn: BlockFunction) -> EtaSlot | None:
+        with _eta_calls_lock:
+            if _eta_calls[fn] >= MAX_ETA_CALLS_PER_FN:
+                return None
+            _eta_calls[fn] += 1
+        return cls(fn)
+
+    def claim(self) -> bool:
+        with self._lock:
+            if self._claimed:
+                return False
+            self._claimed = True
+            return True
+
+    def release(self) -> None:
+        with _eta_calls_lock:
+            _eta_calls[self.fn] -= 1
+            if _eta_calls[self.fn] <= 0:
+                del _eta_calls[self.fn]
+
+
+async def run_eta_hint(
+    fn: BlockFunction,
+    data: list[Any] | None,
+    blocked_paths: list[str] | None,
+    timeout: float | None,
+) -> float | None:
+    """`compute_eta_hint` in a thread, with at most MAX_ETA_CALLS_PER_FN running
+    per listener and the thread abandoned after `timeout`."""
+    slot = EtaSlot.acquire(fn)
+    if slot is None:
+        return None
+    try:
+        return await asyncio.wait_for(
+            run_sync(
+                compute_eta_hint, fn, data, blocked_paths, slot, abandon_on_cancel=True
+            ),
+            timeout,
+        )
+    finally:
+        if slot.claim():
+            slot.release()
+
+
+def eta_files_are_allowed(data: Any, blocked_paths: list[str] | None = None) -> bool:
+    """
+    Whether every local file in a request's raw input values is one a user
+    uploaded. The `eta=` callable runs before preprocessing, where these paths are
+    otherwise checked, so it must not see a path the client made up.
+    """
+    allowed = True
+
+    def check(d: dict) -> dict:
+        nonlocal allowed
+        path = d.get("path")
+        if isinstance(path, str) and not client_utils.is_http_url_like(path):
+            ok, _ = is_allowed_file(
+                Path(os.path.abspath(path)),
+                blocked_paths=blocked_paths or [],
+                allowed_paths=[],
+                created_paths=[get_upload_folder()],
+            )
+            allowed = allowed and ok
+        return d
+
+    client_utils.traverse(data, check, client_utils.is_file_obj)
+    return allowed
+
+
+def compute_eta_hint(
+    fn: BlockFunction,
+    data: list[Any] | None,
+    blocked_paths: list[str] | None = None,
+    slot: EtaSlot | None = None,
+) -> float | None:
     """
     Calls the listener's `eta=` callable with the raw input values of a request.
-    Returns None (falling back to the average of past runs) if it returns None,
-    something that is not a non-negative finite number, or raises. Results are
-    capped at MAX_ETA, since they come from untrusted input.
+    Returns None (falling back to the average of past runs) if an input file was
+    not uploaded by a user, or if the callable returns None, something that is not
+    a non-negative finite number, or raises. Results are capped at MAX_ETA, since
+    they come from untrusted input.
     """
+    if slot is not None and not slot.claim():
+        return None
     try:
+        if not eta_files_are_allowed(data, blocked_paths):
+            return None
         eta = cast(Callable[..., Any], fn.eta)(*(data or []))
+        if inspect.isawaitable(eta):
+            if inspect.iscoroutine(eta):
+                eta.close()
+            raise TypeError("`eta` returned an awaitable")
         if eta is None:
             return None
         eta = float(eta)
         if not math.isfinite(eta) or eta < 0:
             return None
         return min(eta, MAX_ETA)
-    except Exception as e:
+    except Exception:
         warnings.warn(
-            f"The `eta` function of event listener '{fn.name}' raised an error, "
-            f"so the queue ETA falls back to the average of past runs: {e!r}"
+            f"The `eta` function of event listener '{fn.name}' raised an error or "
+            "returned an invalid value, so the queue ETA falls back to the average "
+            "of past runs."
         )
         return None
+    finally:
+        if slot is not None:
+            slot.release()
 
 
 def create_validator_fn(fn: BlockFunction) -> BlockFunction:

@@ -46,3 +46,38 @@ In this example, all three event listeners share a queue identified by `"gpu_que
 - The default concurrency limit for all queues can be set globally using the `default_concurrency_limit` parameter in `Blocks.queue()`. 
 
 These configurations make it easy to manage the queuing behavior of your Gradio app.
+
+## Estimating Wait Times
+
+While an event waits in the queue, Gradio shows the user an estimated time until it finishes. By default, this estimate is the average run time of the function's past runs. This doesn't work well when there is no history yet (for example, right after your app starts), or when the run time depends heavily on the inputs, like the number of steps in an image generation.
+
+You can give the queue a better estimate with the `eta` argument of any event listener. It can be a fixed number of seconds:
+
+```python
+generate_btn.click(image_gen, prompt, image, eta=8)
+```
+
+Or a function that receives the input values and returns the expected number of seconds:
+
+```python
+import gradio as gr
+
+def image_gen(prompt, steps):
+    ...
+
+with gr.Blocks() as demo:
+    prompt = gr.Textbox()
+    steps = gr.Slider(1, 50, value=20, step=1)
+    image = gr.Image()
+    generate_btn = gr.Button("Generate Image")
+    generate_btn.click(image_gen, [prompt, steps], image, eta=lambda prompt, steps: steps * 0.5)
+```
+
+Here, a request with 30 steps is estimated to take 15 seconds, and the users queued behind it see their ETAs grow accordingly.
+
+A few things to keep in mind when `eta` is a function:
+
+- It runs when a user joins the queue, before your function's inputs are preprocessed. So it receives the raw values the client sent: a `gr.Slider` gives a number, but a `gr.File` or `gr.Image` gives a dictionary describing the file (with its `path`) rather than a file path string or a numpy array, and a `gr.State` input arrives as `None`. It always gets one positional argument per input, in order.
+- File inputs are checked first: if a file wasn't uploaded by a user, the `eta` function isn't called at all.
+- It should be fast and must be a regular (not `async`) function. If it takes longer than 1 second, returns `None`, raises an error, or returns something that isn't a non-negative number, Gradio falls back to the average of past runs.
+- Since the estimate is computed from user input, Gradio caps it at one day.

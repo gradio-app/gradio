@@ -981,7 +981,7 @@ class BlocksConfig:
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
             validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input. The validator receives the same keyword arguments as the main function when `inputs_kwargs` is used, so its signature must accept those keyword names.
-            eta: a number of seconds, or a function of the raw input values returning one, used to estimate the function's run time for queue ETAs instead of the average of past runs.
+            eta: a number of seconds, or a regular (non-async) function of the raw input values returning one, used to estimate the function's run time for queue ETAs instead of the average of past runs. The function gets one positional argument per input (gr.State inputs as None), and is not called if a file input was not uploaded by a user.
         Returns: dependency information, dependency index
         """
         utils.validate_eta(eta)

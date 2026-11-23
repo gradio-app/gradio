@@ -2269,9 +2269,16 @@ def is_eta_number(eta: Any) -> bool:
 
 
 def validate_eta(eta: Any) -> None:
-    """Raises if an event listener's `eta=` is not None, a function, or a
-    non-negative finite number of seconds."""
-    if eta is None or callable(eta):
+    """Raises if an event listener's `eta=` is not None, a regular (non-async)
+    function, or a non-negative finite number of seconds."""
+    if eta is None:
+        return
+    if callable(eta):
+        if inspect.iscoroutinefunction(eta) or inspect.isasyncgenfunction(eta):
+            raise TypeError(
+                "`eta` must be a regular function returning a number of seconds, "
+                f"not an async function: {eta!r}"
+            )
         return
     if not is_eta_number(eta):
         raise TypeError(
