@@ -965,7 +965,7 @@ def add_forwarded_routes(
         forward,
         relay,
     )
-    from gradio.route_utils import API_PREFIX
+    from gradio.route_utils import API_PREFIX, RootStaticMount
 
     port = bootstrap["http_port"]
     token = [(TOKEN_HEADER, bootstrap["http_token"].encode())]
@@ -1025,7 +1025,8 @@ def add_forwarded_routes(
             routes.append(APIRoute(path, to_app, methods=data, include_in_schema=False))
         elif kind == "static":
             static_files, name = data
-            routes.append(Mount(path, app=static_files, name=name))
+            mount = Mount if path else RootStaticMount
+            routes.append(mount(path, app=static_files, name=name))
         elif kind == "websocket":
             routes.append(WebSocketRoute(path, websocket_to_app))
         else:
