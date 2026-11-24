@@ -1567,7 +1567,7 @@ class TestStreams:
         pc = await make_offer(video=True)
         await h.connect(pc, "one")
 
-        async def refuse(values, session_hash):
+        async def refuse(values, session_hash, blocks):
             raise gr.Error("Not one of the choices")
 
         monkeypatch.setattr(h.manager, "prepare_inputs", refuse)
