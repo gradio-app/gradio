@@ -1832,14 +1832,12 @@ class Queue:
             and group.current_concurrency >= group.concurrency_limit
         ):
             return True
+        # Not `can_start`, which reserves a slot for the event it is asked about
         return self.streams_waiting_for_worker > 0 and any(
-            (
+            bool(group.queue)
+            and (
                 group.concurrency_limit is None
                 or group.current_concurrency < group.concurrency_limit
-            )
-            and any(
-                self.can_start is None or self.can_start(waiting)
-                for waiting in group.queue
             )
             for group in self.event_queue_per_concurrency_id.values()
         )
