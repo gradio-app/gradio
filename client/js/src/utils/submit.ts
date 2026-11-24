@@ -88,8 +88,7 @@ export function submit(
 			api_info,
 			endpoint,
 			api_map,
-			config,
-			this.undocumented_endpoint_info
+			config
 		);
 
 		// A WebRTC stream sends its media over its own connection. Resuming one
@@ -1284,8 +1283,7 @@ function get_endpoint_info(
 	api_info: ApiInfo<JsApiData>,
 	endpoint: string | number,
 	api_map: Record<string, number>,
-	config: Config,
-	undocumented: Record<string, EndpointInfo<JsApiData>> = {}
+	config: Config
 ): {
 	fn_index: number;
 	endpoint_info: EndpointInfo<JsApiData>;
@@ -1307,8 +1305,7 @@ function get_endpoint_info(
 		// accept endpoint names passed without one (e.g. "predict")
 		endpoint_info =
 			api_info.named_endpoints[endpoint.trim()] ??
-			api_info.named_endpoints[`/${trimmed_endpoint}`] ??
-			undocumented[`/${trimmed_endpoint}`];
+			api_info.named_endpoints[`/${trimmed_endpoint}`];
 		dependency = config.dependencies.find(
 			(dep) => dep.id == api_map[trimmed_endpoint]
 		);

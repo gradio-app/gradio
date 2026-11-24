@@ -253,9 +253,7 @@ class Server(App):
         the media among the function's parameters (sent by the client) and its
         return values (sent back), and the function is called with each frame
         (or chunk of audio). In the browser, call it with `client.submit()` of
-        `@gradio/client`, passing a MediaStream for the media parameter (it is
-        left out of the API docs and MCP tools, since only such a client can
-        call it). Each
+        `@gradio/client`, passing a MediaStream for the media parameter. Each
         stream waits its turn in the queue like any call. `on_time_limit` is
         what happens when it reaches `time_limit`: with "rejoin" (default), it
         waits its turn again if others wait, or goes on if nobody does; with
@@ -274,9 +272,8 @@ class Server(App):
             )
         if transport is not None and api_visibility != "public":
             raise ValueError(
-                "An endpoint with transport= is left out of the API docs, since "
-                "only a client that sends the media can call it, so it does not "
-                "take api_visibility."
+                "An endpoint with transport= is called by name from the browser, "
+                "so it does not support api_visibility."
             )
         kwargs = {
             "api_name": name,

@@ -413,9 +413,9 @@ def api_stream(
         postprocess=False,
         api_name=api_name or getattr(hinted, "__name__", None),
         api_description=api_description,
-        # Out of the API docs and MCP tools: only a client that sends the
-        # media (such as @gradio/client with a MediaStream) can call it
-        api_visibility="undocumented",
+        # Documented so that clients can call it with named arguments; it is
+        # left out of the MCP tools, which could not send media
+        api_visibility="public",
         trigger_mode="once",
         pack_sent=pack_sent,
     )

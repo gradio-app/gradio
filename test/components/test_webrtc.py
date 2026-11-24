@@ -636,9 +636,6 @@ class TestWebRTC:
                 {"js": "(x) => x"},
                 {"validator": lambda x: None},
                 {"inputs_kwargs": {"x": slider}},
-                {"api_name": "flip"},
-                {"api_description": "Flips"},
-                {"api_visibility": "undocumented"},
             ):
                 with pytest.raises(ValueError, match=next(iter(kwargs))):
                     camera.stream(
@@ -648,15 +645,6 @@ class TestWebRTC:
                         transport="webrtc",
                         **kwargs,
                     )
-
-            # It is private either way: only the page can call it
-            camera.stream(
-                flip,
-                inputs=[camera],
-                outputs=[camera],
-                transport="webrtc",
-                api_visibility="private",
-            )
 
             label = gr.Textbox()
             shown = camera.stream(
@@ -4936,13 +4924,7 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
                 d["id"] for d in config["dependencies"] if d["api_name"] == "echo"
             )
             if mode == "generator":
-                # Undocumented: listed only with all_endpoints, where the
-                # JS client finds its parameter names
                 info = (await http.get(f"{api}/info")).json()
-                assert "/echo" not in info["named_endpoints"]
-                info = (
-                    await http.get(f"{api}/info", params={"all_endpoints": "True"})
-                ).json()
                 parameters = info["named_endpoints"]["/echo"]["parameters"]
                 assert [p["parameter_name"] for p in parameters] == ["frame", "x"]
 
@@ -5198,7 +5180,6 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
         # Clients call it by name, with named arguments
         assert stream_fn.api_name == "echo"
         assert stream_fn.input_parameter_names == ["frame", "x"]
-        assert stream_fn.api_visibility == "undocumented"
         assert stream_fn.on_time_limit == "rejoin"
         stream_fn, _ = api_stream(echo, **kwargs, on_time_limit="stop")
         assert stream_fn.get_config()["on_time_limit"] == "stop"
@@ -5272,33 +5253,6 @@ def test_a_server_webrtc_endpoint_marks_its_media_with_a_type_hint():
             api_stream(
                 cast(Any, gr.streaming.ReplyOnPause(late, vad=Quiet())), **kwargs
             )
-
-
-def test_a_server_webrtc_endpoint_is_left_out_of_the_api_docs_and_mcp_tools():
-    from gradio.mcp import GradioMCPServer
-    from gradio.webrtc.transport import api_stream
-
-    def echo(frame: gr.VideoFrame, x: float) -> tuple[gr.VideoFrame, float]:
-        return frame, x
-
-    def add(a: float, b: float) -> float:
-        return a + b
-
-    with gr.Blocks(mode="server") as demo:
-        api_stream(
-            echo,
-            transport="webrtc",
-            api_name=None,
-            time_limit=None,
-            stream_every=None,
-            concurrency_limit="default",
-            concurrency_id=None,
-        )
-        gr.api(add)
-    assert list(demo.get_api_info()["named_endpoints"]) == ["/add"]
-    # The JS client reads its parameter names from here
-    assert "/echo" in demo.get_api_info(all_endpoints=True)["named_endpoints"]
-    assert list(GradioMCPServer(demo).tool_to_endpoint.values()) == ["/add"]
 
 
 def test_a_handler_class_gets_the_inputs_its_receive_declares():
