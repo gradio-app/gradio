@@ -103,6 +103,12 @@ class BlockFunction:
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
+        if time_limit is not None and (
+            isinstance(time_limit, bool) or not time_limit > 0
+        ):
+            raise ValueError(
+                f"time_limit must be a number of seconds above 0, or None, not {time_limit!r}."
+            )
         self.time_limit = time_limit
         if on_time_limit not in ("rejoin", "stop"):
             raise ValueError(

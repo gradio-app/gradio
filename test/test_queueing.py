@@ -1584,6 +1584,15 @@ def test_a_stream_s_time_limit_counts_from_the_end_of_its_first_call():
         demo.close()
 
 
+def test_a_stream_refuses_a_time_limit_that_is_not_above_zero():
+    with gr.Blocks():
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        for time_limit in (0, -1):
+            with pytest.raises(ValueError, match="time_limit must be"):
+                audio.stream(lambda x: x, audio, heard, time_limit=time_limit)
+
+
 @pytest.mark.parametrize("executor", ["thread", "process"])
 def test_a_stream_that_runs_out_of_time_ends_with_on_time_limit_stop(executor):
     demo, api = _launch_text_stream(
