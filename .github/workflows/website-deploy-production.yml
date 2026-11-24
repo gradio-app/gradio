@@ -1,0 +1,126 @@
+# Publishes gradio.app from main.
+#
+# It builds the website itself instead of reusing the artifact of the
+# docs-build -> docs-deploy -> website-build workflow_run chain: workflow_run
+# jobs also run on main for pull requests, forks included, and the "changes"
+# artifact that tells them apart is written by the pull request's own run. This
+# workflow only ever runs on a push to main, so it only ever publishes reviewed
+# code.
+#
+# - deploy-s3: S3 behind CloudFront (gradio AWS account). The deploy role
+#   trusts the deploy_website_aws environment only, and the environment allows
+#   main only. Infrastructure: huggingface-internal/infra, projects/gradio/00-aws.
+# - deploy-cloudflare: transitional. gradio.app is served by the Cloudflare
+#   Worker until its name servers move to AWS. Delete this job, and the
+#   Cloudflare secrets of the deploy_website environment, after the switch.
+
+name: "website-deploy-production"
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: website-deploy-production
+  cancel-in-progress: false
+
+env:
+  CI: true
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+
+jobs:
+  build:
+    name: "website-build-production"
+    # Like the workflow_run chain did for main: every push rebuilds the site,
+    # since the docs come from the library code as well as js/_website.
+    if: github.repository == 'gradio-app/gradio'
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: install dependencies
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          skip_build: true
+          python_version: "3.10"
+      - name: build client
+        run: pnpm --filter @gradio/client build
+      - name: build packages
+        run: pnpm package
+      - name: build website
+        run: VERCEL=1 pnpm --filter website build
+      - name: upload website artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-production
+          path: |
+            js/_website/build
+            js/_website/wrangler.jsonc
+            js/_website/worker
+          include-hidden-files: true
+          retention-days: 7
+
+  deploy-s3:
+    name: "website-deploy-s3"
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: deploy_website_aws
+      url: https://gradio.app
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/upload_website_s3.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: download website artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: website-production
+          path: js/_website
+      - name: Get credentials for the website bucket
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::696497364438:role/gradio-website-deploy
+          aws-region: us-east-1
+      - name: Upload to S3
+        run: bash scripts/upload_website_s3.sh js/_website/build gradio-website "" production
+      # Pages keep their URL across deploys, so CloudFront must drop its copies.
+      # /* counts as one path; the first 1,000 paths of a month are free.
+      - name: Invalidate the CloudFront cache
+        run: |
+          id=$(aws cloudfront create-invalidation --distribution-id EPI6UBGVEERLY \
+            --paths '/*' --query Invalidation.Id --output text)
+          aws cloudfront wait invalidation-completed --distribution-id EPI6UBGVEERLY --id "$id"
+
+  deploy-cloudflare:
+    name: "website-deploy-cloudflare"
+    needs: build
+    runs-on: ubuntu-latest
+    environment: deploy_website
+    permissions:
+      contents: read
+    steps:
+      - name: download website artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: website-production
+          path: js/_website
+      - name: Deploy Production Worker to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: js/_website
+          wranglerVersion: "4"
+          command: deploy

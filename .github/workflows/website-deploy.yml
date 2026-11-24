@@ -1,3 +1,15 @@
+# Pull request previews of the website, on https://pr-<number>.gradio-staging.com
+# (S3 behind CloudFront, gradio AWS account). Production is
+# website-deploy-production.yml, which runs on a push to main and builds the site
+# itself.
+#
+# This job runs on main for every pull request, forks included, and the "changes"
+# artifact it reads is written by the pull request's own run. So the preview role
+# can only write under pr-* of the previews bucket, on a domain that shares no
+# cookie with gradio.app, and the job only uploads files: it never runs code from
+# the build artifact. The pull request number is checked to be an integer before
+# it becomes a key prefix.
+
 name: "website-deploy"
 
 on:
@@ -44,47 +56,57 @@ jobs:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: website~pending~null
   deploy:
-    environment: deploy_website
+    environment:
+      name: deploy_website_preview
+      url: ${{ steps.preview.outputs.url }}
     name: "website-deploy"
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.should_run == 'true' || (endsWith(needs.changes.outputs.source_branch, 'main') && github.repository == 'gradio-app/gradio')
+    if: needs.changes.outputs.should_run == 'true' && needs.changes.outputs.pr_number != 'false'
     permissions:
       actions: read
+      id-token: write
     outputs:
-      cloudflare_url: ${{ steps.cloudflare-preview.outputs.deployment-url }}
+      preview_url: ${{ steps.preview.outputs.url }}
     steps:
+      - name: Check the pull request number
+        id: preview
+        env:
+          PR_NUMBER: ${{ needs.changes.outputs.pr_number }}
+        run: |
+          if ! [[ "$PR_NUMBER" =~ ^[1-9][0-9]{0,6}$ ]]; then
+            echo "not a pull request number: $PR_NUMBER" >&2
+            exit 1
+          fi
+          echo "prefix=pr-$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "url=https://pr-$PR_NUMBER.gradio-staging.com" >> "$GITHUB_OUTPUT"
+
       - name: download website artifacts
         uses: actions/download-artifact@v4
         with:
           name: website
-          path: js/_website
+          path: preview
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-        # preview
-      - name: Deploy Preview Worker to Cloudflare
-        if: needs.changes.outputs.pr_number != 'false'
-        id: cloudflare-preview
-        uses: cloudflare/wrangler-action@v3
+      # From main, not from the artifact.
+      - uses: actions/checkout@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: js/_website
-          wranglerVersion: "4"
-          command: versions upload
+          path: main
+          sparse-checkout: scripts/upload_website_s3.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
 
-        # production
-      - name: Deploy Production Worker to Cloudflare
-        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'refs/heads/main'
-        id: cloudflare-production
-        uses: cloudflare/wrangler-action@v3
+      - name: Get credentials for the previews bucket
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: js/_website
-          wranglerVersion: "4"
-          command: deploy
+          role-to-assume: arn:aws:iam::696497364438:role/gradio-website-previews-deploy
+          aws-region: us-east-1
+
+      - name: Upload the preview
+        env:
+          PREFIX: ${{ steps.preview.outputs.prefix }}
+        run: bash main/scripts/upload_website_s3.sh preview/build gradio-website-previews "$PREFIX" preview
 
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
@@ -94,7 +116,7 @@ jobs:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: website~success~${{needs.deploy.outputs.cloudflare_url}}
+      message: website~success~${{needs.deploy.outputs.preview_url}}
   comment-deploy-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy, changes]
