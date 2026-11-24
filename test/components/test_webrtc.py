@@ -2617,7 +2617,13 @@ class TestStreams:
         # A page built as an app of its own, as the multipage guide does
         with gr.Blocks() as page:
             camera = webcam()
-            camera.stream(flip, inputs=[camera], outputs=[camera], transport="webrtc")
+            size = gr.Dropdown(choices=["small"], value="small")
+            camera.stream(
+                lambda frame, size: frame,
+                inputs=[camera, size],
+                outputs=[camera],
+                transport="webrtc",
+            )
         if compose == "render":
             with gr.Blocks() as demo:
                 page.render()
@@ -2630,6 +2636,13 @@ class TestStreams:
             pc = await make_offer(video=True)
             answer = await h.connect(pc, "one")
             assert "m=video" in answer["sdp"]
+            # The inputs are preprocessed with the session's state in the
+            # launched app, where an event gave this visitor another choice
+            demo.state_holder["one"][size._id] = gr.Dropdown(choices=["small", "big"])
+            await h.push_inputs("one", "big")
+            stream = stream_of(h.manager, "one")
+            assert stream.failure is None
+            assert stream.inputs.latest == ["big"]
             await pc.close()
             await h.http.aclose()
 

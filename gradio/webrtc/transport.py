@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 import numpy as np
 
 from gradio import utils
-from gradio.context import get_blocks_context
+from gradio.context import LocalContext, get_blocks_context
 from gradio.helpers import skip
 from gradio.streaming.handlers import (
     AsyncAudioVideoStreamHandler,
@@ -1052,8 +1052,16 @@ def transport_event(
     # through a copy of the event that takes only those inputs
     inputs_fn: dict[str, BlockFunction] = {}
 
-    async def prepare_inputs(values: list[Any], session_hash: str | None) -> list[Any]:
-        blocks = root_block.root_block
+    def launched() -> Any:
+        # A page rendered into another app (gr.TabbedInterface, render()) has
+        # a Blocks of its own; the launched one holds the sessions' state and
+        # the thread limiter
+        return LocalContext.blocks.get(None) or root_block.root_block
+
+    async def prepare_inputs(
+        values: list[Any], session_hash: str | None, blocks: Any = None
+    ) -> list[Any]:
+        blocks = blocks or launched()
         state = blocks.state_holder[session_hash] if session_hash else None
         return await blocks.preprocess_data(inputs_fn["fn"], list(values), state)
 
@@ -1133,7 +1141,7 @@ def transport_event(
                 fn(*args)
                 if inspect.isasyncgenfunction(fn)
                 else utils.SyncToAsyncIterator(
-                    fn(*args), limiter=root_block.root_block.limiter
+                    fn(*args), limiter=launched().limiter
                 )
             )
             # Audio comes chunk by chunk; the last output is all of it, as
@@ -1196,7 +1204,7 @@ def transport_event(
                 result = await fn(*args)
             else:
                 result = await anyio.to_thread.run_sync(
-                    lambda: fn(*args), limiter=root_block.root_block.limiter
+                    lambda: fn(*args), limiter=launched().limiter
                 )
         yield outputs_once(values_once(result))
 

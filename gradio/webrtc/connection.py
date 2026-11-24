@@ -400,6 +400,8 @@ class Stream:
         self._last_delivery = -math.inf
         self._delivery_timer: asyncio.TimerHandle | None = None
         self.errors: StreamErrors | None = None
+        # The launched app, set at admission (see `stream_run`)
+        self.blocks: Any = None
         self.rtc_configuration: asyncio.Future | None = None
         # Values the stream itself keeps for some of the extra inputs, by
         # their position, in place of what the page sends (the gr.State
@@ -702,7 +704,7 @@ class ConnectionManager:
         rtc_configuration: dict[str, Any] | Callable | None = None,
         output_every: float | None = None,
         adapt_handler: Callable[[Any], None] | None = None,
-        prepare_inputs: Callable[[list[Any], str | None], Awaitable[list[Any]]]
+        prepare_inputs: Callable[[list[Any], str | None, Any], Awaitable[list[Any]]]
         | None = None,
     ) -> None:
         self.handler = handler
@@ -855,7 +857,7 @@ class ConnectionManager:
         seq = stream.inputs_seq
         try:
             prepared = await cast(Callable, self.prepare_inputs)(
-                values, stream.event.session_hash
+                values, stream.event.session_hash, stream.blocks
             )
         except Exception as e:
             # Fails the stream's event with the error, as preprocessing does
@@ -1266,6 +1268,7 @@ async def stream_run(
     stream = registry.by_event[event.id]
     # Set before the turn reaches the page, which only then sends the inputs
     stream.carried = dict(carried or {})
+    stream.blocks = blocks
     try:
         yield None
         while True:
