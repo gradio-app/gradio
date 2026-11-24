@@ -5633,6 +5633,13 @@ def test_a_blocks_webrtc_stream_takes_on_time_limit():
     assert stream_fn.get_config()["on_time_limit"] == "stop"
 
 
+def _wav_frames(path):
+    import wave
+
+    with wave.open(path) as w:
+        return w.getnframes()
+
+
 def _image_and_wav(tmp_path):
     """A small RGB image and a 3 s mono WAV at 16 kHz."""
     import wave
@@ -5677,6 +5684,14 @@ def test_a_client_calls_a_stream_once_with_a_file(executor, tmp_path):
         finally:
             closed.write_text("closed")
 
+    def frames(count):
+        for i in range(int(count)):
+            yield np.full((4, 6, 3), i * 10, dtype=np.uint8), f"frame {i}"
+
+    def speak(text):
+        for i in range(3):
+            yield (16000, np.full(8000, 1000 * (i + 1), dtype=np.int16)), text
+
     class Echo(VideoStreamHandler):
         def video_receive(self, frame):
             self.frame = frame
@@ -5688,6 +5703,15 @@ def test_a_client_calls_a_stream_once_with_a_file(executor, tmp_path):
             return Echo()
 
     with gr.Blocks() as demo:
+        # Streams that only send media to the page, started by a button
+        count = gr.Number(3)
+        screen = gr.Image()
+        note = gr.Textbox()
+        gr.Button().click(frames, [count], [screen, note], transport="webrtc")
+        text = gr.Textbox()
+        speaker = gr.Audio(streaming=True)
+        said = gr.Textbox()
+        gr.Button().click(speak, [text], [speaker, said], transport="webrtc")
         camera = webcam()
         dim = gr.Slider(0, 1, 0.5)
         shape = gr.Textbox()
@@ -5720,8 +5744,10 @@ def test_a_client_calls_a_stream_once_with_a_file(executor, tmp_path):
         endpoints = cast(dict, client.view_api(print_info=False, return_format="dict"))
         assert sorted(endpoints["named_endpoints"]) == [
             "/flip",
+            "/frames",
             "/lambda",
             "/loudness",
+            "/speak",
             "/track",
         ]
 
@@ -5743,6 +5769,17 @@ def test_a_client_calls_a_stream_once_with_a_file(executor, tmp_path):
         _, calls_text = client.predict(handle_file(str(image)), api_name="/track")
         assert calls_text == "call 1"
         assert closed.read_text() == "closed"
+        # A generator that only sends media runs as a generator event: each
+        # item comes as an update, and the last one is the result
+        job = client.submit(3, api_name="/frames")
+        last_frame, last_note = job.result()
+        assert [out[1] for out in job.outputs()] == ["frame 0", "frame 1", "frame 2"]
+        assert last_note == "frame 2"
+        assert np.asarray(Image.open(last_frame))[0, 0].tolist() == [20, 20, 20]
+        # Audio comes chunk by chunk, and the result is all of it
+        speech, said_text = client.predict("hi", api_name="/speak")
+        assert said_text == "hi"
+        assert _wav_frames(speech) == 24000
     finally:
         demo.close()
 
@@ -5764,6 +5801,12 @@ def test_a_server_stream_called_once_with_a_file(tmp_path):
     @server.api(name="echo", transport="webrtc")
     def echo(chunk: gr.AudioChunk) -> tuple[gr.AudioChunk, int]:
         return chunk, chunk[0]
+
+    @server.api(name="speak", transport="webrtc")
+    def speak(text: str) -> Iterator[tuple[gr.AudioChunk, str]]:
+        for i in range(3):
+            chunk = (16000, np.full(8000, 1000 * (i + 1), dtype=np.int16))
+            yield cast(Any, chunk), text
 
     class Mirror(VideoStreamHandler):
         def video_receive(self, frame: gr.VideoFrame) -> None:  # type: ignore[override]  # the hint marks the media
@@ -5795,6 +5838,9 @@ def test_a_server_stream_called_once_with_a_file(tmp_path):
         echoed, rate = client.predict(handle_file(str(wav)), api_name="/echo")
         assert rate == 16000
         assert Path(echoed).suffix == ".wav"
+        speech, said = client.predict("hi", api_name="/speak")
+        assert said == "hi"
+        assert _wav_frames(speech) == 24000
         # A handler class streams only from a browser
         with pytest.raises(Exception, match="MediaStream"):
             client.predict(handle_file(str(image)), api_name="/mirror")
@@ -5811,11 +5857,15 @@ def test_a_stream_called_without_a_file_says_what_it_takes():
     stream = stream_fn_of(demo, camera)
     assert stream.callable_once
     assert stream.api_visibility == "public"
+    # Only a call without a stream id is one; the page's streams stream
+    assert stream.called_once({})
+    assert stream.called_once(None)
+    assert not stream.called_once({"webrtc_id": "abc"})
     # Which streams one client file maps to one call of
-    assert _callable_once(lambda f: f, "send-receive", "video")
-    assert not _callable_once(lambda: iter(()), "receive", "video")
-    assert not _callable_once(VideoStreamHandler, "send-receive", "video")
-    assert not _callable_once(lambda f: f, "send-receive", "audio-video")
+    assert _callable_once(lambda f: f, "video")
+    assert _callable_once(lambda: iter(()), "audio")
+    assert not _callable_once(VideoStreamHandler, "video")
+    assert not _callable_once(lambda f: f, "audio-video")
 
     async def call():
         run = stream.fn

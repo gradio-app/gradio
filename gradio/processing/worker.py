@@ -584,6 +584,7 @@ class Worker:
             "parameter_names": list(fn.input_parameter_names) or parameter_names(fn.fn),
             "closes_streams": fn.close_stream is not None,
             "lease": fn.lease,
+            "callable_once": fn.callable_once,
             "sends_to_generator": fn.sends_to_generator,
         }
 

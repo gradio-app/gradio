@@ -96,10 +96,13 @@ class Event:
         # Whether the page heard that the stream goes on past its time limit
         # (see Queue._went_on)
         self.told_it_goes_on = False
+        # A WebRTC stream that a client called once with a file instead of
+        # streaming to it: an ordinary event (see webrtc.transport)
+        self.called_once = False
 
     @property
     def streaming(self):
-        return self.fn.connection == "stream"
+        return self.fn.connection == "stream" and not self.called_once
 
     @property
     def is_finished(self):
@@ -801,6 +804,7 @@ class Queue:
             username,
         )
         event.data = body
+        event.called_once = fn.called_once(body.event_data)
         if body.session_hash is None:
             body.session_hash = event.session_hash
         if own_stream:
@@ -1711,7 +1715,8 @@ class Queue:
                     if not events[0].streaming
                     else first_iteration
                 )
-                if not response.get("used_cache"):
+                # A call with a file says nothing about how long its streams run
+                if not response.get("used_cache") and not events[0].called_once:
                     self.process_time_per_fn[events[0].fn].add(duration)
                 for event in events:
                     if (a := self.event_analytics.get(event._id)) is not None:

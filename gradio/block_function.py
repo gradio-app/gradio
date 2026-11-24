@@ -144,6 +144,16 @@ class BlockFunction:
     def __repr__(self):
         return str(self)
 
+    def called_once(self, event_data: Any) -> bool:
+        """Whether a call of this stream comes from a client without the page's
+        media, which runs it once as an ordinary event (see webrtc.transport):
+        it joined without a WebRTC stream id."""
+        return (
+            self.lease
+            and self.callable_once
+            and not (isinstance(event_data, dict) and event_data.get("webrtc_id"))
+        )
+
     def get_config(self):
         return {
             "id": self._id,

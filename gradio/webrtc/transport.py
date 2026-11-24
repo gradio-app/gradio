@@ -17,7 +17,7 @@ import copy
 import inspect
 import queue
 import threading
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncGenerator, AsyncIterator, Callable
 from contextlib import aclosing
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -383,7 +383,7 @@ def api_stream(
             "first parameter."
         )
     live = f"live {modality} over WebRTC (a MediaStream in @gradio/client)"
-    if _callable_once(fn, _mode(media_in, media_out), modality):
+    if _callable_once(fn, modality):
         # Other clients call it once with a file (see transport_event)
         from gradio.data_classes import FileData
 
@@ -538,17 +538,14 @@ def _copied(value: Any) -> Any:
         return value
 
 
-def _callable_once(fn: Any, mode: Mode, modality: Modality) -> bool:
+def _callable_once(fn: Any, modality: Modality) -> bool:
     """Whether a client without the page's media (the Python client, curl,
     MCP) can call the stream once: when what it sends maps to one call of the
-    function, an image as one frame or an audio file as one chunk. A handler
-    class has no single call, and audio with video comes as a gr.Video, whose
-    file is a whole video rather than a frame."""
-    return (
-        mode != "receive"
-        and modality != "audio-video"
-        and not _is_a(fn, (StreamHandlerBase,))
-    )
+    function, an image as one frame or an audio file as one chunk, or the
+    inputs of a generator that only sends media. A handler class has no single
+    call, and audio with video comes as a gr.Video, whose file is a whole
+    video rather than a frame."""
+    return modality != "audio-video" and not _is_a(fn, (StreamHandlerBase,))
 
 
 def _media_from_file(value: Any, modality: Modality) -> Any:
@@ -587,17 +584,6 @@ def _media_to_file(value: Any, modality: Modality) -> Any:
             np.asarray(value), cache_dir=get_upload_folder(), format="png"
         )
     return FileData(path=path).model_dump()
-
-
-def _queue_event() -> Any:
-    """The handle of the queue event that is running, if any."""
-    from gradio.context import LocalContext
-
-    blocks = LocalContext.blocks.get(None)
-    queue = blocks._queue if blocks is not None else None
-    if queue is None:
-        return None
-    return queue.event_handle(LocalContext.event_id.get(None))
 
 
 async def _in_context(context: contextvars.Context, awaitable: Any) -> Any:
@@ -801,7 +787,7 @@ def transport_event(
         not is_handler_class and mode != "receive" and utils.is_generator_function(fn)
     )
     other_out = [i for i in range(len(outputs)) if i != media_out]
-    callable_once = once and _callable_once(fn, mode, modality)
+    callable_once = once and _callable_once(fn, modality)
     if not callable_once and preprocessed_inputs is not None:
         # Only the page can call a Blocks stream then (a gr.Server endpoint
         # stays public: its page calls it by name)
@@ -1075,19 +1061,14 @@ def transport_event(
         prepare_inputs=prepare_inputs if preprocessed_inputs else None,
     )
 
-    async def call_once(request: Any, values: list[Any]) -> Any:
-        """One call of the function on the file a client sent in the media's
-        slot, the other inputs prepared as an event's are. Its outputs come
-        back as from any event."""
-        import anyio
-
-        from gradio.helpers import special_args
-
-        index = cast(int, media_in)
-        media = await anyio.to_thread.run_sync(
-            _media_from_file, values[index], modality
+    async def args_once(request: Any, values: list[Any], media: Any) -> list[Any]:
+        """The function's arguments for a call without the page: the other
+        inputs prepared as an event's are, and `media` in its slot."""
+        others = (
+            [v for k, v in enumerate(values) if k != media_in]
+            if media_in is not None
+            else list(values)
         )
-        others = [v for k, v in enumerate(values) if k != index]
         args = (
             list(await prepare_inputs(others, getattr(request, "session_hash", None)))
             if preprocessed_inputs
@@ -1097,7 +1078,93 @@ def transport_event(
         for k, j, _ in carried_states:
             if k < len(values):
                 args[j] = values[k]
-        args.insert(index, media)
+        if media_in is not None:
+            args.insert(media_in, media)
+        return args
+
+    def values_once(result: Any) -> list[Any]:
+        """One value per output from what the function returned."""
+        if result is None or isinstance(result, CloseStream):
+            # Nothing to show: the outputs stay as they are
+            return [skip()] * len(outputs)
+        out = (
+            list(result)
+            if len(outputs) > 1 and isinstance(result, tuple | list)
+            else [result]
+        )
+        if len(out) != len(outputs):
+            raise ValueError(
+                f"The stream function returned {len(out)} values for "
+                f"{len(outputs)} outputs."
+            )
+        return out
+
+    def outputs_once(out: list[Any]) -> Any:
+        """The values as an event returns them."""
+        if preprocessed_inputs is None and media_out is not None:
+            # A gr.Server endpoint has no component to postprocess its media
+            out[media_out] = _media_to_file(out[media_out], modality)
+        return out[0] if len(out) == 1 else tuple(out)
+
+    async def call_once(request: Any, values: list[Any]) -> AsyncGenerator[Any, None]:
+        """A call without the page, as an ordinary event (the queue runs it as
+        one, see `Event.called_once`). A stream that takes media runs its
+        function once on the file in the media's slot; a stream that only
+        sends media runs its generator, whose outputs come as a generator
+        event's do."""
+        import anyio
+
+        from gradio.helpers import special_args
+
+        if mode == "receive":
+            args, *_ = special_args(fn, await args_once(request, values, None), request)
+            items: Any = (
+                fn(*args)
+                if inspect.isasyncgenfunction(fn)
+                else utils.SyncToAsyncIterator(
+                    fn(*args), limiter=root_block.root_block.limiter
+                )
+            )
+            # Audio comes chunk by chunk; the last output is all of it, as
+            # the page would have played it
+            chunks: list[tuple[int, Any]] = []
+            last: list[Any] = [skip()] * len(outputs)
+            try:
+                async for item in items:
+                    out = values_once(item)
+                    last = [
+                        prev if is_skip(v) else v
+                        for prev, v in zip(last, out, strict=True)
+                    ]
+                    if modality == "audio" and media_out is not None:
+                        chunk = out[media_out]
+                        if chunk is not None and not is_skip(chunk):
+                            chunks.append(chunk)
+                    yield outputs_once(out)
+            finally:
+                await items.aclose()
+            if len(chunks) > 1:
+                # The other outputs as the last items left them
+                whole = list(last)
+                rate = int(chunks[0][0])
+                whole[cast(int, media_out)] = (
+                    rate,
+                    np.concatenate([np.asarray(data) for _, data in chunks]),
+                )
+                yield outputs_once(whole)
+            return
+        index = cast(int, media_in)
+        if index >= len(values) or not values[index]:
+            unit = "an image" if modality == "video" else "an audio file"
+            raise Error(
+                f"Call this endpoint with {unit} in the media's slot to run "
+                "its function once, or from the JavaScript client "
+                "(@gradio/client) with a MediaStream to stream."
+            )
+        media = await anyio.to_thread.run_sync(
+            _media_from_file, values[index], modality
+        )
+        args = await args_once(request, values, media)
         if sends_to_generator:
             # Created, sent this one value and closed, as a stream's would be
             from gradio.streaming.utils import bind_special_args
@@ -1120,24 +1187,7 @@ def transport_event(
                 result = await anyio.to_thread.run_sync(
                     lambda: fn(*args), limiter=root_block.root_block.limiter
                 )
-        if result is None or isinstance(result, CloseStream):
-            # Nothing to show: the outputs stay as they are
-            out = [skip()] * len(outputs)
-        else:
-            out = (
-                list(result)
-                if len(outputs) > 1 and isinstance(result, tuple | list)
-                else [result]
-            )
-            if len(out) != len(outputs):
-                raise ValueError(
-                    f"The stream function returned {len(out)} values for "
-                    f"{len(outputs)} outputs."
-                )
-        if preprocessed_inputs is None and media_out is not None:
-            # A gr.Server endpoint has no component to postprocess its media
-            out[media_out] = _media_to_file(out[media_out], modality)
-        return out[0] if len(out) == 1 else tuple(out)
+        yield outputs_once(values_once(result))
 
     async def run_stream(evt: Any, request: Any, *_inputs: Any) -> AsyncIterator[Any]:
         data = getattr(evt, "_data", None)
@@ -1149,20 +1199,9 @@ def transport_event(
                     "This endpoint streams media over WebRTC. Call it from the "
                     "JavaScript client (@gradio/client) with a MediaStream."
                 )
-            index = cast(int, media_in)  # callable_once: the stream takes media
-            if index >= len(_inputs) or not _inputs[index]:
-                unit = "an image" if modality == "video" else "an audio file"
-                raise Error(
-                    f"Call this endpoint with {unit} in the media's slot to run "
-                    "its function once, or from the JavaScript client "
-                    "(@gradio/client) with a MediaStream to stream."
-                )
-            result = await call_once(request, list(_inputs))
-            # Its only step: the event completes with these outputs
-            handle = _queue_event()
-            if handle is not None:
-                handle.finish()
-            yield result
+            async with aclosing(call_once(request, list(_inputs))) as results:
+                async for result in results:
+                    yield result
             return
         # The event's own inputs hold the gr.State values as they are when
         # the turn comes

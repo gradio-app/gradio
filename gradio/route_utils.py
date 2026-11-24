@@ -540,8 +540,10 @@ async def call_process_api(
                     simple_format=body.simple_format,
                     root_path=root_path,
                     oauth_token=oauth_token_from_body(body),
-                    # Streams send whole values each call, so even a lease keeps no diffs
-                    keeps_run=run.keeps and fn.connection != "stream",
+                    # Streams send whole values each call, so even a lease keeps
+                    # no diffs, unless a client calls it once as an ordinary event
+                    keeps_run=run.keeps
+                    and (fn.connection != "stream" or fn.called_once(body.event_data)),
                 )
         iterator = output.pop("iterator", None)
         if event_id is not None and run.keeps:
