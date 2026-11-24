@@ -60,6 +60,7 @@ from starlette.responses import (
     Response,
     StreamingResponse,
 )
+from starlette.routing import Match, Mount, get_route_path
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from gradio import _components_package, history, processing_utils, utils
@@ -84,6 +85,26 @@ if TYPE_CHECKING:
 
 config_lock = threading.Lock()
 API_PREFIX = "/gradio_api"
+
+# The first path segments that Gradio's API, login and monitoring routes are
+# served under, which a `gr.Server`'s static files can't take.
+RESERVED_PATHS = ("gradio_api", "config", "login", "logout", "monitoring")
+
+
+class RootStaticMount(Mount):
+    """A `gr.Server`'s StaticFiles mounted at "/". A plain Mount there matches
+    every request, Gradio's API included, so this one leaves the reserved
+    paths to Gradio's routes. It still serves "/" and the other paths of
+    Gradio's own page, which the app's frontend replaces."""
+
+    def matches(self, scope: Scope) -> tuple[Match, Scope]:
+        if scope["type"] != "http":
+            return Match.NONE, {}
+        if get_route_path(scope).lstrip("/").split("/")[0] in RESERVED_PATHS:
+            return Match.NONE, {}
+        return super().matches(scope)
+
+
 GATEWAY_USER_SCOPE_KEY = "gradio.gateway_user"
 
 
