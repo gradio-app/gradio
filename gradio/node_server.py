@@ -17,6 +17,8 @@ from http.client import HTTPConnection
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from gradio import _components_package
+
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from collections.abc import Callable
 
@@ -130,7 +132,7 @@ def node_proxy_forwarded_allow_ips(python_host: str) -> list[str]:
 
 
 GRADIO_LOCAL_DEV_MODE = os.getenv("GRADIO_LOCAL_DEV_MODE") is not None
-SSR_APP_PATH = Path(__file__).parent.joinpath("templates", "node", "build")
+SSR_APP_PATH = _components_package.frontend_dir().joinpath("node", "build")
 # The oldest release of each supported Node line with the latest security fixes
 # (the October 2026 security release). SSR runs only on these lines, at or above
 # these releases; older releases and end-of-life lines (20, 21, 23, 25) fall back
@@ -241,7 +243,7 @@ def start_node_process(
                 env.pop("GRADIO_STATIC_WORKER_PORTS", None)
 
             register_file = str(
-                Path(__file__).parent.joinpath("templates", "register.mjs")
+                _components_package.frontend_dir().joinpath("register.mjs")
             )
 
             # Node --import needs a file:// URL on Windows; Path.as_uri()

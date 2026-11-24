@@ -56,7 +56,7 @@ class JupyterReloader(BaseReloader):
     def demo_tracked(self) -> bool:
         return self.current_cell in self._running
 
-    def track(self, demo: gr.Blocks):
+    def track(self, demo: "gr.Blocks"):
         self._running[self.current_cell] = demo
 
 

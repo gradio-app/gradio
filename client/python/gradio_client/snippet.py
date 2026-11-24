@@ -289,6 +289,37 @@ def generate_bash_snippet(
     return "\n".join(lines)
 
 
+def _is_file_dict(obj: Any) -> bool:
+    return (
+        isinstance(obj, dict)
+        and isinstance(obj.get("path"), str)
+        and obj.get("meta") == {"_type": "gradio.FileData"}
+    )
+
+
+def generate_cli_snippet(named_endpoints: dict[str, Any]) -> dict[str, str]:
+    """Generates a command line snippet for each named endpoint, as a mapping from
+    the endpoint name to the snippet. The `{command}` and `{space_id}` placeholders
+    are left for the caller to fill in."""
+    from gradio_client.utils import traverse
+
+    snippets = {}
+    for endpoint, info in named_endpoints.items():
+        params = json.dumps(
+            {
+                p["parameter_name"]: traverse(
+                    p["parameter_default"] or p["example_input"],
+                    lambda d: {k: v for k, v in d.items() if k in ("path", "meta")},
+                    _is_file_dict,
+                )
+                for p in info["parameters"]
+            },
+            indent=2,
+        )
+        snippets[endpoint] = f"{{command}} predict {{space_id}} {endpoint} '{params}'\n"
+    return snippets
+
+
 def generate_code_snippets(
     api_name: str,
     endpoint_info: dict,

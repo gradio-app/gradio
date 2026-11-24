@@ -20,7 +20,7 @@ import time
 import traceback
 import warnings
 from collections import Counter
-from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -35,7 +35,6 @@ from urllib.parse import urlencode
 import anyio
 import fastapi
 import httpx2
-import markupsafe
 import orjson
 from fastapi import (
     APIRouter,
@@ -54,14 +53,12 @@ from fastapi.responses import (
     StreamingResponse,
 )
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
+from gradio_client.api_info import condense_info
 from gradio_client.documentation import document
-from gradio_client.snippet import generate_code_snippets
+from gradio_client.snippet import generate_cli_snippet, generate_code_snippets
 from gradio_client.utils import ServerMessage
-from hf_gradio.cli import _condense_info, generate_cli_snippet
 from huggingface_hub import HfApi
-from jinja2.exceptions import TemplateNotFound
 from python_multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.datastructures import UploadFile as StarletteUploadFile
@@ -70,8 +67,10 @@ from starlette.responses import RedirectResponse
 
 import gradio
 from gradio import (
+    _components_package,
     caching,
     history,
+    page_template,
     route_utils,
     themes,
     utils,
@@ -311,8 +310,9 @@ class OwnEventStreamResponse(StreamingResponse):
             await queue.mark_session_detached(self.session_hash)
 
 
-def toorjson(value):
-    return markupsafe.Markup(
+def toorjson(value) -> str:
+    """Serializes a value to JSON that is safe to place inside a `<script>`."""
+    return (
         ORJSONResponse._render_str(value)
         .replace("<", "\\u003c")
         .replace(">", "\\u003e")
@@ -321,8 +321,44 @@ def toorjson(value):
     )
 
 
-templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
-templates.env.filters["toorjson"] = toorjson
+NO_FRONTEND_PAGE = """<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Gradio</title></head>
+<body>
+<p>This Gradio server is running, and it has no page at this address.</p>
+<p>The Gradio user interface is in a separate package. To use it, install
+<code>gradio[components]</code>.</p>
+</body>
+</html>
+"""
+
+
+def render_page(
+    template: str, config: Mapping[str, Any], gradio_api_info: Any, base_url: str = "./"
+) -> str:
+    """Fills in one of the frontend's HTML pages for an app."""
+    body_css = config.get("body_css") or {}
+    return page_template.render(
+        Path(STATIC_TEMPLATE_LIB) / template,
+        text={
+            "base_url": base_url,
+            "body_background_fill": body_css.get("body_background_fill", "white"),
+            "body_text_color": body_css.get("body_text_color", "#1f2937"),
+            "body_background_fill_dark": body_css.get(
+                "body_background_fill_dark", "#0b0f19"
+            ),
+            "body_text_color_dark": body_css.get("body_text_color_dark", "#f3f4f6"),
+            "thumbnail": config.get("thumbnail") or "",
+            "title": config.get("title") or "",
+            "simple_description": config.get("simple_description") or "",
+        },
+        raw={
+            "config_json": toorjson(config),
+            "gradio_api_info_json": toorjson(gradio_api_info),
+            "root_json": toorjson(config.get("root", "")),
+        },
+    )
+
 
 # Shared transport keeps the connection pool warm without sharing an
 # `httpx2.AsyncClient` (and therefore a cookie jar) across `/proxy=` requests.
@@ -920,21 +956,21 @@ class App(FastAPI):
                     page=page,
                     route_path=(f"{API_PREFIX}/runs" if is_run_history else f"/{page}"),
                 )
-                resp = templates.TemplateResponse(
-                    request=request,
-                    name=template,
-                    context={
-                        "base_url": (
-                            "../../" if request.url.path.endswith("/") else "../"
-                        )
+                return HTMLResponse(
+                    render_page(
+                        template,
+                        config,
+                        gradio_api_info,
+                        base_url=("../../" if request.url.path.endswith("/") else "../")
                         if is_run_history
                         else "./",
-                        "config": config,
-                        "gradio_api_info": gradio_api_info,
-                    },
+                    )
                 )
-                return resp
-            except TemplateNotFound as err:
+            except FileNotFoundError as err:
+                if not _components_package.is_installed():
+                    # The Gradio UI is shipped by `gradio_components`. A `gr.Server`
+                    # app without it serves its own routes and the API only.
+                    return HTMLResponse(NO_FRONTEND_PAGE)
                 if blocks.share:
                     raise ValueError(
                         "Did you install Gradio from source files? Share mode only "
@@ -1175,7 +1211,7 @@ class App(FastAPI):
             info = get_api_info(
                 request, page=None, route_path=f"{API_PREFIX}/openapi.json"
             )
-            info_simple = _condense_info(info, url_only=True)
+            info_simple = condense_info(info, url_only=True)
             schema = {
                 "openapi": "3.0.2",
                 "info": {
@@ -2525,7 +2561,12 @@ class App(FastAPI):
             if size is None:
                 return FileResponse(favicon_path)
 
-            import PIL.Image
+            try:
+                import PIL.Image
+            except ImportError:
+                # Pillow comes with `gradio[components]`. Without it the icon is
+                # served at its own size, which browsers scale themselves.
+                return FileResponse(favicon_path)
 
             img = PIL.Image.open(favicon_path)
             img = img.resize((size, size))
@@ -2619,6 +2660,16 @@ class App(FastAPI):
                 )
             if compare_passwords_securely(key, app.analytics_key):
                 analytics_url = f"/monitoring/{app.analytics_key}/dashboard"
+                if not _components_package.is_installed():
+                    # the dashboard is itself a Blocks app
+                    raise HTTPException(
+                        status_code=501,
+                        detail=str(
+                            _components_package.not_installed_error(
+                                "the monitoring dashboard"
+                            )
+                        ),
+                    )
                 if not app.monitoring_enabled:
                     from gradio.monitoring_dashboard import data
                     from gradio.monitoring_dashboard import demo as dashboard
@@ -2810,7 +2861,7 @@ def mount_gradio_app(
     theme: Theme | str | None = None,
     css: str | None = None,
     css_paths: str | Path | Sequence[str | Path] | None = None,
-    js: str | Literal[True] | None = None,
+    js: str | None = None,
     head: str | None = None,
     head_paths: str | Path | Sequence[str | Path] | None = None,
 ) -> fastapi.FastAPI:
@@ -2901,9 +2952,27 @@ def mount_gradio_app(
         blocks.auth = auth
     blocks.auth_message = auth_message
     blocks.favicon_path = favicon_path
-    blocks.allowed_paths = allowed_paths or []
-    blocks.blocked_paths = blocked_paths or []
+    # Match launch(): fall back to the GRADIO_ALLOWED_PATHS / GRADIO_BLOCKED_PATHS
+    # env vars so a blocklist set in the environment is not silently dropped.
+    if allowed_paths:
+        blocks.allowed_paths = allowed_paths
+    else:
+        allowed_paths_env = os.environ.get("GRADIO_ALLOWED_PATHS", "")
+        blocks.allowed_paths = [
+            item.strip() for item in allowed_paths_env.split(",") if item.strip()
+        ]
+    if blocked_paths:
+        blocks.blocked_paths = blocked_paths
+    else:
+        blocked_paths_env = os.environ.get("GRADIO_BLOCKED_PATHS", "")
+        blocks.blocked_paths = [
+            item.strip() for item in blocked_paths_env.split(",") if item.strip()
+        ]
     blocks.show_error = show_error
+    # processing_utils._check_allowed() skips every file-path check until
+    # has_launched is True. launch() sets it, so a mounted app must too, or
+    # any local file can be passed as a file input and read back.
+    blocks.has_launched = True
 
     if not isinstance(blocks.allowed_paths, list):
         raise ValueError("`allowed_paths` must be a list of directories.")
@@ -2936,7 +3005,6 @@ def mount_gradio_app(
     blocks.css_paths = css_paths or []
     blocks._set_html_css_theme_variables()
 
-    blocks.transpile_to_js()
     gradio_app = App.create_app(
         blocks,
         app_kwargs=app_kwargs,

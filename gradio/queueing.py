@@ -19,7 +19,6 @@ from threading import Barrier, Lock, Thread
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
-import numpy as np
 from anyio.to_thread import run_sync
 
 from gradio import caching, history, route_utils, routes
@@ -174,6 +173,29 @@ class QueueEventForwarder:
         self._queue.close()
 
 
+def _percentiles(values: list[float | None], percents: list[float]) -> list[float]:
+    """The given percentiles of `values`, interpolated linearly between the two
+    nearest values (the default of `numpy.percentile`, which this replaces). An event
+    that has not finished has no process time yet (None), and, as with numpy and a
+    NaN, every percentile is then NaN."""
+    if not values or any(value is None for value in values):
+        return [float("nan")] * len(percents)
+    ordered = sorted(cast(list[float], values))
+    results = []
+    for percent in percents:
+        position = (len(ordered) - 1) * percent / 100
+        lower = int(position)
+        upper = min(lower + 1, len(ordered) - 1)
+        fraction = position - lower
+        low, high = ordered[lower], ordered[upper]
+        # The same form of interpolation as numpy, so the results are identical.
+        if fraction < 0.5:
+            results.append(low + (high - low) * fraction)
+        else:
+            results.append(high - (high - low) * (1 - fraction))
+    return results
+
+
 class Queue:
     def __init__(
         self,
@@ -232,22 +254,6 @@ class Queue:
             os.getenv("GRADIO_ANALYTICS_CACHE_FREQUENCY", "1")
         )
 
-    @staticmethod
-    def _get_df(records):
-        import pandas as pd
-
-        try:
-            with pd.option_context("future.no_silent_downcasting", True):
-                return (
-                    pd.DataFrame(records).fillna(value=np.nan).infer_objects(copy=False)  # type: ignore
-                )
-        except Exception as e:
-            if "No such keys(s)" in str(e):
-                return (
-                    pd.DataFrame(records).fillna(value=np.nan).infer_objects(copy=False)  # type: ignore
-                )
-            raise e
-
     def compute_analytics_summary(self, records):
         if not records:
             return self.cached_event_analytics_summary
@@ -255,26 +261,32 @@ class Queue:
             self.events_recorded - self.event_count_at_last_cache
             >= self.ANAYLTICS_CACHE_FREQUENCY
         ):
-            df = self._get_df(records)
             self.event_count_at_last_cache = self.events_recorded
-            grouped = df.groupby("function")
+            # Plain Python rather than numpy or pandas: core Gradio does not require
+            # either, and this runs after every event.
+            by_function: dict[str, list[dict]] = defaultdict(list)
+            for record in records:
+                if record.get("function") is not None:
+                    by_function[record["function"]].append(record)
             metrics = {"functions": {}}
-            for fn_name, fn_df in grouped:
-                status = fn_df["status"].values
-                success = np.sum(status == "success")
-                failure = np.sum(status == "failed")
+            for fn_name in sorted(by_function):
+                fn_records = by_function[fn_name]
+                success = sum(r["status"] == "success" for r in fn_records)
+                failure = sum(r["status"] == "failed" for r in fn_records)
                 total = success + failure
                 success_rate = success / total if total > 0 else None
-                percentiles = np.percentile(fn_df["process_time"].values, [50, 90, 99])  # type: ignore
+                percentiles = _percentiles(
+                    [r["process_time"] for r in fn_records], [50, 90, 99]
+                )
                 metrics["functions"][fn_name] = {
                     "success_rate": success_rate,
                     "process_time_percentiles": {
-                        "50th": percentiles[0],  # type: ignore
-                        "90th": percentiles[1],  # type: ignore
-                        "99th": percentiles[2],  # type: ignore
+                        "50th": percentiles[0],
+                        "90th": percentiles[1],
+                        "99th": percentiles[2],
                     },
                     "total_requests": self.events_recorded_per_fn.get(
-                        fn_name, fn_df.shape[0]
+                        fn_name, len(fn_records)
                     ),
                 }
             self.cached_event_analytics_summary = metrics

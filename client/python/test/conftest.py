@@ -4,7 +4,7 @@ import time
 
 import gradio as gr
 import pytest
-from pydub import AudioSegment
+from gradio._vendor.pydub import AudioSegment
 
 
 def pytest_configure(config):

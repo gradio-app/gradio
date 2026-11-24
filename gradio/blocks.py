@@ -31,9 +31,9 @@ import httpx2
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from groovy import transpile
 
 from gradio import (
+    _components_package,
     analytics,
     components,
     networking,
@@ -565,12 +565,12 @@ def postprocess_update_dict(
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    from gradio.components import HTML
+    HTML = _components_package.loaded_class("html", "HTML")  # noqa: N806
 
     value = update_dict.pop("value", components._Keywords.NO_VALUE)
 
     props = None
-    if isinstance(block, HTML):
+    if HTML is not None and isinstance(block, HTML):
         sig = inspect.signature(HTML.__init__)
         constructor_params = set(sig.parameters.keys())
         props = {k: v for k, v in update_dict.items() if k not in constructor_params}
@@ -928,7 +928,7 @@ class BlocksConfig:
         show_progress_on: Component | Sequence[Component] | None = None,
         api_name: str | None = None,
         api_description: str | None | Literal[False] = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         no_target: bool = False,
         queue: bool = True,
         batch: bool = False,
@@ -948,7 +948,6 @@ class BlocksConfig:
         time_limit: float | None = None,
         stream_every: float = 0.5,
         event_specific_args: list[str] | None = None,
-        js_implementation: str | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
         component_prop_inputs: list[int] | None = None,
@@ -1093,10 +1092,15 @@ class BlocksConfig:
 
         rendered_in = LocalContext.renderable.get(None)
 
-        if js is True and inputs:
-            raise ValueError(
-                "Cannot create event: events with js=True cannot have inputs."
+        if js is True:
+            warnings.warn(
+                "`js=True` is no longer supported: Gradio 7 does not convert "
+                "Python functions to JavaScript, so this function will run on "
+                "the server. Remove `js=True`, or pass the JavaScript to run "
+                "in the browser as a string.",
+                stacklevel=3,
             )
+            js = None
 
         reuse_id = False
         fn_id = self.fn_id
@@ -1151,7 +1155,6 @@ class BlocksConfig:
             event_specific_args=event_specific_args,
             component_prop_inputs=component_prop_inputs,
             page=self.root_block.current_page,
-            js_implementation=js_implementation,
             key=key,
             validator=validator,
         )
@@ -1428,6 +1431,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self._deprecated_js = deprecated_kwargs.get("js")
         self._deprecated_head = deprecated_kwargs.get("head")
         self._deprecated_head_paths = deprecated_kwargs.get("head_paths")
+
+        if mode != "server":
+            # Only `gr.Server` works without components: it has no user interface.
+            _components_package.require("`gr.Blocks`")
 
         self.default_config = BlocksConfig(self)
         super().__init__(render=False, **kwargs)
@@ -1715,8 +1722,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     @property
     def expects_oauth(self):
         """Return whether the app expects user to authenticate via OAuth."""
-        return getattr(self, "_expects_oauth", False) or any(
-            isinstance(block, components.LoginButton) for block in self.blocks.values()
+        login_button = _components_package.loaded_class("login_button", "LoginButton")
+        return getattr(self, "_expects_oauth", False) or (
+            login_button is not None
+            and any(isinstance(block, login_button) for block in self.blocks.values())
         )
 
     def unload(self, fn: Callable[..., Any]) -> None:
@@ -2895,30 +2904,6 @@ Received inputs:
         )
         return config
 
-    def transpile_to_js(self, quiet: bool = False):
-        fns_to_transpile = [
-            fn.fn for fn in self.fns.values() if fn.fn and fn.js is True
-        ]
-        num_to_transpile = len(fns_to_transpile)
-        if not quiet and num_to_transpile > 0:
-            print("********************************************")
-            print("* Trying to transpile functions from Python -> JS for performance\n")
-        for index, fn in enumerate(fns_to_transpile):
-            if not quiet:
-                print(f"* ({index + 1}/{num_to_transpile}) {fn.__name__}: ", end="")  # type: ignore
-            if getattr(fn, "__js_implementation__", None) is None:  # type: ignore
-                try:
-                    fn.__js_implementation__ = transpile(fn, validate=True)  # type: ignore
-                    if not quiet:
-                        print("✅")
-                except Exception as e:
-                    if not quiet:
-                        print("❌", e, end="\n\n")
-            elif not quiet:
-                print("✅")
-        if not quiet and num_to_transpile > 0:
-            print("********************************************\n")
-
     def __enter__(self):
         render_context = get_render_context()
         if render_context is None:
@@ -3011,7 +2996,9 @@ Received inputs:
 
     def validate_navbar_settings(self):
         """Validates that only one Navbar component exists per page."""
-        from gradio.components.navbar import Navbar
+        Navbar = _components_package.loaded_class("navbar", "Navbar")  # noqa: N806
+        if Navbar is None:
+            return
 
         navbar_pages = set()
         for block in self.blocks.values():
@@ -3133,7 +3120,7 @@ Received inputs:
         theme: Theme | str | None = None,
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         executor: Literal["thread", "process"] | None = None,
@@ -3328,7 +3315,6 @@ Received inputs:
         self.resume_sessions = utils.resolve_resume_sessions(resume_sessions)
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
-        self.transpile_to_js(quiet=quiet)
         self.i18n_instance = i18n
         self.config = self.get_config_file()
 
@@ -4475,3 +4461,10 @@ Received inputs:
         self.pages.append((path, name, show_in_navbar))
         self.current_page = path
         return self
+
+
+def close_all(verbose: bool = True) -> None:
+    """Closes every running app in this process, including `gr.Server` apps."""
+    for instance in Blocks.get_instances():
+        if instance.is_running:
+            instance.close(verbose)

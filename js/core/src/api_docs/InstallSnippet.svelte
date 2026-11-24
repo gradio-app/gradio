@@ -25,7 +25,7 @@
 	let cli_install = $derived(
 		cli_flavor === "hf"
 			? "hf extensions install gradio-app/hf-gradio"
-			: "pip install gradio --upgrade"
+			: "pip install hf-gradio"
 	);
 </script>
 

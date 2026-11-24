@@ -9,12 +9,12 @@ from unittest.mock import MagicMock, patch
 import httpx2
 import huggingface_hub
 import pytest
+from gradio_components.external import TooManyRequestsError
+from gradio_components.external_utils import cols_to_rows, get_tabular_examples
 
 import gradio as gr
 from gradio.context import Context
 from gradio.exceptions import GradioVersionIncompatibleError, InvalidApiNameError
-from gradio.external import TooManyRequestsError
-from gradio.external_utils import cols_to_rows, get_tabular_examples
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -420,7 +420,7 @@ def test_format_conversation_replays_text_files_as_text(tmp_path):
     # the turn it is sent. Once that turn was in the history it used to be re-sent as
     # `image_url`, so every later message made a non-multimodal model reject the
     # request. See https://github.com/gradio-app/gradio/issues/11331.
-    from gradio.external import format_conversation
+    from gradio_components.external import format_conversation
 
     text_file = tmp_path / "pasted_text.txt"
     text_file.write_text("a very long pasted prompt")
@@ -478,7 +478,7 @@ def test_format_conversation_replays_text_files_as_text(tmp_path):
 def test_format_conversation_replays_remote_text_files_as_text(monkeypatch):
     # A text file that is a URL rather than a local upload has to be inlined as text
     # too, rather than base64-encoded into `image_url` like an image would be.
-    from gradio.external import format_conversation
+    from gradio_components.external import format_conversation
 
     def fake_get(url, *args, **kwargs):
         assert url == "https://example.com/files/notes.txt"

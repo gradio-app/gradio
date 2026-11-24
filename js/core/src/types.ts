@@ -55,7 +55,6 @@ export interface Payload {
 	data: unknown[];
 	event_data?: unknown | null;
 	trigger_id?: number | null;
-	js_implementation?: boolean | null;
 }
 
 /** A dependency as received from the backend */
@@ -65,7 +64,7 @@ export interface Dependency {
 	inputs: number[];
 	outputs: number[];
 	backend_fn: boolean;
-	js: string | true | null; // frontend fn or Python-to-JS transpilation marker
+	js: string | null; // frontend fn
 	scroll_to_output: boolean; // used by loading_status
 	show_progress: "full" | "minimal" | "hidden"; // used by loading_status
 	show_progress_on: number[] | null; // used by loading_status
@@ -95,7 +94,6 @@ export interface Dependency {
 	stream_every: number; // chunk timeout for media recorder
 	like_user_message: boolean; // dno, this shouldnt be here surely
 	event_specific_args: ("time_limit" | "stream_every" | "like_user_message")[]; // `click(fn, some_arg=val)`
-	js_implementation: string | null; // pythong -> js transpilation
 	component_prop_inputs: number[]; // inputs that request all component props
 }
 

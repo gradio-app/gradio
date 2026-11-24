@@ -8,7 +8,6 @@ import platform
 from importlib import metadata
 
 from packaging.requirements import Requirement
-from rich import print
 
 
 def print_environment_info():

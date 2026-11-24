@@ -526,11 +526,7 @@
 				// been restored. Render functions and client-side functions run
 				// again, as what they build only exists in the page.
 				for (const dep of dep_manager.dependencies_by_fn.values()) {
-					if (
-						dep.functions.backend &&
-						!dep.functions.backend_js &&
-						dep.render_id === null
-					) {
+					if (dep.functions.backend && dep.render_id === null) {
 						skipped_loads.add(dep.id);
 					}
 				}

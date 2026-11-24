@@ -18,7 +18,6 @@ import httpx2
 from anyio.to_thread import run_sync
 from gradio_client import Client, handle_file
 from gradio_client.utils import Status, StatusUpdate
-from PIL import Image
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
@@ -27,16 +26,17 @@ from starlette.types import Message, Receive, Scope, Send
 
 from gradio import processing_utils, route_utils, utils
 from gradio.blocks import BlockFunction
-from gradio.components import State
+from gradio.components.state import State
 from gradio.route_utils import Header
 from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
     from mcp import types  # noqa: F401
     from mcp.server import Server, ServerRequestContext  # noqa: F401
+    from PIL import Image
 
     from gradio.blocks import BlockContext, Blocks
-    from gradio.components import Component
+    from gradio.components.base import Component
     from gradio.routes import App
 
 
@@ -1639,11 +1639,17 @@ class GradioMCPServer:
         return traverse(value)
 
     @staticmethod
-    def get_image(file_path: str) -> Image.Image | None:
+    def get_image(file_path: str) -> "Image.Image | None":
         """
         If a filepath is a valid image, returns a PIL Image object. Otherwise returns None.
         """
         if not os.path.exists(file_path):
+            return None
+        try:
+            # Pillow comes with gradio_components, not with core Gradio. Without
+            # it, an image is returned as a file like any other.
+            from PIL import Image
+        except ImportError:
             return None
         ext = os.path.splitext(file_path.lower())[1]
         if ext not in Image.registered_extensions():
@@ -1667,7 +1673,7 @@ class GradioMCPServer:
             return None
 
     @staticmethod
-    def get_base64_data(image: Image.Image, format: str) -> str:
+    def get_base64_data(image: "Image.Image", format: str) -> str:
         """
         Returns a base64 encoded string of the image.
         """

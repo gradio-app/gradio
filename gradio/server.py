@@ -56,8 +56,14 @@ class Server(App):
         launch(): Creates an internal Blocks, registers deferred API
             endpoints, and starts the server.
 
+    To serve a frontend, mount its files at "/" with FastAPI's StaticFiles.
+    Static files are served by the gateway process, so the page stays fast
+    while your functions run. Gradio keeps the paths of its API (/gradio_api,
+    /config, /login, /logout and /monitoring).
+
     Example:
         import gradio as gr
+        from fastapi.staticfiles import StaticFiles
 
         app = gr.App()
 
@@ -65,9 +71,7 @@ class Server(App):
         def hello(name: str) -> str:
             return f"Hello {name}"
 
-        @app.get("/")
-        def root():
-            return {"message": "Hello World"}
+        app.mount("/", StaticFiles(directory="static", html=True))
 
         app.launch()
     Demos: server_app
@@ -298,7 +302,7 @@ class Server(App):
         theme: Theme | str | None = None,
         css: str | None = None,
         css_paths: str | Path | Sequence[str | Path] | None = None,
-        js: str | Literal[True] | None = None,
+        js: str | None = None,
         head: str | None = None,
         head_paths: str | Path | Sequence[str | Path] | None = None,
         num_workers: int | None = None,
@@ -316,6 +320,7 @@ class Server(App):
         from gradio.blocks import Blocks
         from gradio.events import api as gr_api
 
+        self._check_static_mounts()
         if Blocks._resolve_executor(executor) == "process":
             self._check_process_executor()
         elif self.gateway and not getattr(self, "_gateway_added", False):
@@ -383,6 +388,55 @@ class Server(App):
             executor=executor,
             replicas=replicas,
         )
+
+    def _check_static_mounts(self) -> None:
+        """Lets `app.mount("/", StaticFiles(...))` serve the app's frontend
+        without taking the paths of Gradio's API, and raises an error for
+        static files that would be served at those paths, and for any other
+        app mounted at "/", which would take every path."""
+        from starlette.routing import Mount
+        from starlette.staticfiles import StaticFiles
+
+        from gradio.route_utils import RESERVED_PATHS, RootStaticMount
+
+        for i, route in enumerate(self.router.routes):
+            if not isinstance(route, Mount):
+                continue
+            if not isinstance(route.app, StaticFiles):
+                if not route.path:
+                    raise ValueError(
+                        "An app mounted at '/' receives every request, so Gradio's "
+                        "own routes would not be reachable. Mount it at another "
+                        "path, such as '/app'. Only static files "
+                        "(fastapi.staticfiles.StaticFiles) can be mounted at '/'."
+                    )
+                continue
+            if route.path.lstrip("/").split("/")[0] in RESERVED_PATHS:
+                raise ValueError(
+                    f"Static files can't be mounted at {route.path!r}, because "
+                    f"Gradio serves its own routes there. Mount them at another path."
+                )
+            if route.path:
+                continue
+            taken = [
+                name
+                for name in RESERVED_PATHS
+                if any(
+                    (Path(directory) / name).exists()
+                    for directory in route.app.all_directories
+                )
+            ]
+            if taken:
+                raise ValueError(
+                    f"The static files mounted at '/' include {', '.join(map(repr, taken))}, "
+                    f"but Gradio serves its own routes at those paths "
+                    f"({', '.join('/' + name for name in RESERVED_PATHS)}). Rename "
+                    f"them, or mount the folder at another path."
+                )
+            if not isinstance(route, RootStaticMount):
+                self.router.routes[i] = RootStaticMount(
+                    "", app=route.app, name=route.name
+                )
 
     def _check_process_executor(self) -> None:
         """With executor="process" the gateway serves Gradio's routes, so

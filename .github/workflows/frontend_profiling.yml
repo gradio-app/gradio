@@ -119,6 +119,7 @@ jobs:
           . venv/bin/activate
           uv pip install -e client/python
           uv pip install -e ".[oauth,mcp]"
+          uv pip install -e components/python
           pnpm install --no-frozen-lockfile
           pnpm css && pnpm build
 

@@ -15,10 +15,8 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import Annotated
 
-import typer
-from rich import print
+import click
 
 import gradio
 from gradio import utils
@@ -100,20 +98,14 @@ def main(
     watch_dirs: list[str] | None = None,
     encoding: str = "utf-8",
     watch_library: bool = False,
-    app_args: Annotated[
-        list[str] | None,
-        typer.Argument(
-            metavar="[-- APP_ARGS...]",
-            help="Arguments to pass to your app, placed after a `--` separator.",
-        ),
-    ] = None,
+    app_args: list[str] | tuple[str, ...] | None = None,
 ):
     signal.signal(signal.SIGINT, lambda _signum, _frame: _handle_interrupt())
     signal.signal(signal.SIGTERM, lambda _signum, _frame: _handle_interrupt())
 
     # default execution pattern to start the server and watch changes
     module_name, path, watch_sources = _setup_config(
-        demo_path, watch_dirs, watch_library
+        demo_path, list(watch_dirs or []), watch_library
     )
 
     # Pass the following data as environment variables
@@ -140,11 +132,40 @@ def main(
             pass
 
 
-def build_app() -> typer.Typer:
+def build_app() -> click.Command:
     """Build the `gradio app.py [-- ...]` CLI."""
-    app = typer.Typer(add_completion=False)
-    app.command()(main)
-    return app
+    return click.Command(
+        name="gradio",
+        callback=main,
+        help="Run a Gradio app in reload mode: the app restarts when its source changes.",
+        epilog="Arguments placed after a `--` separator are passed to your app.",
+        params=[
+            click.Argument(["demo_path"], type=click.Path(path_type=Path)),
+            click.Argument(["app_args"], nargs=-1, metavar="[-- APP_ARGS...]"),
+            click.Option(
+                ["--demo-name"],
+                default="",
+                help="Name of the Blocks variable in the app, if it is not `demo`.",
+            ),
+            click.Option(
+                ["--watch-dirs"],
+                multiple=True,
+                help="Extra directory to watch for changes. Repeatable.",
+            ),
+            click.Option(
+                ["--encoding"],
+                default="utf-8",
+                show_default=True,
+                help="Encoding of the app's source file.",
+            ),
+            click.Option(
+                ["--watch-library/--no-watch-library"],
+                default=False,
+                show_default=True,
+                help="Also reload when the Gradio library's source changes.",
+            ),
+        ],
+    )
 
 
 def run() -> None:
