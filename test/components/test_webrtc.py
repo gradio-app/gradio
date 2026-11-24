@@ -803,7 +803,9 @@ class TestWebRTC:
         stream = stream_fn_of(demo, camera)
         assert [tuple(t) for t in stream.targets] == [(camera._id, "stream")]
         assert stream.connection == "stream"
-        assert stream.api_visibility == "private"
+        # A client can call it once with a file, so it is an API endpoint
+        assert stream.api_visibility == "public"
+        assert stream.callable_once
         assert stream.time_limit == 30
         assert stream.concurrency_limit is None
         assert stream.trigger_mode == "multiple"
@@ -864,7 +866,7 @@ class TestWebRTC:
 
         def joined(webrtc_id):
             # The event data that the page joins the queue with
-            return run_stream(SimpleNamespace(_data={"webrtc_id": webrtc_id}))
+            return run_stream(SimpleNamespace(_data={"webrtc_id": webrtc_id}), None)
 
         event = queue_event("event")[0]
         # Keys the app's stream registry, so not a SimpleNamespace
@@ -5629,3 +5631,219 @@ def test_a_blocks_webrtc_stream_takes_on_time_limit():
         )
     (stream_fn,) = [fn for fn in demo.fns.values() if fn.lease]
     assert stream_fn.get_config()["on_time_limit"] == "stop"
+
+
+def _image_and_wav(tmp_path):
+    """A small RGB image and a 3 s mono WAV at 16 kHz."""
+    import wave
+
+    import numpy as np
+    from PIL import Image
+
+    image = tmp_path / "frame.png"
+    Image.fromarray(np.full((4, 6, 3), 200, dtype=np.uint8)).save(image)
+    wav = tmp_path / "speech.wav"
+    with wave.open(str(wav), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(16000)
+        w.writeframes((np.ones(16000 * 3, dtype=np.int16) * 1000).tobytes())
+    return image, wav
+
+
+@pytest.mark.parametrize("executor", ["thread", "process"])
+def test_a_client_calls_a_stream_once_with_a_file(executor, tmp_path):
+    import numpy as np
+    from gradio_client import Client, handle_file
+    from PIL import Image
+
+    image, wav = _image_and_wav(tmp_path)
+    closed = tmp_path / "closed"
+
+    def flip(frame, dim):
+        return (frame * dim).astype(np.uint8)[::-1], str(frame.shape)
+
+    def level(chunk):
+        rate, data = chunk
+        return f"{rate} {data.shape} {float(np.abs(data).mean()):.0f}"
+
+    def track():
+        calls = 0
+        frame = yield "not shown"
+        try:
+            while True:
+                calls += 1
+                frame = yield frame, f"call {calls}"
+        finally:
+            closed.write_text("closed")
+
+    class Echo(VideoStreamHandler):
+        def video_receive(self, frame):
+            self.frame = frame
+
+        def video_emit(self):
+            return getattr(self, "frame", None)
+
+        def copy(self):
+            return Echo()
+
+    with gr.Blocks() as demo:
+        camera = webcam()
+        dim = gr.Slider(0, 1, 0.5)
+        shape = gr.Textbox()
+        camera.stream(flip, [camera, dim], [camera, shape], transport="webrtc")
+        mic = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        mic.stream(level, [mic], [heard], transport="webrtc", api_name="loudness")
+        played = gr.Audio(sources=["microphone"], streaming=True)
+        played.stream(lambda c: c, [played], [played], transport="webrtc")
+        tracked = webcam()
+        calls = gr.Textbox()
+        tracked.stream(track, [tracked], [tracked, calls], transport="webrtc")
+        # Only the page can call these
+        echoed = webcam()
+        echoed.stream(Echo, [echoed], [echoed], transport="webrtc")
+        video = gr.Video(sources=["webcam"])
+        video.stream(lambda f: f, [video], [video], transport="webrtc")
+        hidden = webcam()
+        hidden.stream(
+            lambda f: f,
+            [hidden],
+            [hidden],
+            transport="webrtc",
+            api_visibility="private",
+        )
+
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, executor=executor)
+    try:
+        client = Client(local_url, verbose=False)
+        endpoints = cast(dict, client.view_api(print_info=False, return_format="dict"))
+        assert sorted(endpoints["named_endpoints"]) == [
+            "/flip",
+            "/lambda",
+            "/loudness",
+            "/track",
+        ]
+
+        flipped, shape_text = client.predict(
+            handle_file(str(image)), 0.5, api_name="/flip"
+        )
+        assert shape_text == "(4, 6, 3)"
+        assert np.asarray(Image.open(flipped))[0, 0].tolist() == [100, 100, 100]
+        # The whole file is one chunk, at its own sample rate
+        assert (
+            client.predict(handle_file(str(wav)), api_name="/loudness")
+            == "16000 (48000,) 1000"
+        )
+        # Audio comes back as a file, not as the HLS stream that a streaming
+        # gr.Audio output gets from other events
+        played_file = client.predict(handle_file(str(wav)), api_name="/lambda")
+        assert played_file.endswith(".wav")
+        # A generator is created, sent the frame once, and closed
+        _, calls_text = client.predict(handle_file(str(image)), api_name="/track")
+        assert calls_text == "call 1"
+        assert closed.read_text() == "closed"
+    finally:
+        demo.close()
+
+
+def test_a_server_stream_called_once_with_a_file(tmp_path):
+    from pathlib import Path
+
+    import numpy as np
+    from gradio_client import Client, handle_file
+    from PIL import Image
+
+    image, wav = _image_and_wav(tmp_path)
+    server = gr.Server()
+
+    @server.api(name="flip", transport="webrtc")
+    def flip(frame: gr.VideoFrame, dim: float) -> tuple[gr.VideoFrame, str]:
+        return cast(Any, (frame * dim).astype(np.uint8)), str(frame.shape)
+
+    @server.api(name="echo", transport="webrtc")
+    def echo(chunk: gr.AudioChunk) -> tuple[gr.AudioChunk, int]:
+        return chunk, chunk[0]
+
+    class Mirror(VideoStreamHandler):
+        def video_receive(self, frame: gr.VideoFrame) -> None:  # type: ignore[override]  # the hint marks the media
+            self.frame = frame
+
+        def video_emit(self) -> gr.VideoFrame | None:
+            return getattr(self, "frame", None)
+
+        def copy(self):
+            return Mirror()
+
+    server.api(Mirror, name="mirror", transport="webrtc")
+
+    _, local_url, _ = server.launch(prevent_thread_lock=True)
+    try:
+        client = Client(local_url, verbose=False)
+        info = cast(dict, client.view_api(print_info=False, return_format="dict"))
+        frame = info["named_endpoints"]["/flip"]["parameters"][0]
+        # A file for the Python client; a MediaStream for @gradio/client
+        assert frame["parameter_name"] == "frame"
+        assert "an image, as one frame" in frame["type"]["description"]
+        assert "MediaStream" in frame["type"]["description"]
+
+        flipped, shape_text = client.predict(
+            handle_file(str(image)), 0.5, api_name="/flip"
+        )
+        assert shape_text == "(4, 6, 3)"
+        assert np.asarray(Image.open(flipped))[0, 0].tolist() == [100, 100, 100]
+        echoed, rate = client.predict(handle_file(str(wav)), api_name="/echo")
+        assert rate == 16000
+        assert Path(echoed).suffix == ".wav"
+        # A handler class streams only from a browser
+        with pytest.raises(Exception, match="MediaStream"):
+            client.predict(handle_file(str(image)), api_name="/mirror")
+    finally:
+        gr.close_all()
+
+
+def test_a_stream_called_without_a_file_says_what_it_takes():
+    from gradio.webrtc.transport import _callable_once
+
+    with gr.Blocks() as demo:
+        camera = webcam()
+        camera.stream(lambda f: f, [camera], [camera], transport="webrtc")
+    stream = stream_fn_of(demo, camera)
+    assert stream.callable_once
+    assert stream.api_visibility == "public"
+    # Which streams one client file maps to one call of
+    assert _callable_once(lambda f: f, "send-receive", "video")
+    assert not _callable_once(lambda: iter(()), "receive", "video")
+    assert not _callable_once(VideoStreamHandler, "send-receive", "video")
+    assert not _callable_once(lambda f: f, "send-receive", "audio-video")
+
+    async def call():
+        run = stream.fn
+        steps = run(SimpleNamespace(_data={}), None, None)
+        with pytest.raises(gr.Error, match="with an image in the media's slot"):
+            await anext(steps)
+
+    asyncio.run(call())
+
+
+def test_mcp_lists_the_streams_a_client_can_call_once():
+    from gradio.mcp import GradioMCPServer
+
+    class Echo(VideoStreamHandler):
+        def video_receive(self, frame):
+            self.frame = frame
+
+        def video_emit(self):
+            return getattr(self, "frame", None)
+
+        def copy(self):
+            return Echo()
+
+    with gr.Blocks() as demo:
+        camera = webcam()
+        camera.stream(
+            lambda f: f, [camera], [camera], transport="webrtc", api_name="once"
+        )
+        echoed = webcam()
+        echoed.stream(Echo, [echoed], [echoed], transport="webrtc")
+    assert list(GradioMCPServer(demo).tool_to_endpoint.values()) == ["/once"]

@@ -596,8 +596,10 @@ class GradioMCPServer:
                 if block_fn is None or block_fn.fn is None:
                     continue
                 # A transport= endpoint needs the client's media, which an MCP
-                # client cannot send
-                if getattr(block_fn, "transport", None):
+                # client cannot send, unless it can also be called with a file
+                if getattr(block_fn, "transport", None) and not getattr(
+                    block_fn, "callable_once", False
+                ):
                     continue
                 is_prompt = getattr(block_fn.fn, "_mcp_type", None) == "prompt"
                 if is_prompt != prompts:

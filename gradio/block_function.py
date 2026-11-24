@@ -123,6 +123,9 @@ class BlockFunction:
         self.sends_to_generator = False
         # A stream with transport=: how the page connects (see webrtc.transport)
         self.transport: dict[str, Any] | None = None
+        # Whether a client without the page's media can also call it once with
+        # a file (see webrtc.transport)
+        self.callable_once = False
         self.event_specific_args = event_specific_args
         self.component_prop_inputs = component_prop_inputs or []
         self.input_keyword_names = input_keyword_names or []

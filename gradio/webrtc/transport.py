@@ -152,13 +152,18 @@ def blocks_stream(
     show_progress_on: Any = None,
     scroll_to_output: bool = False,
     key: Any = None,
+    api_name: str | None = None,
+    api_description: str | None | Literal[False] = None,
+    api_visibility: Literal["public", "private", "undocumented"] = "public",
 ) -> tuple[BlockFunction, int]:
     """
     The event of an event listener called with `transport=`. The media
     component is the listener's own component (`.stream()` of a gr.Image,
     gr.Audio or gr.Video), or else the media output (e.g. a button's click that
     starts a stream the page only receives). Its type gives the kind of media;
-    where it appears among the inputs and outputs gives the direction.
+    where it appears among the inputs and outputs gives the direction. The API
+    settings apply when clients can also call it once (see `_callable_once`);
+    otherwise only the page can call it.
     """
     from gradio_components.audio import Audio
     from gradio_components.image import Image
@@ -253,8 +258,11 @@ def blocks_stream(
         key=key,
         preprocessed_inputs=[c for c in inputs if c is not media],
         preprocess=False,
-        # Only the page can call it: it needs the page's media
-        api_visibility="private",
+        # A gr.Video's file is a whole video, not one frame
+        once=not isinstance(media, Video),
+        api_name=api_name,
+        api_description=api_description,
+        api_visibility=api_visibility,
         # .stream()'s Record / Stop restarts need "multiple"; a button that
         # starts a stream ignores clicks while it runs, like any click
         trigger_mode=trigger_mode or ("multiple" if media is block else "once"),
@@ -374,10 +382,18 @@ def api_stream(
             "The function of ReplyOnPause takes the audio (gr.AudioChunk) as its "
             "first parameter."
         )
-    media_schema = {
-        "type": "object",
-        "description": f"live {modality} over WebRTC (a MediaStream in @gradio/client)",
-    }
+    live = f"live {modality} over WebRTC (a MediaStream in @gradio/client)"
+    if _callable_once(fn, _mode(media_in, media_out), modality):
+        # Other clients call it once with a file (see transport_event)
+        from gradio.data_classes import FileData
+
+        unit = "an image, as one frame" if modality == "video" else "an audio file"
+        media_schema = {
+            **python_type_to_json_schema(FileData),
+            "description": f"{unit}; or {live}",
+        }
+    else:
+        media_schema = {"type": "object", "description": live}
     inputs = [
         Api(
             None,
@@ -520,6 +536,68 @@ def _copied(value: Any) -> Any:
         return copy.deepcopy(value)
     except Exception:
         return value
+
+
+def _callable_once(fn: Any, mode: Mode, modality: Modality) -> bool:
+    """Whether a client without the page's media (the Python client, curl,
+    MCP) can call the stream once: when what it sends maps to one call of the
+    function, an image as one frame or an audio file as one chunk. A handler
+    class has no single call, and audio with video comes as a gr.Video, whose
+    file is a whole video rather than a frame."""
+    return (
+        mode != "receive"
+        and modality != "audio-video"
+        and not _is_a(fn, (StreamHandlerBase,))
+    )
+
+
+def _media_from_file(value: Any, modality: Modality) -> Any:
+    """What a stream's function gets for one frame or chunk, from the file a
+    client sent instead: an RGB array, or (sample_rate, array) as the numpy
+    value of gr.Audio, with the whole file as one chunk."""
+    from gradio import processing_utils
+
+    path = value.get("path") if isinstance(value, dict) else value
+    if not path:
+        raise ValueError("No file in the media's slot.")
+    if modality == "audio":
+        return processing_utils.audio_from_file(str(path))
+    from PIL import Image as PILImage
+
+    with PILImage.open(str(path)) as image:
+        return np.asarray(image.convert("RGB"))
+
+
+def _media_to_file(value: Any, modality: Modality) -> Any:
+    """A gr.Server endpoint's media output as a file for the client that
+    called it once (a Blocks component postprocesses its own)."""
+    from gradio import processing_utils
+    from gradio.data_classes import FileData
+    from gradio.utils import get_upload_folder
+
+    if value is None or is_skip(value):
+        return value
+    if modality == "audio":
+        rate, data = value
+        path = processing_utils.save_audio_to_cache(
+            np.asarray(data), int(rate), format="wav", cache_dir=get_upload_folder()
+        )
+    else:
+        path = processing_utils.save_img_array_to_cache(
+            np.asarray(value), cache_dir=get_upload_folder(), format="png"
+        )
+    return FileData(path=path).model_dump()
+
+
+def _queue_event() -> Any:
+    """The handle of the queue event that is running, if any."""
+    from gradio.context import LocalContext
+
+    blocks = LocalContext.blocks.get(None)
+    queue = blocks._queue if blocks is not None else None
+    if queue is None:
+        return None
+    return queue.event_handle(LocalContext.event_id.get(None))
 
 
 async def _in_context(context: contextvars.Context, awaitable: Any) -> Any:
@@ -679,6 +757,7 @@ def transport_event(
     on_time_limit: Literal["rejoin", "stop"] = "rejoin",
     preprocessed_inputs: list | None = None,
     pack_sent: Callable | None = None,
+    once: bool = True,
     **kwargs: Any,
 ) -> tuple[BlockFunction, int]:
     """
@@ -686,8 +765,11 @@ def transport_event(
     whose function takes one value per input and returns one value per output.
     The values of `preprocessed_inputs` (the components besides the media,
     which the page sends over the data channel) are preprocessed as an event's
-    inputs are, with the stream's session state.
+    inputs are, with the stream's session state. Unless `once` is False, a
+    client without the page's media can also call it once with a file, when
+    the function allows it (see `_callable_once`).
     """
+    from gradio import routes
     from gradio.events import EventData
     from gradio.exceptions import Error
     from gradio.streaming.utils import (
@@ -719,6 +801,11 @@ def transport_event(
         not is_handler_class and mode != "receive" and utils.is_generator_function(fn)
     )
     other_out = [i for i in range(len(outputs)) if i != media_out]
+    callable_once = once and _callable_once(fn, mode, modality)
+    if not callable_once and preprocessed_inputs is not None:
+        # Only the page can call a Blocks stream then (a gr.Server endpoint
+        # stays public: its page calls it by name)
+        kwargs["api_visibility"] = "private"
 
     # A gr.State input gets its value as it is when the stream's turn comes,
     # from the event's own inputs: the page holds the State, and what it sends
@@ -988,15 +1075,95 @@ def transport_event(
         prepare_inputs=prepare_inputs if preprocessed_inputs else None,
     )
 
-    async def run_stream(evt: Any, *_inputs: Any) -> AsyncIterator[Any]:
+    async def call_once(request: Any, values: list[Any]) -> Any:
+        """One call of the function on the file a client sent in the media's
+        slot, the other inputs prepared as an event's are. Its outputs come
+        back as from any event."""
+        import anyio
+
+        from gradio.helpers import special_args
+
+        index = cast(int, media_in)
+        media = await anyio.to_thread.run_sync(
+            _media_from_file, values[index], modality
+        )
+        others = [v for k, v in enumerate(values) if k != index]
+        args = (
+            list(await prepare_inputs(others, getattr(request, "session_hash", None)))
+            if preprocessed_inputs
+            else others
+        )
+        # gr.State values as the event's own inputs hold them
+        for k, j, _ in carried_states:
+            if k < len(values):
+                args[j] = values[k]
+        args.insert(index, media)
+        if sends_to_generator:
+            # Created, sent this one value and closed, as a stream's would be
+            from gradio.streaming.utils import bind_special_args
+
+            bound = bind_special_args(fn, request)
+            generator = utils.StreamGenerator(
+                lambda: bound(), is_async=inspect.isasyncgenfunction(fn)
+            )
+            try:
+                result = await generator.step(_packed(args, pack_sent))
+            finally:
+                await generator.aclose()
+            if result is utils.StreamGenerator.ENDED:
+                result = None
+        else:
+            args, *_ = special_args(fn, args, request)
+            if is_async(fn):
+                result = await fn(*args)
+            else:
+                result = await anyio.to_thread.run_sync(
+                    lambda: fn(*args), limiter=root_block.root_block.limiter
+                )
+        if result is None or isinstance(result, CloseStream):
+            # Nothing to show: the outputs stay as they are
+            out = [skip()] * len(outputs)
+        else:
+            out = (
+                list(result)
+                if len(outputs) > 1 and isinstance(result, tuple | list)
+                else [result]
+            )
+            if len(out) != len(outputs):
+                raise ValueError(
+                    f"The stream function returned {len(out)} values for "
+                    f"{len(outputs)} outputs."
+                )
+        if preprocessed_inputs is None and media_out is not None:
+            # A gr.Server endpoint has no component to postprocess its media
+            out[media_out] = _media_to_file(out[media_out], modality)
+        return out[0] if len(out) == 1 else tuple(out)
+
+    async def run_stream(evt: Any, request: Any, *_inputs: Any) -> AsyncIterator[Any]:
         data = getattr(evt, "_data", None)
         webrtc_id = data.get("webrtc_id") if isinstance(data, dict) else None
         if not isinstance(webrtc_id, str) or not webrtc_id:
             # Called without a connection, e.g. from the Python client or curl
-            raise Error(
-                "This endpoint streams media over WebRTC. Call it from the "
-                "JavaScript client (@gradio/client) with a MediaStream."
-            )
+            if not callable_once:
+                raise Error(
+                    "This endpoint streams media over WebRTC. Call it from the "
+                    "JavaScript client (@gradio/client) with a MediaStream."
+                )
+            index = cast(int, media_in)  # callable_once: the stream takes media
+            if index >= len(_inputs) or not _inputs[index]:
+                unit = "an image" if modality == "video" else "an audio file"
+                raise Error(
+                    f"Call this endpoint with {unit} in the media's slot to run "
+                    "its function once, or from the JavaScript client "
+                    "(@gradio/client) with a MediaStream to stream."
+                )
+            result = await call_once(request, list(_inputs))
+            # Its only step: the event completes with these outputs
+            handle = _queue_event()
+            if handle is not None:
+                handle.finish()
+            yield result
+            return
         # The event's own inputs hold the gr.State values as they are when
         # the turn comes
         carried = {
@@ -1020,6 +1187,7 @@ def transport_event(
     # The stream id comes in the event data (gr.EventData is filled in like a
     # gr.Request); the function is named after the app's own (API names, logs)
     run_stream.__annotations__["evt"] = EventData
+    run_stream.__annotations__["request"] = routes.Request
     run_stream.__name__ = run_stream.__qualname__ = getattr(
         fn, "__name__", type(fn).__name__
     )
@@ -1041,6 +1209,7 @@ def transport_event(
         inputs_fn["fn"].inputs = list(preprocessed_inputs)
         inputs_fn["fn"].component_prop_inputs = []
         inputs_fn["fn"].preprocess = True
+    stream_fn.callable_once = callable_once
     stream_fn.transport = {
         "type": "webrtc",
         "modality": modality,

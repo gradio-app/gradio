@@ -2610,12 +2610,16 @@ Received inputs:
             session_hash, {}
         ).get(run, {})
 
+        # A WebRTC stream's media goes over its peer connection; a value here
+        # comes from a client's call with a file, which gets a file back
+        media_output = (block_fn.transport or {}).get("media_output")
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
             if (
                 isinstance(block, components.StreamingOutput)
                 and block.streaming
                 and not utils.is_prop_update(data[i])
+                and i != media_output
             ):
                 # Nothing to finalize if this output never opened a stream:
                 # the session may have been dropped on disconnect, or every
