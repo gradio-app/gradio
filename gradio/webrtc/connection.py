@@ -440,8 +440,8 @@ class Stream:
         at most once every `manager.output_every` seconds: a change after a
         quiet moment at once, later ones together when the interval is up,
         newer values replacing older ones. Values are compared only when they
-        would go out, so a handler that returns on every frame pays for at
-        most one comparison per interval. Called on the event loop.
+        go out, so a handler that returns on every frame pays for at most one
+        comparison per delivery. Called on the event loop.
         """
         values = list(outputs.args)
         if self._shown is None or len(self._shown) != len(values):
@@ -487,11 +487,9 @@ class Stream:
                 continue
             shown[i] = _remembered(value)
             changed = True
-        # A check counts as a delivery for the pace, so that the same values
-        # returned on every frame are compared once per interval too
-        self._last_delivery = time.monotonic()
         if not changed:
             return
+        self._last_delivery = time.monotonic()
         if self.output is not None:
             merged = list(self.output.args)
             for i, value in enumerate(pending):
