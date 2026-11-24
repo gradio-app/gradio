@@ -72,6 +72,7 @@ from gradio import (
     history,
     page_template,
     route_utils,
+    server_footer,
     themes,
     utils,
 )
@@ -254,7 +255,9 @@ class OwnEventStreamResponse(StreamingResponse):
     ):
         self.request = request
         self.format_message = format_message or (
-            lambda message: f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
+            lambda message: (
+                f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
+            )
         )
         self.queue = queue
         self.event_id = event_id
@@ -1108,6 +1111,28 @@ class App(FastAPI):
                 return deep_link
             else:
                 return ""
+
+        @router.get(server_footer.FOOTER_SCRIPT_PATH)
+        def footer_script(request: fastapi.Request):
+            """The `<gradio-footer>` web component for `gr.Server` apps, which
+            serve their own frontend. Their pages load it to show a minimal
+            version of the footer of Gradio's own UI."""
+            blocks = app.get_blocks()
+            links = server_footer.footer_links_for_server(
+                getattr(blocks, "footer_links", []),
+                run_history=getattr(blocks, "run_history", True)
+                and _components_package.is_installed(),
+            )
+            root = route_utils.get_root_url(
+                request=request,
+                route_path=f"{API_PREFIX}{server_footer.FOOTER_SCRIPT_PATH}",
+                root_path=app.root_path,
+            )
+            return Response(
+                server_footer.footer_script(links, root, API_PREFIX),
+                media_type="text/javascript",
+                headers={"Cache-Control": "no-cache"},
+            )
 
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])

@@ -73,6 +73,11 @@ from gradio.data_classes import (
     UserProvidedPath,
 )
 from gradio.exceptions import Error, InvalidPathError
+from gradio.server_footer import (
+    FOOTER_SCRIPT_PATH,
+    SERVER_FOOTER_LINKS,
+    inject_footer,
+)
 from gradio.state_holder import SessionState
 from gradio.utils import get_package_version
 
@@ -103,6 +108,54 @@ class RootStaticMount(Mount):
         if get_route_path(scope).lstrip("/").split("/")[0] in RESERVED_PATHS:
             return Match.NONE, {}
         return super().matches(scope)
+
+    async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
+        app = scope.get("app")
+        blocks = app.get_blocks() if hasattr(app, "get_blocks") else None
+        footer_links = getattr(blocks, "footer_links", None) or []
+        if scope["method"] != "GET" or not any(
+            link in SERVER_FOOTER_LINKS for link in footer_links
+        ):
+            return await super().handle(scope, receive, send)
+        root_path = (app.root_path or scope.get("root_path") or "").rstrip("/")
+        src = f"{root_path}{API_PREFIX}{FOOTER_SCRIPT_PATH}"
+        await super().handle(scope, receive, _footer_injecting_send(send, src))
+
+
+def _footer_injecting_send(send: Send, src: str) -> Send:
+    """Wraps `send` to add the Gradio footer's `<script>` tag to a complete
+    (status 200) HTML response, such as the index.html of a gr.Server's
+    frontend. Other responses pass through unchanged."""
+    start: Message | None = None
+    chunks: list[bytes] = []
+
+    async def wrapped(message: Message) -> None:
+        nonlocal start
+        if message["type"] == "http.response.start":
+            headers = MutableHeaders(raw=list(message["headers"]))
+            content_type = headers.get("content-type", "")
+            if (
+                message["status"] == 200
+                and content_type.startswith("text/html")
+                and "content-encoding" not in headers
+            ):
+                start = message
+                return
+            await send(message)
+            return
+        if start is None or message["type"] != "http.response.body":
+            await send(message)
+            return
+        chunks.append(message.get("body", b""))
+        if message.get("more_body", False):
+            return
+        body = inject_footer(b"".join(chunks), src)
+        headers = MutableHeaders(raw=list(start["headers"]))
+        headers["content-length"] = str(len(body))
+        await send({**start, "headers": headers.raw})
+        await send({"type": "http.response.body", "body": body})
+
+    return wrapped
 
 
 GATEWAY_USER_SCOPE_KEY = "gradio.gateway_user"
