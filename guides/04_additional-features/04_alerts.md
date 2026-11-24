@@ -19,6 +19,12 @@ Tip: Note that `gr.Error()` is an exception that has to be raised, while `gr.War
 
 ## Unexpected errors
 
-If your function raises any other exception (for example a `ValueError` or a `KeyError`), Gradio shows the exception's message in an error modal, so users can see what went wrong instead of a generic "Error". Only the message is sent to the browser, never the traceback. Before it is sent, Gradio redacts Hugging Face tokens (`hf_...`), and in any URLs it masks `user:password@` credentials, query strings (which often carry API keys) and IP-address hosts (which usually point at a private backend).
+If your function raises any other exception (for example a `ValueError` or a `KeyError`), Gradio does not send the exception's message to the browser by default, because messages can contain secrets such as private URLs, IP addresses or API keys. Instead, users see a message like:
 
-If your exception messages may contain information you don't want users to see, turn this off with `demo.launch(show_error=False)`. Users will then see a generic "Error", and the full exception is still printed in the terminal running your app. Errors you raise with `gr.Error()` are always shown.
+```
+An unexpected error occurred (ConnectionError). The app could not connect to a service it depends on. Error ID: 3f9a2c1b
+```
+
+This only uses the exception's type, a short description for common errors (timeouts, running out of memory, connection failures, missing files, and so on), and a random error ID. The same ID is printed in the terminal running your app, next to the full traceback, so you can find the error a user is reporting.
+
+If you want users to see the full exception message (never the traceback), use `demo.launch(show_error=True)`. Only do this if you're sure your exception messages can't contain sensitive information. To show a specific message for an error you expect, catch it and raise a `gr.Error()` instead.

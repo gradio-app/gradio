@@ -9,7 +9,6 @@ import importlib
 import importlib.metadata
 import importlib.resources
 import inspect
-import ipaddress
 import json
 import os
 import pickle as pkl
@@ -1897,93 +1896,94 @@ def error_payload(
     error: BaseException | None, show_error: bool
 ) -> dict[str, bool | str | float | None]:
     content: dict[str, bool | str | float | None] = {"error": None}
-    show_error = show_error or isinstance(error, AppError)
-    if show_error:
-        if isinstance(error, AppError):
-            content["error"] = error.message
-            content["duration"] = error.duration
-            content["visible"] = error.visible
-            content["title"] = error.title
-        else:
-            content["error"] = sanitize_error_message(error)
-            content["visible"] = show_error
+    if error is None:
+        return content
+    if isinstance(error, AppError):
+        content["error"] = error.message
+        content["duration"] = error.duration
+        content["visible"] = error.visible
+        content["title"] = error.title
+    elif show_error:
+        content["error"] = str(error) or _error_type_name(error)
+        content["visible"] = True
+    else:
+        content["error"] = error_summary(error)
+        content["visible"] = True
     return content
 
 
-_HF_TOKEN_PATTERN = re.compile(r"\bhf_[A-Za-z0-9]{20,}\b")
-# An absolute URL, ending at whitespace, a quote, a bracket or a parenthesis. The
-# host may be a bracketed IPv6 address, e.g. http://user@[::1]:80/path.
-_URL_PATTERN = re.compile(
-    r"\b[a-zA-Z][a-zA-Z0-9+.-]*://"
-    r"(?:[^\s'\"<>()\[\]@/]*@)?(?:\[[0-9a-fA-F:.]+\])?[^\s'\"<>()\[\]]*"
-)
-# urllib3 (and so `requests`) names the server as `host='...'` and gives the
-# path on its own, e.g. "HTTPConnectionPool(host='10.0.0.5', port=80): Max
-# retries exceeded with url: /predict?key=..."
-_URLLIB3_HOST_PATTERN = re.compile(r"\bhost='([^']*)'")
-_URLLIB3_PATH_PATTERN = re.compile(r"(\bwith url: [^\s?]*)\?[^\s)]*")
+# Plain-language hints for well-known exceptions, matched by class name anywhere
+# in the exception's MRO so that third-party libraries (requests, httpx, torch)
+# don't have to be imported. They are written by Gradio and never include any
+# part of the exception's message, which may contain secrets.
+_ERROR_HINTS: dict[str, str] = {
+    "OutOfMemoryError": "The server ran out of memory.",
+    "MemoryError": "The server ran out of memory.",
+    "TimeoutError": "An operation timed out.",
+    "TimeoutException": "An operation timed out.",
+    "Timeout": "An operation timed out.",
+    "ConnectionError": "The app could not connect to a service it depends on.",
+    "ConnectError": "The app could not connect to a service it depends on.",
+    "HTTPStatusError": "A request to a service the app depends on failed.",
+    "HTTPError": "A request to a service the app depends on failed.",
+    "FileNotFoundError": "A file the app needed could not be found.",
+    "PermissionError": "The app was not permitted to perform an operation.",
+    "NotImplementedError": "This feature is not implemented.",
+}
+
+_SAFE_TYPE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]{0,63}")
 
 
-def _is_ip_address(host: str) -> bool:
-    try:
-        ipaddress.ip_address(host.strip("[]"))
-        return True
-    except ValueError:
-        return False
+def _error_type_name(error: BaseException) -> str:
+    name = type(error).__name__
+    return name if _SAFE_TYPE_NAME.fullmatch(name) else "Exception"
 
 
-def _redact_url(match: re.Match) -> str:
-    # Leave trailing punctuation (e.g. the ":" in "Failed to connect to {url}: ...")
-    # out of the URL, so that it parses.
-    url = match.group(0)
-    stripped = url.rstrip(".,:;!?")
-    trailing = url[len(stripped) :]
-    url = stripped
-    try:
-        parts = urllib.parse.urlsplit(url)
-        host = parts.hostname or ""
-        port = parts.port
-    except ValueError:
-        # Fail closed: a URL we can't parse could still carry a private address
-        # or credentials, so hide everything after the scheme.
-        scheme = url.split("://", 1)[0]
-        return f"{scheme}://***{trailing}"
-    host_and_port = parts.netloc.rsplit("@", 1)[-1]
-    if host and _is_ip_address(host):
-        host_and_port = "***" if port is None else f"***:{port}"
-    netloc = ("***@" if "@" in parts.netloc else "") + host_and_port
-    if netloc == parts.netloc and not parts.query:
-        return url + trailing
-    query = "***" if parts.query else ""
-    return (
-        urllib.parse.urlunsplit(
-            (parts.scheme, netloc, parts.path, query, parts.fragment)
+def get_error_id(error: BaseException) -> str:
+    """
+    Returns a short random ID for an exception, creating it (and printing it to the
+    terminal, so that the developer can find the full traceback) the first time.
+    The same exception gets the same ID, e.g. when it is reported to every event
+    in a batch.
+    """
+    error_id = getattr(error, "_gradio_error_id", None)
+    if error_id is None:
+        error_id = uuid.uuid4().hex[:8]
+        try:
+            error._gradio_error_id = error_id  # type: ignore[attr-defined]
+        except AttributeError:
+            pass
+        print(
+            f"Error ID {error_id}: users were shown this ID instead of the "
+            f"{_error_type_name(error)} message. Set show_error=True in launch() "
+            "to show exception messages to users."
         )
-        + trailing
-    )
+    return error_id
 
 
-def sanitize_error_message(error: BaseException | None) -> str:
+def error_summary(error: BaseException) -> str:
     """
-    Returns the user-facing message for an exception that was not raised as a
-    gr.Error, or the exception's type name when the message is empty (e.g.
-    `raise ValueError()`). Errors from HTTP libraries often quote the URL they
-    failed on, so the message is redacted before it is shown: Hugging Face tokens,
-    `user:password@` credentials and query strings in URLs, and server addresses
-    given as IP addresses (which usually point at a private backend). This is
-    best effort: IP addresses outside URLs (other than urllib3's `host='...'`),
-    e.g. "Connect call failed ('10.0.0.5', 8000)", are not redacted.
+    Returns a message for an exception that was not raised as a gr.Error, for use
+    when show_error is False. Exception messages can contain secrets (e.g. a private
+    URL or a token), and no pattern matching can reliably remove them, so this is
+    built only from things the app's code (not its data) determines: the exception's
+    type name, a fixed hint for well-known exception types, and an error ID that is
+    also printed in the terminal next to the full traceback.
     """
-    if error is None:
-        return ""
-    message = _HF_TOKEN_PATTERN.sub("hf_***", str(error))
-    message = _URL_PATTERN.sub(_redact_url, message)
-    message = _URLLIB3_HOST_PATTERN.sub(
-        lambda m: "host='***'" if _is_ip_address(m.group(1)) else m.group(0),
-        message,
+    type_name = _error_type_name(error)
+    hint = next(
+        (
+            _ERROR_HINTS[cls.__name__]
+            for cls in type(error).__mro__
+            if cls.__name__ in _ERROR_HINTS
+        ),
+        None,
     )
-    message = _URLLIB3_PATH_PATTERN.sub(r"\1?***", message)
-    return message or type(error).__name__
+    parts = [f"An unexpected error occurred ({type_name})."]
+    if hint:
+        parts.append(hint)
+    parts.append(f"Error ID: {get_error_id(error)}")
+    return " ".join(parts)
 
 
 class UnhashableKeyDict(MutableMapping):

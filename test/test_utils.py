@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import warnings
 from collections.abc import Sequence
@@ -33,6 +34,8 @@ from gradio.utils import (
     diff,
     download_if_url,
     error_payload,
+    error_summary,
+    get_error_id,
     get_extension_from_file_path_or_url,
     get_function_description,
     get_function_params,
@@ -47,7 +50,6 @@ from gradio.utils import (
     parse_escaped_json,
     safe_aclose_iterator,
     safe_deepcopy,
-    sanitize_error_message,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
     tex2svg,
@@ -798,69 +800,6 @@ def test_get_icon_path():
     assert get_icon_path("huggingface-logo.svg").endswith("huggingface-logo.svg")
 
 
-@pytest.mark.parametrize(
-    "message,expected",
-    [
-        # requests.HTTPError from raise_for_status()
-        (
-            "401 Client Error: Unauthorized for url: https://api.example.com/v1/run?key=sk-123&x=1",
-            "401 Client Error: Unauthorized for url: https://api.example.com/v1/run?***",
-        ),
-        (
-            "Error for url: https://user:s3cret@db.example.com:5432/app",
-            "Error for url: https://***@db.example.com:5432/app",
-        ),
-        (
-            "404 Client Error: Not Found for url: http://u:p@10.1.2.3:8080/x?key=abc",
-            "404 Client Error: Not Found for url: http://***@***:8080/x?***",
-        ),
-        (
-            "Could not reach http://[::1]:7860/api",
-            "Could not reach http://***:7860/api",
-        ),
-        # httpx quotes the URL
-        (
-            "Client error '403 Forbidden' for url 'https://h.example.com/p?token=t'",
-            "Client error '403 Forbidden' for url 'https://h.example.com/p?***'",
-        ),
-        # requests.ConnectionError (urllib3)
-        (
-            "HTTPConnectionPool(host='10.0.0.5', port=8000): Max retries exceeded with "
-            'url: /api/tryon?key=abc (Caused by NewConnectionError("HTTPConnection('
-            "host='10.0.0.5', port=8000): Failed to establish a new connection\"))",
-            "HTTPConnectionPool(host='***', port=8000): Max retries exceeded with "
-            'url: /api/tryon?*** (Caused by NewConnectionError("HTTPConnection('
-            "host='***', port=8000): Failed to establish a new connection\"))",
-        ),
-        # A trailing ":" after the URL used to break parsing and skip redaction
-        (
-            "Failed to connect to http://10.0.0.5:8000: Connection refused",
-            "Failed to connect to http://***:8000: Connection refused",
-        ),
-        # A URL that can't be parsed is hidden entirely (fail closed)
-        (
-            "Failed to connect to http://10.0.0.5:99999999/x",
-            "Failed to connect to http://***",
-        ),
-        # Public hostnames and URLs without secrets are kept, so the message stays useful
-        (
-            "Could not fetch config for https://user-space.hf.space",
-            "Could not fetch config for https://user-space.hf.space",
-        ),
-        (
-            "HTTPSConnectionPool(host='huggingface.co', port=443): Read timed out.",
-            "HTTPSConnectionPool(host='huggingface.co', port=443): Read timed out.",
-        ),
-        (
-            "CUDA out of memory. Tried to allocate 2.00 GiB",
-            "CUDA out of memory. Tried to allocate 2.00 GiB",
-        ),
-    ],
-)
-def test_sanitize_error_message_redacts_urls(message, expected):
-    assert sanitize_error_message(RuntimeError(message)) == expected
-
-
 def test_error_payload():
     result = error_payload(None, False)
     assert result == {"error": None}
@@ -868,15 +807,15 @@ def test_error_payload():
     result = error_payload(Exception("test error"), True)
     assert result == {"error": "test error", "visible": True}
 
-    result = error_payload(Exception("test error"), False)
-    assert result == {"error": None}
-
     result = error_payload(ValueError(), True)
     assert result == {"error": "ValueError", "visible": True}
 
-    token = "hf_" + "a1B2" * 9
-    result = error_payload(RuntimeError(f"401 for token {token}"), True)
-    assert result == {"error": "401 for token hf_***", "visible": True}
+    error = RuntimeError("could not reach http://10.0.0.5:8000/?key=secret")
+    result = error_payload(error, False)
+    assert result["visible"] is True
+    assert "10.0.0.5" not in result["error"]
+    assert "secret" not in result["error"]
+    assert result["error"].startswith("An unexpected error occurred (RuntimeError).")
 
     gr_error = Error("custom error", duration=1.5, visible=True, title="Error Title")
     result = error_payload(gr_error, False)
@@ -895,6 +834,45 @@ def test_error_payload():
         "visible": True,
         "title": "Error",
     }
+
+
+class TestErrorSummary:
+    def test_never_includes_the_message(self):
+        summary = error_summary(KeyError("hf_" + "a1B2" * 9))
+        assert "hf_" not in summary
+        assert re.fullmatch(
+            r"An unexpected error occurred \(KeyError\)\. Error ID: [0-9a-f]{8}",
+            summary,
+        )
+
+    def test_hint_for_known_types(self):
+        class ConnectionError(OSError):  # e.g. requests.exceptions.ConnectionError
+            pass
+
+        class ConnectTimeout(ConnectionError):  # noqa: N818
+            pass
+
+        summary = error_summary(ConnectTimeout("HTTPConnectionPool(host='10.0.0.5')"))
+        assert summary.startswith(
+            "An unexpected error occurred (ConnectTimeout). The app could not "
+            "connect to a service it depends on. Error ID: "
+        )
+        assert "10.0.0.5" not in summary
+
+        assert "ran out of memory" in error_summary(MemoryError())
+        assert "timed out" in error_summary(TimeoutError("read timed out"))
+
+    def test_same_error_keeps_its_id(self, capsys):
+        error = ValueError("secret")
+        assert get_error_id(error) == get_error_id(error)
+        out = capsys.readouterr().out
+        assert out.count(f"Error ID {get_error_id(error)}") == 1
+        assert "secret" not in out
+        assert get_error_id(ValueError()) != get_error_id(error)
+
+    def test_unusual_type_name_is_not_shown(self):
+        weird = type("<script>", (Exception,), {})
+        assert "<script>" not in error_summary(weird())
 
 
 class TestGetFunctionDescription:

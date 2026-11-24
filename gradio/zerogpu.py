@@ -33,11 +33,7 @@ def exception_mapper(
             visible=exc.visible,
             print_exception=False,
         )
-    message = (
-        utils.sanitize_error_message(exc)
-        if exc is not None and show_error
-        else detail["message"]
-    )
+    message = str(exc) if exc is not None and show_error else detail["message"]
     return Error(
         title=detail["title"],
         message=message,

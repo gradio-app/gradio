@@ -2846,7 +2846,7 @@ Received inputs:
             # Off Spaces, the login routes are mocked and give no real token.
             "oauth_available": self.space_id is not None and self.expects_oauth,
             "enable_queue": True,  # launch attributes
-            "show_error": getattr(self, "show_error", True),
+            "show_error": getattr(self, "show_error", False),
             "footer_links": getattr(self, "footer_links", []),
             "run_history": getattr(self, "run_history", True),
             "is_colab": utils.colab_check(),
@@ -3040,7 +3040,7 @@ Received inputs:
         ) = None,
         auth_message: str | None = None,
         prevent_thread_lock: bool = False,
-        show_error: bool = True,
+        show_error: bool = False,
         server_name: str | None = None,
         server_port: int | None = None,
         *,
@@ -3100,7 +3100,7 @@ Received inputs:
             auth: If provided, username and password (or list of username-password tuples) required to access app. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
             prevent_thread_lock: By default, the gradio app blocks the main thread while the server is running. If set to True, the gradio app will not block and the gradio server will terminate as soon as the script finishes.
-            show_error: If True (the default), the message of any exception raised in an event handler is shown to the user in an alert modal and printed in the browser console log, and also in the alert modal of downstream apps that gr.load() this app. Only the exception message is sent (never the traceback), with Hugging Face tokens, URL credentials and query strings, and IP addresses in URLs redacted on a best-effort basis (an IP address elsewhere in the message, e.g. from a raw socket error, is not redacted). Use show_error=False if your error messages may contain sensitive information. Set to False to show a generic "Error" instead; errors raised with gr.Error are always shown.
+            show_error: If True, the message of any exception raised in an event handler is displayed in an alert modal and printed in the browser console log. It is also displayed in the alert modal of downstream apps that gr.load() this app. If False (the default), the message is not sent to the browser, since it may contain secrets such as private URLs or tokens. Users instead see the exception's type, a short description for common errors (e.g. a timeout or running out of memory), and an error ID that is also printed in the terminal next to the full traceback. Errors raised with gr.Error are always shown in full.
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40).

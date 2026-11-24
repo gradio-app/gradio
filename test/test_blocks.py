@@ -302,10 +302,10 @@ class TestBlocksMethods:
 
         assert demo.show_error
         demo.launch(prevent_thread_lock=True)
-        assert demo.show_error
-        demo.close()
-        demo.launch(show_error=False, prevent_thread_lock=True)
         assert not demo.show_error
+        demo.close()
+        demo.launch(show_error=True, prevent_thread_lock=True)
+        assert demo.show_error
         demo.close()
 
     def test_custom_css(self):
