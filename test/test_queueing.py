@@ -1850,6 +1850,33 @@ def test_a_lease_hands_over_at_its_time_limit_when_streams_hold_the_workers():
     assert closed == ["lease"]
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("closes", [True, False])
+async def test_a_lease_has_handed_over_only_if_its_stream_closed(closes):
+    from types import SimpleNamespace
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.queue()
+    queue = demo._queue
+    queue._slot_wanted = lambda event: True
+
+    # As the gateway's, which says False when the app's process did not
+    # answer in time and the stream goes on
+    async def close_stream(event_id):
+        return closes
+
+    event = SimpleNamespace(
+        _id="lease",
+        fn=SimpleNamespace(close_stream=close_stream),
+        closed=False,
+        handed_over=False,
+    )
+    queue.time_up(cast(queueing.Event, event))
+    await asyncio.gather(*queue._asyncio_tasks)
+    assert event.handed_over is closes
+
+
 def test_on_time_limit_takes_rejoin_or_stop():
     with gr.Blocks():
         audio = gr.Audio(sources=["microphone"], streaming=True)

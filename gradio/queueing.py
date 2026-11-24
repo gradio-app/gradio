@@ -12,7 +12,7 @@ import uuid
 import warnings
 from asyncio import Queue as AsyncQueue
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from threading import Barrier, Lock, Thread
@@ -1857,12 +1857,22 @@ class Queue:
         if not self._slot_wanted(event):
             self._went_on(event)
             return
+        # Set first: the stream's completion can come before the close answers
         event.handed_over = True
         closed = close_stream(event._id)
         if inspect.isawaitable(closed):
-            task = asyncio.ensure_future(closed)
+
+            async def settle(closing: Awaitable[Any]) -> None:
+                # e.g. the app's process did not answer in time: the stream
+                # goes on, and ends for good when it ends
+                if not await closing:
+                    event.handed_over = False
+
+            task = asyncio.ensure_future(settle(closed))
             self._asyncio_tasks.add(task)
             task.add_done_callback(self._asyncio_tasks.discard)
+        elif not closed:
+            event.handed_over = False
 
     def _stream_goes_on(self, fn: BlockFunction, event: Event) -> bool:
         """Whether a stream waits for its next chunk: always, unless its
