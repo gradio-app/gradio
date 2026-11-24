@@ -134,6 +134,15 @@
 		children?: import("svelte").Snippet;
 	} = $props();
 
+	// A WebRTC stream goes by its own event's state: another event that writes
+	// to this component brings its own status, with no stream_state
+	let own_stream_state = $state<typeof stream_state>("closed");
+	$effect.pre(() => {
+		if (!stream_transport || stream_state != null) {
+			own_stream_state = stream_state;
+		}
+	});
+
 	$effect(() => {
 		ondrag?.(dragging);
 	});
@@ -373,7 +382,7 @@
 	let stream_started = false;
 	$effect(() => {
 		if (!stream_transport) return;
-		if (stream_state === "open" || stream_state === "waiting") {
+		if (own_stream_state === "open" || own_stream_state === "waiting") {
 			stream_started = true;
 		} else if (stream_started) {
 			stream_started = false;
@@ -420,7 +429,7 @@
 					{waveform_settings}
 					{waveform_options}
 					{microphone_options}
-					waiting={stream_state === "waiting"}
+					waiting={own_stream_state === "waiting"}
 					{queue_detail}
 				/>
 			{:else}

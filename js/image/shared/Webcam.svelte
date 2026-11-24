@@ -77,6 +77,15 @@
 		onclose_stream?: () => void;
 	} = $props();
 
+	// A WebRTC stream goes by its own event's state: another event that writes
+	// to this component brings its own status, with no stream_state
+	let own_stream_state = $state<typeof stream_state>("closed");
+	$effect.pre(() => {
+		if (!stream_transport || stream_state != null) {
+			own_stream_state = stream_state;
+		}
+	});
+
 	let facing_mode = $state<string | undefined>(undefined);
 	const mirrored = $derived(
 		mirror_webcam === "auto" ? facing_mode !== "environment" : mirror_webcam
@@ -209,7 +218,7 @@
 	let stream_started = false;
 	$effect(() => {
 		if (!stream_transport) return;
-		if (stream_state === "open" || stream_state === "waiting") {
+		if (own_stream_state === "open" || own_stream_state === "waiting") {
 			stream_started = true;
 		} else if (stream_started) {
 			stream_started = false;
@@ -403,7 +412,7 @@
 			</IconButtonWrapper>
 		{/if}
 		<div class="button-wrap">
-			{#if streaming && stream_state === "waiting"}
+			{#if streaming && own_stream_state === "waiting"}
 				<div class="icon-with-text queue-status" role="status">
 					<div class="icon color-primary" title="spinner">
 						<Spinner />
@@ -419,21 +428,21 @@
 				class="capture-button"
 				class:photo-capture={mode === "image" && !streaming}
 				onclick={() => record_video_or_photo()}
-				aria-label={streaming && stream_state === "waiting"
+				aria-label={streaming && own_stream_state === "waiting"
 					? "cancel waiting"
 					: mode === "image"
 						? "capture photo"
 						: "start recording"}
 			>
 				{#if mode === "video" || streaming}
-					{#if streaming && stream_state === "waiting"}
+					{#if streaming && own_stream_state === "waiting"}
 						<div class="icon-with-text">
 							<div class="icon color-primary" title="cancel waiting">
 								<Clear />
 							</div>
 							{i18n("chatbot.cancel")}
 						</div>
-					{:else if (streaming && stream_state === "open") || (!streaming && recording)}
+					{:else if (streaming && own_stream_state === "open") || (!streaming && recording)}
 						<div class="icon-with-text">
 							<div class="icon color-primary" title="stop recording">
 								<Square />
