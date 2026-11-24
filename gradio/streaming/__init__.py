@@ -12,7 +12,7 @@ It needs numpy, which the `webrtc` extra installs, but not aiortc.
 """
 
 try:
-    import numpy  # noqa: F401
+    import numpy  # noqa: F401 -- only checks that numpy is installed
 except ModuleNotFoundError as error:
     # Also for `from gradio import streaming`, which does not reach the hint
     # in gradio/__init__.py
