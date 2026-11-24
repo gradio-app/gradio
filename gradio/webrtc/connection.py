@@ -439,19 +439,21 @@ class Stream:
         equal to what the page already has are left out, and the rest go out
         at most once every `manager.output_every` seconds: a change after a
         quiet moment at once, later ones together when the interval is up,
-        newer values replacing older ones. Values are compared only when they
-        go out, so a handler that returns on every frame pays for at most one
-        comparison per delivery. Called on the event loop.
+        newer values replacing older ones. Called on the event loop.
         """
         values = list(outputs.args)
         if self._shown is None or len(self._shown) != len(values):
             self._shown = [_UNSEEN] * len(values)
-        if all(is_skip(value) for value in values):
-            return
         pending = self._pending or [skip()] * len(values)
+        changed = False
         for i, value in enumerate(values):
-            if not is_skip(value):
-                pending[i] = value
+            if is_skip(value) or _same(value, self._shown[i]):
+                continue
+            pending[i] = value
+            self._shown[i] = _remembered(value)
+            changed = True
+        if not changed:
+            return
         self._pending = pending
         if self._delivery_timer is not None:
             return
@@ -476,18 +478,6 @@ class Stream:
             self._delivery_timer = None
         pending, self._pending = self._pending, None
         if pending is None:
-            return
-        shown = cast(list, self._shown)
-        changed = False
-        for i, value in enumerate(pending):
-            if is_skip(value):
-                continue
-            if _same(value, shown[i]):
-                pending[i] = skip()
-                continue
-            shown[i] = _remembered(value)
-            changed = True
-        if not changed:
             return
         self._last_delivery = time.monotonic()
         if self.output is not None:

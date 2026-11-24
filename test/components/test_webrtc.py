@@ -5444,26 +5444,6 @@ class TestStreamOutputs:
         assert self.delivered(stream, event) == ([("d", 3)], True)
 
     @pytest.mark.asyncio
-    async def test_values_are_compared_when_they_go_out(self, monkeypatch):
-        stream, event = self.stream(0.1)
-        stream.add_output(AdditionalOutputs("a"))
-        self.delivered(stream, event)
-        compared = []
-        same = webrtc_connection._same
-        monkeypatch.setattr(
-            webrtc_connection,
-            "_same",
-            lambda value, shown: compared.append(value) or same(value, shown),
-        )
-        for i in range(30):
-            stream.add_output(AdditionalOutputs(f"v{i}"))
-        # Back to what the page shows before the interval is up: nothing to send
-        stream.add_output(AdditionalOutputs("a"))
-        await asyncio.sleep(0.15)
-        assert self.delivered(stream, event) == ([], False)
-        assert compared == ["a"]
-
-    @pytest.mark.asyncio
     async def test_the_last_values_go_out_when_the_stream_ends(self):
         stream, event = self.stream(10)
         stream.add_output(AdditionalOutputs("a"))
