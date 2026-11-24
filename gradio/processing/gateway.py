@@ -755,7 +755,7 @@ def event_table(config: dict, fn_settings: dict, blocks: dict) -> dict:
 def app_block(component: dict) -> Any:
     """What stands in the gateway for a block of the app's config: an id and
     a type, or a gr.State, whose storage the gateway's queue handles."""
-    from gradio.components import State
+    from gradio.components.state import State
 
     props = component["props"]
     if props.get("name") != "state":
@@ -831,7 +831,9 @@ def build(bootstrap: dict) -> Blocks:
     Context.token = bootstrap["hf_token"]
     if bootstrap["static_paths"]:
         utils.set_static_paths(bootstrap["static_paths"])
-    with Blocks() as blocks:
+    # mode="server" builds without `gradio_components`, which a `gr.Server` app
+    # may not have; `configure` then sets the app's own mode
+    with Blocks(mode="server") as blocks:
         pass
     configure(blocks, bootstrap)
     blocks.delete_cache = bootstrap["delete_cache"]
@@ -946,7 +948,7 @@ def add_forwarded_routes(
         forward,
         relay,
     )
-    from gradio.route_utils import API_PREFIX
+    from gradio.route_utils import API_PREFIX, RootStaticMount
 
     port = bootstrap["http_port"]
     token = [(TOKEN_HEADER, bootstrap["http_token"].encode())]
@@ -1006,7 +1008,8 @@ def add_forwarded_routes(
             routes.append(APIRoute(path, to_app, methods=data, include_in_schema=False))
         elif kind == "static":
             static_files, name = data
-            routes.append(Mount(path, app=static_files, name=name))
+            mount = Mount if path else RootStaticMount
+            routes.append(mount(path, app=static_files, name=name))
         elif kind == "websocket":
             routes.append(WebSocketRoute(path, websocket_to_app))
         else:

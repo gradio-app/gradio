@@ -13,13 +13,13 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from gradio_client.exceptions import AppError
+from gradio_components.external_utils import format_ner_list
 from hypothesis import given, settings  # ty: ignore[unresolved-import]
 from hypothesis import strategies as st  # ty: ignore[unresolved-import]
 
 import gradio as gr
 from gradio import EventData, Request
 from gradio.exceptions import Error
-from gradio.external_utils import format_ner_list
 from gradio.utils import (
     FileSize,
     SyncToAsyncIterator,

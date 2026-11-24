@@ -19,7 +19,6 @@ from threading import Barrier, Lock, Thread
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
-import numpy as np
 from anyio.to_thread import run_sync
 
 from gradio import caching, history, route_utils, routes
@@ -174,6 +173,29 @@ class QueueEventForwarder:
         self._queue.close()
 
 
+def _percentiles(values: list[float | None], percents: list[float]) -> list[float]:
+    """The given percentiles of `values`, interpolated linearly between the two
+    nearest values (the default of `numpy.percentile`, which this replaces). An event
+    that has not finished has no process time yet (None), and, as with numpy and a
+    NaN, every percentile is then NaN."""
+    if not values or any(value is None for value in values):
+        return [float("nan")] * len(percents)
+    ordered = sorted(cast(list[float], values))
+    results = []
+    for percent in percents:
+        position = (len(ordered) - 1) * percent / 100
+        lower = int(position)
+        upper = min(lower + 1, len(ordered) - 1)
+        fraction = position - lower
+        low, high = ordered[lower], ordered[upper]
+        # The same form of interpolation as numpy, so the results are identical.
+        if fraction < 0.5:
+            results.append(low + (high - low) * fraction)
+        else:
+            results.append(high - (high - low) * (1 - fraction))
+    return results
+
+
 class Queue:
     def __init__(
         self,
@@ -240,8 +262,8 @@ class Queue:
             >= self.ANAYLTICS_CACHE_FREQUENCY
         ):
             self.event_count_at_last_cache = self.events_recorded
-            # Plain numpy rather than a DataFrame: this runs after every event, and
-            # importing pandas here would delay the first summary.
+            # Plain Python rather than numpy or pandas: core Gradio does not require
+            # either, and this runs after every event.
             by_function: dict[str, list[dict]] = defaultdict(list)
             for record in records:
                 if record.get("function") is not None:
@@ -249,26 +271,19 @@ class Queue:
             metrics = {"functions": {}}
             for fn_name in sorted(by_function):
                 fn_records = by_function[fn_name]
-                status = np.array([r["status"] for r in fn_records], dtype=object)
-                success = np.sum(status == "success")
-                failure = np.sum(status == "failed")
+                success = sum(r["status"] == "success" for r in fn_records)
+                failure = sum(r["status"] == "failed" for r in fn_records)
                 total = success + failure
                 success_rate = success / total if total > 0 else None
-                # An event that has not finished has no process time yet.
-                process_times = np.array(
-                    [
-                        np.nan if r["process_time"] is None else r["process_time"]
-                        for r in fn_records
-                    ],
-                    dtype=float,
+                percentiles = _percentiles(
+                    [r["process_time"] for r in fn_records], [50, 90, 99]
                 )
-                percentiles = np.percentile(process_times, [50, 90, 99])
                 metrics["functions"][fn_name] = {
                     "success_rate": success_rate,
                     "process_time_percentiles": {
-                        "50th": percentiles[0],  # type: ignore
-                        "90th": percentiles[1],  # type: ignore
-                        "99th": percentiles[2],  # type: ignore
+                        "50th": percentiles[0],
+                        "90th": percentiles[1],
+                        "99th": percentiles[2],
                     },
                     "total_requests": self.events_recorded_per_fn.get(
                         fn_name, len(fn_records)

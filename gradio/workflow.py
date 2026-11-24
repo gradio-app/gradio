@@ -28,12 +28,12 @@ import anyio
 import httpx2
 from gradio_client import Client, handle_file
 from gradio_client import utils as client_utils
+from gradio_components.workflowcanvas import WorkflowCanvas
 from huggingface_hub import HfApi
 from huggingface_hub import get_token as hf_get_token
 
 import gradio as gr
 from gradio.blocks import Blocks
-from gradio.components.workflowcanvas import WorkflowCanvas
 from gradio.context import Context
 from gradio.helpers import special_args as _special_args
 from gradio.oauth import OAuthProfile, OAuthToken

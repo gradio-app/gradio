@@ -4,7 +4,6 @@ import asyncio
 import functools
 import hashlib
 import hmac
-import importlib.resources
 import json
 import logging
 import math
@@ -61,9 +60,10 @@ from starlette.responses import (
     Response,
     StreamingResponse,
 )
+from starlette.routing import Match, Mount, get_route_path
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from gradio import history, processing_utils, utils
+from gradio import _components_package, history, processing_utils, utils
 from gradio.data_classes import (
     BlocksConfigDict,
     DeveloperPath,
@@ -85,6 +85,26 @@ if TYPE_CHECKING:
 
 config_lock = threading.Lock()
 API_PREFIX = "/gradio_api"
+
+# The first path segments that Gradio's API, login and monitoring routes are
+# served under, which a `gr.Server`'s static files can't take.
+RESERVED_PATHS = ("gradio_api", "config", "login", "logout", "monitoring")
+
+
+class RootStaticMount(Mount):
+    """A `gr.Server`'s StaticFiles mounted at "/". A plain Mount there matches
+    every request, Gradio's API included, so this one leaves the reserved
+    paths to Gradio's routes. It still serves "/" and the other paths of
+    Gradio's own page, which the app's frontend replaces."""
+
+    def matches(self, scope: Scope) -> tuple[Match, Scope]:
+        if scope["type"] != "http":
+            return Match.NONE, {}
+        if get_route_path(scope).lstrip("/").split("/")[0] in RESERVED_PATHS:
+            return Match.NONE, {}
+        return super().matches(scope)
+
+
 GATEWAY_USER_SCOPE_KEY = "gradio.gateway_user"
 
 
@@ -1449,22 +1469,14 @@ def routes_safe_join(directory: DeveloperPath, path: UserProvidedPath) -> str:
     return str(fullpath)
 
 
-STATIC_TEMPLATE_LIB = cast(
-    DeveloperPath,
-    importlib.resources.files("gradio").joinpath("templates").as_posix(),  # type: ignore
-)
+# The built frontend is shipped by `gradio_components`. Without it these paths do
+# not exist, and the routes that serve the Gradio UI from them respond with 404.
+_FRONTEND_DIR = _components_package.frontend_dir()
+STATIC_TEMPLATE_LIB = cast(DeveloperPath, _FRONTEND_DIR.as_posix())
 STATIC_PATH_LIB = cast(
-    DeveloperPath,
-    importlib.resources.files("gradio")
-    .joinpath("templates/frontend/static")
-    .as_posix(),  # type: ignore
+    DeveloperPath, (_FRONTEND_DIR / "frontend" / "static").as_posix()
 )
-BUILD_PATH_LIB = cast(
-    DeveloperPath,
-    importlib.resources.files("gradio")
-    .joinpath("templates/frontend/assets")
-    .as_posix(),  # type: ignore
-)
+BUILD_PATH_LIB = cast(DeveloperPath, (_FRONTEND_DIR / "frontend" / "assets").as_posix())
 VERSION = get_package_version()
 XSS_SAFE_MIMETYPES = {
     "image/jpeg",

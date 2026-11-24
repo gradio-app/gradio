@@ -1,15 +1,15 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-import gradio as gr
-from gradio.external_utils import (
+from gradio_components.external_utils import (
     component_from_parameter_schema,
     component_from_request_body_schema,
     create_endpoint_fn,
     get_model_info,
     resolve_schema_ref,
 )
+
+import gradio as gr
 
 
 @pytest.mark.parametrize(

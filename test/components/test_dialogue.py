@@ -1,5 +1,6 @@
+from gradio_components.dialogue import DialogueLine, DialogueModel
+
 import gradio as gr
-from gradio.components.dialogue import DialogueLine, DialogueModel
 
 
 class TestDialogue:

@@ -2,9 +2,9 @@ from pathlib import Path
 
 import numpy as np
 import PIL
+from gradio_components.gallery import GalleryImage
 
 import gradio as gr
-from gradio.components.gallery import GalleryImage
 from gradio.data_classes import ImageData
 
 
@@ -93,7 +93,7 @@ class TestGallery:
         ]
 
     def test_gallery_preprocess(self):
-        from gradio.components.gallery import GalleryData, GalleryImage
+        from gradio_components.gallery import GalleryData, GalleryImage
 
         gallery = gr.Gallery()
         img = GalleryImage(image=ImageData(path="test/test_files/bus.png"))
