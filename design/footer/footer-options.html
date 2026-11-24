@@ -1,0 +1,1778 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Footer Options</title>
+    <!--
+  Design mockups for the Gradio 7 footer (#13915) and the run-to-agent flow
+  (#13916). Static HTML, no build step: open it in a browser, or run
+  render.mjs to regenerate the PNGs next to it.
+-->
+    <style>
+      @font-face {
+        font-family: "Source Sans Pro";
+        font-weight: 400;
+        src: url("../../js/spa/public/static/fonts/Source Sans Pro/SourceSansPro-Regular.woff2")
+          format("woff2");
+      }
+      @font-face {
+        font-family: "Source Sans Pro";
+        font-weight: 600 700;
+        src: url("../../js/spa/public/static/fonts/Source Sans Pro/SourceSansPro-Bold.woff2")
+          format("woff2");
+      }
+      @font-face {
+        font-family: "IBM Plex Mono";
+        font-weight: 400;
+        src: url("../../js/spa/public/static/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2")
+          format("woff2");
+      }
+
+      /* Gradio's default theme: orange primary on zinc neutrals. */
+      .theme {
+        --bg: #ffffff;
+        --block: #ffffff;
+        --block-border: #e4e4e7;
+        --input: #ffffff;
+        --label: #71717a;
+        --text: #27272a;
+        --text-strong: #18181b;
+        --subdued: #71717a;
+        --faint: #a1a1aa;
+        --hairline: #e4e4e7;
+        --chip: #f4f4f5;
+        --chip-hover: #e4e4e7;
+        --accent: #f97316;
+        --accent-strong: #ea580c;
+        --accent-soft: #fff7ed;
+        --accent-line: #ffddb3;
+        --code-bg: #fafafa;
+        --code-text: #3f3f46;
+        --tok-key: #c2410c;
+        --tok-str: #15803d;
+        --tok-com: #a1a1aa;
+        --tok-fn: #1d4ed8;
+        --panel: #ffffff;
+        --shadow:
+          0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -6px rgba(24, 24, 27, 0.12);
+        --scrim: rgba(24, 24, 27, 0.28);
+        color: var(--text);
+        background: var(--bg);
+      }
+      .theme.dark {
+        --bg: #0f0f11;
+        --block: #18181b;
+        --block-border: #3f3f46;
+        --input: #27272a;
+        --label: #a1a1aa;
+        --text: #e4e4e7;
+        --text-strong: #fafafa;
+        --subdued: #a1a1aa;
+        --faint: #71717a;
+        --hairline: #27272a;
+        --chip: #27272a;
+        --chip-hover: #3f3f46;
+        --accent: #f97316;
+        --accent-strong: #fb923c;
+        --accent-soft: rgba(249, 115, 22, 0.12);
+        --accent-line: rgba(249, 115, 22, 0.35);
+        --code-bg: #0f0f11;
+        --code-text: #d4d4d8;
+        --tok-key: #fdba74;
+        --tok-str: #86efac;
+        --tok-com: #71717a;
+        --tok-fn: #93c5fd;
+        --panel: #18181b;
+        --shadow:
+          0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+        --scrim: rgba(0, 0, 0, 0.5);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #e9e9ec;
+        font-family: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      code,
+      pre,
+      .mono {
+        font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+      }
+
+      /* ---------- board ---------- */
+      .board {
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        background: #f4f4f5;
+        width: max-content;
+      }
+      .board.dark-board {
+        background: #09090b;
+      }
+      .board-head {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+      }
+      .board-head .tag {
+        font:
+          600 13px/1 "IBM Plex Mono",
+          monospace;
+        color: #f97316;
+        letter-spacing: 0.04em;
+      }
+      .board-head h2 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 700;
+        color: #18181b;
+      }
+      .board-head p {
+        margin: 0;
+        color: #71717a;
+        font-size: 16px;
+      }
+      .dark-board .board-head h2 {
+        color: #fafafa;
+      }
+      .dark-board .board-head p {
+        color: #a1a1aa;
+      }
+      .states {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+      }
+      .state {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .state-label {
+        font:
+          600 12px/1 "IBM Plex Mono",
+          monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #71717a;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .state-label b {
+        color: #18181b;
+        font-weight: 600;
+      }
+      .dark-board .state-label b {
+        color: #fafafa;
+      }
+
+      /* ---------- mock app window ---------- */
+      .window {
+        width: 560px;
+        height: 460px;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid #d4d4d8;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+      }
+      .dark .window,
+      .window.dark {
+        border-color: #27272a;
+      }
+      .window.tall {
+        height: 600px;
+      }
+      .chrome {
+        height: 30px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 12px;
+        background: var(--chip);
+        border-bottom: 1px solid var(--hairline);
+      }
+      .chrome i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--chip-hover);
+        display: block;
+      }
+      .chrome .url {
+        margin-left: 10px;
+        flex: 1;
+        height: 18px;
+        border-radius: 5px;
+        background: var(--bg);
+        font:
+          11px/18px "IBM Plex Mono",
+          monospace;
+        color: var(--faint);
+        padding: 0 8px;
+      }
+      .app {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 18px 20px 0;
+        position: relative;
+        min-height: 0;
+      }
+      .app h1 {
+        margin: 0 0 12px;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-strong);
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+      }
+      .col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 0;
+      }
+      .blk {
+        border: 1px solid var(--block-border);
+        border-radius: 8px;
+        background: var(--block);
+        padding: 8px 10px 10px;
+      }
+      .blk .lbl {
+        font-size: 12px;
+        color: var(--label);
+        margin-bottom: 5px;
+      }
+      .blk .val {
+        font-size: 14px;
+        color: var(--text);
+        min-height: 20px;
+      }
+      .blk.out .val {
+        min-height: 66px;
+      }
+      .btn {
+        border-radius: 8px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 7px 0;
+      }
+      .btn.primary {
+        background: linear-gradient(to bottom right, #fb923c, #f97316);
+        color: #fff;
+      }
+      .btn.secondary {
+        background: var(--chip);
+        color: var(--text);
+      }
+      .spacer {
+        flex: 1;
+      }
+
+      /* ---------- shared footer bits ---------- */
+      .ico {
+        width: 14px;
+        height: 14px;
+        flex: none;
+      }
+      .ico.lg {
+        width: 15px;
+        height: 15px;
+      }
+      .logo {
+        width: 15px;
+        height: 15px;
+        flex: none;
+      }
+      .dot {
+        color: var(--faint);
+      }
+      .kbd {
+        font:
+          11px/1 "IBM Plex Mono",
+          monospace;
+        padding: 2px 5px;
+        border: 1px solid var(--hairline);
+        border-radius: 4px;
+        color: var(--faint);
+      }
+      .pulse {
+        position: relative;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex: none;
+      }
+      .pulse::after {
+        content: "";
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 2px solid var(--accent);
+        opacity: 0.35;
+      }
+
+      /* ---------- code panel (shared) ---------- */
+      .tabs {
+        display: flex;
+        gap: 2px;
+        padding: 3px;
+        background: var(--chip);
+        border-radius: 8px;
+      }
+      .tabs span {
+        flex: 1;
+        text-align: center;
+        font-size: 13px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        color: var(--subdued);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        white-space: nowrap;
+      }
+      .tabs span.on {
+        background: var(--panel);
+        color: var(--text-strong);
+        font-weight: 600;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      }
+      pre.code {
+        margin: 0;
+        padding: 12px 14px;
+        background: var(--code-bg);
+        border: 1px solid var(--hairline);
+        border-radius: 8px;
+        font-size: 12px;
+        line-height: 1.6;
+        color: var(--code-text);
+        white-space: pre;
+        overflow: hidden;
+        position: relative;
+      }
+      pre.code .k {
+        color: var(--tok-key);
+      }
+      pre.code .s {
+        color: var(--tok-str);
+      }
+      pre.code .c {
+        color: var(--tok-com);
+      }
+      pre.code .f {
+        color: var(--tok-fn);
+      }
+      .copy {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font:
+          600 12px/1 "Source Sans Pro",
+          sans-serif;
+        color: var(--subdued);
+        background: var(--panel);
+        border: 1px solid var(--hairline);
+        border-radius: 6px;
+        padding: 5px 8px;
+      }
+      .copy.done {
+        color: #16a34a;
+        border-color: #bbf7d0;
+      }
+      .dark .copy.done {
+        color: #4ade80;
+        border-color: rgba(74, 222, 128, 0.3);
+      }
+      .meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--subdued);
+      }
+      .meta code {
+        font-size: 12px;
+        color: var(--text-strong);
+        background: var(--chip);
+        padding: 2px 6px;
+        border-radius: 5px;
+      }
+      .ok {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #16a34a;
+      }
+      .dark .ok {
+        color: #4ade80;
+      }
+      .panel-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: var(--subdued);
+      }
+      .panel-foot a {
+        color: var(--accent-strong);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      /* ================= A: Quiet line ================= */
+      .fa {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 0 16px;
+        font-size: 14px;
+        color: var(--subdued);
+      }
+      .fa .it {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .fa .it.hot {
+        color: var(--text-strong);
+        font-weight: 600;
+      }
+      .fa .it.hot .ico {
+        color: var(--accent);
+      }
+      .fa-hint {
+        position: absolute;
+        left: 50%;
+        bottom: 46px;
+        transform: translateX(-50%);
+        background: var(--text-strong);
+        color: var(--bg);
+        font-size: 12px;
+        padding: 5px 9px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .fa-hint::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: -4px;
+        width: 8px;
+        height: 8px;
+        background: inherit;
+        transform: translateX(-50%) rotate(45deg);
+      }
+      .sheet-scrim {
+        position: absolute;
+        inset: 0;
+        background: var(--scrim);
+      }
+      .sheet {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 372px;
+        background: var(--panel);
+        border-left: 1px solid var(--hairline);
+        box-shadow: var(--shadow);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .sheet h3,
+      .card h3,
+      .modal h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-strong);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .x {
+        color: var(--faint);
+        font-weight: 400;
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      /* ================= B: Pill dock ================= */
+      .fb-wrap {
+        display: flex;
+        justify-content: center;
+        padding: 12px 0 14px;
+        position: relative;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 3px;
+        border-radius: 999px;
+        background: var(--panel);
+        border: 1px solid var(--hairline);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        font-size: 13px;
+        color: var(--subdued);
+      }
+      .pill .seg {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 999px;
+      }
+      .pill .seg.icon {
+        padding: 4px 7px;
+      }
+      .pill .sep {
+        width: 1px;
+        height: 14px;
+        background: var(--hairline);
+        margin: 0 2px;
+      }
+      .pill .seg.run {
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-weight: 600;
+        box-shadow: inset 0 0 0 1px var(--accent-line);
+      }
+      .pill .seg.run code {
+        font-size: 12px;
+        font-weight: 400;
+      }
+      .card {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 54px;
+        width: 460px;
+        background: var(--panel);
+        border: 1px solid var(--hairline);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      /* ================= C: Split bar ================= */
+      .fc {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 2px 12px;
+        margin-top: 12px;
+        border-top: 1px solid var(--hairline);
+        font-size: 13px;
+        color: var(--subdued);
+        gap: 8px;
+      }
+      .fc .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .fc .acts {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+      }
+      .fc .ghost {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 8px;
+        border-radius: 6px;
+      }
+      .fc .ghost.icon {
+        padding: 4px 6px;
+      }
+      .fc .mid {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 3px 3px 10px;
+        border-radius: 8px;
+        background: var(--accent-soft);
+        box-shadow: inset 0 0 0 1px var(--accent-line);
+        color: var(--accent-strong);
+        font-weight: 600;
+      }
+      .fc .mid .langs {
+        display: inline-flex;
+        gap: 2px;
+      }
+      .fc .mid .langs span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--panel);
+        color: var(--text);
+        font-weight: 400;
+        padding: 3px 7px;
+        border-radius: 6px;
+        font-size: 12px;
+        box-shadow: 0 0 0 1px var(--hairline);
+      }
+      .fc .mid .langs span.on {
+        color: #16a34a;
+        box-shadow: 0 0 0 1px #bbf7d0;
+      }
+      .dark .fc .mid .langs span.on {
+        color: #4ade80;
+        box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.3);
+      }
+      .toast {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 58px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--text-strong);
+        color: var(--bg);
+        font-size: 13px;
+        padding: 7px 12px;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        white-space: nowrap;
+      }
+      .toast .ok {
+        color: #4ade80;
+      }
+      .card.left {
+        left: 20px;
+        transform: none;
+        bottom: 52px;
+      }
+
+      /* ================= D: Agent-first ================= */
+      .fd {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0 14px;
+        font-size: 13px;
+        color: var(--subdued);
+      }
+      .fd .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--block-border);
+        color: var(--text-strong);
+        font-weight: 600;
+        background: var(--panel);
+      }
+      .fd .cta .ico {
+        color: var(--accent);
+      }
+      .fd .cta.hot {
+        border-color: transparent;
+        color: #fff;
+        background: linear-gradient(to bottom right, #fb923c, #f97316);
+        box-shadow:
+          0 0 0 4px var(--accent-soft),
+          0 4px 12px -2px rgba(249, 115, 22, 0.45);
+      }
+      .fd .cta.hot .ico {
+        color: #fff;
+      }
+      .fd .links {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .fd .links .it {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .modal-scrim {
+        position: absolute;
+        inset: 0;
+        background: var(--scrim);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal {
+        width: 500px;
+        background: var(--panel);
+        border: 1px solid var(--hairline);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+      }
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .step {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        font-size: 13px;
+        color: var(--text);
+      }
+      .step .n {
+        width: 20px;
+        height: 20px;
+        flex: none;
+        border-radius: 50%;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-weight: 700;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: inset 0 0 0 1px var(--accent-line);
+      }
+      .step .body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+      .segbar {
+        display: inline-flex;
+        padding: 3px;
+        background: var(--chip);
+        border-radius: 999px;
+        font-size: 13px;
+        align-self: flex-start;
+      }
+      .segbar span {
+        padding: 4px 14px;
+        border-radius: 999px;
+        color: var(--subdued);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .segbar span.on {
+        background: var(--panel);
+        color: var(--text-strong);
+        font-weight: 600;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      }
+
+      /* ================= gr.Server strip ================= */
+      .server-row {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        align-items: center;
+        gap: 20px;
+      }
+      .server-row .name {
+        font:
+          600 12px/1.4 "IBM Plex Mono",
+          monospace;
+        color: #71717a;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .server-row .name b {
+        display: block;
+        color: #18181b;
+        font-family: "Source Sans Pro", sans-serif;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 15px;
+      }
+      .custom-page {
+        width: 760px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #d4d4d8;
+      }
+      .custom-page .hero {
+        height: 54px;
+        background: repeating-linear-gradient(
+          135deg,
+          #fafafa 0 10px,
+          #f4f4f5 10px 20px
+        );
+        border-bottom: 1px dashed #d4d4d8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font:
+          12px "IBM Plex Mono",
+          monospace;
+        color: #a1a1aa;
+      }
+      .custom-page .foot {
+        padding: 0 16px;
+        background: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============ SVG icon sprite ============ -->
+    <svg width="0" height="0" style="position: absolute">
+      <defs>
+        <linearGradient
+          id="g1"
+          x1="60"
+          y1="341"
+          x2="429.5"
+          y2="344"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stop-color="#F9D100" />
+          <stop offset="1" stop-color="#F97700" />
+        </linearGradient>
+        <linearGradient
+          id="g2"
+          x1="513.5"
+          y1="231"
+          x2="143.5"
+          y2="231"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stop-color="#F9D100" />
+          <stop offset="1" stop-color="#F97700" />
+        </linearGradient>
+        <linearGradient
+          id="g3"
+          x1="60"
+          y1="344"
+          x2="428.987"
+          y2="341.811"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stop-color="#F9D100" />
+          <stop offset="1" stop-color="#F97700" />
+        </linearGradient>
+      </defs>
+      <symbol id="logo" viewBox="0 0 576 576">
+        <path
+          d="M287.5 229L86 344.5L287.5 460L489 344.5L287.5 229Z"
+          stroke="url(#g1)"
+          stroke-width="59"
+          stroke-linejoin="round"
+          fill="none"
+        />
+        <path
+          d="M287.5 116L86 231.5L287.5 347L489 231.5L287.5 116Z"
+          stroke="url(#g2)"
+          stroke-width="59"
+          stroke-linejoin="round"
+          fill="none"
+        />
+        <path
+          d="M86 344L288 229"
+          stroke="url(#g3)"
+          stroke-width="59"
+          stroke-linejoin="bevel"
+        />
+      </symbol>
+      <symbol
+        id="code"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="m16 18 6-6-6-6" />
+        <path d="m8 6-6 6 6 6" />
+      </symbol>
+      <symbol
+        id="bot"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 8V4H8" />
+        <rect width="16" height="12" x="4" y="8" rx="2" />
+        <path d="M2 14h2" />
+        <path d="M20 14h2" />
+        <path d="M15 13v2" />
+        <path d="M9 13v2" />
+      </symbol>
+      <symbol
+        id="history"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+        <path d="M3 3v5h5" />
+        <path d="M12 7v5l4 2" />
+      </symbol>
+      <symbol
+        id="gear"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+        />
+        <circle cx="12" cy="12" r="3" />
+      </symbol>
+      <symbol
+        id="copy"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect width="14" height="14" x="8" y="8" rx="2" />
+        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+      </symbol>
+      <symbol
+        id="check"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M20 6 9 17l-5-5" />
+      </symbol>
+      <symbol
+        id="arrow"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M5 12h14" />
+        <path d="m12 5 7 7-7 7" />
+      </symbol>
+      <symbol id="play" viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"
+        />
+      </symbol>
+      <symbol
+        id="sparkle"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9.94 14.06 4 20" />
+        <path
+          d="m12 3 1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z"
+        />
+      </symbol>
+    </svg>
+
+    <template id="app-body">
+      <h1>Translator</h1>
+      <div class="row">
+        <div class="col">
+          <div class="blk">
+            <div class="lbl">Text</div>
+            <div class="val">Hello, world</div>
+          </div>
+          <div class="blk">
+            <div class="lbl">Language</div>
+            <div class="val">French</div>
+          </div>
+          <div class="row">
+            <div class="btn secondary col">Clear</div>
+            <div class="btn primary col">Submit</div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="blk out">
+            <div class="lbl">Translation</div>
+            <div class="val" data-out></div>
+          </div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+    </template>
+
+    <template id="py">
+      <pre
+        class="code"
+      ><span class="k">from</span> gradio_client <span class="k">import</span> Client
+
+client = Client(<span class="s">"gradio/translator"</span>)
+result = client.<span class="f">predict</span>(
+    text=<span class="s">"Hello, world"</span>,
+    language=<span class="s">"French"</span>,
+    api_name=<span class="s">"/translate"</span>,
+)<span class="copy"><svg class="ico"><use href="#copy"/></svg>Copy</span></pre>
+    </template>
+
+    <template id="mcp">
+      <pre class="code"><span class="c">// Tool call your agent makes</span>
+<span class="f">translator_translate</span>({
+  <span class="k">"text"</span>: <span class="s">"Hello, world"</span>,
+  <span class="k">"language"</span>: <span class="s">"French"</span>
+})<span class="copy"><svg class="ico"><use href="#copy"/></svg>Copy</span></pre>
+    </template>
+
+    <template id="mcp-config">
+      <pre class="code">{
+  <span class="k">"mcpServers"</span>: {
+    <span class="k">"translator"</span>: {
+      <span class="k">"url"</span>: <span class="s">"https://…hf.space/gradio_api/mcp/"</span>
+    }
+  }
+}<span class="copy done"><svg class="ico"><use href="#check"/></svg>Copied</span></pre>
+    </template>
+
+    <template id="tabs-py">
+      <div class="tabs">
+        <span class="on">Python</span><span>JavaScript</span><span>cURL</span
+        ><span
+          ><svg class="ico"><use href="#bot" /></svg>MCP</span
+        >
+      </div>
+    </template>
+
+    <template id="meta">
+      <div class="meta">
+        <span class="ok"
+          ><svg class="ico"><use href="#check" /></svg>Ran</span
+        ><code>/translate</code><span>· 1.2s · just now</span>
+      </div>
+    </template>
+
+    <!-- =================================================================== -->
+    <!-- OPTION A -->
+    <section class="board" id="option-a">
+      <div class="board-head">
+        <span class="tag">OPTION A</span>
+        <h2>Quiet line</h2>
+        <p>
+          A refreshed version of today's footer. Smallest change, nothing new to
+          learn.
+        </p>
+      </div>
+      <div class="states">
+        <div class="state">
+          <div class="state-label"><b>1</b> Idle</div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app></div>
+            <footer class="fa theme">
+              <span class="it"
+                ><svg class="ico"><use href="#code" /></svg>Use via API or
+                MCP</span
+              ><span class="dot">·</span>
+              <span class="it"
+                ><svg class="ico"><use href="#history" /></svg>Runs</span
+              ><span class="dot">·</span>
+              <span class="it"
+                ><svg class="ico"><use href="#gear" /></svg>Settings</span
+              ><span class="dot">·</span>
+              <span class="it"
+                >Built with Gradio<svg class="logo"><use href="#logo" /></svg
+              ></span>
+            </footer>
+          </div>
+        </div>
+        <div class="state">
+          <div class="state-label"><b>2</b> After a run</div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app data-ran>
+              <div class="fa-hint">Run this from code or an agent</div>
+            </div>
+            <footer class="fa theme">
+              <span class="it hot"
+                ><span class="pulse"></span>Use via API or MCP</span
+              ><span class="dot">·</span>
+              <span class="it"
+                ><svg class="ico"><use href="#history" /></svg>Runs</span
+              ><span class="dot">·</span>
+              <span class="it"
+                ><svg class="ico"><use href="#gear" /></svg>Settings</span
+              ><span class="dot">·</span>
+              <span class="it"
+                >Built with Gradio<svg class="logo"><use href="#logo" /></svg
+              ></span>
+            </footer>
+          </div>
+        </div>
+        <div class="state">
+          <div class="state-label">
+            <b>3</b> Opened: the existing API drawer, starting on your last run
+          </div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860/?view=api</div>
+            </div>
+            <div class="app" data-app data-ran></div>
+            <footer class="fa theme">
+              <span class="it"
+                ><svg class="ico"><use href="#code" /></svg>Use via API or
+                MCP</span
+              ><span class="dot">·</span>
+              <span class="it"
+                ><svg class="ico"><use href="#history" /></svg>Runs</span
+              ><span class="dot">·</span>
+              <span class="it"
+                ><svg class="ico"><use href="#gear" /></svg>Settings</span
+              ><span class="dot">·</span>
+              <span class="it"
+                >Built with Gradio<svg class="logo"><use href="#logo" /></svg
+              ></span>
+            </footer>
+            <div class="sheet-scrim"></div>
+            <div class="sheet" style="top: 30px">
+              <h3>Your last run <span class="x">×</span></h3>
+              <div data-tpl="meta"></div>
+              <div data-tpl="tabs-py"></div>
+              <div data-tpl="py"></div>
+              <div class="panel-foot">
+                <span>All 3 endpoints</span><a>Full API docs →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- OPTION B -->
+    <section class="board" id="option-b">
+      <div class="board-head">
+        <span class="tag">OPTION B</span>
+        <h2>Pill dock</h2>
+        <p>
+          One compact, self-contained pill. Grows a "get the code" segment after
+          a run and opens a popover in place.
+        </p>
+      </div>
+      <div class="states">
+        <div class="state">
+          <div class="state-label"><b>1</b> Idle</div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app></div>
+            <div class="fb-wrap theme">
+              <div class="pill">
+                <span class="seg"
+                  ><svg class="ico"><use href="#code" /></svg>API</span
+                >
+                <span class="seg"
+                  ><svg class="ico"><use href="#history" /></svg>Runs</span
+                >
+                <span class="seg icon"
+                  ><svg class="ico"><use href="#gear" /></svg
+                ></span>
+                <span class="sep"></span>
+                <span class="seg icon" title="Built with Gradio"
+                  ><svg class="logo"><use href="#logo" /></svg
+                ></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="state-label"><b>2</b> After a run</div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app data-ran></div>
+            <div class="fb-wrap theme">
+              <div class="pill">
+                <span class="seg run"
+                  ><span class="pulse"></span>Run <code>/translate</code> from
+                  code<svg class="ico"><use href="#arrow" /></svg
+                ></span>
+                <span class="seg"
+                  ><svg class="ico"><use href="#history" /></svg>Runs</span
+                >
+                <span class="seg icon"
+                  ><svg class="ico"><use href="#gear" /></svg
+                ></span>
+                <span class="sep"></span>
+                <span class="seg icon"
+                  ><svg class="logo"><use href="#logo" /></svg
+                ></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="state-label"><b>3</b> Opened: popover above the pill</div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app data-ran></div>
+            <div class="card theme">
+              <h3>Run this from code or an agent <span class="x">×</span></h3>
+              <div data-tpl="meta"></div>
+              <div data-tpl="tabs-py"></div>
+              <div data-tpl="py"></div>
+              <div class="panel-foot">
+                <span>Uses your inputs from this run</span
+                ><a>Full API docs →</a>
+              </div>
+            </div>
+            <div class="fb-wrap theme">
+              <div class="pill">
+                <span class="seg run"
+                  ><span class="pulse"></span>Run <code>/translate</code> from
+                  code<svg class="ico"><use href="#arrow" /></svg
+                ></span>
+                <span class="seg"
+                  ><svg class="ico"><use href="#history" /></svg>Runs</span
+                >
+                <span class="seg icon"
+                  ><svg class="ico"><use href="#gear" /></svg
+                ></span>
+                <span class="sep"></span>
+                <span class="seg icon"
+                  ><svg class="logo"><use href="#logo" /></svg
+                ></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- OPTION C -->
+    <section class="board" id="option-c">
+      <div class="board-head">
+        <span class="tag">OPTION C</span>
+        <h2>Split bar</h2>
+        <p>
+          Brand on the left, tools on the right. After a run, one-click copy
+          chips appear in the middle, so there's no panel to open.
+        </p>
+      </div>
+      <div class="states">
+        <div class="state">
+          <div class="state-label"><b>1</b> Idle</div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app>
+              <footer class="fc">
+                <span class="brand"
+                  ><svg class="logo"><use href="#logo" /></svg>Built with
+                  Gradio</span
+                >
+                <span class="acts">
+                  <span class="ghost"
+                    ><svg class="ico"><use href="#code" /></svg>API &amp;
+                    MCP</span
+                  >
+                  <span class="ghost"
+                    ><svg class="ico"><use href="#history" /></svg>Runs</span
+                  >
+                  <span class="ghost icon"
+                    ><svg class="ico"><use href="#gear" /></svg
+                  ></span>
+                </span>
+              </footer>
+            </div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="state-label"><b>2</b> After a run: copy as…</div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app data-ran>
+              <div class="toast">
+                <span class="ok"
+                  ><svg class="ico"><use href="#check" /></svg></span
+                >Copied as Python. Paste it anywhere
+              </div>
+              <footer class="fc">
+                <span class="brand"
+                  ><svg class="logo"><use href="#logo" /></svg
+                ></span>
+                <span class="mid"
+                  ><span class="pulse"></span>Copy this run as
+                  <span class="langs"
+                    ><span class="on"
+                      ><svg class="ico"><use href="#check" /></svg>Python</span
+                    ><span>JS</span><span>cURL</span
+                    ><span
+                      ><svg class="ico"><use href="#bot" /></svg>MCP</span
+                    ></span
+                  >
+                </span>
+                <span class="acts">
+                  <span class="ghost icon"
+                    ><svg class="ico"><use href="#code" /></svg
+                  ></span>
+                  <span class="ghost icon"
+                    ><svg class="ico"><use href="#history" /></svg
+                  ></span>
+                  <span class="ghost icon"
+                    ><svg class="ico"><use href="#gear" /></svg
+                  ></span>
+                </span>
+              </footer>
+            </div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="state-label">
+            <b>3</b> Opened: hover a chip to preview
+          </div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app data-ran>
+              <div
+                class="card theme"
+                style="bottom: 50px; width: 400px; left: 126px; transform: none"
+              >
+                <div data-tpl="meta"></div>
+                <div data-tpl="mcp"></div>
+                <div class="panel-foot">
+                  <span>Needs the MCP server added once</span><a>Set up →</a>
+                </div>
+              </div>
+              <footer class="fc">
+                <span class="brand"
+                  ><svg class="logo"><use href="#logo" /></svg
+                ></span>
+                <span class="mid"
+                  ><span class="pulse"></span>Copy this run as
+                  <span class="langs"
+                    ><span>Python</span><span>JS</span><span>cURL</span
+                    ><span style="box-shadow: 0 0 0 1.5px var(--accent)"
+                      ><svg class="ico"><use href="#bot" /></svg>MCP</span
+                    ></span
+                  >
+                </span>
+                <span class="acts">
+                  <span class="ghost icon"
+                    ><svg class="ico"><use href="#code" /></svg
+                  ></span>
+                  <span class="ghost icon"
+                    ><svg class="ico"><use href="#history" /></svg
+                  ></span>
+                  <span class="ghost icon"
+                    ><svg class="ico"><use href="#gear" /></svg
+                  ></span>
+                </span>
+              </footer>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- OPTION D -->
+    <section class="board" id="option-d">
+      <div class="board-head">
+        <span class="tag">OPTION D</span>
+        <h2>Agent-first</h2>
+        <p>
+          The agent path is a real button, and the rest stays quiet. Bets
+          hardest on #13916's growth loop.
+        </p>
+      </div>
+      <div class="states">
+        <div class="state">
+          <div class="state-label"><b>1</b> Idle</div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app></div>
+            <footer class="fd theme">
+              <span class="cta"
+                ><svg class="ico"><use href="#bot" /></svg>Use with your
+                agent</span
+              >
+              <span class="links"
+                ><span class="it">API</span><span class="dot">·</span
+                ><span class="it">Runs</span><span class="dot">·</span
+                ><span class="it">Settings</span><span class="dot">·</span
+                ><span class="it"
+                  ><svg class="logo"><use href="#logo" /></svg>Gradio</span
+                ></span
+              >
+            </footer>
+          </div>
+        </div>
+        <div class="state">
+          <div class="state-label"><b>2</b> After a run</div>
+          <div class="window theme">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app data-ran></div>
+            <footer class="fd theme">
+              <span class="cta hot"
+                ><svg class="ico"><use href="#sparkle" /></svg>Let your agent
+                run this</span
+              >
+              <span class="links"
+                ><span class="it">API</span><span class="dot">·</span
+                ><span class="it">Runs</span><span class="dot">·</span
+                ><span class="it">Settings</span><span class="dot">·</span
+                ><span class="it"
+                  ><svg class="logo"><use href="#logo" /></svg>Gradio</span
+                ></span
+              >
+            </footer>
+          </div>
+        </div>
+        <div class="state">
+          <div class="state-label">
+            <b>3</b> Opened: agent setup first, code one tab away
+          </div>
+          <div class="window theme tall">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app data-ran></div>
+            <footer class="fd theme">
+              <span class="cta hot"
+                ><svg class="ico"><use href="#sparkle" /></svg>Let your agent
+                run this</span
+              >
+              <span class="links"
+                ><span class="it">API</span><span class="dot">·</span
+                ><span class="it">Runs</span><span class="dot">·</span
+                ><span class="it"
+                  ><svg class="logo"><use href="#logo" /></svg>Gradio</span
+                ></span
+              >
+            </footer>
+            <div class="modal-scrim" style="top: 30px">
+              <div class="modal theme">
+                <h3>Let your agent run this <span class="x">×</span></h3>
+                <span class="segbar"
+                  ><span class="on"
+                    ><svg class="ico"><use href="#bot" /></svg>Agent (MCP)</span
+                  ><span
+                    ><svg class="ico"><use href="#code" /></svg>Code</span
+                  ></span
+                >
+                <div class="steps">
+                  <div class="step">
+                    <span class="n">1</span>
+                    <div class="body">
+                      Add this app to your agent's MCP servers
+                      <div data-tpl="mcp-config"></div>
+                    </div>
+                  </div>
+                  <div class="step">
+                    <span class="n">2</span>
+                    <div class="body">
+                      Ask for it, or call the tool with your last run's inputs
+                      <div data-tpl="mcp"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- DARK: recommended option -->
+    <section class="board dark-board" id="option-b-dark">
+      <div class="board-head">
+        <span class="tag">OPTION B · DARK</span>
+        <h2>Pill dock in dark mode</h2>
+        <p>Same tokens, mapped to the dark theme.</p>
+      </div>
+      <div class="states dark">
+        <div class="state">
+          <div class="state-label"><b>1</b> Idle</div>
+          <div class="window theme dark">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app></div>
+            <div class="fb-wrap">
+              <div class="pill">
+                <span class="seg"
+                  ><svg class="ico"><use href="#code" /></svg>API</span
+                >
+                <span class="seg"
+                  ><svg class="ico"><use href="#history" /></svg>Runs</span
+                >
+                <span class="seg icon"
+                  ><svg class="ico"><use href="#gear" /></svg
+                ></span>
+                <span class="sep"></span>
+                <span class="seg icon"
+                  ><svg class="logo"><use href="#logo" /></svg
+                ></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="state-label"><b>2</b> After a run</div>
+          <div class="window theme dark">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app data-ran></div>
+            <div class="fb-wrap">
+              <div class="pill">
+                <span class="seg run"
+                  ><span class="pulse"></span>Run <code>/translate</code> from
+                  code<svg class="ico"><use href="#arrow" /></svg
+                ></span>
+                <span class="seg"
+                  ><svg class="ico"><use href="#history" /></svg>Runs</span
+                >
+                <span class="seg icon"
+                  ><svg class="ico"><use href="#gear" /></svg
+                ></span>
+                <span class="sep"></span>
+                <span class="seg icon"
+                  ><svg class="logo"><use href="#logo" /></svg
+                ></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="state-label"><b>3</b> Opened</div>
+          <div class="window theme dark">
+            <div class="chrome">
+              <i></i><i></i><i></i>
+              <div class="url">localhost:7860</div>
+            </div>
+            <div class="app" data-app data-ran></div>
+            <div class="card">
+              <h3>Run this from code or an agent <span class="x">×</span></h3>
+              <div data-tpl="meta"></div>
+              <div class="tabs">
+                <span>Python</span><span>JavaScript</span><span>cURL</span
+                ><span class="on"
+                  ><svg class="ico"><use href="#bot" /></svg>MCP</span
+                >
+              </div>
+              <div data-tpl="mcp"></div>
+              <div class="panel-foot">
+                <span>Uses your inputs from this run</span
+                ><a>Full API docs →</a>
+              </div>
+            </div>
+            <div class="fb-wrap">
+              <div class="pill">
+                <span class="seg run"
+                  ><span class="pulse"></span>Run <code>/translate</code> from
+                  code<svg class="ico"><use href="#arrow" /></svg
+                ></span>
+                <span class="seg"
+                  ><svg class="ico"><use href="#history" /></svg>Runs</span
+                >
+                <span class="seg icon"
+                  ><svg class="ico"><use href="#gear" /></svg
+                ></span>
+                <span class="sep"></span>
+                <span class="seg icon"
+                  ><svg class="logo"><use href="#logo" /></svg
+                ></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- gr.Server -->
+    <section class="board" id="server">
+      <div class="board-head">
+        <span class="tag">gr.Server</span>
+        <h2>The same footers on a custom frontend</h2>
+        <p>
+          Injected as &lt;gradio-footer&gt; (#14088), with only the links that
+          work outside Blocks.
+        </p>
+      </div>
+      <div class="server-row">
+        <div class="name">A<b>Quiet line</b></div>
+        <div class="custom-page">
+          <div class="hero">your frontend</div>
+          <div class="foot theme">
+            <footer class="fa">
+              <span class="it"
+                ><svg class="ico"><use href="#code" /></svg>Use via API or
+                MCP</span
+              ><span class="dot">·</span>
+              <span class="it"
+                ><svg class="ico"><use href="#history" /></svg>Runs</span
+              ><span class="dot">·</span>
+              <span class="it"
+                >Built with Gradio<svg class="logo"><use href="#logo" /></svg
+              ></span>
+            </footer>
+          </div>
+        </div>
+      </div>
+      <div class="server-row">
+        <div class="name">B<b>Pill dock</b></div>
+        <div class="custom-page">
+          <div class="hero">your frontend</div>
+          <div class="foot theme">
+            <div class="fb-wrap">
+              <div class="pill">
+                <span class="seg"
+                  ><svg class="ico"><use href="#code" /></svg>API</span
+                >
+                <span class="seg"
+                  ><svg class="ico"><use href="#history" /></svg>Runs</span
+                >
+                <span class="sep"></span>
+                <span class="seg icon"
+                  ><svg class="logo"><use href="#logo" /></svg
+                ></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="server-row">
+        <div class="name">C<b>Split bar</b></div>
+        <div class="custom-page">
+          <div class="hero">your frontend</div>
+          <div class="foot theme">
+            <footer class="fc" style="margin-top: 0; border-top: 0">
+              <span class="brand"
+                ><svg class="logo"><use href="#logo" /></svg>Built with
+                Gradio</span
+              >
+              <span class="acts"
+                ><span class="ghost"
+                  ><svg class="ico"><use href="#code" /></svg>API &amp;
+                  MCP</span
+                ><span class="ghost"
+                  ><svg class="ico"><use href="#history" /></svg>Runs</span
+                ></span
+              >
+            </footer>
+          </div>
+        </div>
+      </div>
+      <div class="server-row">
+        <div class="name">D<b>Agent-first</b></div>
+        <div class="custom-page">
+          <div class="hero">your frontend</div>
+          <div class="foot theme">
+            <footer class="fd">
+              <span class="cta"
+                ><svg class="ico"><use href="#bot" /></svg>Use with your
+                agent</span
+              >
+              <span class="links"
+                ><span class="it">API</span><span class="dot">·</span
+                ><span class="it">Runs</span><span class="dot">·</span
+                ><span class="it"
+                  ><svg class="logo"><use href="#logo" /></svg>Gradio</span
+                ></span
+              >
+            </footer>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      // Fill in the shared pieces so each mockup stays short above.
+      const tpl = (id) => document.getElementById(id).content.cloneNode(true);
+      document.querySelectorAll("[data-app]").forEach((app) => {
+        app.prepend(tpl("app-body"));
+        if (app.hasAttribute("data-ran"))
+          app.querySelector("[data-out]").textContent = "Bonjour, le monde";
+      });
+      document
+        .querySelectorAll("[data-tpl]")
+        .forEach((el) => el.replaceWith(tpl(el.dataset.tpl)));
+    </script>
+  </body>
+</html>
