@@ -333,12 +333,13 @@ class Pool:
             if self.autoscaler is not None:
                 self.autoscaler.finished(link, time.monotonic() - started)
 
-    def _holder(self, session_hash: str | None) -> Link | None:
+    def _holder(self, session_hash: str | None, touch: bool = True) -> Link | None:
         """The process that holds `session_hash`. Each process keeps as many
         sessions as its state holder does, so a session is forgotten here when
         its process has let go of its state. A session with a WebRTC stream
         stays with the stream's process until the stream ends, even through a
-        drain: its inputs and signalling must reach the stream."""
+        drain: its inputs and signalling must reach the stream. `touch=False`
+        only looks, without marking the session as recently used."""
         if not session_hash:
             return None
         for placement in self.session_streams.get(session_hash, []):
@@ -346,7 +347,8 @@ class Pool:
                 return placement.link
         for link in self.links:
             if session_hash in link.sessions:
-                link.sessions[session_hash] = True
+                if touch:
+                    link.sessions[session_hash] = True
                 return link
         return None
 
@@ -416,25 +418,39 @@ class Pool:
         (or, for a new session, some process) has a free slot in its
         concurrency group, counting the events started but not yet running
         there. So an event that would wait for its busy process does not take
-        a queue slot that another process could use."""
+        a queue slot that another process could use. Asked right before the
+        queue starts it: the slot is reserved for it, and a new session is
+        placed on that process."""
+        return self._startable(event, start=True)
+
+    def could_start(self, event: Any) -> bool:
+        """What `can_start` would answer, without reserving a slot or placing
+        the session: for the queue to tell whether an event waits only for a
+        worker slot."""
+        return self._startable(event, start=False)
+
+    def _startable(self, event: Any, start: bool) -> bool:
         fn = event.fn
         limit = self.process_limit(fn) if fn.queue and not fn.batch else None
         if limit is None or not self.links:
             return True
         active = {e._id for job in self.blocks._queue.active_jobs if job for e in job}
-        for event_id in [i for i in self.reserved if i not in active]:
-            del self.reserved[event_id]
+        if start:
+            for event_id in [i for i in self.reserved if i not in active]:
+                del self.reserved[event_id]
 
         def free(link: Link) -> int:
             starting = sum(
                 1
-                for reserved_link, concurrency_id in self.reserved.values()
-                if reserved_link is link and concurrency_id == fn.concurrency_id
+                for event_id, (reserved_link, concurrency_id) in self.reserved.items()
+                if event_id in active
+                and reserved_link is link
+                and concurrency_id == fn.concurrency_id
             )
             return link.slot(fn.concurrency_id, limit)._value - starting
 
         with self.lock:
-            link = self._holder(event.session_hash)
+            link = self._holder(event.session_hash, touch=start)
             if link is None:
                 serving = self.serving() or self.links
                 candidates = [link for link in serving if link.responsive]
@@ -446,11 +462,12 @@ class Pool:
                         -len(link.sessions),
                     ),
                 )
-                if free(link) > 0 and event.session_hash:
+                if start and free(link) > 0 and event.session_hash:
                     link.sessions[event.session_hash] = True
             if free(link) <= 0:
                 return False
-            self.reserved[event._id] = (link, fn.concurrency_id)
+            if start:
+                self.reserved[event._id] = (link, fn.concurrency_id)
             return True
 
     def place(
@@ -1332,6 +1349,7 @@ def main(path: str) -> None:
     ).start()
     blocks.queue(**bootstrap["queue_kwargs"])
     blocks._queue.can_start = blocks._process_pool.can_start  # type: ignore[attr-defined]
+    blocks._queue.could_start = blocks._process_pool.could_start  # type: ignore[attr-defined]
     blocks._queue.end_event = blocks._process_pool.end_event  # type: ignore[attr-defined]
     pool: Pool = blocks._process_pool  # type: ignore[attr-defined]
     pool.add(

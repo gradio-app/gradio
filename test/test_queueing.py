@@ -1844,6 +1844,11 @@ def test_a_lease_hands_over_at_its_time_limit_when_streams_hold_the_workers():
     queue.time_up(cast(queueing.Event, event))
     assert closed == []
     queue.streams_waiting_for_worker = 1
+    # The waiting event could not start anyway (its process is full)
+    queue.could_start = lambda waiting: False
+    queue.time_up(cast(queueing.Event, event))
+    assert closed == []
+    queue.could_start = None
     queue.time_up(cast(queueing.Event, event))
     assert closed == ["lease"]
 

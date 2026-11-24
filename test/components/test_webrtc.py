@@ -3047,6 +3047,27 @@ class TestGatewayPlacements:
                 run=RunStep.next(),
             )
 
+    def test_asking_whether_an_event_could_start_reserves_nothing(self):
+        from gradio.processing.gateway import Pool
+
+        busy, idle = FakeLink(), FakeLink()
+        queue = SimpleNamespace(event_ids_to_events={}, active_jobs=[])
+        pool = Pool(cast(Any, SimpleNamespace(_queue=queue)), "fingerprint", 10)
+        pool.links = cast(Any, [busy, idle])
+        pool.group_limits["click"] = 1
+        busy.slots["click"] = asyncio.Semaphore(0)
+        fn = SimpleNamespace(queue=True, batch=False, concurrency_id="click")
+        pinned = SimpleNamespace(_id="pinned", session_hash="s", fn=fn)
+        new = SimpleNamespace(_id="new", session_hash="t", fn=fn)
+        busy.sessions["s"] = True
+        # Its session's process is full, though the other one has room
+        assert pool.could_start(pinned) is False
+        assert pool.could_start(new) is True
+        assert not pool.reserved and "t" not in busy.sessions | idle.sessions
+        # What the queue asks right before it starts one
+        assert pool.can_start(new) is True
+        assert "new" in pool.reserved and "t" in idle.sessions
+
     def test_the_streams_of_an_exited_process_are_woken(self):
         webrtc_stream, plain_stream, elsewhere = (
             SimpleNamespace(_id=i, session_hash="s", signal=asyncio.Event())

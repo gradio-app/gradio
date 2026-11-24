@@ -270,6 +270,9 @@ class Queue:
         self.pending_message_lock = asyncio.Lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.can_start: Callable[[Event], bool] | None = None
+        # `can_start` without its side effects, for checks of events that
+        # are not starting
+        self.could_start: Callable[[Event], bool] | None = None
         self.end_event: Callable[[Event], None] | None = None
         self.stopped = False
         self.max_thread_count = concurrency_count
@@ -1832,12 +1835,14 @@ class Queue:
             and group.current_concurrency >= group.concurrency_limit
         ):
             return True
-        # Not `can_start`, which reserves a slot for the event it is asked about
+        could_start = self.could_start
         return self.streams_waiting_for_worker > 0 and any(
-            bool(group.queue)
-            and (
+            (
                 group.concurrency_limit is None
                 or group.current_concurrency < group.concurrency_limit
+            )
+            and any(
+                could_start is None or could_start(waiting) for waiting in group.queue
             )
             for group in self.event_queue_per_concurrency_id.values()
         )
