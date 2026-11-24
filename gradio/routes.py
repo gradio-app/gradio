@@ -72,6 +72,7 @@ from gradio import (
     history,
     page_template,
     route_utils,
+    server_footer,
     themes,
     utils,
 )
@@ -254,7 +255,9 @@ class OwnEventStreamResponse(StreamingResponse):
     ):
         self.request = request
         self.format_message = format_message or (
-            lambda message: f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
+            lambda message: (
+                f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
+            )
         )
         self.queue = queue
         self.event_id = event_id
@@ -1108,6 +1111,16 @@ class App(FastAPI):
                 return deep_link
             else:
                 return ""
+
+        @router.get("/footer.js")
+        def footer_js():
+            """A script that adds Gradio's footer to a page the app serves
+            itself, such as the frontend of a `gr.Server` app."""
+            return Response(
+                server_footer.footer_script(app.get_blocks()),
+                media_type="text/javascript",
+                headers={"Cache-Control": "no-cache"},
+            )
 
         @router.get("/info/", dependencies=[Depends(login_check)])
         @router.get("/info", dependencies=[Depends(login_check)])

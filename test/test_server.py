@@ -207,3 +207,42 @@ def test_mounts_that_hide_gradio_routes_raise(tmp_path):
     app.mount("/", gr.Server())
     with pytest.raises(ValueError, match="receives every request"):
         app.launch(prevent_thread_lock=True)
+
+
+def test_footer_script_lists_links_that_work_outside_blocks():
+    app = gr.Server()
+    app.launch(prevent_thread_lock=True, footer_links=["api", "gradio", "settings"])
+    try:
+        with TestClient(app) as client:
+            response = client.get(f"{API_PREFIX}/footer.js")
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("text/javascript")
+        assert "Built with Gradio" in response.text
+        assert "gradio_api/runs" not in response.text
+        assert "settings" not in response.text.lower()
+    finally:
+        app.get_blocks().close()
+
+
+def test_footer_script_has_no_links_when_footer_is_hidden():
+    app = gr.Server()
+    app.launch(prevent_thread_lock=True, footer_links=[])
+    try:
+        with TestClient(app) as client:
+            text = client.get(f"{API_PREFIX}/footer.js").text
+        assert "const links = [];" in text
+    finally:
+        app.get_blocks().close()
+
+
+def test_footer_script_is_served_next_to_static_files_at_root(tmp_path):
+    (tmp_path / "index.html").write_text("<h1>home</h1>")
+    app = gr.Server()
+    app.mount("/", StaticFiles(directory=tmp_path, html=True))
+    _, url, _ = app.launch(prevent_thread_lock=True)
+    try:
+        response = httpx2.get(url + "gradio_api/footer.js")
+        assert response.status_code == 200
+        assert "gradio-footer" in response.text
+    finally:
+        app.get_blocks().close()
