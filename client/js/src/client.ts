@@ -14,7 +14,7 @@ import type {
 	SubmitIterable,
 	GradioEvent
 } from "./types";
-import { view_api } from "./utils/view_api";
+import { undocumented_endpoints, view_api } from "./utils/view_api";
 import { upload_files } from "./utils/upload_files";
 import { upload, FileData } from "./upload";
 import { handle_blob } from "./utils/handle_blob";
@@ -74,6 +74,8 @@ export class Client {
 	config: Config | undefined;
 	api_prefix = "";
 	api_info: ApiInfo<JsApiData> | undefined;
+	/** Undocumented named endpoints, which api_info leaves out */
+	undocumented_endpoint_info: Record<string, EndpointInfo<JsApiData>> = {};
 	api_map: Record<string, number> = {};
 	session_hash: string = Math.random().toString(36).substring(2);
 	jwt: string | false = false;
@@ -361,6 +363,7 @@ export class Client {
 			console.error((e as Error).message);
 		}
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
+		this.undocumented_endpoint_info = await undocumented_endpoints.call(this);
 	}
 
 	/**
@@ -575,6 +578,7 @@ export class Client {
 		} catch (e) {
 			console.error(API_INFO_ERROR_MSG + (e as Error).message);
 		}
+		this.undocumented_endpoint_info = await undocumented_endpoints.call(this);
 		return this.get_url_config();
 	}
 
@@ -656,6 +660,7 @@ export class Client {
 		} catch (e) {
 			console.error(API_INFO_ERROR_MSG + (e as Error).message);
 		}
+		this.undocumented_endpoint_info = await undocumented_endpoints.call(this);
 
 		return this.prepare_return_obj();
 	}
