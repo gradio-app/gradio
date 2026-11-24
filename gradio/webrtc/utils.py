@@ -275,7 +275,7 @@ async def player_worker_decode(
     audio_samples = 0
     audio_time_base = fractions.Fraction(1, sample_rate)
     resampler = None
-    resampler_key: tuple[str, int] | None = None
+    resampler_rate: int | None = None
 
     def new_resampler():
         return av.AudioResampler(
@@ -369,24 +369,24 @@ async def player_worker_decode(
                         break
                     await asyncio.sleep(EMPTY_EMIT_WAIT)
                     continue
-                layout = "mono" if audio_array.ndim == 1 else "stereo"
+                samples = audio_to_float32(audio_array)
+                if samples.ndim == 1:
+                    # The resampler's upmix would play mono 3 dB quieter
+                    samples = np.stack([samples, samples], axis=1)
                 # Planar float frames take (channels, samples)
-                planar = np.ascontiguousarray(
-                    audio_to_float32(audio_array).reshape(len(audio_array), -1).T
-                )
+                planar = np.ascontiguousarray(samples.T)
                 in_frame = av.AudioFrame.from_ndarray(
-                    planar, format="fltp", layout=layout
+                    planar, format="fltp", layout="stereo"
                 )
                 in_frame.sample_rate = in_sample_rate
 
                 # av.AudioResampler takes one input format, so a change of rate
-                # or layout gets a new resampler after the old one is flushed
-                key = (layout, in_sample_rate)
-                if resampler is None or key != resampler_key:
+                # gets a new resampler after the old one is flushed
+                if resampler is None or in_sample_rate != resampler_rate:
                     if resampler is not None:
                         await put_resampled(resampler.resample(None))
                     resampler = new_resampler()
-                    resampler_key = key
+                    resampler_rate = in_sample_rate
 
                 await put_resampled(resampler.resample(in_frame))
                 if isinstance(outputs, CloseStream):

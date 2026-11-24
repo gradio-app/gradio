@@ -4351,6 +4351,15 @@ class TestAudioArrays:
         assert sum(f.samples for f in frames) > 0
 
     @pytest.mark.asyncio
+    async def test_mono_audio_plays_at_its_level_on_both_channels(self):
+        import numpy as np
+
+        frames = await self.decode((48000, np.full(4800, 1000, dtype=np.int16)))
+        # Packed stereo: left and right samples alternate
+        played = np.concatenate([f.to_ndarray()[0] for f in frames])[: 4800 * 2]
+        assert (played == 1000).all()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("samples", [240, 4800, 5000])
     @pytest.mark.parametrize("end", ["done", "close", "close-with-audio"])
     async def test_the_end_of_finite_audio_is_played(self, samples, end):
