@@ -963,9 +963,7 @@ def check_stream_generator(fn: Callable) -> None:
             "outputs depend on what it was sent before and gr.cache cannot "
             "cache them."
         )
-    takes = [
-        p.name for p in get_positional_input_parameters(fn) if p.default is p.empty
-    ]
+    takes = [p.name for p in get_positional_input_parameters(fn)]
     if takes:
         raise ValueError(
             f"{name}() is a generator, so the stream sends it the inputs' values "

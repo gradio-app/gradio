@@ -1783,6 +1783,9 @@ def test_a_stream_generator_takes_no_parameter_for_the_inputs():
     def takes_chunk(chunk):
         yield chunk
 
+    def has_a_default(chunk=None):
+        yield chunk
+
     @gr.cache
     def cached():
         chunk = yield
@@ -1794,6 +1797,8 @@ def test_a_stream_generator_takes_no_parameter_for_the_inputs():
         heard = gr.Textbox()
         with pytest.raises(ValueError, match="takes chunk"):
             audio.stream(takes_chunk, audio, heard)
+        with pytest.raises(ValueError, match="takes chunk"):
+            audio.stream(has_a_default, audio, heard)
         with pytest.raises(ValueError, match="gr.cache"):
             audio.stream(cached, audio, heard)
         # Each chunk would get a new generator
