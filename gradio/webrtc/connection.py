@@ -98,6 +98,10 @@ Modality = Literal["video", "audio", "audio-video"]
 
 # Seconds an admitted stream has to connect before its turn is given up
 CONNECT_TIMEOUT = 30
+CONNECT_FAILED = (
+    "The stream could not connect. A VPN or firewall may be blocking it, or the "
+    "app may need a TURN server."
+)
 # Seconds an offer waits for its stream to be admitted. The browser learns that
 # its turn has come just before the event's first call admits the stream.
 ADMISSION_WAIT = 5
@@ -346,7 +350,18 @@ class QueueLease:
                 if timed_out and not never_connected and self.on_time_limit == "rejoin":
                     self.next_period()
                     self.event.time_up()
-                elif timed_out or never_connected:
+                elif never_connected:
+                    if stream.errors is None:
+                        # The offer never came
+                        stream.errors = StreamErrors(
+                            asyncio.get_running_loop(), end_stream=stream.close
+                        )
+                    if stream.errors.failure is None:
+                        stream.errors.failure = error_payload(
+                            Error(CONNECT_FAILED), False
+                        )
+                    stream.close()
+                elif timed_out:
                     stream.close()
             except Exception:
                 # Watching goes on until the event is over: no re-admission

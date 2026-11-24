@@ -1704,6 +1704,10 @@ class TestStreams:
         event_id = await h.start("one")
         await h.wait_until(lambda: not h.event_running(event_id))
         await h.wait_until(lambda: not has_stream(h.manager, "one"))
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m["msg"] == "process_completed")
+        assert completion["success"] is False
+        assert completion["output"]["error"] == webrtc_connection.CONNECT_FAILED
 
     @pytest.mark.asyncio
     async def test_a_quiet_stream_keeps_its_turn(self, launched):
