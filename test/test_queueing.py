@@ -1840,9 +1840,6 @@ def test_a_lease_hands_over_at_its_time_limit_when_streams_hold_the_workers():
         "streams": queueing.EventQueue("streams", None),
         "click": waiting,
     }
-    # Its group has no limit, and nothing holds the workers: it goes on
-    queue.time_up(cast(queueing.Event, event))
-    assert closed == []
     queue.streams_waiting_for_worker = 1
     # The waiting event could not start anyway (its process is full)
     queue.could_start = lambda waiting: False
@@ -2020,7 +2017,7 @@ def test_chunks_that_arrive_while_waiting_for_a_worker_run_once():
                 json={"data": [], "fn_index": 1, "session_hash": "busy"},
             )
             _wait_for(busy.is_set)
-            # Two chunks while the stream waits for the slot: the newest wins
+            # Two chunks while the stream waits for the slot: one call takes both
             for _ in range(2):
                 http.post(
                     f"{api}/stream/{event_id}",

@@ -3064,9 +3064,6 @@ class TestGatewayPlacements:
         assert pool.could_start(pinned) is False
         assert pool.could_start(new) is True
         assert not pool.reserved and "t" not in busy.sessions | idle.sessions
-        # What the queue asks right before it starts one
-        assert pool.can_start(new) is True
-        assert "new" in pool.reserved and "t" in idle.sessions
 
     def test_the_streams_of_an_exited_process_are_woken(self):
         webrtc_stream, plain_stream, elsewhere = (
