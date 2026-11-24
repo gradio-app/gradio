@@ -346,13 +346,10 @@ def test_live_interface_sets_always_last():
 
 
 def test_live_interface_listens_to_change_on_a_streaming_video():
+    video = gradio.Video(streaming=True)
     iface = gradio.Interface(
-        fn=lambda v: v,
-        inputs=gradio.Video(streaming=True),
-        outputs=gradio.Textbox(),
-        live=True,
+        fn=lambda v: v, inputs=video, outputs=gradio.Textbox(), live=True
     )
-    video = iface.input_components[0]
     config = iface.get_config_file()
     assert config["dependencies"][0]["targets"] == [(video._id, "change")]
 
