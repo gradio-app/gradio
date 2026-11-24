@@ -1629,46 +1629,6 @@ class Queue:
 
 ETA_TIMEOUT = 1.0
 MAX_ETA = 24 * 60 * 60
-MAX_ETA_CALLS_PER_FN = 4
-
-_eta_calls: dict[BlockFunction, int] = defaultdict(int)
-_eta_calls_lock = Lock()
-
-
-class EtaSlot:
-    """
-    One of the MAX_ETA_CALLS_PER_FN concurrent `eta=` calls of a listener. A call
-    that times out keeps running in its thread, so without a cap a slow `eta` would
-    leave a thread behind for every request. Whichever of the thread and its caller
-    claims the slot first releases it, so a thread that never started (cancelled
-    while waiting for the thread pool) does not hold it forever.
-    """
-
-    def __init__(self, fn: BlockFunction):
-        self.fn = fn
-        self._lock = Lock()
-        self._claimed = False
-
-    @classmethod
-    def acquire(cls, fn: BlockFunction) -> EtaSlot | None:
-        with _eta_calls_lock:
-            if _eta_calls[fn] >= MAX_ETA_CALLS_PER_FN:
-                return None
-            _eta_calls[fn] += 1
-        return cls(fn)
-
-    def claim(self) -> bool:
-        with self._lock:
-            if self._claimed:
-                return False
-            self._claimed = True
-            return True
-
-    def release(self) -> None:
-        with _eta_calls_lock:
-            _eta_calls[self.fn] -= 1
-            if _eta_calls[self.fn] <= 0:
-                del _eta_calls[self.fn]
 
 
 async def run_eta_hint(
@@ -1677,21 +1637,11 @@ async def run_eta_hint(
     blocked_paths: list[str] | None,
     timeout: float | None,
 ) -> float | None:
-    """`compute_eta_hint` in a thread, with at most MAX_ETA_CALLS_PER_FN running
-    per listener and the thread abandoned after `timeout`."""
-    slot = EtaSlot.acquire(fn)
-    if slot is None:
-        return None
-    try:
-        return await asyncio.wait_for(
-            run_sync(
-                compute_eta_hint, fn, data, blocked_paths, slot, abandon_on_cancel=True
-            ),
-            timeout,
-        )
-    finally:
-        if slot.claim():
-            slot.release()
+    """`compute_eta_hint` in a thread, abandoned after `timeout`."""
+    return await asyncio.wait_for(
+        run_sync(compute_eta_hint, fn, data, blocked_paths, abandon_on_cancel=True),
+        timeout,
+    )
 
 
 def eta_files_are_allowed(data: Any, blocked_paths: list[str] | None = None) -> bool:
@@ -1723,7 +1673,6 @@ def compute_eta_hint(
     fn: BlockFunction,
     data: list[Any] | None,
     blocked_paths: list[str] | None = None,
-    slot: EtaSlot | None = None,
 ) -> float | None:
     """
     Calls the listener's `eta=` callable with the raw input values of a request.
@@ -1732,8 +1681,6 @@ def compute_eta_hint(
     a non-negative finite number, or raises. Results are capped at MAX_ETA, since
     they come from untrusted input.
     """
-    if slot is not None and not slot.claim():
-        return None
     try:
         if not eta_files_are_allowed(data, blocked_paths):
             return None
@@ -1755,9 +1702,6 @@ def compute_eta_hint(
             "of past runs."
         )
         return None
-    finally:
-        if slot is not None:
-            slot.release()
 
 
 def create_validator_fn(fn: BlockFunction) -> BlockFunction:

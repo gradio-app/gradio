@@ -941,51 +941,6 @@ class TestEtaHints:
             queueing.compute_eta_hint(demo.fns[0], ["a", "junk-123"])
         assert "junk-123" not in str(record[0].message)
 
-    @pytest.mark.asyncio
-    async def test_concurrent_eta_calls_are_capped_per_listener(self):
-        release = threading.Event()
-        running = 0
-        most = 0
-        lock = threading.Lock()
-
-        def slow(prompt, steps):
-            nonlocal running, most
-            with lock:
-                running += 1
-                most = max(most, running)
-            release.wait(10)
-            with lock:
-                running -= 1
-            return 1
-
-        demo = self.make_demo(slow)
-        body = queueing.PredictBodyInternal(
-            data=["a", 1], fn_index=0, session_hash="s", request=None
-        )
-        try:
-            with patch.object(queueing, "ETA_TIMEOUT", 0.3):
-                start = time.monotonic()
-                hints = await asyncio.gather(
-                    *[
-                        demo._queue.request_eta_hint(demo.fns[0], body)
-                        for _ in range(10)
-                    ]
-                )
-                assert time.monotonic() - start < 1
-                start = time.monotonic()
-                assert await demo._queue.request_eta_hint(demo.fns[0], body) is None
-                assert time.monotonic() - start < 0.1
-            assert hints == [None] * 10
-            assert most == queueing.MAX_ETA_CALLS_PER_FN
-        finally:
-            release.set()
-        for _ in range(50):
-            if demo.fns[0] not in queueing._eta_calls:
-                break
-            await asyncio.sleep(0.05)
-        assert demo.fns[0] not in queueing._eta_calls
-        assert await demo._queue.request_eta_hint(demo.fns[0], body) == 1.0
-
     def test_running_events_use_their_own_hint_without_history(self):
         demo = self.make_demo(lambda prompt, steps: steps)
         fn = demo.fns[0]
