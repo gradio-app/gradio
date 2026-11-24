@@ -8,8 +8,18 @@ They run on a stream with `transport=` (`transport="webrtc"` for now).
 `ReplyOnPause` is a ready-made handler for the common voice agent: it waits
 until the user stops talking and streams the reply of a generator function.
 
-Everything here imports without the `webrtc` extra installed.
+It needs numpy, which the `webrtc` extra installs, but not aiortc.
 """
+
+try:
+    import numpy  # noqa: F401
+except ModuleNotFoundError as error:
+    # Also for `from gradio import streaming`, which does not reach the hint
+    # in gradio/__init__.py
+    raise ModuleNotFoundError(
+        '`gradio.streaming` needs numpy. Install it with the `webrtc` extra: pip install "gradio[webrtc]"',
+        name="numpy",
+    ) from error
 
 from gradio.streaming.handlers import (
     AsyncAudioVideoStreamHandler,
