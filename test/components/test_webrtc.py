@@ -3577,6 +3577,16 @@ class TestVideoTracks:
         assert sent[0, 0].tolist() == [255, 255, 255]
         assert sent[-1, 0].tolist() == [0, 0, 0]
 
+    def test_frames_of_odd_size_are_padded_to_even(self):
+        import numpy as np
+
+        from gradio.webrtc.tracks import rgb_frame
+
+        array = np.random.default_rng(0).integers(0, 256, (67, 101, 3), np.uint8)
+        sent = rgb_frame(array).to_ndarray(format="rgb24")
+        assert sent.shape == (68, 102, 3)
+        assert (sent[:67, :101] == array).all()
+
     @pytest.mark.asyncio
     @pytest.mark.parametrize("kind", ["video", "receive-video", "audio"])
     async def test_a_failed_handler_ends_the_track_for_aiortc(self, kind):

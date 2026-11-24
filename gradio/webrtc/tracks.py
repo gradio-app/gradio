@@ -93,6 +93,10 @@ def rgb_frame(array: Any) -> VideoFrame:
         array = np.repeat(array[..., None], 3, axis=2)
     elif array.shape[-1] == 4:
         array = np.ascontiguousarray(array[..., :3])
+    height, width = array.shape[:2]
+    if height % 2 or width % 2:
+        # H.264 takes only even sizes, and the viewer's browser picks the codec
+        array = np.pad(array, ((0, height % 2), (0, width % 2), (0, 0)), mode="edge")
     return VideoFrame.from_ndarray(array, format="rgb24")
 
 
