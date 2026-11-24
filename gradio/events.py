@@ -825,6 +825,10 @@ class EventListener(str):
                         ("js", js is not None),
                         ("validator", validator is not None),
                         ("inputs_kwargs", bool(inputs_kwargs)),
+                        # Only the page can call it: it is not an API endpoint
+                        ("api_name", api_name is not None),
+                        ("api_description", api_description is not None),
+                        ("api_visibility", api_visibility == "undocumented"),
                     )
                     if given
                 ]

@@ -636,6 +636,9 @@ class TestWebRTC:
                 {"js": "(x) => x"},
                 {"validator": lambda x: None},
                 {"inputs_kwargs": {"x": slider}},
+                {"api_name": "flip"},
+                {"api_description": "Flips"},
+                {"api_visibility": "undocumented"},
             ):
                 with pytest.raises(ValueError, match=next(iter(kwargs))):
                     camera.stream(
@@ -645,6 +648,15 @@ class TestWebRTC:
                         transport="webrtc",
                         **kwargs,
                     )
+
+            # It is private either way: only the page can call it
+            camera.stream(
+                flip,
+                inputs=[camera],
+                outputs=[camera],
+                transport="webrtc",
+                api_visibility="private",
+            )
 
             label = gr.Textbox()
             shown = camera.stream(
