@@ -936,6 +936,7 @@ def _history_session(demo):
                 alive=True,
                 own_stream=False,
                 session_hash="s",
+                streaming=connection == "stream",
                 fn=SimpleNamespace(
                     types_generator=types_generator, connection=connection
                 ),

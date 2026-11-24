@@ -424,7 +424,7 @@ class Queue:
             # Stream outputs are whole values, so keep only the latest of each
             if event_message.msg == ServerMessage.process_streaming:
                 _merge_into_history(resumable.history, event_message)
-            elif event.fn.connection == "stream" and event_message.msg in (
+            elif event.streaming and event_message.msg in (
                 ServerMessage.log,
                 ServerMessage.progress,
             ):
@@ -849,7 +849,7 @@ class Queue:
                         gr_request=gr_request,
                         fn=fn,
                         root_path=root_path,
-                        record_history=fn.connection != "stream",
+                        record_history=not event.streaming,
                         # A cache hit replays the whole run, even for a stream
                         run=route_utils.RunStep.start(),
                     )
@@ -867,7 +867,7 @@ class Queue:
                             gr_request=gr_request,
                             fn=fn,
                             root_path=root_path,
-                            record_history=fn.connection != "stream",
+                            record_history=not event.streaming,
                             run=route_utils.RunStep.next(),
                         )
                 cache_duration = time.time() - cache_start
@@ -1445,7 +1445,7 @@ class Queue:
                     gr_request=gr_request,
                     fn=fn,
                     root_path=root_path,
-                    record_history=fn.connection != "stream",
+                    record_history=not events[0].streaming,
                     queue_event_id=queue_event_id,
                     run=route_utils.RunStep.alone()
                     if events[0].streaming
@@ -1605,7 +1605,7 @@ class Queue:
                             gr_request=gr_request,
                             fn=fn,
                             root_path=root_path,
-                            record_history=fn.connection != "stream",
+                            record_history=not awake_events[0].streaming,
                             queue_event_id=queue_event_id,
                             run=route_utils.RunStep.alone(first=False)
                             if awake_events[0].streaming
@@ -1691,7 +1691,7 @@ class Queue:
                             avg_time=output.get("average_duration"),  # type: ignore[arg-type]
                         ),
                     )
-            if fn.connection == "stream" and response is not None:
+            if events[0].streaming and response is not None:
                 # A chunk is not the run's input, so the streamed component is
                 # saved empty; the event's other inputs are kept.
                 streamed = {

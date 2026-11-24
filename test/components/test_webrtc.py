@@ -3037,7 +3037,11 @@ class TestGatewayPlacements:
             iterators_to_reset=set(),
         )
         body = SimpleNamespace(
-            event_id="e", session_hash="s", client_state=None, batched=False
+            event_id="e",
+            session_hash="s",
+            client_state=None,
+            batched=False,
+            event_data={"webrtc_id": "one"},
         )
         with pytest.raises(Error, match="stopped"):
             await forward_event(
@@ -3045,11 +3049,72 @@ class TestGatewayPlacements:
                 cast(Any, app),
                 cast(Any, body),
                 None,
-                cast(Any, SimpleNamespace(connection="stream")),
+                cast(Any, SimpleNamespace(connection="stream", called_once=lambda d: False)),
                 "",
                 queue_event_id="e",
                 run=RunStep.next(),
             )
+
+    @pytest.mark.asyncio
+    async def test_a_stream_called_once_is_an_ordinary_event(self, monkeypatch):
+        from gradio import route_utils
+        from gradio.processing.gateway import forward_event
+        from gradio.route_utils import RunStep
+
+        monkeypatch.setattr(route_utils, "record_run_history", lambda *a, **k: None)
+
+        event = self.event()
+        pool = self.pool(event)
+        link = cast(Any, FakeLink())
+        link.started = {}
+
+        async def call(kind, payload):
+            # A generator that goes on yielding
+            return {"has_iterator": True}
+
+        link.call = call
+        pool.for_session = lambda session_hash: link
+        finished = []
+        pool.finished = lambda link, event_id, success: finished.append(event_id)
+        app = SimpleNamespace(
+            state_holder={"s": SimpleNamespace(blocks_config=SimpleNamespace(fns={}))},
+            iterators={},
+            iterators_to_reset=set(),
+        )
+        body = SimpleNamespace(
+            event_id="e",
+            session_hash="s",
+            client_state=None,
+            batched=False,
+            data=[],
+            event_data={},
+            trigger_id=None,
+            batch_trigger_ids=None,
+            model_dump=lambda exclude: {},
+        )
+        fn = SimpleNamespace(
+            connection="stream",
+            # Called with a file, without a stream id
+            called_once=lambda event_data: True,
+            close_stream=lambda event_id: True,
+            queue=False,
+            is_validator_function=False,
+            concurrency_id="c",
+            fn=SimpleNamespace(_fn_id=0),
+        )
+        await forward_event(
+            pool,
+            cast(Any, app),
+            cast(Any, body),
+            None,
+            cast(Any, fn),
+            "",
+            queue_event_id="e",
+            run=RunStep.start(),
+        )
+        # Finished when its generator is, and its session is not pinned
+        assert finished == []
+        assert not pool.placements and not link.serving_events
 
     def test_asking_whether_an_event_could_start_reserves_nothing(self):
         from gradio.processing.gateway import Pool

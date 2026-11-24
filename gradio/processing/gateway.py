@@ -730,7 +730,8 @@ async def forward_event(
         iterator = None
     client_state = body.client_state if not body.batched else None
     started_at = history.now_utc_iso()
-    streaming = fn.connection == "stream"
+    # As the queue's `Event.streaming`: a stream called once with a file is not
+    streaming = fn.connection == "stream" and not fn.called_once(body.event_data)
     # A stream counts once, at its first call: its length says nothing of load
     counted_id = body.event_id if run.first or (run.keeps and not streaming) else None
     # A stream goes back to its process (`Pool.placed` fails it if that exited)
