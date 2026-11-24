@@ -148,7 +148,7 @@ class EventHandle:
 
     def time_up(self) -> None:
         """The stream's time limit ran out with on_time_limit="rejoin" and the
-        stream went on: the queue ends it if an event waits for its slot."""
+        stream went on: the queue ends it if that lets a waiting event start."""
         self._queue.time_up(self._event)
 
     @property
@@ -1792,7 +1792,7 @@ class Queue:
 
     def _extend_if_idle(self, fn: BlockFunction, event: Event) -> None:
         """With on_time_limit="rejoin", a stream whose time ran out goes on
-        unless an event waits for its slot: its clock starts the next period
+        unless an event waits for it to end: its clock starts the next period
         of time_limit where the last one ended, as the page's countdown bar
         starts over when it runs out. When ending it lets a waiting event
         start (`_slot_wanted`), it ends, and the page joins the queue again
@@ -1807,7 +1807,7 @@ class Queue:
         self._went_on(event)
 
     def _went_on(self, event: Event) -> None:
-        """A stream went on past its time limit, as nobody waits for its slot.
+        """A stream went on past its time limit, as no event waits for it to end.
         On ZeroGPU, where a large concurrency limit means that nobody ever
         waits, it keeps using the visitor's GPU quota until they stop it: say
         so once per stream."""
