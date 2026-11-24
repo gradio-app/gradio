@@ -86,7 +86,8 @@ def track_ended_by(error: BaseException) -> TrackHandlerFailedError:
 def rgb_frame(array: Any) -> VideoFrame:
     """
     A video frame from an image array as gr.Image takes it: RGB, RGBA (the
-    alpha channel is dropped) or grayscale, of any dtype (scaled to uint8).
+    alpha channel is dropped) or grayscale as (H, W), of any numeric dtype
+    (scaled to uint8).
     """
     array = processing_utils._convert(array, np.uint8, force_copy=False)
     if array.ndim == 2:
