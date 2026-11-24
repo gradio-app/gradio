@@ -117,6 +117,8 @@
 			webcam_constraints,
 			device_id
 		).then(async (local_stream) => {
+			// The previous camera would otherwise stay on
+			stream?.getTracks().forEach((track) => track.stop());
 			set_stream(local_stream);
 			selected_device =
 				available_video_devices.find(

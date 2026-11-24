@@ -412,6 +412,83 @@ describe("Props: sources", () => {
 		}
 	});
 
+	test("switching cameras stops the previous camera", async () => {
+		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
+			navigator,
+			"mediaDevices"
+		);
+		const streams: MediaStream[] = [];
+		try {
+			Object.defineProperty(navigator, "mediaDevices", {
+				configurable: true,
+				value: {
+					getUserMedia: async (constraints: MediaStreamConstraints) => {
+						const canvas = document.createElement("canvas");
+						canvas.getContext("2d")!.fillRect(0, 0, 10, 10);
+						const stream = canvas.captureStream(30);
+						const video = constraints.video as {
+							deviceId?: { exact: string };
+						};
+						const device_id = video?.deviceId?.exact ?? "front-camera";
+						// A canvas track has no deviceId of its own
+						Object.defineProperty(stream.getVideoTracks()[0], "getSettings", {
+							value: () => ({ deviceId: device_id })
+						});
+						streams.push(stream);
+						return stream;
+					},
+					enumerateDevices: async () => [
+						{
+							deviceId: "front-camera",
+							groupId: "cameras",
+							kind: "videoinput",
+							label: "Front camera"
+						},
+						{
+							deviceId: "rear-camera",
+							groupId: "cameras",
+							kind: "videoinput",
+							label: "Rear camera"
+						}
+					]
+				}
+			});
+
+			const { getByRole } = await render(Image, {
+				...default_props,
+				sources: ["webcam"]
+			});
+
+			await fireEvent.click(
+				getByRole("button", { name: "Click to Access Webcam" })
+			);
+			await fireEvent.click(
+				await waitFor(() =>
+					getByRole("button", { name: "select input source" })
+				)
+			);
+			await fireEvent.change(getByRole("combobox", { name: "select source" }), {
+				target: { value: "rear-camera" }
+			});
+
+			await waitFor(() => expect(streams).toHaveLength(2));
+			await waitFor(() =>
+				expect(streams[0].getVideoTracks()[0].readyState).toBe("ended")
+			);
+			expect(streams[1].getVideoTracks()[0].readyState).toBe("live");
+		} finally {
+			if (media_devices_descriptor) {
+				Object.defineProperty(
+					navigator,
+					"mediaDevices",
+					media_devices_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(navigator, "mediaDevices");
+			}
+		}
+	});
+
 	test("mirror: auto mirrors front cameras but not rear cameras", async () => {
 		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
 			navigator,
