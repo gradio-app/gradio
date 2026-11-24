@@ -1818,6 +1818,36 @@ def test_streams_that_keep_the_workers_busy_hand_over_at_their_time_limit():
         demo.close()
 
 
+def test_a_lease_hands_over_at_its_time_limit_when_streams_hold_the_workers():
+    from types import SimpleNamespace
+
+    with gr.Blocks() as demo:
+        gr.Textbox()
+    demo.queue()
+    queue = demo._queue
+    closed = []
+    fn = SimpleNamespace(close_stream=closed.append)
+    event = SimpleNamespace(
+        _id="lease",
+        fn=fn,
+        closed=False,
+        concurrency_id="streams",
+        told_it_goes_on=False,
+    )
+    waiting = queueing.EventQueue("click", 1)
+    waiting.queue.append(cast(queueing.Event, object()))
+    queue.event_queue_per_concurrency_id = {
+        "streams": queueing.EventQueue("streams", None),
+        "click": waiting,
+    }
+    # Its group has no limit, and nothing holds the workers: it goes on
+    queue.time_up(cast(queueing.Event, event))
+    assert closed == []
+    queue.streams_waiting_for_worker = 1
+    queue.time_up(cast(queueing.Event, event))
+    assert closed == ["lease"]
+
+
 def test_on_time_limit_takes_rejoin_or_stop():
     with gr.Blocks():
         audio = gr.Audio(sources=["microphone"], streaming=True)
@@ -1961,6 +1991,7 @@ def test_a_stream_dropped_while_waiting_for_a_worker_does_not_run_again():
 
 def test_chunks_that_arrive_while_waiting_for_a_worker_run_once():
     calls = []
+    busy = threading.Event()
 
     def record(x):
         calls.append(time.monotonic())
@@ -1970,7 +2001,7 @@ def test_chunks_that_arrive_while_waiting_for_a_worker_run_once():
         audio = gr.Audio(sources=["microphone"], streaming=True)
         heard = gr.Textbox()
         audio.stream(record, audio, heard)
-        gr.Button().click(lambda: time.sleep(1), None, None)
+        gr.Button().click(lambda: busy.set() or time.sleep(1), None, None)
     _, local_url, _ = demo.launch(
         prevent_thread_lock=True, max_threads=1, executor="thread"
     )
@@ -1983,7 +2014,7 @@ def test_chunks_that_arrive_while_waiting_for_a_worker_run_once():
                 f"{api}/queue/join",
                 json={"data": [], "fn_index": 1, "session_hash": "busy"},
             )
-            _wait_for(lambda: demo._queue.get_active_worker_count() == 1)
+            _wait_for(busy.is_set)
             # Two chunks while the stream waits for the slot: the newest wins
             for _ in range(2):
                 http.post(
