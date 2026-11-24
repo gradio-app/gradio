@@ -1774,6 +1774,50 @@ def test_a_stream_that_runs_out_of_time_hands_over_to_an_event_waiting():
         demo.close()
 
 
+def test_streams_that_keep_the_workers_busy_hand_over_at_their_time_limit():
+    def respond(chunk):
+        time.sleep(0.2)
+        return chunk
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        text = gr.Textbox()
+        audio.stream(respond, text, text, time_limit=1, concurrency_limit=None)
+        gr.Button().click(lambda: "clicked", None, text)
+    _, local_url, _ = demo.launch(
+        prevent_thread_lock=True, max_threads=1, executor="thread"
+    )
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    client = grc.Client(local_url)
+    done = threading.Event()
+    try:
+        with httpx2.Client(timeout=10) as http:
+
+            def keep_sending(session_hash):
+                event_id = http.post(
+                    f"{api}/queue/join",
+                    json={"data": ["x"], "fn_index": 0, "session_hash": session_hash},
+                ).json()["event_id"]
+                while not done.wait(0.05):
+                    _send_chunk(http, api, event_id, session_hash, "x")
+
+            senders = [
+                threading.Thread(target=keep_sending, args=(s,)) for s in ("a", "b")
+            ]
+            for sender in senders:
+                sender.start()
+            _wait_for(lambda: demo._queue.streams_waiting_for_worker > 0)
+            # Without the hand-over, the click waits for the streams to stop
+            assert client.submit(fn_index=1).result(timeout=8) == "clicked"
+            done.set()
+            for sender in senders:
+                sender.join()
+    finally:
+        done.set()
+        client.close()
+        demo.close()
+
+
 def test_on_time_limit_takes_rejoin_or_stop():
     with gr.Blocks():
         audio = gr.Audio(sources=["microphone"], streaming=True)

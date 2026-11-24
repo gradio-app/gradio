@@ -1791,9 +1791,9 @@ class Queue:
         """With on_time_limit="rejoin", a stream whose time ran out goes on
         unless an event waits for its slot: its clock starts the next period
         of time_limit where the last one ended, as the page's countdown bar
-        starts over when it runs out. With an event waiting for a slot of its
-        concurrency group, it ends, and the page joins the queue again with
-        its next chunk."""
+        starts over when it runs out. When ending it lets a waiting event
+        start (`_slot_wanted`), it ends, and the page joins the queue again
+        with its next chunk."""
         if fn.on_time_limit != "rejoin" or event.closed or not event.out_of_time:
             return
         if self._slot_wanted(event):
@@ -1820,20 +1820,34 @@ class Queue:
         )
 
     def _slot_wanted(self, event: Event) -> bool:
-        """Whether an event waits for a slot of `event`'s concurrency group: a
-        group without a limit, or with a free slot, never makes one wait."""
+        """Whether ending `event`'s stream lets a waiting event start: one
+        waits for a slot of its concurrency group, or streams take the worker
+        slots back before an event whose group has room (see
+        `start_processing`)."""
         group = self.event_queue_per_concurrency_id.get(event.concurrency_id)
-        return (
+        if (
             group is not None
             and bool(group.queue)
             and group.concurrency_limit is not None
             and group.current_concurrency >= group.concurrency_limit
+        ):
+            return True
+        return self.streams_waiting_for_worker > 0 and any(
+            (
+                group.concurrency_limit is None
+                or group.current_concurrency < group.concurrency_limit
+            )
+            and any(
+                self.can_start is None or self.can_start(waiting)
+                for waiting in group.queue
+            )
+            for group in self.event_queue_per_concurrency_id.values()
         )
 
     def time_up(self, event: Event) -> None:
         """A lease's time limit ran out with on_time_limit="rejoin" (see
-        `EventHandle.time_up`): ends its stream if an event waits for its
-        slot, as the queue ends a stream that it runs itself."""
+        `EventHandle.time_up`): ends its stream if that lets a waiting event
+        start, as the queue ends a stream that it runs itself."""
         close_stream = event.fn.close_stream
         if close_stream is None or event.closed:
             return
