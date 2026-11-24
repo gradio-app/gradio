@@ -3937,7 +3937,7 @@
 	}
 
 	/* ─── Light mode ─── */
-	:global(body:not(.dark) .workflow-root) {
+	:global(body:not(.dark)) .workflow-root {
 		background: #f8f9fb;
 		border-color: #e2e4ea;
 		color-scheme: light;
@@ -3946,135 +3946,135 @@
 			0 20px 60px rgba(0, 0, 0, 0.08);
 	}
 
-	:global(body:not(.dark) .toolbar) {
+	:global(body:not(.dark)) .toolbar {
 		background: #ffffff;
 		border-bottom-color: #e2e4ea;
 	}
 
-	:global(body:not(.dark) .name-btn:hover) {
+	:global(body:not(.dark)) .name-btn:hover {
 		background: #f0f1f5;
 	}
-	:global(body:not(.dark) .name-text) {
+	:global(body:not(.dark)) .name-text {
 		color: #1a1b25;
 	}
-	:global(body:not(.dark) .name-edit-icon) {
+	:global(body:not(.dark)) .name-edit-icon {
 		color: #b0b2bc;
 	}
-	:global(body:not(.dark) .name-input) {
+	:global(body:not(.dark)) .name-input {
 		background: #ffffff;
 		color: #1a1b25;
 	}
-	:global(body:not(.dark) .toolbar-stat) {
+	:global(body:not(.dark)) .toolbar-stat {
 		color: #b0b2bc;
 	}
-	:global(body:not(.dark) .tool-btn) {
+	:global(body:not(.dark)) .tool-btn {
 		border-color: #e2e4ea;
 		color: #8b8d98;
 	}
-	:global(body:not(.dark) .tool-btn:hover) {
+	:global(body:not(.dark)) .tool-btn:hover {
 		background: #f0f1f5;
 		color: #3e4050;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .toolbar-user-chip) {
+	:global(body:not(.dark)) .toolbar-user-chip {
 		border-color: #e2e4ea;
 		color: #3e4050;
 	}
-	:global(body:not(.dark) .toolbar-user-chip:hover),
-	:global(body:not(.dark) .toolbar-user-chip.open) {
+	:global(body:not(.dark)) .toolbar-user-chip:hover,
+	:global(body:not(.dark)) .toolbar-user-chip.open {
 		background: #f0f1f5;
 		color: #1a1b25;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .toolbar-user-avatar) {
+	:global(body:not(.dark)) .toolbar-user-avatar {
 		background: #e2e4ea;
 	}
-	:global(body:not(.dark) .toolbar-user-avatar-fallback) {
+	:global(body:not(.dark)) .toolbar-user-avatar-fallback {
 		color: #6b6e78;
 	}
-	:global(body:not(.dark) .toolbar-user-menu) {
+	:global(body:not(.dark)) .toolbar-user-menu {
 		background: #ffffff;
 		border-color: #e2e4ea;
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 	}
-	:global(body:not(.dark) .toolbar-user-menu-msg) {
+	:global(body:not(.dark)) .toolbar-user-menu-msg {
 		color: #6b6e78;
 	}
-	:global(body:not(.dark) .toolbar-user-menu-btn) {
+	:global(body:not(.dark)) .toolbar-user-menu-btn {
 		border-color: #e2e4ea;
 		color: #1a1b25;
 	}
-	:global(body:not(.dark) .toolbar-user-menu-btn:hover) {
+	:global(body:not(.dark)) .toolbar-user-menu-btn:hover {
 		background: #f0f1f5;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .tool-btn.save-space-btn) {
+	:global(body:not(.dark)) .tool-btn.save-space-btn {
 		color: #d95f0b;
 		border-color: rgba(217, 95, 11, 0.55);
 	}
-	:global(body:not(.dark) .tool-btn.save-space-btn:hover:not(:disabled)) {
+	:global(body:not(.dark)) .tool-btn.save-space-btn:hover:not(:disabled) {
 		color: #d95f0b;
 		background: rgba(217, 95, 11, 0.1);
 		border-color: rgba(217, 95, 11, 0.75);
 	}
-	:global(body:not(.dark) .save-menu) {
+	:global(body:not(.dark)) .save-menu {
 		background: #ffffff;
 		border-color: #e2e4ea;
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 	}
-	:global(body:not(.dark) .save-menu-item) {
+	:global(body:not(.dark)) .save-menu-item {
 		color: #1a1b25;
 	}
-	:global(body:not(.dark) .save-menu-item:hover:not(:disabled)),
-	:global(body:not(.dark) .save-menu-item:focus-visible) {
+	:global(body:not(.dark)) .save-menu-item:hover:not(:disabled),
+	:global(body:not(.dark)) .save-menu-item:focus-visible {
 		background: #f0f1f5;
 	}
-	:global(body:not(.dark) .save-menu-item-detail) {
+	:global(body:not(.dark)) .save-menu-item-detail {
 		color: #6b6e78;
 	}
-	:global(body:not(.dark) .save-indicator) {
+	:global(body:not(.dark)) .save-indicator {
 		color: #0f9d76;
 	}
-	:global(body:not(.dark) .zoom-ctrl-divider) {
+	:global(body:not(.dark)) .zoom-ctrl-divider {
 		background: #e2e4ea;
 	}
-	:global(body:not(.dark) .zoom-controls) {
+	:global(body:not(.dark)) .zoom-controls {
 		background: #ffffff;
 		border-color: #e2e4ea;
 	}
-	:global(body:not(.dark) .zoom-ctrl-btn) {
+	:global(body:not(.dark)) .zoom-ctrl-btn {
 		color: #9a9caa;
 	}
-	:global(body:not(.dark) .zoom-ctrl-btn:hover) {
+	:global(body:not(.dark)) .zoom-ctrl-btn:hover {
 		background: #f0f1f5;
 		color: #3e4050;
 	}
-	:global(body:not(.dark) .zoom-btn) {
+	:global(body:not(.dark)) .zoom-btn {
 		background: #ffffff;
 		border-color: #e2e4ea;
 		color: #9a9caa;
 	}
-	:global(body:not(.dark) .zoom-btn:hover) {
+	:global(body:not(.dark)) .zoom-btn:hover {
 		color: #3e4050;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .shortcuts-panel) {
+	:global(body:not(.dark)) .shortcuts-panel {
 		background: #ffffff;
 		border-color: #e2e4ea;
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 	}
-	:global(body:not(.dark) .shortcuts-title) {
+	:global(body:not(.dark)) .shortcuts-title {
 		color: #6b6e78;
 	}
-	:global(body:not(.dark) .shortcut-row) {
+	:global(body:not(.dark)) .shortcut-row {
 		color: #9a9caa;
 	}
-	:global(body:not(.dark) .shortcut-row kbd) {
+	:global(body:not(.dark)) .shortcut-row kbd {
 		background: #f0f1f5;
 		color: #3e4050;
 		border-color: #d0d2dc;
 	}
-	:global(body:not(.dark) .wf-toast) {
+	:global(body:not(.dark)) .wf-toast {
 		background: #ffffff;
 		color: #2a2b36;
 		border-color: #e2e4ea;

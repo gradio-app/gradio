@@ -2,7 +2,9 @@ import { defineConfig } from "pollen-css/utils";
 
 export default defineConfig((pollen) => {
 	return {
-		selector: ":root",
+		// Zero specificity, so theme.css (also on :root) wins whatever order the two
+		// stylesheets load in. SSR links theme.css before this file; the SPA links it after.
+		selector: ":where(:root)",
 		output: "./src/pollen.css",
 		modules: {
 			line: {

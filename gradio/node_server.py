@@ -166,8 +166,13 @@ def get_node_version(node_path: str) -> tuple[int, ...] | None:
     return tuple(int(part) for part in match.groups())
 
 
-def get_ssr_unavailable_reason(node_path: str | None) -> str | None:
-    """Returns why SSR can't run with the Node at node_path, or None if it can."""
+def get_ssr_unavailable_reason(
+    node_path: str | None, check_version: bool = True
+) -> str | None:
+    """
+    Returns why SSR can't run with the Node at node_path, or None if it can. With
+    check_version=False, any Node release is accepted (see MIN_NODE_VERSIONS).
+    """
     if not SSR_APP_PATH.exists():
         return "The Gradio SSR build was not found."
     version = get_node_version(node_path) if node_path else None
@@ -176,7 +181,7 @@ def get_ssr_unavailable_reason(node_path: str | None) -> str | None:
             f"SSR mode requires Node {MIN_NODE_VERSIONS_STR}, but no Node executable "
             "was found. Install Node or set the GRADIO_NODE_PATH environment variable."
         )
-    if not is_supported_node_version(version):
+    if check_version and not is_supported_node_version(version):
         found = ".".join(str(part) for part in version)
         return (
             f"SSR mode requires a Node release with the latest security fixes "

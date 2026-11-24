@@ -25,8 +25,14 @@ def clean_env(monkeypatch):
     monkeypatch.setenv("GRADIO_NODE_PATH", "/fake/node")
 
 
-def set_ssr_available(monkeypatch, reason):
-    monkeypatch.setattr(blocks_mod, "get_ssr_unavailable_reason", lambda _: reason)
+def set_ssr_available(monkeypatch, reason, reason_ignoring_version=None):
+    """`reason` is what the full check returns; `reason_ignoring_version` is what it
+    returns with check_version=False (None means a Node install was found)."""
+
+    def fake(_, check_version=True):
+        return reason if check_version else reason_ignoring_version
+
+    monkeypatch.setattr(blocks_mod, "get_ssr_unavailable_reason", fake)
 
 
 class TestGetNodeVersion:
@@ -87,6 +93,12 @@ class TestGetSsrUnavailableReason:
         assert reason is not None
         assert "22.23.4+, 24.22.1+, 26.12.1+" in reason
 
+    def test_version_check_can_be_skipped(self, monkeypatch):
+        self.set_version(monkeypatch, (20, 20, 2))
+        assert (
+            node_server.get_ssr_unavailable_reason("node", check_version=False) is None
+        )
+
     def test_no_node(self, monkeypatch):
         self.set_version(monkeypatch, None)
         assert node_server.get_ssr_unavailable_reason(None) is not None
@@ -108,9 +120,20 @@ class TestResolveSsrMode:
             warnings.simplefilter("error")
             assert demo._resolve_ssr_mode(None) is False
 
-    def test_warns_when_requested_without_supported_node(self, monkeypatch, demo):
+    def test_explicit_request_uses_older_node_with_warning(self, monkeypatch, demo):
         set_ssr_available(monkeypatch, "too old")
-        with pytest.warns(UserWarning, match="too old"):
+        with pytest.warns(UserWarning, match="too old.*Using SSR mode anyway"):
+            assert demo._resolve_ssr_mode(True) is True
+
+    def test_env_var_request_uses_older_node_with_warning(self, monkeypatch, demo):
+        set_ssr_available(monkeypatch, "too old")
+        monkeypatch.setenv("GRADIO_SSR_MODE", "true")
+        with pytest.warns(UserWarning, match="Using SSR mode anyway"):
+            assert demo._resolve_ssr_mode(None) is True
+
+    def test_warns_and_falls_back_when_requested_without_node(self, monkeypatch, demo):
+        set_ssr_available(monkeypatch, "no node", reason_ignoring_version="no node")
+        with pytest.warns(UserWarning, match="no node.*Disabling SSR mode"):
             assert demo._resolve_ssr_mode(True) is False
 
     def test_explicit_false(self, monkeypatch, demo):

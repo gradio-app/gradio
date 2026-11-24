@@ -35,6 +35,9 @@ proxy.on("error", (err, req, res) => {
 	if (res.writeHead && !res.headersSent) {
 		res.writeHead(502, { "Content-Type": "text/plain" });
 		res.end("Bad Gateway");
+	} else if (!res.writeHead) {
+		// WebSocket upgrades pass the raw socket instead of a response.
+		res.destroy();
 	}
 });
 
@@ -44,13 +47,16 @@ proxy.on("error", (err, req, res) => {
 // header is passed through as is and Python sees the visitor, not that proxy.
 const appendClientAddress = !process.env.SPACE_ID;
 
-proxy.on("proxyReq", (proxyReq, req) => {
+function setForwardedFor(proxyReq, req) {
 	if (!appendClientAddress) return;
 	proxyReq.setHeader(
 		"x-forwarded-for",
 		appendForwardedFor(req.headers["x-forwarded-for"], req.socket.remoteAddress)
 	);
-});
+}
+
+proxy.on("proxyReq", setForwardedFor);
+proxy.on("proxyReqWs", setForwardedFor);
 
 // When the browser closes an SSE/streaming connection, propagate the
 // disconnect to Python so that `request.is_disconnected()` returns True.
@@ -115,6 +121,12 @@ const server = http.createServer((req, res) => {
 	req.headers["x-gradio-mounted-path"] = "/";
 	req.headers["x-gradio-original-url"] = `${publicScheme}://${publicHost}`;
 	handler(req, res);
+});
+
+// SvelteKit doesn't handle WebSockets, so every upgrade request (e.g. a route
+// added with `@app.websocket(...)`) goes straight to Python.
+server.on("upgrade", (req, socket, head) => {
+	proxy.ws(req, socket, head, { target: pythonTarget });
 });
 
 server.listen({ host, port }, () => {
