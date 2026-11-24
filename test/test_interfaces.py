@@ -345,6 +345,17 @@ def test_live_interface_sets_always_last():
     raise AssertionError("No change dependency found")
 
 
+def test_live_interface_listens_to_change_on_a_streaming_video():
+    iface = gradio.Interface(
+        fn=lambda v: v,
+        inputs=gradio.Video(streaming=True),
+        outputs=gradio.Textbox(),
+        live=True,
+    )
+    video = iface.input_components[0]
+    assert iface.config["dependencies"][0]["targets"] == [(video._id, "change")]
+
+
 def test_tabbed_interface_predictions(connect):
     hello_world = gradio.Interface(
         lambda name: "Hello " + name, "text", "text", api_name="predict"
