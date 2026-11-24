@@ -353,7 +353,8 @@ def test_live_interface_listens_to_change_on_a_streaming_video():
         live=True,
     )
     video = iface.input_components[0]
-    assert iface.config["dependencies"][0]["targets"] == [(video._id, "change")]
+    config = iface.get_config_file()
+    assert config["dependencies"][0]["targets"] == [(video._id, "change")]
 
 
 def test_tabbed_interface_predictions(connect):
