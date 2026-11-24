@@ -718,6 +718,11 @@ async def forward_event(
     counted_id = body.event_id if run.first or (run.keeps and not streaming) else None
     # A stream goes back to its process (`Pool.placed` fails it if that exited)
     placed = pool.placed(queue_event_id if streaming else None, body.session_hash)
+    if streaming and isinstance(iterator, RemoteIterator) and iterator.link.closed:
+        from gradio.exceptions import Error
+
+        # Its generator was there
+        raise Error("The app's process that ran this stream has stopped.")
     link = (
         placed
         or (iterator.link if isinstance(iterator, RemoteIterator) else None)

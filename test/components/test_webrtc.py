@@ -3015,6 +3015,38 @@ class TestGatewayPlacements:
         pool.end_event(event)
         assert not other.held
 
+    @pytest.mark.asyncio
+    async def test_a_generator_stream_whose_process_exited_is_over(self):
+        from gradio.exceptions import Error
+        from gradio.processing.gateway import RemoteIterator, forward_event
+        from gradio.route_utils import RunStep
+
+        event = self.event()
+        pool = self.pool(event)
+        lost = FakeLink()
+        pool.place("e", cast(Any, lost), False, "s")
+        lost.closed = True
+        # Its generator ran there, so its next chunk has nowhere to go
+        app = SimpleNamespace(
+            state_holder={"s": None},
+            iterators={"e": RemoteIterator(cast(Any, lost), "e")},
+            iterators_to_reset=set(),
+        )
+        body = SimpleNamespace(
+            event_id="e", session_hash="s", client_state=None, batched=False
+        )
+        with pytest.raises(Error, match="stopped"):
+            await forward_event(
+                pool,
+                cast(Any, app),
+                cast(Any, body),
+                None,
+                cast(Any, SimpleNamespace(connection="stream")),
+                "",
+                queue_event_id="e",
+                run=RunStep.next(),
+            )
+
     def test_the_streams_of_an_exited_process_are_woken(self):
         webrtc_stream, plain_stream, elsewhere = (
             SimpleNamespace(_id=i, session_hash="s", signal=asyncio.Event())
