@@ -1576,6 +1576,11 @@ class Queue:
                             ]
                             if not awake_events:
                                 break
+                            if not fn.lease:
+                                # This call reads the newest chunk, so chunks
+                                # that came while waiting must not wake it again
+                                for event in awake_events:
+                                    event.signal.clear()
                         # Re-read the event's fn, which may have been swapped out
                         # if the app was hot-reloaded while this event was generating
                         fn = awake_events[0].fn

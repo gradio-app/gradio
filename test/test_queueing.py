@@ -1901,6 +1901,44 @@ def test_a_stream_dropped_while_waiting_for_a_worker_does_not_run_again():
         demo.close()
 
 
+def test_chunks_that_arrive_while_waiting_for_a_worker_run_once():
+    calls = []
+
+    def record(x):
+        calls.append(time.monotonic())
+        return "chunk"
+
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(record, audio, heard)
+        gr.Button().click(lambda: time.sleep(1), None, None)
+    _, local_url, _ = demo.launch(
+        prevent_thread_lock=True, max_threads=1, executor="thread"
+    )
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = _join(http, api, "s")
+            _wait_for(lambda: len(calls) == 1)
+            http.post(
+                f"{api}/queue/join",
+                json={"data": [], "fn_index": 1, "session_hash": "busy"},
+            )
+            _wait_for(lambda: demo._queue.get_active_worker_count() == 1)
+            # Two chunks while the stream waits for the slot: the newest wins
+            for _ in range(2):
+                http.post(
+                    f"{api}/stream/{event_id}",
+                    json={"data": [None], "fn_index": 0, "session_hash": "s"},
+                )
+            _wait_for(lambda: len(calls) >= 2)
+            time.sleep(0.5)
+            assert len(calls) == 2
+    finally:
+        demo.close()
+
+
 def test_a_log_reaches_a_running_event_between_its_calls():
     # A gr.WebRTC handler logs (gr.Info, gr.Warning) between the calls of its
     # stream's event, while the event holds no worker slot
