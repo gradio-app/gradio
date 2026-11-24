@@ -553,16 +553,27 @@ def _media_from_file(value: Any, modality: Modality) -> Any:
     client sent instead: an RGB array, or (sample_rate, array) as the numpy
     value of gr.Audio, with the whole file as one chunk."""
     from gradio import processing_utils
+    from gradio.exceptions import Error
 
     path = value.get("path") if isinstance(value, dict) else value
     if not path:
         raise ValueError("No file in the media's slot.")
-    if modality == "audio":
-        return processing_utils.audio_from_file(str(path))
-    from PIL import Image as PILImage
+    try:
+        if modality == "audio":
+            return processing_utils.audio_from_file(str(path))
+        from PIL import Image as PILImage
 
-    with PILImage.open(str(path)) as image:
-        return np.asarray(image.convert("RGB"))
+        with PILImage.open(str(path)) as image:
+            return np.asarray(image.convert("RGB"))
+    except Exception as err:
+        # The decoders' own errors do not say what was wrong with the file
+        name = value.get("orig_name") if isinstance(value, dict) else None
+        expected = "an audio file" if modality == "audio" else "an image"
+        raise Error(
+            f"This endpoint takes {expected}, but {name or 'the file'} could "
+            "not be read as one.",
+            print_exception=False,
+        ) from err
 
 
 def _media_to_file(value: Any, modality: Modality) -> Any:

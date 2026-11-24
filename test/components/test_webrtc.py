@@ -5897,3 +5897,13 @@ def test_mcp_lists_the_streams_a_client_can_call_once():
         echoed = webcam()
         echoed.stream(Echo, [echoed], [echoed], transport="webrtc")
     assert list(GradioMCPServer(demo).tool_to_endpoint.values()) == ["/once"]
+
+
+def test_a_stream_called_with_the_wrong_kind_of_file_says_so(tmp_path):
+    from gradio.webrtc.transport import _media_from_file
+
+    image, wav = _image_and_wav(tmp_path)
+    with pytest.raises(gr.Error, match="takes an audio file, but frame.png could not"):
+        _media_from_file({"path": str(image), "orig_name": "frame.png"}, "audio")
+    with pytest.raises(gr.Error, match="takes an image, but the file could not"):
+        _media_from_file({"path": str(wav)}, "video")
