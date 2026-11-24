@@ -1140,9 +1140,7 @@ def transport_event(
             items: Any = (
                 fn(*args)
                 if inspect.isasyncgenfunction(fn)
-                else utils.SyncToAsyncIterator(
-                    fn(*args), limiter=launched().limiter
-                )
+                else utils.SyncToAsyncIterator(fn(*args), limiter=launched().limiter)
             )
             # Audio comes chunk by chunk; the last output is all of it, as
             # the page would have played it

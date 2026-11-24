@@ -3062,7 +3062,10 @@ class TestGatewayPlacements:
                 cast(Any, app),
                 cast(Any, body),
                 None,
-                cast(Any, SimpleNamespace(connection="stream", called_once=lambda d: False)),
+                cast(
+                    Any,
+                    SimpleNamespace(connection="stream", called_once=lambda d: False),
+                ),
                 "",
                 queue_event_id="e",
                 run=RunStep.next(),
