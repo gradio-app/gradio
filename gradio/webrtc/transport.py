@@ -967,10 +967,16 @@ def transport_event(
         if is_handler_class or sends_to_generator
         else list(inspect.signature(fn).parameters.values())
     )
-    if params and media_in is not None and modality == "video":
-        media_name = [p[0] for p in utils.get_function_params(fn)][media_in]
-        ordered = [p for p in params if p.name == media_name] + [
-            p for p in params if p.name != media_name
+    if params and media_in and modality == "video":
+        names = [p[0] for p in utils.get_function_params(fn)]
+        if media_in >= len(names):
+            raise ValueError(
+                f"{getattr(fn, '__name__', 'The function')}() gets the stream's "
+                "frames through *args after its other inputs. Give the frames a "
+                "named parameter, or make them the first input."
+            )
+        ordered = [p for p in params if p.name == names[media_in]] + [
+            p for p in params if p.name != names[media_in]
         ]
     else:
         ordered = params

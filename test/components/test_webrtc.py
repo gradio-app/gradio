@@ -555,6 +555,16 @@ class TestWebRTC:
                     outputs=[slider],
                     transport="webrtc",
                 )
+            # The frames go to the function first, so they need a parameter
+            # of their own unless they come first anyway
+            camera.stream(lambda *a: a[0], [camera], [camera], transport="webrtc")
+            with pytest.raises(ValueError, match="named parameter"):
+                camera.stream(
+                    lambda x, *rest: rest[0],
+                    [slider, camera],
+                    [camera],
+                    transport="webrtc",
+                )
             # Nothing comes from the page for a stream it only receives
             with pytest.raises(ValueError, match="handler classes take media"):
                 button.click(
