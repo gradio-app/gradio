@@ -505,8 +505,8 @@ def _receive_extras(cls: type) -> dict[str, int]:
 
 
 class _Carried:
-    """The value of a gr.State that a plain function's stream takes and
-    returns, which the stream keeps: each call gets what the previous call
+    """The value of a gr.State that a stream's function takes and returns (or
+    yields), which the stream keeps: each call gets what the previous call
     returned for it (see `transport_event`)."""
 
     __slots__ = ("output", "value")
@@ -636,8 +636,9 @@ def _chunked_audio_handler(
     of audio per call, like an HTTP audio stream's `stream_every` chunks. The
     function runs in a thread of its own; audio that arrives meanwhile goes into
     the next call, so a function slower than real time gets longer chunks
-    instead of falling further behind. `write_back` is given each call's
-    arguments and result (it keeps the gr.State values the stream carries).
+    instead of falling further behind. `write_back` is given each call's (or
+    generator step's) arguments and result (it keeps the gr.State values the
+    stream carries).
     A generator function gets one generator per stream, sent each chunk
     (packed with `pack_sent` if given, see `transport_event`).
     """
@@ -704,10 +705,9 @@ def _chunked_audio_handler(
                 args = list(self.latest_args)
                 args.insert(media_in, (rate, chunk))
                 if self.generator is not None:
-                    self.results.put(self._step(_unboxed(args)))
-                    first_step_done()
-                    return
-                result = self.call(*_unboxed(args))
+                    result = self._step(_unboxed(args))
+                else:
+                    result = self.call(*_unboxed(args))
                 if inspect.isawaitable(result):
                     # On the loop, as async video functions run, with this
                     # thread's context (gr.Info and the like reach the page)
@@ -826,18 +826,19 @@ def transport_event(
 
     # A gr.State input gets its value as it is when the stream's turn comes,
     # from the event's own inputs: the page holds the State, and what it sends
-    # over the data channel does not carry it. One that a plain function also
-    # returns is kept by the stream, so that each call gets what the previous
-    # call returned for it, as each chunk of an HTTP stream does. A handler
-    # class or a generator keeps its own state, and a receive-mode generator
-    # gets its inputs once. Each entry: the position among the event's inputs,
-    # among the extra inputs, and among the outputs (None if not kept).
+    # over the data channel does not carry it. One that the function also
+    # returns (or yields) is kept by the stream, so that each call (or value
+    # sent to a generator) gets what the previous one returned for it, as each
+    # chunk of an HTTP stream does. A handler class keeps its own state, and a
+    # receive-mode generator gets its inputs once. Each entry: the position
+    # among the event's inputs, among the extra inputs, and among the outputs
+    # (None if not kept).
     from gradio.components import State
 
     def position(blocks: list, block: Any) -> int | None:
         return next((i for i, b in enumerate(blocks) if b is block), None)
 
-    keeps_state = not is_handler_class and mode != "receive" and not sends_to_generator
+    keeps_state = not is_handler_class and mode != "receive"
     carried_states: list[tuple[int, int, int | None]] = []
     for j, block in enumerate(preprocessed_inputs or []):
         k = position(inputs, block)
@@ -991,15 +992,16 @@ def transport_event(
             values.insert(cast(int, media_in), frame)
             return _packed(values, pack_sent)
 
-        def output(result: Any) -> Any:
+        def output(result: Any, args: tuple) -> Any:
             if result is utils.StreamGenerator.ENDED:
                 return CloseStream()
+            write_back(args, result)
             return to_stream_output(result)
 
         if generator.is_async:
 
             async def step_async(frame: Any, *args: Any) -> Any:
-                result = output(await generator.step(sent(frame, args)))
+                result = output(await generator.step(sent(frame, args)), args)
                 first_step_done()
                 return result
 
@@ -1007,7 +1009,7 @@ def transport_event(
 
         def step(frame: Any, *args: Any) -> Any:
             # The track runs it in a worker thread
-            result = output(generator.step_sync(sent(frame, args)))
+            result = output(generator.step_sync(sent(frame, args)), args)
             first_step_done()
             return result
 

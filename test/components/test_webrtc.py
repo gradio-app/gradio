@@ -5563,7 +5563,17 @@ class TestStreamOutputs:
 
 class TestStateInStreams:
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("kind", ["video", "async video", "audio"])
+    @pytest.mark.parametrize(
+        "kind",
+        [
+            "video",
+            "async video",
+            "audio",
+            "generator video",
+            "async generator video",
+            "generator audio",
+        ],
+    )
     async def test_a_state_the_function_returns_is_what_its_next_call_gets(
         self, kind, monkeypatch
     ):
@@ -5578,25 +5588,44 @@ class TestStateInStreams:
         async def count_up_async(media, count):
             return count_up(media, count)
 
+        # As over HTTP, each value sent to a generator carries the State it
+        # last yielded
+        def count_up_generator():
+            media, count = yield
+            while True:
+                media, count = yield count_up(media, count)
+
+        async def count_up_async_generator():
+            media, count = yield
+            while True:
+                media, count = yield count_up(media, count)
+
+        fn = {
+            "async video": count_up_async,
+            "generator video": count_up_generator,
+            "async generator video": count_up_async_generator,
+            "generator audio": count_up_generator,
+        }.get(kind, count_up)
         with gr.Blocks() as demo:
-            if kind == "audio":
+            if kind.endswith("audio"):
                 media = gr.Audio(sources=["microphone"], streaming=True)
             else:
                 media = webcam()
             count = gr.State(5)
             text = gr.Textbox()
             media.stream(
-                count_up_async if kind == "async video" else count_up,
+                fn,
                 inputs=[media, count],
                 outputs=[text, count],
                 transport="webrtc",
                 # An audio call per 20 ms frame
-                stream_every=0.02 if kind == "audio" else None,
+                stream_every=0.02 if kind.endswith("audio") else None,
             )
         with closing(demo):
             _, local_url, _ = demo.launch(prevent_thread_lock=True)
             h = Harness(demo, local_url, media)
-            pc = await make_offer(audio=kind == "audio", video=kind != "audio")
+            audio = kind.endswith("audio")
+            pc = await make_offer(audio=audio, video=not audio)
             try:
                 await h.start("one")
                 await h.connect(pc, "one")
