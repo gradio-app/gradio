@@ -159,10 +159,15 @@ class BlockFunction:
         """Whether a call of this stream comes from a client without the page's
         media, which runs it once as an ordinary event (see webrtc.transport):
         it joined without a WebRTC stream id."""
+        webrtc_id = (
+            event_data.get("webrtc_id") if isinstance(event_data, dict) else None
+        )
+        # A stream id is a non-empty string, as the stream's function checks
+        # (webrtc.transport): anything else runs the function once there
         return (
             self.lease
             and self.callable_once
-            and not (isinstance(event_data, dict) and event_data.get("webrtc_id"))
+            and not (isinstance(webrtc_id, str) and webrtc_id)
         )
 
     def get_config(self):

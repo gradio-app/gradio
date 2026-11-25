@@ -6290,6 +6290,10 @@ def test_a_stream_called_without_a_file_says_what_it_takes():
     assert stream.called_once({})
     assert stream.called_once(None)
     assert not stream.called_once({"webrtc_id": "abc"})
+    # As the stream's function tells them apart: an id is a non-empty string,
+    # or a crafted call would wait for a stream that never comes
+    assert stream.called_once({"webrtc_id": 1})
+    assert stream.called_once({"webrtc_id": ["abc"]})
     # Which streams one client file maps to one call of
     assert _callable_once(lambda f: f, "video")
     assert _callable_once(lambda: iter(()), "audio")
