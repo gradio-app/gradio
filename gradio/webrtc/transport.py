@@ -179,7 +179,10 @@ def blocks_stream(
         return None
 
     options = to_options(transport)
-    media = block if kind(block) is not None else None
+    # Only .stream() sends the listener's own component; another event (a
+    # change, an upload) streams to the media among its outputs
+    sends_block = trigger is None or trigger.event_name == "stream"
+    media = block if sends_block and kind(block) is not None else None
     if media is None:
         media = next((c for c in outputs if kind(c) is not None), None)
     if media is None:

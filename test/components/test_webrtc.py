@@ -532,6 +532,29 @@ class TestWebRTC:
             with pytest.raises(ValueError, match="transport="):
                 gr.on([video.stream], flip, inputs=[video], outputs=[video])
 
+    def test_only_stream_sends_the_listeners_own_component(self):
+        import numpy as np
+
+        def say(*args):
+            yield (24000, np.zeros(240, dtype=np.int16))
+
+        def show(*args):
+            yield np.zeros((4, 6, 3), dtype=np.uint8)
+
+        with gr.Blocks() as demo:
+            image = webcam()
+            screen = gr.Image()
+            image.change(show, None, [screen], transport="webrtc")
+            mic = gr.Audio(sources=["microphone"], streaming=True)
+            speaker = gr.Audio(streaming=True)
+            mic.stop_recording(say, [mic], [speaker], transport="webrtc")
+        # Other events stream to the media among their outputs, as a click does
+        for trigger, output in ((image, screen), (mic, speaker)):
+            stream = stream_fn_of(demo, output)
+            assert stream.transport["mode"] == "receive"
+            assert stream.trigger_mode == "once"
+            assert "stream_transport" not in trigger.get_config()
+
     def test_stream_validation(self):
         with gr.Blocks() as demo:
             slider = gr.Slider()
