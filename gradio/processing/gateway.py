@@ -498,16 +498,24 @@ class Pool:
             return True
 
     def place(
-        self, event_id: str, link: Link, works_here: bool, session_hash: str | None
+        self,
+        event_id: str,
+        link: Link,
+        works_here: bool,
+        session_hash: str | None,
+        keeps_generator: bool = False,
     ) -> None:
-        """The first call of the stream event `event_id` goes to `link`."""
+        """The first call of the stream event `event_id` goes to `link`. A
+        generator that the stream sends its chunks to stays there between
+        chunks, even without a slot: that counts as work there too, so the
+        process is not retired under it."""
         placement = Placement(link, works_here, session_hash)
         self.placements[event_id] = placement
-        if works_here:
+        if works_here or keeps_generator:
             link.serving_events.add(event_id)
-            if session_hash:
-                with self.lock:
-                    self.session_streams.setdefault(session_hash, []).append(placement)
+        if works_here and session_hash:
+            with self.lock:
+                self.session_streams.setdefault(session_hash, []).append(placement)
 
     def placed(self, event_id: str | None, session_hash: str | None) -> Link | None:
         """Where a later call of the stream event `event_id` goes, if it has
@@ -807,6 +815,7 @@ async def forward_event(
                 link,
                 works_here=fn.close_stream is not None,
                 session_hash=body.session_hash,
+                keeps_generator=fn.sends_to_generator,
             )
         sent_body = body.model_dump(exclude={"request", "client_state"})
         if protocol.files_by_value():

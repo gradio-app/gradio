@@ -3322,6 +3322,7 @@ class TestGatewayPlacements:
             connection="stream",
             called_once=lambda event_data: False,
             close_stream=None,
+            sends_to_generator=True,
             queue=False,
             is_validator_function=False,
             concurrency_id="c",
@@ -3357,6 +3358,22 @@ class TestGatewayPlacements:
         assert pool.could_start(pinned) is False
         assert pool.could_start(new) is True
         assert not pool.reserved and "t" not in busy.sessions | idle.sessions
+
+    def test_a_process_keeping_a_generator_between_chunks_is_not_retired(self):
+        event = self.event()
+        pool = self.pool(event)
+        link = FakeLink()
+        # A generator .stream() without a concurrency limit holds no slot
+        pool.place("e", cast(Any, link), False, "s", keeps_generator=True)
+        assert link.active
+        # Being retired, e.g. idle by its count of finished events
+        drained = []
+        link.draining = True
+        link.on_drained = lambda: drained.append(True)
+        pool.check_drained(cast(Any, link))
+        assert drained == []
+        pool.end_event(event)
+        assert drained == [True]
 
     def test_a_stream_frees_its_slot_for_an_event_that_can_only_start_there(self):
         from gradio.processing.gateway import Pool
