@@ -571,6 +571,9 @@ export function submit_over_webrtc(
 				job = join();
 				void handed_over.acknowledge();
 			}
+		} catch (error) {
+			// e.g. joining the queue again after an app reload renamed the endpoint
+			fail(error instanceof Error ? error.message : String(error));
 		} finally {
 			stopped = true;
 			if (typeof window !== "undefined") {

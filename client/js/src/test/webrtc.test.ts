@@ -527,6 +527,24 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		expect(video.stop).not.toHaveBeenCalled();
 	});
 
+	it("a stream that cannot join the queue again ends with an error", async () => {
+		const { job_iter } = start();
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		client.submit.mockImplementation(() => {
+			throw new Error("No endpoint matching /flip");
+		});
+		job.send({ type: "status", stage: "complete", stream_ended: false });
+		job.end();
+		const seen: any[] = [];
+		for await (const msg of job_iter) seen.push(msg);
+		expect(seen.at(-1)).toMatchObject({
+			type: "status",
+			stage: "error",
+			message: "No endpoint matching /flip"
+		});
+	});
+
 	it("a connection attempt that fails after its stream handed over does not end the next one", async () => {
 		const { job_iter } = start();
 		let refuse!: (value: unknown) => void;
