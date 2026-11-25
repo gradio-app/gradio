@@ -1445,7 +1445,7 @@ class Events:
             {
                 "name": "stream_every",
                 "type": "float | None = None",
-                "doc": 'The shortest interval (in seconds) between calls of the function. Without `transport=`, it is how often stream chunks are sent to the backend, 0.5 seconds if unset. With `transport="webrtc"`, a video function is called with every frame if unset, and an audio function gets this many seconds of audio per call (0.5 if unset); handler classes ignore it. Parameter only used for the `.stream()` event.',
+                "doc": 'The shortest interval (in seconds) between calls of the function. Without `transport=`, it is how often stream chunks are sent to the backend, 0.5 seconds if unset. With `transport="webrtc"`, a video function is called with every frame if unset (up to 30 a second), and an audio function gets this many seconds of audio per call (0.5 if unset); handler classes ignore it. Parameter only used for the `.stream()` event.',
             },
             {
                 "name": "time_limit",

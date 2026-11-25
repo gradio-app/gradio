@@ -1,5 +1,5 @@
 """The public settings and type hints of WebRTC streams. This module imports
-without the `webrtc` extra, so apps can name these before aiortc is needed."""
+without aiortc, so apps can name these before the `webrtc` extra is needed."""
 
 from __future__ import annotations
 

@@ -1853,8 +1853,9 @@ def check_transport(fn: Any, transport: Any) -> None:
         name = getattr(fn, "__name__", type(fn).__name__)
         raise ValueError(
             f"{name} is a stream handler class, which runs only on a stream "
-            'with transport="webrtc". Pass transport="webrtc", or pass a '
-            "function instead."
+            'with transport="webrtc": pass it to an event listener such as '
+            '.stream(), or to gr.Server.api(), with transport="webrtc", or '
+            "pass a function instead."
         )
 
 

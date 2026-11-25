@@ -823,7 +823,9 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		expect(client.webrtc_rtc_configuration).not.toHaveBeenCalled();
 	});
 
-	it("passes the handler's gr.Info and gr.Warning on as log messages", async () => {
+	// gr.Info and gr.Warning come through the queue; a handler can also send
+	// a message over the data channel with send_message()
+	it("passes a handler's data channel messages on as log messages", async () => {
 		const { job_iter } = start();
 		job.send(turn);
 		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());

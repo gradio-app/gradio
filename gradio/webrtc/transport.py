@@ -441,8 +441,8 @@ def api_stream(
         postprocess=False,
         api_name=api_name or getattr(hinted, "__name__", None),
         api_description=api_description,
-        # Documented so that clients can call it with named arguments; it is
-        # left out of the MCP tools, which could not send media
+        # Documented so that clients can call it with named arguments; the MCP
+        # tools list it only if a client can call it once with a file
         api_visibility="public",
         trigger_mode="once",
         pack_sent=pack_sent,

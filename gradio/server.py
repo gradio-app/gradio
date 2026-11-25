@@ -258,7 +258,8 @@ class Server(App):
         what happens when it reaches `time_limit`: with "rejoin" (default), it
         waits its turn again if others wait, or goes on if nobody does; with
         "stop", it ends. `stream_every` is the shortest interval between calls
-        (unset: every frame).
+        (unset: every frame, up to 30 a second, for a `gr.VideoFrame` function;
+        0.5 s of audio per call for a `gr.AudioChunk` one).
         Instead of a function, such an endpoint can take a handler class from
         `gradio.streaming` or an instance of one, such as `ReplyOnPause(fn)`.
         """
