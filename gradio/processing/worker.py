@@ -308,13 +308,14 @@ class Worker:
             while True:
                 message = await protocol.read(reader)
                 kind = message[0]
-                if kind in ("event", "auth", "auth_dependency", "close_stream"):
+                if kind in ("event", "auth", "auth_dependency", "close_stream", "eta"):
                     _, rid, payload = message
                     run = {
                         "event": self.run_event,
                         "auth": self.run_auth,
                         "auth_dependency": self.run_auth_dependency,
                         "close_stream": self.run_close_stream,
+                        "eta": self.run_eta,
                     }[kind]
                     self.tasks[rid] = asyncio.create_task(
                         self.respond(rid, run, payload)
@@ -497,6 +498,21 @@ class Worker:
         closed = fn.close_stream(p["event_id"])
         return bool(await closed if inspect.isawaitable(closed) else closed)
 
+    async def run_eta(self, p: dict) -> float | None:
+        """An event listener's `eta=` callable, for an event the gateway's queue
+        is enqueuing."""
+        from gradio.queueing import ETA_TIMEOUT, run_eta_hint
+
+        session_hash = p["session_hash"]
+        fns = (
+            self.app.state_holder[session_hash].blocks_config.fns
+            if session_hash is not None
+            else self.blocks.fns
+        )
+        return await run_eta_hint(
+            fns[p["fn_index"]], p["data"], self.blocks.blocked_paths, ETA_TIMEOUT
+        )
+
     async def run_auth(self, p: dict) -> bool:
         """`launch(auth=fn)`: the gateway's login route asks here."""
         import anyio
@@ -586,6 +602,9 @@ class Worker:
             "lease": fn.lease,
             "callable_once": fn.callable_once,
             "sends_to_generator": fn.sends_to_generator,
+            "eta": protocol.FORWARDED
+            if callable(fn.eta)
+            else (None if fn.eta is None else float(cast(float, fn.eta))),
         }
 
     def reloaded(self, demo: Blocks) -> None:

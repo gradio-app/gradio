@@ -355,6 +355,58 @@ def test_validator_runs_in_the_app_process():
             client.predict("bad", api_name="/echo")
 
 
+def test_eta_hints_reach_the_gateway():
+    pids = []
+
+    def eta(steps):
+        pids.append(os.getpid())
+        return steps * 10
+
+    with gr.Blocks() as demo:
+        n = gr.Number()
+        gr.Button().click(lambda x: x, n, n, api_name="hinted", eta=eta)
+        gr.Button().click(lambda x: x, n, n, api_name="fixed", eta=42)
+
+    def process_starts_eta(client, api_name, data):
+        """The ETA the queue sends when the event starts, before any run of it
+        has finished (so there is no average of past runs yet)."""
+        config = httpx2.get(f"{client.src}config").json()
+        fn_index = next(
+            d["id"] for d in config["dependencies"] if d["api_name"] == api_name
+        )
+        session_hash = f"eta-{api_name}"
+        httpx2.post(
+            f"{client.src}gradio_api/queue/join",
+            json={
+                "data": data,
+                "fn_index": fn_index,
+                "session_hash": session_hash,
+                "event_data": None,
+                "trigger_id": None,
+            },
+        )
+        eta = None
+        with httpx2.stream(
+            "GET",
+            f"{client.src}gradio_api/queue/data",
+            params={"session_hash": session_hash},
+            timeout=30,
+        ) as response:
+            for line in response.iter_lines():
+                if not line.startswith("data:"):
+                    continue
+                message = json.loads(line[5:])
+                if message["msg"] == "process_starts":
+                    eta = message["eta"]
+                if message["msg"] == "process_completed":
+                    return eta
+
+    with launched(demo) as client:
+        assert process_starts_eta(client, "hinted", [3]) == 30
+        assert process_starts_eta(client, "fixed", [3]) == 42
+    assert pids == [os.getpid()]
+
+
 def test_static_paths_are_served_by_the_gateway(tmp_path, monkeypatch):
     from gradio.data_classes import _StaticFiles
 

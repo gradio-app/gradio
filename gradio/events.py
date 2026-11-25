@@ -673,6 +673,7 @@ class EventListener(str):
             stream_every: float | None = None,
             key: int | str | tuple[int | str, ...] | None = None,
             validator: Callable | None = None,
+            eta: float | Callable[..., float | None] | None = None,
             inputs_kwargs: dict[str, Component | BlockContext] | None = None,
             transport: Literal["webrtc"] | WebRTCOptions | None = None,
         ) -> Dependency:
@@ -700,6 +701,7 @@ class EventListener(str):
                 api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
                 key: A unique key for this event listener to be used in @gr.render(). If set, this value identifies an event as identical across re-renders when the key is identical.
                 validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names. It should return a `gr.validate()` for each input value.
+                eta: An estimate of how long, in seconds, the function takes to run, used for the ETA shown while the event waits in the queue instead of the average of past runs. Can be a number, or a regular (non-async) function that receives the raw input values sent by the client (before preprocessing) and returns a number, e.g. `lambda prompt, steps: steps * 0.2`. Unlike `validator`, it always gets one positional argument per input in order (even when `inputs` is a set or `inputs_kwargs` is used), and `gr.State` inputs arrive as None. File inputs arrive as dicts whose `path` has been checked to be a user upload; if one is not, the function is not called. If it returns None, raises, or takes longer than 1 second, the average of past runs is used.
                 transport: how the media of a stream travels. None (default) sends it through the queue. "webrtc" (or a `gr.WebRTCOptions` with its settings) streams it over a WebRTC peer connection, for real-time audio and video: `.stream()` of a gr.Image, gr.Audio or gr.Video with the component among the inputs sends the camera or microphone to `fn` (and plays what `fn` returns when it is among the outputs too), and any event whose outputs include one of them streams the media that the generator `fn` yields. The function still takes one value per input and returns one value per output (or, as a generator, is sent them and yields its outputs, see `fn`); the media comes and goes as numpy arrays (an RGB frame, or `(sample_rate, samples)` for audio), so a streamed gr.Image or gr.Audio needs `type="numpy"`. Clients without the page's media (the Python client, curl, MCP) can call the stream once with a file: an image as one frame, or a whole audio file as one chunk. A stream that only sends media runs its generator as a generator event does, and a whole audio stream comes back at the end. A stream with a handler class, or a gr.Video stream, only the page can start. Requires the `webrtc` extra: `pip install "gradio[webrtc]"`.
             """
 
@@ -743,6 +745,7 @@ class EventListener(str):
                         stream_every=stream_every,
                         key=key,
                         validator=validator,
+                        eta=eta,
                     )
                     created_fn_ids = set(root_block.fns) - prior_fn_ids
                     post_fn_id = root_block.fn_id
@@ -780,6 +783,7 @@ class EventListener(str):
                         stream_every=stream_every,
                         key=key,
                         validator=validator,
+                        eta=eta,
                         transport=transport,
                     )
 
@@ -918,6 +922,7 @@ class EventListener(str):
                 else None,
                 key=key,
                 validator=validator,
+                eta=eta,
             )
             set_cancel_events(
                 [event_target],
@@ -995,6 +1000,7 @@ def on(
     stream_every: float = 0.5,
     key: int | str | tuple[int | str, ...] | None = None,
     validator: Callable | None = None,
+    eta: float | Callable[..., float | None] | None = None,
 ) -> Dependency:
     """
     Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
@@ -1026,6 +1032,7 @@ def on(
         on_time_limit: What happens when a stream reaches its `time_limit`. "rejoin" (default): if others are waiting, for its slot (`concurrency_limit`) or for a worker (`max_threads`) that streams keep busy, the page joins the queue again, keeping the microphone or camera on, so that they get their turn; if nobody waits, the stream goes on and its time limit counts again. "stop": the stream ends and the microphone or camera turns off, which keeps every stream within the limit (e.g. when streams cost money or GPU quota). Parameter only used for the `.stream()` event.
         stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
         validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names. It should return a `gr.validate()` for each input value.
+        eta: An estimate of how long, in seconds, the function takes to run, used for the ETA shown while the event waits in the queue instead of the average of past runs. Can be a number, or a regular (non-async) function that receives the raw input values sent by the client (before preprocessing) and returns a number, e.g. `lambda prompt, steps: steps * 0.2`. Unlike `validator`, it always gets one positional argument per input in order (even when `inputs` is a set or `inputs_kwargs` is used), and `gr.State` inputs arrive as None. File inputs arrive as dicts whose `path` has been checked to be a user upload; if one is not, the function is not called. If it returns None, raises, or takes longer than 1 second, the average of past runs is used.
     Example:
         import gradio as gr
         with gr.Blocks() as demo:
@@ -1090,6 +1097,7 @@ def on(
                 stream_every=stream_every,
                 key=key,
                 validator=validator,
+                eta=eta,
             )
             created_fn_ids = set(root_block.fns) - prior_fn_ids
             post_fn_id = root_block.fn_id
@@ -1127,6 +1135,7 @@ def on(
                 stream_every=stream_every,
                 key=key,
                 validator=validator,
+                eta=eta,
             )
 
             @wraps(func)
@@ -1202,6 +1211,7 @@ def on(
         stream_every=stream_every,
         key=key,
         validator=validator,
+        eta=eta,
     )
     set_cancel_events(methods, cancels)
     return Dependency(None, dep.get_config(), dep_index, fn)

@@ -979,6 +979,7 @@ def event_table(
             page=pages.get(dep["id"], ""),
             validator=make_stub(dep["id"]) if settings["has_validator"] else None,
             input_parameter_names=settings["parameter_names"],
+            eta=settings.get("eta"),
         )
         if settings.get("closes_streams") and close_stream is not None:
             fns[dep["id"]].close_stream = close_stream
@@ -986,6 +987,22 @@ def event_table(
         fns[dep["id"]].callable_once = bool(settings.get("callable_once"))
         fns[dep["id"]].sends_to_generator = bool(settings.get("sends_to_generator"))
     return fns
+
+
+async def forward_eta(
+    pool: Pool, fn: BlockFunction, body: PredictBodyInternal
+) -> float | None:
+    """The result of event `fn`'s `eta=` callable, called in the app's process
+    that holds the event's session."""
+    link = pool.for_session(body.session_hash)
+    return await link.call(
+        "eta",
+        {
+            "fn_index": fn._id,
+            "session_hash": body.session_hash,
+            "data": body.data,
+        },
+    )
 
 
 def app_block(component: dict) -> Any:

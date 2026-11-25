@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import math
 import os
 import platform
 import random
@@ -15,11 +16,13 @@ from collections import defaultdict
 from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
 from threading import Barrier, Lock, Thread
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import fastapi
 from anyio.to_thread import run_sync
+from gradio_client import utils as client_utils
 
 from gradio import caching, history, route_utils, routes, utils
 from gradio.caching import CacheMissError, ProbeCache
@@ -51,6 +54,9 @@ from gradio.utils import (
     LRUCache,
     ShmFdQueue,
     error_payload,
+    get_upload_folder,
+    is_allowed_file,
+    is_eta_number,
     run_coro_in_background,
     safe_aclose_iterator,
     set_task_name,
@@ -99,6 +105,7 @@ class Event:
         # A WebRTC stream that a client called once with a file instead of
         # streaming to it: an ordinary event (see webrtc.transport)
         self.called_once = False
+        self.eta_hint: float | None = None
 
     @property
     def streaming(self):
@@ -165,6 +172,7 @@ class EventQueue:
         self.start_times_per_fn: defaultdict[BlockFunction, set[float]] = defaultdict(
             set
         )
+        self.eta_hints_per_start_time: dict[float, float] = {}
 
 
 @dataclass
@@ -808,6 +816,14 @@ class Queue:
         )
         event.data = body
         event.called_once = fn.called_once(body.event_data)
+        if fn.eta is not None and not is_eta_number(fn.eta):
+            event.eta_hint = await self.request_eta_hint(fn, body)
+            if self.max_size is not None and len(self) >= self.max_size:
+                return (
+                    False,
+                    f"Queue is full. Max size is {self.max_size} and size is {len(self)}.",
+                    "queue_full",
+                )
         if body.session_hash is None:
             body.session_hash = event.session_hash
         if own_stream:
@@ -1011,6 +1027,9 @@ class Queue:
                     start_time = time.time()
                     fn = events[0].fn
                     event_queue.start_times_per_fn[fn].add(start_time)
+                    hints = [e.eta_hint for e in events if e.eta_hint is not None]
+                    if hints:
+                        event_queue.eta_hints_per_start_time[start_time] = max(hints)
                     for event in events:
                         if (a := self.event_analytics.get(event._id)) is not None:
                             a["status"] = "processing"
@@ -1194,17 +1213,21 @@ class Queue:
         if event_queue.current_concurrency == event_queue.concurrency_limit:
             expected_end_times = []
             for fn, start_times in event_queue.start_times_per_fn.items():
-                # A stream holds its slot until it is closed or hits its time limit
-                if fn.connection == "stream" and fn.time_limit is not None:
-                    process_time = fn.time_limit
-                elif fn.connection == "stream" or fn not in self.process_time_per_fn:
-                    time_till_available_worker = None
+                for start_time in start_times:
+                    # A stream holds its slot until it is closed or hits its time limit
+                    process_time = (
+                        fn.time_limit
+                        if fn.connection == "stream"
+                        else event_queue.eta_hints_per_start_time.get(
+                            start_time, self.estimate_process_time(fn)
+                        )
+                    )
+                    if process_time is None:
+                        time_till_available_worker = None
+                        break
+                    expected_end_times.append(start_time + process_time)
+                if time_till_available_worker is None:
                     break
-                else:
-                    process_time = self.process_time_per_fn[fn].avg_time
-                expected_end_times += [
-                    start_time + process_time for start_time in start_times
-                ]
             if time_till_available_worker is not None and len(expected_end_times) > 0:
                 time_of_first_completion = min(expected_end_times)
                 time_till_available_worker = max(
@@ -1212,13 +1235,9 @@ class Queue:
                 )
 
         for rank, event in enumerate(event_queue.queue):
-            process_time_for_fn = (
-                self.process_time_per_fn[event.fn].avg_time
-                if event.fn in self.process_time_per_fn
-                else 0
-                if event.streaming
-                else None
-            )
+            process_time_for_fn = self.estimate_process_time(event.fn, event)
+            if process_time_for_fn is None and event.streaming:
+                process_time_for_fn = 0
 
             # eta is the time remaining from now until the result will be returned
             # process_time_for_fn = time to run fn once worker assigned to it
@@ -1254,6 +1273,41 @@ class Queue:
                 wait_so_far += held_for / event_queue.concurrency_limit
             else:
                 wait_so_far = None
+
+    def estimate_process_time(
+        self, fn: BlockFunction, event: Event | None = None
+    ) -> float | None:
+        """
+        Expected run time of `fn` once a worker picks it up: the event's `eta=` hint if
+        the listener supplied one, otherwise the average of past runs.
+        """
+        if event is not None and event.eta_hint is not None:
+            return event.eta_hint
+        if is_eta_number(fn.eta):
+            return float(cast(float, fn.eta))
+        if fn in self.process_time_per_fn:
+            return self.process_time_per_fn[fn].avg_time
+        return None
+
+    async def request_eta_hint(
+        self, fn: BlockFunction, body: PredictBodyInternal
+    ) -> float | None:
+        """
+        The listener's `eta=` callable, called with the request's raw input values.
+        With executor="process" this queue runs in the gateway, while the callable
+        stays in the app's process, so it is called there.
+        """
+        pool = getattr(self.blocks, "_process_pool", None)
+        try:
+            if pool is not None:
+                from gradio.processing.gateway import forward_eta
+
+                return await asyncio.wait_for(forward_eta(pool, fn, body), ETA_TIMEOUT)
+            return await run_eta_hint(
+                fn, body.data, self.blocks.blocked_paths, ETA_TIMEOUT
+            )
+        except Exception:  # noqa: BLE001
+            return None
 
     def get_status(self) -> EstimationMessage:
         return EstimationMessage(
@@ -1354,11 +1408,7 @@ class Queue:
                 if event.alive:
                     self.send_message(
                         event,
-                        ProcessStartsMessage(
-                            eta=self.process_time_per_fn[fn].avg_time
-                            if fn in self.process_time_per_fn
-                            else None
-                        ),
+                        ProcessStartsMessage(eta=self.estimate_process_time(fn, event)),
                     )
                     awake_events.append(event)
             if not awake_events:
@@ -1744,6 +1794,7 @@ class Queue:
             event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
             event_queue.current_concurrency -= 1
             start_times = event_queue.start_times_per_fn.get(fn)
+            event_queue.eta_hints_per_start_time.pop(begin_time, None)
             if start_times is not None:
                 start_times.discard(begin_time)
                 if not start_times:
@@ -1913,6 +1964,83 @@ class Queue:
                 pass
             del app.iterators[event_id]
         return
+
+
+ETA_TIMEOUT = 1.0
+MAX_ETA = 24 * 60 * 60
+
+
+async def run_eta_hint(
+    fn: BlockFunction,
+    data: list[Any] | None,
+    blocked_paths: list[str] | None,
+    timeout: float | None,
+) -> float | None:
+    """`compute_eta_hint` in a thread, abandoned after `timeout`."""
+    return await asyncio.wait_for(
+        run_sync(compute_eta_hint, fn, data, blocked_paths, abandon_on_cancel=True),
+        timeout,
+    )
+
+
+def eta_files_are_allowed(data: Any, blocked_paths: list[str] | None = None) -> bool:
+    """
+    Whether every local file in a request's raw input values is one a user
+    uploaded. The `eta=` callable runs before preprocessing, where these paths are
+    otherwise checked, so it must not see a path the client made up.
+    """
+    allowed = True
+
+    def check(d: dict) -> dict:
+        nonlocal allowed
+        path = d.get("path")
+        if isinstance(path, str) and not client_utils.is_http_url_like(path):
+            ok, _ = is_allowed_file(
+                Path(os.path.abspath(path)),
+                blocked_paths=blocked_paths or [],
+                allowed_paths=[],
+                created_paths=[get_upload_folder()],
+            )
+            allowed = allowed and ok
+        return d
+
+    client_utils.traverse(data, check, client_utils.is_file_obj)
+    return allowed
+
+
+def compute_eta_hint(
+    fn: BlockFunction,
+    data: list[Any] | None,
+    blocked_paths: list[str] | None = None,
+) -> float | None:
+    """
+    Calls the listener's `eta=` callable with the raw input values of a request.
+    Returns None (falling back to the average of past runs) if an input file was
+    not uploaded by a user, or if the callable returns None, something that is not
+    a non-negative finite number, or raises. Results are capped at MAX_ETA, since
+    they come from untrusted input.
+    """
+    try:
+        if not eta_files_are_allowed(data, blocked_paths):
+            return None
+        eta = cast(Callable[..., Any], fn.eta)(*(data or []))
+        if inspect.isawaitable(eta):
+            if inspect.iscoroutine(eta):
+                eta.close()
+            raise TypeError("`eta` returned an awaitable")
+        if eta is None:
+            return None
+        eta = float(eta)
+        if not math.isfinite(eta) or eta < 0:
+            return None
+        return min(eta, MAX_ETA)
+    except Exception:
+        warnings.warn(
+            f"The `eta` function of event listener '{fn.name}' raised an error or "
+            "returned an invalid value, so the queue ETA falls back to the average "
+            "of past runs."
+        )
+        return None
 
 
 def create_validator_fn(fn: BlockFunction) -> BlockFunction:

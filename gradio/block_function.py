@@ -58,6 +58,7 @@ class BlockFunction:
         page: str = "",
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
+        eta: float | Callable[..., float | None] | None = None,
         is_validator_function: bool = False,
     ):
         self.fn = fn
@@ -98,6 +99,7 @@ class BlockFunction:
         self.render_iteration = render_iteration
         self.page = page
         self.validator = validator
+        self.eta = eta
         self.is_validator_function = is_validator_function
 
         # We need to keep track of which events are cancel events

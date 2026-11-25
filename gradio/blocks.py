@@ -944,6 +944,7 @@ class BlocksConfig:
         event_specific_args: list[str] | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
         validator: Callable | None = None,
+        eta: float | Callable[..., float | None] | None = None,
         component_prop_inputs: list[int] | None = None,
         inputs_kwargs: dict[str, Component | BlockContext] | None = None,
     ) -> tuple[BlockFunction, int]:
@@ -982,8 +983,10 @@ class BlocksConfig:
             on_time_limit: What happens when a stream reaches its `time_limit`. "rejoin" (default): if others are waiting, for its slot (`concurrency_limit`) or for a worker (`max_threads`) that streams keep busy, the page joins the queue again, keeping the microphone or camera on, so that they get their turn; if nobody waits, the stream goes on and its time limit counts again. "stop": the stream ends and the microphone or camera turns off, which keeps every stream within the limit (e.g. when streams cost money or GPU quota). Parameter only used for the `.stream()` event.
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
             validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input. The validator receives the same keyword arguments as the main function when `inputs_kwargs` is used, so its signature must accept those keyword names.
+            eta: a number of seconds, or a regular (non-async) function of the raw input values returning one, used to estimate the function's run time for queue ETAs instead of the average of past runs. The function gets one positional argument per input (gr.State inputs as None), and is not called if a file input was not uploaded by a user.
         Returns: dependency information, dependency index
         """
+        utils.validate_eta(eta)
         # Support for singular parameter
         _targets = [
             (
@@ -1163,6 +1166,7 @@ class BlocksConfig:
             page=self.root_block.current_page,
             key=key,
             validator=validator,
+            eta=eta,
         )
 
         block_fn.sends_to_generator = sends_to_generator
