@@ -553,7 +553,12 @@ export function submit_over_webrtc(
 					endpoint: String(endpoint),
 					fn_index
 				} as unknown as GradioEvent);
+				// The finished event would otherwise stay resumable, and a
+				// reload would replay it and run its .then() again. No await
+				// before join(): a Stop in between would leave a job unclosed.
+				const handed_over = job;
 				job = join();
+				void handed_over.acknowledge();
 			}
 		} finally {
 			stopped = true;

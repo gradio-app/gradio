@@ -546,6 +546,8 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		job.end();
 
 		await vi.waitFor(() => expect(client.submit).toHaveBeenCalledTimes(2));
+		// Otherwise a reload resumes the finished event and runs its .then()
+		expect(job.acknowledge).toHaveBeenCalled();
 		const [endpoint, data, event_data] = client.submit.mock.calls[1];
 		expect(endpoint).toBe("/flip");
 		// The current values of the other inputs, the media slot empty
