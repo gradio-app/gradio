@@ -273,7 +273,10 @@ def blocks_stream(
         stream_fn.input_parameter_names = [
             names[i] if i < len(names) else None for i in range(len(inputs))
         ]
-    media.stream_transport = "webrtc"
+    if media_in is not None:
+        # Its camera or microphone streams over WebRTC. An output that only
+        # receives shows the stream in its preview instead.
+        media.stream_transport = "webrtc"
     return stream_fn, index
 
 

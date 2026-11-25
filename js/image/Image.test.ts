@@ -899,6 +899,23 @@ describe("Props: buttons (interactive mode)", () => {
 	});
 });
 
+describe("Live media of a WebRTC stream", () => {
+	afterEach(() => cleanup());
+
+	test("an interactive output shows the stream it receives, and its own controls after", async () => {
+		// e.g. an output that is also the input of another event
+		const { getByTestId, queryByTestId, set_data } = await render(Image, {
+			...default_props,
+			interactive: true
+		});
+		expect(queryByTestId("live-video")).toBeNull();
+		await set_data({ live_stream: new MediaStream() });
+		await waitFor(() => expect(getByTestId("live-video")).toBeTruthy());
+		await set_data({ live_stream: null });
+		await waitFor(() => expect(queryByTestId("live-video")).toBeNull());
+	});
+});
+
 describe("get_data", () => {
 	afterEach(() => cleanup());
 

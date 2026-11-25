@@ -73,9 +73,15 @@
 	const queue = new QueueDetail();
 	$effect(() => queue.update(gradio?.shared?.loading_status));
 	onDestroy(() => queue.destroy());
+
+	// An output shows the media a WebRTC stream sends it in the preview, even
+	// when it is interactive (e.g. also the input of another event)
+	const shows_live = $derived(
+		!!(gradio.props as any).live_stream && !gradio.props.stream_transport
+	);
 </script>
 
-{#if !gradio.shared.interactive}
+{#if !gradio.shared.interactive || shows_live}
 	<Block
 		visible={gradio.shared.visible}
 		variant={"solid"}

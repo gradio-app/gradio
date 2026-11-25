@@ -104,9 +104,16 @@
 	onMount(() => {
 		set_trim_region_colour();
 	});
+
+	// An output plays the audio a WebRTC stream sends it in the player, even
+	// when it is interactive (e.g. also the input of another event)
+	const shows_live = $derived(
+		!!(gradio.props as any).live_stream &&
+			!(gradio.props as any).stream_transport
+	);
 </script>
 
-{#if !gradio.shared.interactive}
+{#if !gradio.shared.interactive || shows_live}
 	<Block
 		variant={"solid"}
 		border_mode={dragging ? "focus" : "base"}

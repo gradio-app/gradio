@@ -844,6 +844,7 @@ class TestWebRTC:
         assert [tuple(t) for t in start.targets] == [(button._id, "click")]
         assert start.transport["mode"] == "receive"
         assert start.transport["media_input"] is None
+        assert "stream_transport" not in speaker.get_config()
         assert "rtp_params" not in start.transport
         # A button that starts a stream ignores clicks while it runs
         assert start.trigger_mode == "once"
