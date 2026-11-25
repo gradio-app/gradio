@@ -1643,6 +1643,27 @@ def test_a_stream_whose_time_runs_out_while_waiting_for_a_chunk_ends_with_stop()
         demo.close()
 
 
+def test_the_wait_behind_a_stream_that_went_on_lasts_to_the_end_of_its_period():
+    with gr.Blocks() as demo:
+        audio = gr.Audio(sources=["microphone"], streaming=True)
+        heard = gr.Textbox()
+        audio.stream(lambda chunk: chunk, audio, heard, time_limit=10)
+    fn = demo.fns[0]
+    queue = demo._queue
+    queue.create_event_queue_for_fn(fn)
+    event_queue = queue.event_queue_per_concurrency_id[fn.concurrency_id]
+    event_queue.concurrency_limit = 1
+    event_queue.current_concurrency = 1
+    # 25 s in: past two periods of 10 s, so it ends 5 s from now at the latest
+    event_queue.start_times_per_fn[fn].add(time.time() - 25)
+    event_queue.queue.append(queueing.Event(None, fn, None, None))  # type: ignore
+
+    sent = []
+    with patch.object(queue, "send_message", lambda e, m: sent.append(m)):
+        queue.broadcast_estimations(fn.concurrency_id)
+    assert sent[0].rank_eta == pytest.approx(5.0, abs=0.5)
+
+
 def test_a_stream_that_gets_no_chunk_for_its_time_limit_rejoins_by_default():
     demo, api = _launch_text_stream(lambda chunk: f"got {chunk}", time_limit=1)
     try:

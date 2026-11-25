@@ -1222,6 +1222,15 @@ class Queue:
                             start_time, self.estimate_process_time(fn)
                         )
                     )
+                    if (
+                        fn.connection == "stream"
+                        and fn.time_limit
+                        and fn.on_time_limit == "rejoin"
+                    ):
+                        # One that went on past it ends with its current period,
+                        # now that an event waits
+                        periods = math.ceil((time.time() - start_time) / fn.time_limit)
+                        process_time = fn.time_limit * max(periods, 1)
                     if process_time is None:
                         time_till_available_worker = None
                         break
