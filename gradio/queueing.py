@@ -943,6 +943,8 @@ class Queue:
                     self.event_ids_to_events.pop(event_id, None)
                 except ValueError:
                     return False
+            if (a := self.event_analytics.get(event_id)) is not None:
+                a["status"] = "cancelled"
             if self.live_updates:
                 self.broadcast_estimations(event.concurrency_id)
             return True

@@ -600,6 +600,21 @@ def test_analytics_summary(monkeypatch):
         assert event_analytics["functions"]["predict"]["total_requests"] == 4
 
 
+@pytest.mark.asyncio
+async def test_an_event_taken_out_of_the_line_is_recorded_as_cancelled():
+    with gr.Blocks() as demo:
+        gr.Textbox().submit(lambda x: x, None, None)
+    fn = demo.fns[0]
+    queue = demo._queue
+    queue.create_event_queue_for_fn(fn)
+    event = queueing.Event("s", fn, None, None)  # type: ignore
+    queue.event_queue_per_concurrency_id[fn.concurrency_id].queue.append(event)
+    queue.event_ids_to_events[event._id] = event
+    queue.event_analytics[event._id] = {"status": "queued"}
+    assert await queue.remove_from_queue(event._id)
+    assert queue.event_analytics[event._id]["status"] == "cancelled"
+
+
 class TestQueueDoesNotAccumulate:
     def test_finished_events_are_not_retained(self, connect):
         with gr.Blocks() as demo:
