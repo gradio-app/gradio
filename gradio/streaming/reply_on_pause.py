@@ -163,6 +163,10 @@ class ReplyOnPause(StreamHandler):
                 "ReplyOnPause takes a generator function (def ... yield), "
                 "which yields its reply one value per output at a time."
             )
+        if not pause_seconds > 0:
+            # Every silent window would end an utterance, and the silence
+            # kept before the next one would never be trimmed
+            raise ValueError(f"pause_seconds must be above 0, not {pause_seconds!r}.")
         super().__init__(input_sample_rate=input_sample_rate)
         self.fn = fn
         self.can_interrupt = can_interrupt

@@ -171,6 +171,12 @@ async def test_an_async_generator_replies_too():
 def test_needs_a_generator_and_the_vad_extra(monkeypatch):
     with pytest.raises(TypeError, match="generator function"):
         ReplyOnPause(lambda audio: audio, vad=LoudnessVAD())
+
+    def reply(audio):
+        yield audio
+
+    with pytest.raises(ValueError, match="pause_seconds"):
+        ReplyOnPause(reply, pause_seconds=0, vad=LoudnessVAD())
     monkeypatch.setattr(importlib.util, "find_spec", lambda name: None)
     with pytest.raises(ImportError, match=r"gradio\[vad\]"):
         SileroVAD()
