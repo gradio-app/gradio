@@ -6003,6 +6003,52 @@ def test_a_server_stream_called_once_with_a_file(tmp_path):
         gr.close_all()
 
 
+@pytest.mark.parametrize("kind", ["blocks", "server"])
+def test_a_stream_called_once_reads_only_uploaded_files(kind, tmp_path_factory):
+    import httpx
+
+    # Outside the upload folder (GRADIO_TEMP_DIR is the test's tmp_path)
+    image, wav = _image_and_wav(tmp_path_factory.mktemp("elsewhere"))
+    if kind == "blocks":
+        with gr.Blocks() as app:
+            camera = webcam()
+            seen = gr.Textbox()
+            camera.stream(lambda f: str(f.shape), [camera], [seen], transport="webrtc")
+            mic = gr.Audio(sources=["microphone"], streaming=True)
+            heard = gr.Textbox()
+            mic.stream(lambda c: str(c[1].shape), [mic], [heard], transport="webrtc")
+    else:
+        app = gr.Server()
+
+        @app.api(name="lambda", transport="webrtc")
+        def see(frame: gr.VideoFrame) -> str:
+            return str(frame.shape)
+
+        @app.api(name="lambda_1", transport="webrtc")
+        def hear(chunk: gr.AudioChunk) -> str:
+            return str(chunk[1].shape)
+
+    _, local_url, _ = app.launch(prevent_thread_lock=True)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    try:
+        with httpx.Client(timeout=30) as http:
+            for name, path in (("lambda", image), ("lambda_1", wav)):
+                # Files the client did not upload, as a path or a file without
+                # the FileData marker, or a FileData outside the upload folder
+                for value in (
+                    str(path),
+                    {"path": str(path)},
+                    {"path": str(path), "meta": {"_type": "gradio.FileData"}},
+                ):
+                    event_id = http.post(
+                        f"{api}/call/{name}", json={"data": [value]}
+                    ).json()["event_id"]
+                    result = http.get(f"{api}/call/{name}/{event_id}").text
+                    assert "event: error" in result, (name, value, result)
+    finally:
+        gr.close_all()
+
+
 def test_a_stream_called_without_a_file_says_what_it_takes():
     from gradio.webrtc.transport import _callable_once
 
@@ -6058,7 +6104,9 @@ def test_a_stream_called_with_the_wrong_kind_of_file_says_so(tmp_path):
     from gradio.webrtc.transport import _media_from_file
 
     image, wav = _image_and_wav(tmp_path)
+    meta = {"_type": "gradio.FileData"}
+    image_file = {"path": str(image), "orig_name": "frame.png", "meta": meta}
     with pytest.raises(gr.Error, match="takes an audio file, but frame.png could not"):
-        _media_from_file({"path": str(image), "orig_name": "frame.png"}, "audio")
+        _media_from_file(image_file, "audio", [])
     with pytest.raises(gr.Error, match="takes an image, but the file could not"):
-        _media_from_file({"path": str(wav)}, "video")
+        _media_from_file({"path": str(wav), "meta": meta}, "video", [])

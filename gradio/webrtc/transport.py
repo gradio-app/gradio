@@ -548,16 +548,36 @@ def _callable_once(fn: Any, modality: Modality) -> bool:
     return modality != "audio-video" and not _is_a(fn, (StreamHandlerBase,))
 
 
-def _media_from_file(value: Any, modality: Modality) -> Any:
+def _media_from_file(value: Any, modality: Modality, blocked_paths: list[str]) -> Any:
     """What a stream's function gets for one frame or chunk, from the file a
     client sent instead: an RGB array, or (sample_rate, array) as the numpy
-    value of gr.Audio, with the whole file as one chunk."""
+    value of gr.Audio, with the whole file as one chunk. Only a file the
+    client uploaded is read, as for an ordinary event's file input."""
+    from pydantic import ValidationError
+
     from gradio import processing_utils
+    from gradio.data_classes import FileData
     from gradio.exceptions import Error
 
-    path = value.get("path") if isinstance(value, dict) else value
-    if not path:
-        raise ValueError("No file in the media's slot.")
+    try:
+        path = FileData.model_validate(value, context={"validate_meta": True}).path
+    except ValidationError:
+        raise Error(
+            "Send the file in the media's slot as an uploaded file "
+            "(handle_file() in the Python client).",
+            print_exception=False,
+        ) from None
+    allowed, _ = utils.is_allowed_file(
+        utils.abspath(path),
+        blocked_paths=blocked_paths,
+        allowed_paths=[],
+        created_paths=[utils.get_upload_folder()],
+    )
+    if not allowed:
+        raise Error(
+            "The file in the media's slot was not uploaded to this app.",
+            print_exception=False,
+        )
     try:
         if modality == "audio":
             return processing_utils.audio_from_file(str(path))
@@ -1179,7 +1199,10 @@ def transport_event(
                 "(@gradio/client) with a MediaStream to stream."
             )
         media = await anyio.to_thread.run_sync(
-            _media_from_file, values[index], modality
+            _media_from_file,
+            values[index],
+            modality,
+            getattr(launched(), "blocked_paths", None) or [],
         )
         args = await args_once(request, values, media)
         if sends_to_generator:
