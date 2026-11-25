@@ -224,7 +224,8 @@ export class Client {
 		data: unknown[] | Record<string, unknown> | undefined,
 		event_data?: unknown,
 		trigger_id?: number | null,
-		all_events?: boolean
+		all_events?: boolean,
+		additional_headers?: Record<string, string>
 	) => SubmitIterable<GradioEvent>;
 	resume_jobs: (jobs?: ResumableJob[]) => SubmitIterable<GradioEvent>[];
 	predict: <T = unknown>(
