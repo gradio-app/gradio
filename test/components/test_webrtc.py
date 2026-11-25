@@ -6185,6 +6185,41 @@ def test_mcp_lists_the_streams_a_client_can_call_once():
     assert list(GradioMCPServer(demo).tool_to_endpoint.values()) == ["/once"]
 
 
+def test_a_stream_is_documented_and_called_as_its_function(tmp_path):
+    from gradio_client import Client, handle_file
+
+    from gradio.mcp import GradioMCPServer
+
+    image, _ = _image_and_wav(tmp_path)
+
+    def detect(image, threshold, token: gr.OAuthToken | None):
+        """Detect objects."""
+        return image, token.token if token else "no token"
+
+    with gr.Blocks() as demo:
+        camera = webcam()
+        threshold = gr.Slider(0, 1, 0.5)
+        who = gr.Textbox()
+        camera.stream(detect, [camera, threshold], [camera, who], transport="webrtc")
+
+    info = demo.get_api_info()["named_endpoints"]["/detect"]
+    assert info["description"] == "Detect objects."
+    assert [p["parameter_name"] for p in info["parameters"]] == ["image", "threshold"]
+    assert info["oauth_token"] == "optional"
+    mcp = GradioMCPServer(demo)
+    tool = next(t for t, e in mcp.tool_to_endpoint.items() if e == "/detect")
+    block_fn = next(f for f in demo.fns.values() if f.api_name == "detect")
+    assert mcp.get_fn_description(block_fn, tool)[0].startswith("Detect objects.")
+
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        client = Client(local_url, oauth_token="caller-token", verbose=False)
+        _, who_text = client.predict(handle_file(str(image)), 0.5, api_name="/detect")
+        assert who_text == "caller-token"
+    finally:
+        demo.close()
+
+
 def test_a_stream_called_with_the_wrong_kind_of_file_says_so(tmp_path):
     from gradio.webrtc.transport import _media_from_file
 

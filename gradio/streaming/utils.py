@@ -179,13 +179,14 @@ async def wait_for_item(queue: asyncio.Queue, timeout: float = 0.1) -> Any:
         return None
 
 
-def bind_special_args(fn: Callable, request: Any) -> Callable:
+def bind_special_args(fn: Callable, request: Any, token: Any = None) -> Callable:
     """
     Returns `fn` with its special parameters (`gr.Request`, `gr.OAuthProfile`,
     `gr.OAuthToken`) filled in for one stream, as for an event listener;
     the stream passes the other arguments. The values are computed on the
     first call, inside the handler, so that e.g. a missing sign-in is reported
-    like any other handler error.
+    like any other handler error. `token` is a `gr.OAuthToken` an API client
+    sent, for when the request has no signed-in session.
     """
     from gradio.helpers import special_args
 
@@ -195,7 +196,7 @@ def bind_special_args(fn: Callable, request: Any) -> Callable:
     def with_specials(args: tuple) -> list:
         if len(args) not in inserts:
             marks = [object() for _ in args]
-            filled, *_ = special_args(fn, list(marks), request)
+            filled, *_ = special_args(fn, list(marks), request, token=token)
             inserts[len(args)] = [
                 (i, value)
                 for i, value in enumerate(filled)

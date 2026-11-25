@@ -267,6 +267,12 @@ def blocks_stream(
         # starts a stream ignores clicks while it runs, like any click
         trigger_mode=trigger_mode or ("multiple" if media is block else "once"),
     )
+    if stream_fn.callable_once:
+        # The API page names the parameters after the app's function
+        names = [p.name for p in utils.get_positional_input_parameters(fn)]
+        stream_fn.input_parameter_names = [
+            names[i] if i < len(names) else None for i in range(len(inputs))
+        ]
     media.stream_transport = "webrtc"
     return stream_fn, index
 
@@ -819,6 +825,11 @@ def transport_event(
     )
     other_out = [i for i in range(len(outputs)) if i != media_out]
     callable_once = once and _callable_once(fn, modality)
+    from gradio.oauth import OAuthToken
+    from gradio.streaming.reply_on_pause import ReplyOnPause
+
+    documented = fn.fn if isinstance(fn, ReplyOnPause) else fn
+    token_kind = utils.oauth_token_requirement(fn) if callable_once else None
     if not callable_once and preprocessed_inputs is not None:
         # Only the page can call a Blocks stream then (a gr.Server endpoint
         # stays public: its page calls it by name)
@@ -1147,7 +1158,9 @@ def transport_event(
             out[media_out] = _media_to_file(out[media_out], modality)
         return out[0] if len(out) == 1 else tuple(out)
 
-    async def call_once(request: Any, values: list[Any]) -> AsyncGenerator[Any, None]:
+    async def call_once(
+        request: Any, values: list[Any], token: Any
+    ) -> AsyncGenerator[Any, None]:
         """A call without the page, as an ordinary event (the queue runs it as
         one, see `Event.called_once`). A stream that takes media runs its
         function once on the file in the media's slot; a stream that only
@@ -1158,7 +1171,9 @@ def transport_event(
         from gradio.helpers import special_args
 
         if mode == "receive":
-            args, *_ = special_args(fn, await args_once(request, values, None), request)
+            args, *_ = special_args(
+                fn, await args_once(request, values, None), request, token=token
+            )
             items: Any = (
                 fn(*args)
                 if inspect.isasyncgenfunction(fn)
@@ -1211,7 +1226,7 @@ def transport_event(
             # Created, sent this one value and closed, as a stream's would be
             from gradio.streaming.utils import bind_special_args
 
-            bound = bind_special_args(fn, request)
+            bound = bind_special_args(fn, request, token)
             generator = utils.StreamGenerator(
                 lambda: bound(), is_async=inspect.isasyncgenfunction(fn)
             )
@@ -1222,7 +1237,7 @@ def transport_event(
             if result is utils.StreamGenerator.ENDED:
                 result = None
         else:
-            args, *_ = special_args(fn, args, request)
+            args, *_ = special_args(fn, args, request, token=token)
             if is_async(fn):
                 result = await fn(*args)
             else:
@@ -1232,6 +1247,11 @@ def transport_event(
         yield outputs_once(values_once(result))
 
     async def run_stream(evt: Any, request: Any, *_inputs: Any) -> AsyncIterator[Any]:
+        token = None
+        if token_kind is not None:
+            # Filled in by special_args, as the signature below asks
+            token, *values = _inputs
+            _inputs = tuple(values)
         data = getattr(evt, "_data", None)
         webrtc_id = data.get("webrtc_id") if isinstance(data, dict) else None
         if not isinstance(webrtc_id, str) or not webrtc_id:
@@ -1241,7 +1261,7 @@ def transport_event(
                     "This endpoint streams media over WebRTC. Call it from the "
                     "JavaScript client (@gradio/client) with a MediaStream."
                 )
-            async with aclosing(call_once(request, list(_inputs))) as results:
+            async with aclosing(call_once(request, list(_inputs), token)) as results:
                 async for result in results:
                     yield result
             return
@@ -1272,6 +1292,25 @@ def transport_event(
     run_stream.__name__ = run_stream.__qualname__ = getattr(
         fn, "__name__", type(fn).__name__
     )
+    # The API page and MCP describe the app's function (its signature is not
+    # copied: special_args fills in this wrapper's). The token an API client
+    # sends (Client(oauth_token=...)) is filled in too, for a call once.
+    run_stream.__doc__ = getattr(documented, "__doc__", None)
+    if inspect.isfunction(documented):
+        for name, value in vars(documented).items():
+            if name.startswith("_mcp_"):
+                setattr(run_stream, name, value)
+    if token_kind is not None:
+        run_stream.__annotations__["token"] = (
+            OAuthToken if token_kind == "required" else OAuthToken | None
+        )
+        run_stream.__signature__ = inspect.Signature(  # type: ignore[attr-defined]
+            [
+                inspect.Parameter(name, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+                for name in ("evt", "request", "token")
+            ]
+            + [inspect.Parameter("_inputs", inspect.Parameter.VAR_POSITIONAL)]
+        )
     stream_fn, index = add_stream_event(
         root_block,
         triggers,
