@@ -534,7 +534,12 @@ export function submit_over_webrtc(
 						// The first data message means the stream's turn has come
 						turn = true;
 						if (!stopped) {
-							connect().catch((error: Error) => fail(error.message));
+							// A failure after the stream joined the queue again is
+							// the old stream's, not the new one's
+							const id = webrtc_id;
+							connect().catch((error: Error) => {
+								if (id === webrtc_id) fail(error.message);
+							});
 						}
 					}
 					// No data: the stream left the line, or ended, without outputs

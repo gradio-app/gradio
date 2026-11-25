@@ -527,6 +527,32 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		expect(video.stop).not.toHaveBeenCalled();
 	});
 
+	it("a connection attempt that fails after its stream handed over does not end the next one", async () => {
+		const { job_iter } = start();
+		let refuse!: (value: unknown) => void;
+		client.webrtc_rtc_configuration.mockImplementationOnce(
+			() => new Promise((resolve) => (refuse = resolve))
+		);
+		job.send(turn);
+		await vi.waitFor(() =>
+			expect(client.webrtc_rtc_configuration).toHaveBeenCalled()
+		);
+		const next_job = fake_job();
+		client.submit.mockImplementation(() => next_job);
+		job.send({ type: "status", stage: "complete", stream_ended: false });
+		job.end();
+		await vi.waitFor(() => expect(client.submit).toHaveBeenCalledTimes(2));
+		refuse({ error: "The stream's turn ended." });
+		await flush();
+		expect(next_job.close_stream).not.toHaveBeenCalled();
+		next_job.send({ type: "status", stage: "pending", position: 1 });
+		const seen: any[] = [];
+		while (seen.at(-1)?.position !== 1) {
+			seen.push((await job_iter.next()).value);
+		}
+		expect(seen.some((msg) => msg?.stage === "error")).toBe(false);
+	});
+
 	it("a caller that takes only data messages still connects, hands over and joins again, and gets only data", async () => {
 		client.options = { events: ["data"] };
 		const media = new FakeMediaStream([new FakeTrack("video")]);
