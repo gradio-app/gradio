@@ -746,6 +746,8 @@ class EventListener(str):
                         key=key,
                         validator=validator,
                         eta=eta,
+                        # Refused with js, rather than a plain stream
+                        transport=transport,
                     )
                     created_fn_ids = set(root_block.fns) - prior_fn_ids
                     post_fn_id = root_block.fn_id

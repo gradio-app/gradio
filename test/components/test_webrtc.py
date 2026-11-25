@@ -588,6 +588,15 @@ class TestWebRTC:
                     outputs=[slider],
                     transport="webrtc",
                 )
+            # A js-only event says so too, rather than streaming over HTTP
+            for media in (camera, video):
+                with pytest.raises(ValueError, match="does not support js"):
+                    media.stream(
+                        js="(x) => x",
+                        inputs=[media],
+                        outputs=[media],
+                        transport="webrtc",
+                    )
             # The frames go to the function first, so they need a parameter
             # of their own unless they come first anyway
             camera.stream(lambda *a: a[0], [camera], [camera], transport="webrtc")
