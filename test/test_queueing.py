@@ -1608,6 +1608,8 @@ def test_a_stream_refuses_a_time_limit_that_is_not_above_zero():
         for time_limit in (0, -1):
             with pytest.raises(ValueError, match="time_limit must be"):
                 audio.stream(lambda x: x, audio, heard, time_limit=time_limit)
+        # Other events ignore it, as they always have
+        gr.Button().click(lambda: None, None, None, time_limit=0)
 
 
 @pytest.mark.parametrize("executor", ["thread", "process"])
