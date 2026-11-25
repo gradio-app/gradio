@@ -1,5 +1,6 @@
 import asyncio
 import json
+import threading
 import time
 from collections.abc import Callable, Generator, Iterator
 from contextlib import asynccontextmanager, closing
@@ -271,6 +272,23 @@ class ValueErrorOnEmit(SyncHandler):
 def value_error_then_audio(*args):
     raise ValueError("internal detail")
     yield
+
+
+slow_calls = {"running": 0, "peak": 0, "total": 0}
+slow_calls_lock = threading.Lock()
+
+
+def slow_frame(frame, x):
+    """A frame function that takes a while, e.g. a model on a GPU, and counts
+    how many of its calls overlap."""
+    with slow_calls_lock:
+        slow_calls["running"] += 1
+        slow_calls["total"] += 1
+        slow_calls["peak"] = max(slow_calls["peak"], slow_calls["running"])
+    time.sleep(0.8)
+    with slow_calls_lock:
+        slow_calls["running"] -= 1
+    return frame, x
 
 
 def info_when_closed(*args):
@@ -2197,6 +2215,30 @@ class TestStreams:
         await h.wait_until(lambda: stream_of(h.manager, "two").connected)
         await second.close()
         await h.wait_until(lambda: SlowShutdown.log.count("shutdown ends") == 2)
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("launched", [{"handler": slow_frame}], indirect=True)
+    async def test_one_at_a_time_the_next_stream_waits_for_a_running_call(
+        self, launched
+    ):
+        h = launched
+        slow_calls.update(running=0, peak=0, total=0)
+        first_event = await h.start("one")
+        first = await make_offer(video=True)
+        await h.connect(first, "one")
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        await h.push_inputs("one", 0.5)
+        await h.wait_until(lambda: slow_calls["running"] == 1)
+        # Stopped while a call runs; the next visitor's turn comes at once
+        await h.http.post(f"{h.api}/stream/{first_event}/close")
+        await h.start("two")
+        second = await make_offer(video=True)
+        await h.connect(second, "two")
+        await h.push_inputs("two", 0.5)
+        await h.wait_until(lambda: slow_calls["total"] >= 2, timeout=10)
+        assert slow_calls["peak"] == 1
+        for pc in (first, second):
+            await pc.close()
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
