@@ -293,16 +293,22 @@ export function submit_over_webrtc(
 	let pc: RTCPeerConnection | null = null;
 	let stopped = false;
 
-	// The media slot holds no value; the stream id travels in the event data
+	// The media slot holds no value; the stream id travels in the event data.
+	// The job yields every message: the stream reads the statuses (its
+	// completion says whether it handed its slot over) whatever the caller
+	// subscribed to.
 	const join = (): ReturnType<Client["submit"]> =>
-		this.submit(endpoint, [...current], { webrtc_id }, trigger_id, all_events);
+		this.submit(endpoint, [...current], { webrtc_id }, trigger_id, true);
 	let job = join();
+	const subscribed = (this.options?.events ?? ["data"]) as string[];
 
-	// Messages of the job, plus the ones the connection adds
+	// Messages of the job, plus the ones the connection adds, of the types
+	// the caller subscribed to
 	const queue: GradioEvent[] = [];
 	let wake: (() => void) | null = null;
 	let finished = false;
 	const push = (msg: GradioEvent): void => {
+		if (!all_events && !subscribed.includes(msg.type)) return;
 		queue.push(msg);
 		wake?.();
 	};

@@ -527,6 +527,37 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		expect(video.stop).not.toHaveBeenCalled();
 	});
 
+	it("a caller that takes only data messages still connects, hands over and joins again, and gets only data", async () => {
+		client.options = { events: ["data"] };
+		const media = new FakeMediaStream([new FakeTrack("video")]);
+		const job_iter = submit_over_webrtc.call(
+			client,
+			"/flip",
+			[media, 1],
+			send_receive,
+			{},
+			null,
+			undefined,
+			["frame", "brightness"]
+		);
+		// The stream reads every message of its job itself
+		expect(client.submit.mock.calls[0][4]).toBe(true);
+		job.send({ type: "status", stage: "pending", position: 0 });
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		const next_job = fake_job();
+		client.submit.mockImplementation(() => next_job);
+		job.send({ type: "status", stage: "complete", stream_ended: false });
+		job.end();
+		await vi.waitFor(() => expect(client.submit).toHaveBeenCalledTimes(2));
+		next_job.send({ type: "data", data: [null, "after"] });
+		const seen: any[] = [];
+		while (seen.at(-1)?.data?.[1] !== "after") {
+			seen.push((await job_iter.next()).value);
+		}
+		expect(seen.map((msg) => msg.type)).toEqual(["data", "data"]);
+	});
+
 	it("a stream that hands its slot over joins the queue again with a new id and the same media", async () => {
 		const { video, job_iter } = start();
 		const first_id = client.submit.mock.calls[0][2].webrtc_id;
