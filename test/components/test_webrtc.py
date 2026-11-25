@@ -90,6 +90,17 @@ def flip_and_skip(frame, *args):
     return frame, gr.skip()
 
 
+def slow_flip(frame, *args):
+    time.sleep(2)
+    return frame, gr.skip()
+
+
+def late_frames(*args):
+    """Waits before its first frame, as for a GPU."""
+    time.sleep(2)
+    yield from frames_forever()
+
+
 def admitted_anyway(managers):
     """`stream_admitted` that admits any session, to the given manager by id."""
 
@@ -1723,6 +1734,48 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    async def test_a_stream_whose_browser_went_away_ends(self, launched, monkeypatch):
+        h = launched
+        monkeypatch.setattr(webrtc_connection, "SILENCE_TIMEOUT", 1)
+        event_id = await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        await h.push_inputs("one", 0.2)
+        await asyncio.sleep(1.5)
+        assert h.event_running(event_id)
+        # A browser that crashed: nothing more arrives, and nothing says so
+        ice = pc.getTransceivers()[0].sender.transport.transport
+        await ice._connection.close()
+        # Long before the ~30 s of ICE consent freshness
+        await h.wait_until(lambda: not h.event_running(event_id))
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("launched", "offer"),
+        [
+            # The function is slower than the timeout
+            ({"handler": slow_flip}, {"video": True}),
+            # A page that only receives is not watched: it sends nothing
+            # while the function prepares its first frame
+            ({"mode": "receive", "handler": late_frames}, {"receive": "video"}),
+        ],
+        indirect=["launched"],
+    )
+    async def test_a_stream_whose_browser_is_there_goes_on(
+        self, launched, offer, monkeypatch
+    ):
+        h = launched
+        monkeypatch.setattr(webrtc_connection, "SILENCE_TIMEOUT", 1)
+        event_id = await h.start("one")
+        pc = await make_offer(**offer)
+        await h.connect(pc, "one")
+        await h.push_inputs("one", 0.2)
+        await asyncio.sleep(3)
+        assert h.event_running(event_id)
+        await pc.close()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "launched",
         [{"handler": lambda frame, x: (frame, x * 2)}],
@@ -2821,6 +2874,9 @@ class TestStreamsWithProcesses:
     launched = TestStreams.launched
 
     test_a_quiet_stream_keeps_its_turn = TestStreams.test_a_quiet_stream_keeps_its_turn
+    test_a_stream_whose_browser_went_away_ends = (
+        TestStreams.test_a_stream_whose_browser_went_away_ends
+    )
     # The gateway's queue decides whether an event waits for the slot
     test_a_stream_goes_on_past_its_time_limit_while_nobody_waits = (
         TestStreams.test_a_stream_goes_on_past_its_time_limit_while_nobody_waits

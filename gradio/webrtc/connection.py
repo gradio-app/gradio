@@ -106,6 +106,10 @@ CONNECT_FAILED = (
 # its turn has come just before the event's first call admits the stream.
 ADMISSION_WAIT = 5
 WATCH_INTERVAL = 0.25
+# Seconds without a packet from the browser before a stream that sends its
+# camera or microphone counts as gone (a crash, a lost network). Those send
+# all the time, silence and muted tracks included.
+SILENCE_TIMEOUT = 5
 MAX_PENDING_CANDIDATES = 128
 MAX_PENDING_CANDIDATE_IDS = 256
 # Seconds a new stream waits for the handlers of ended streams to shut down
@@ -334,6 +338,14 @@ class QueueLease:
         period of time_limit, and the queue ends it if an event waits for its
         slot (see `EventHandle.time_up`).
         """
+        # A stream whose browser sends its camera or microphone ends once
+        # nothing has come from the browser for SILENCE_TIMEOUT. Counted in
+        # polls, so that a blocked loop does not count as silence. A stream
+        # that only receives is not watched: its page may send nothing while
+        # the function prepares, and ICE ends it if the browser is gone.
+        watches_input = stream.manager.mode != "receive"
+        heard: tuple[Any, int] | None = None
+        quiet = 0.0
         while True:
             await asyncio.sleep(WATCH_INTERVAL)
             if not self.live:
@@ -342,6 +354,23 @@ class QueueLease:
                 # The event still has to make its last call
                 continue
             try:
+                if watches_input and stream.state is StreamState.LIVE:
+                    pc = stream.pc
+                    received = await stream.packets_received()
+                    if not self.live:
+                        return
+                    if received is None or stream.ended or stream.pc is not pc:
+                        heard, quiet = None, 0.0
+                    elif heard is None or heard != (pc, received):
+                        heard, quiet = (pc, received), 0.0
+                    else:
+                        quiet += WATCH_INTERVAL
+                        if quiet >= SILENCE_TIMEOUT:
+                            # The browser went away without closing, e.g. it
+                            # crashed: end it as a failed connection would
+                            # be, but sooner than ICE notices
+                            stream.close()
+                            continue
                 now = time.monotonic()
                 timed_out = self.remaining_time() == 0
                 never_connected = (
@@ -429,6 +458,19 @@ class Stream:
     @property
     def ended(self) -> bool:
         return self.state in (StreamState.ENDING, StreamState.ENDED)
+
+    async def packets_received(self) -> int | None:
+        """How many packets its peer connection has had from the browser, of
+        any kind (media, RTCP, data channel). None if it cannot tell."""
+        pc = self.pc
+        if pc is None:
+            return None
+        try:
+            report = await pc.getStats()
+        except Exception:
+            return None
+        counts = [s.packetsReceived for s in report.values() if s.type == "transport"]
+        return sum(counts) if counts else None
 
     def owned_by(self, session_hash: str | None) -> bool:
         """
