@@ -20,3 +20,11 @@ and with its code/agent panel open.
 
 These files are for review only, and would be removed once a direction is
 chosen and implemented.
+
+## Launcher shapes (option E)
+
+The circle reads as a chat widget, so `footer-launcher.html?shape=squircle|tab|diamond`
+redraws every launcher board as a rounded square, a tab docked in the corner,
+or a diamond (the rhombus of the Gradio mark). `launcher-shapes.png` compares
+every state; `shapes/<shape>/` holds each board in that shape.
+`node design/footer/render-shapes.mjs` regenerates them.

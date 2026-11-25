@@ -927,6 +927,170 @@
         line-height: 1.35;
         color: #71717a;
       }
+      /* ================= Launcher shapes =================
+         The circle reads as a chat widget, so these swap its outline while
+         keeping every state. Set with ?shape=squircle|tab|diamond, or a
+         .shape-* class on any ancestor. The progress ring follows the shape. */
+      .fab .ring svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        display: none;
+      }
+      .fab .ring path {
+        fill: none;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        display: none;
+      }
+      .fab .ring .t {
+        stroke: var(--accent-line);
+      }
+      .fab .ring .p {
+        stroke: var(--accent);
+        stroke-dasharray: 32 100;
+      }
+      .fab .ring.idle .t {
+        stroke: var(--chip-hover);
+      }
+      .fab .ring.idle .p {
+        display: none !important;
+      }
+      .shape-squircle .fab .ring,
+      .shape-diamond .fab .ring {
+        background: none;
+        -webkit-mask: none;
+        mask: none;
+        border-radius: 0;
+      }
+      .shape-squircle .fab .ring svg,
+      .shape-diamond .fab .ring svg {
+        display: block;
+      }
+      .shape-squircle .fab .ring .sq,
+      .shape-diamond .fab .ring .dm {
+        display: inline;
+      }
+
+      /* Rounded square: an app icon, not a chat bubble. */
+      .shape-squircle .fab {
+        border-radius: 12px;
+      }
+
+      /* Diamond: the rhombus of the Gradio mark. */
+      .shape-diamond .fab:not(.peek) {
+        background: none;
+        border: 0;
+        box-shadow: none;
+        width: 44px;
+        height: 44px;
+      }
+      .shape-diamond .fab:not(.peek)::before {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 7px;
+        width: 30px;
+        height: 30px;
+        transform: rotate(45deg);
+        border-radius: 8px;
+        background: var(--panel);
+        border: 1px solid var(--hairline);
+        box-shadow: var(--shadow);
+        z-index: -1;
+      }
+      .shape-diamond .fab.open::before {
+        background: var(--chip);
+      }
+      .shape-diamond .fab .ring {
+        inset: -2px;
+      }
+      .shape-diamond .fab:not(.peek) .badge {
+        top: -3px;
+        right: -3px;
+      }
+      .shape-diamond .fab.peek {
+        border-radius: 12px;
+      }
+      .shape-diamond .pop {
+        bottom: 68px;
+      }
+
+      /* Corner tab: docked into the corner, part of the page's frame. */
+      .shape-tab .fab {
+        right: 0;
+        bottom: 0;
+        height: 46px;
+        min-width: 56px;
+        border-radius: 12px 0 0 0;
+        border-width: 1px 0 0 1px;
+        box-shadow: -6px -6px 18px -10px rgba(24, 24, 27, 0.25);
+      }
+      .shape-tab .fab.peek {
+        padding-right: 16px;
+      }
+      .shape-tab .fab .ring {
+        inset: -1px 0 auto 11px;
+        height: 3px;
+        border-radius: 0 0 2px 2px;
+        -webkit-mask: none;
+        mask: none;
+        background: linear-gradient(
+          90deg,
+          var(--accent) 0 32%,
+          var(--accent-line) 0
+        );
+      }
+      .shape-tab .fab .ring.idle {
+        background: var(--chip-hover);
+      }
+      .shape-tab .fab .badge {
+        right: auto;
+        left: -8px;
+        top: -8px;
+      }
+      .shape-tab .pop {
+        right: 10px;
+        bottom: 52px;
+      }
+      .shape-tab .tile .stage {
+        align-items: flex-end;
+        justify-content: flex-end;
+        overflow: hidden;
+      }
+      .shape-tab .tile .stage .fab {
+        transform: scale(1.35);
+        transform-origin: 100% 100%;
+      }
+
+      /* ---------- shape comparison board ---------- */
+      .shape-row {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      .shape-row .shape-name {
+        width: 150px;
+        flex: none;
+        padding-top: 38px;
+      }
+      .shape-row .shape-name b {
+        display: block;
+        font-size: 16px;
+        color: #18181b;
+      }
+      .shape-row .shape-name span {
+        font-size: 13.5px;
+        line-height: 1.35;
+        color: #71717a;
+      }
+      .shape-row + .shape-row {
+        padding-top: 18px;
+        border-top: 1px solid #e4e4e7;
+      }
     </style>
   </head>
   <body>
@@ -1096,6 +1260,18 @@
         done: () => `<span class="badge done">${ico("check")}</span>`,
         err: () => `<span class="badge err">${ico("bang")}</span>`,
       };
+      const RING = `<svg viewBox="0 0 48 48" preserveAspectRatio="none">${[
+        "sq",
+        "dm",
+      ]
+        .map((k) => {
+          const d = {
+            sq: "M24 1.5H31.5A15 15 0 0 1 46.5 16.5V31.5A15 15 0 0 1 31.5 46.5H16.5A15 15 0 0 1 1.5 31.5V16.5A15 15 0 0 1 16.5 1.5Z",
+            dm: "M5 21L21 5Q24 2 27 5L43 21Q46 24 43 27L27 43Q24 46 21 43L5 27Q2 24 5 21Z",
+          }[k];
+          return `<path class="t ${k}" d="${d}" pathLength="100"/><path class="p ${k}" d="${d}" pathLength="100"/>`;
+        })
+        .join("")}</svg>`;
       function fab(o = {}) {
         const cls = ["fab"];
         if (o.static) cls.push("static");
@@ -1107,8 +1283,8 @@
           if (o.peek.hot) cls.push("hot");
           inner = `<span class="msg">${o.peek.html}</span><span class="sep"></span>${ico("logo", "logo")}`;
         }
-        if (o.ring && !o.peek) inner += `<span class="ring"></span>`;
-        if (o.off) inner += `<span class="ring idle"></span>`;
+        if (o.ring && !o.peek) inner += `<span class="ring">${RING}</span>`;
+        if (o.off) inner += `<span class="ring idle">${RING}</span>`;
         if (o.running) inner += `<span class="badge">${o.running}</span>`;
         else if (o.badge) inner += BADGES[o.badge](o.n);
         return `<div class="${cls.join(" ")}">${inner}</div>`;
@@ -1381,6 +1557,49 @@ result = client.<span class="f">predict</span>(
                 `<div class="state"><div class="state-label"><b>${i + 1}</b> ${s.label}</div>${win(s, b.dark)}${s.note ? `<p class="state-note" style="width:${s.phone ? 300 : 560}px">${s.note}</p>` : ""}</div>`,
             )
             .join("")}</div></section>`;
+      }
+      const SHAPES = [
+        ["circle", "Circle", "Today's launcher. Reads as a chat widget."],
+        [
+          "squircle",
+          "Rounded square",
+          "An app icon. Same footprint, no chat-bubble echo.",
+        ],
+        [
+          "tab",
+          "Corner tab",
+          "Docked into the corner, part of the page frame. Progress runs along its top edge.",
+        ],
+        [
+          "diamond",
+          "Diamond",
+          "The rhombus of the Gradio mark. The most branded, the least like anything else.",
+        ],
+      ];
+      const params = new URLSearchParams(location.search);
+      const shape = params.get("shape");
+      if (shape) {
+        document.body.classList.add(`shape-${shape}`);
+        const word = {
+          squircle: "a rounded square",
+          tab: "a tab docked in the corner",
+          diamond: "a diamond",
+        }[shape];
+        html = html
+          .replace(/in a circle/g, `in ${word}`)
+          .replace(/the circle/gi, "the launcher");
+      }
+      if (params.get("board") === "shapes") {
+        html = `<section class="board" id="launcher-shapes">
+          <div class="board-head"><span class="tag">Option E · shapes</span><h2>Shapes for the launcher</h2>
+          <p>Every state, in each outline. The ring and badges follow the shape.</p></div>
+          ${SHAPES.map(
+            ([k, name, d]) =>
+              `<div class="shape-row shape-${k}"><div class="shape-name"><b>${name}</b><span>${d}</span></div><div class="tiles">${TILES.map(
+                ([t, , f], i) =>
+                  `<div class="tile"><div class="stage theme">${fab({ ...f, static: true })}</div>${k === "circle" ? `<div><b>${t}</b></div>` : ""}</div>`,
+              ).join("")}</div></div>`,
+          ).join("")}</section>`;
       }
       document.getElementById("boards").innerHTML = html;
     </script>
