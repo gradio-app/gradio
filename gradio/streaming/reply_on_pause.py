@@ -16,7 +16,7 @@ from typing import Any, Protocol
 import numpy as np
 
 from gradio.streaming.handlers import StreamHandler
-from gradio.streaming.utils import audio_to_float32, bind_special_args
+from gradio.streaming.utils import audio_to_float32, bind_special_args, counted
 
 # Silero VAD v5 (MIT), as exported to ONNX by onnx-community; pinned so that a
 # change on the Hub does not change how pauses are detected
@@ -288,7 +288,7 @@ class ReplyOnPause(StreamHandler):
         # The context carries gr.Info / gr.Warning to this stream's page
         context = contextvars.copy_context()
         threading.Thread(
-            target=context.run, args=(self._run, reply, audio), daemon=True
+            target=context.run, args=(counted(self._run), reply, audio), daemon=True
         ).start()
 
     def _current(self, reply: int) -> bool:

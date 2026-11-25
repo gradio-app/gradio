@@ -10,6 +10,7 @@ import functools
 import inspect
 import json
 import logging
+import threading
 import warnings
 from collections.abc import Callable
 from contextvars import ContextVar
@@ -105,6 +106,52 @@ def first_step_done() -> None:
 current_context: ContextVar[Context | None] = ContextVar(
     "current_context", default=None
 )
+
+
+class StreamCalls:
+    """
+    The calls of one stream's function or handler that run in threads of
+    their own. Closing the stream's connection stops none of them, so the
+    next stream of a concurrency group with a limit of 1 waits for them, as
+    it waits for a handler's shutdown(): two calls of the function then do
+    not overlap.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._running = 0
+
+    def track(self, fn: Callable) -> Callable:
+        """`fn`, counted from now until it returns in its thread."""
+        with self._lock:
+            self._running += 1
+
+        def run(*args: Any, **kwargs: Any) -> Any:
+            try:
+                return fn(*args, **kwargs)
+            finally:
+                with self._lock:
+                    self._running -= 1
+
+        return run
+
+    async def wait(self, timeout: float) -> None:
+        """Returns once no call runs, or after `timeout` seconds."""
+        deadline = asyncio.get_running_loop().time() + timeout
+        while self._running and asyncio.get_running_loop().time() < deadline:
+            await asyncio.sleep(0.05)
+
+
+# Set where a stream's handler starts, so that its calls in threads are counted
+current_calls: ContextVar[StreamCalls | None] = ContextVar(
+    "current_calls", default=None
+)
+
+
+def counted(fn: Callable) -> Callable:
+    """`fn`, counted among the running stream's calls (see `StreamCalls`)."""
+    calls = current_calls.get()
+    return fn if calls is None else calls.track(fn)
 
 
 def get_current_context() -> Context:

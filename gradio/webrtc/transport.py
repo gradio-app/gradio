@@ -658,6 +658,7 @@ def _chunked_audio_handler(
     from gradio.streaming.utils import (
         CloseStream,
         bind_special_args,
+        counted,
         first_step_done,
     )
 
@@ -708,7 +709,7 @@ def _chunked_audio_handler(
             # The context carries gr.Info / gr.Warning to this stream's page
             context = contextvars.copy_context()
             threading.Thread(
-                target=context.run, args=(self._run, rate, chunk), daemon=True
+                target=context.run, args=(counted(self._run), rate, chunk), daemon=True
             ).start()
 
         def _run(self, rate: int, chunk: np.ndarray) -> None:
@@ -1336,6 +1337,9 @@ def transport_event(
         show_progress=show_progress,
         **kwargs,
     )
+    # The next stream of its concurrency group waits for these, whichever
+    # listener of the group ran them
+    manager.shutdowns = connection.group_shutdowns(root_block, stream_fn.concurrency_id)
     if preprocessed_inputs:
         inputs_fn["fn"] = copy.copy(stream_fn)
         inputs_fn["fn"].inputs = list(preprocessed_inputs)

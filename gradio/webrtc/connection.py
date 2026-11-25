@@ -64,8 +64,10 @@ from gradio.streaming.handlers import (
 from gradio.streaming.utils import (
     AdditionalOutputs,
     Context,
+    StreamCalls,
     StreamInputs,
     bind_special_args,
+    current_calls,
 )
 from gradio.utils import error_payload
 from gradio.webrtc.bitrate import add_bitrate_hints, limit_video_encoders
@@ -115,6 +117,19 @@ MAX_PENDING_CANDIDATES = 128
 MAX_PENDING_CANDIDATE_IDS = 256
 # Seconds a new stream waits for the handlers of ended streams to shut down
 SHUTDOWN_WAIT = 5
+
+# The shutdowns the next stream of a concurrency group waits for, by app and
+# group: listeners that share a concurrency_id share them
+_group_shutdowns: weakref.WeakKeyDictionary[Any, dict[str, set[asyncio.Task]]] = (
+    weakref.WeakKeyDictionary()
+)
+
+
+def group_shutdowns(blocks: Any, concurrency_id: str) -> set[asyncio.Task]:
+    """The shutdowns of the streams of `blocks` in the concurrency group
+    `concurrency_id` (see `ConnectionManager._wait_for_shutdowns`)."""
+    return _group_shutdowns.setdefault(blocks, {}).setdefault(concurrency_id, set())
+
 
 # An output whose value the page does not have, or that is not compared
 _UNSEEN = object()
@@ -433,6 +448,8 @@ class Stream:
         # Where the handler runs, set when it connects (see `handle_offer`):
         # its shutdown runs there too, whoever ends the stream
         self.handler_context: HandlerContext | None = None
+        # Its calls that run in threads (see `StreamCalls`)
+        self.calls = StreamCalls()
         # The launched app, set at admission (see `stream_run`)
         self.blocks: Any = None
         self.rtc_configuration: asyncio.Future | None = None
@@ -641,6 +658,8 @@ class Stream:
             # A handler blocked in wait_for_args() would wait forever
             handler.args_set.set()
             manager._add_shutdown(self._in_handler_context(manager._shut_down(handler)))
+        # Calls still running in their threads, which closing stops not
+        manager._add_shutdown(self.calls.wait(SHUTDOWN_WAIT))
 
     async def watch(self) -> None:
         """
@@ -871,8 +890,9 @@ class ConnectionManager:
             # stream. `self.tasks` still holds them.
             self.shutdowns.difference_update(still_running)
             logger.warning(
-                "A stream handler's shutdown() is still running after %s s; "
-                "starting the next stream anyway",
+                "A stream handler's shutdown(), or a call of the stream's "
+                "function, is still running after %s s; starting the next "
+                "stream anyway",
                 SHUTDOWN_WAIT,
             )
 
@@ -967,6 +987,7 @@ class ConnectionManager:
         current_errors.set(errors)
         stream.errors = errors
         stream.handler_context = HandlerContext.capture()
+        current_calls.set(stream.calls)
         pc = RTCPeerConnection(configuration=self.server_rtc_configuration)
         stream.pc = pc
         stream.state = StreamState.CONNECTING

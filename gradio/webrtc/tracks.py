@@ -42,6 +42,7 @@ from gradio.streaming.utils import (
     Context,
     DataChannel,
     StreamInputs,
+    counted,
     create_message,
     current_context,
     first_step_done,
@@ -136,7 +137,7 @@ async def run_in_thread(fn: Callable, *args: Any) -> Any:
     limiter = _thread_limiters.get(loop)
     if limiter is None:
         limiter = _thread_limiters[loop] = anyio.CapacityLimiter(math.inf)
-    return await anyio.to_thread.run_sync(fn, *args, limiter=limiter)
+    return await anyio.to_thread.run_sync(counted(fn), *args, limiter=limiter)
 
 
 async def wait_unless_stopped(event: asyncio.Event, stopped: asyncio.Event) -> None:

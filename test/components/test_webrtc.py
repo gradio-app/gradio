@@ -5167,6 +5167,44 @@ class TestCleanUp:
             task.cancel()
 
     @pytest.mark.asyncio
+    async def test_the_next_stream_waits_for_a_call_still_running_in_a_thread(self):
+        from gradio.streaming.utils import current_calls
+        from gradio.webrtc.tracks import run_in_thread
+
+        manager = rtc_manager()
+        attach(manager, "one")
+        stream = stream_of(manager, "one")
+        # As the handler's calls run: in the context the stream connected in
+        current_calls.set(stream.calls)
+        # e.g. a frame function's call, which closing the connection stops not
+        call = asyncio.create_task(run_in_thread(time.sleep, 0.5))
+        await asyncio.sleep(0.1)
+        end_stream(manager, "one")
+        call.cancel()
+        started = time.monotonic()
+        await manager._wait_for_shutdowns()
+        assert time.monotonic() - started >= 0.3
+
+    def test_listeners_sharing_a_concurrency_id_share_their_shutdowns(self):
+        with gr.Blocks() as demo:
+            first, second = webcam(), webcam()
+            for camera in (first, second):
+                camera.stream(
+                    flip,
+                    [camera],
+                    [camera],
+                    transport="webrtc",
+                    concurrency_id="gpu",
+                    concurrency_limit=1,
+                )
+            other = webcam()
+            other.stream(flip, [other], [other], transport="webrtc")
+        assert manager_of(demo, first).shutdowns is manager_of(demo, second).shutdowns
+        assert (
+            manager_of(demo, first).shutdowns is not manager_of(demo, other).shutdowns
+        )
+
+    @pytest.mark.asyncio
     async def test_clean_up_releases_a_handler_waiting_for_its_inputs(self):
         from gradio.streaming.utils import Context
         from gradio.webrtc.tracks import AudioCallback
