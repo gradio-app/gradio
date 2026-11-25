@@ -1197,13 +1197,19 @@ export function submit(
 		}
 
 		// The event id is only known once queue/join has responded.
-		const post_to_event = (suffix: string, body: unknown): void => {
+		const post_to_event = (
+			suffix: string,
+			body: unknown,
+			keepalive = false
+		): void => {
 			job.then(
 				() => {
 					if (!event_id_final) return;
 					this.post_data(
 						`${config.root}${api_prefix}/stream/${event_id_final}${suffix}`,
-						body
+						body,
+						undefined,
+						keepalive
 					);
 				},
 				() => {}
@@ -1250,10 +1256,14 @@ export function submit(
 					() => {}
 				);
 			},
-			close_stream: (options?: { read_to_end?: boolean }) => {
-				// With read_to_end, messages keep coming until the event is over
+			close_stream: (options?: {
+				read_to_end?: boolean;
+				keepalive?: boolean;
+			}) => {
+				// With read_to_end, messages keep coming until the event is over;
+				// keepalive lets the request outlive a page being unloaded
 				if (!options?.read_to_end) close();
-				post_to_event("/close", {});
+				post_to_event("/close", {}, options?.keepalive);
 			},
 			event_id: () => event_id_final,
 			wait_for_id: async () => {

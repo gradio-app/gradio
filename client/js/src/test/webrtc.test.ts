@@ -704,7 +704,12 @@ describe("submit() of a stream with transport='webrtc'", () => {
 			job.send(turn);
 			await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
 			window.dispatchEvent(new Event("pagehide"));
-			expect(job.close_stream).toHaveBeenCalled();
+			// Timers and ordinary requests do not outlive the page
+			expect(FakePeerConnection.instances[0].close).toHaveBeenCalled();
+			expect(job.close_stream).toHaveBeenCalledWith({
+				read_to_end: true,
+				keepalive: true
+			});
 		}
 	);
 });

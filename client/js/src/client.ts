@@ -216,7 +216,8 @@ export class Client {
 	post_data: (
 		url: string,
 		body: unknown,
-		additional_headers?: any
+		additional_headers?: any,
+		keepalive?: boolean
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,

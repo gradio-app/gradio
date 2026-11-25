@@ -113,7 +113,10 @@ export interface SubmitIterable<T> extends AsyncIterable<T> {
 	send_chunk: (payload: Record<string, unknown>) => void;
 	wait_for_id: () => Promise<string | null>;
 	acknowledge: () => Promise<void>;
-	close_stream: (options?: { read_to_end?: boolean }) => void;
+	close_stream: (options?: {
+		read_to_end?: boolean;
+		keepalive?: boolean;
+	}) => void;
 }
 
 export type PredictReturn<T = unknown> = {

@@ -193,10 +193,15 @@ export async function negotiate_webrtc({
 /**
  * Closes the peer connection. With `stop_tracks` (the default), also stops
  * the local tracks it sends; leave them running when the caller owns them.
+ * The transceivers stop at once and the connection closes 500 ms later, or
+ * at once with `at_once` (a page being unloaded runs no more timers).
  */
 export function close_webrtc(
 	pc: RTCPeerConnection | null | undefined,
-	{ stop_tracks = true }: { stop_tracks?: boolean } = {}
+	{
+		stop_tracks = true,
+		at_once = false
+	}: { stop_tracks?: boolean; at_once?: boolean } = {}
 ): void {
 	if (!pc) return;
 	pc.getTransceivers?.().forEach((transceiver) => {
@@ -211,7 +216,8 @@ export function close_webrtc(
 			sender.track?.stop();
 		});
 	}
-	setTimeout(() => pc.close(), 500);
+	if (at_once) pc.close();
+	else setTimeout(() => pc.close(), 500);
 }
 
 /** Turns an offer rejection into a message for the user. */
@@ -340,6 +346,14 @@ export function submit_over_webrtc(
 		close_webrtc(pc, { stop_tracks: false });
 		pc = null;
 		job.close_stream(options ?? { read_to_end: true });
+	};
+
+	// Nothing deferred outlives the page: no timer, and only a keepalive request
+	const leave = (): void => {
+		stopped = true;
+		close_webrtc(pc, { stop_tracks: false, at_once: true });
+		pc = null;
+		job.close_stream({ read_to_end: true, keepalive: true });
 	};
 
 	// The connection ended without the page closing the stream: the server
@@ -476,7 +490,7 @@ export function submit_over_webrtc(
 
 	// Leaving the page ends the stream at once, so that the server frees its
 	// slot (and GPU) without waiting for the connection to time out
-	const on_pagehide = (): void => close();
+	const on_pagehide = (): void => leave();
 	if (typeof window !== "undefined") {
 		window.addEventListener("pagehide", on_pagehide);
 	}
