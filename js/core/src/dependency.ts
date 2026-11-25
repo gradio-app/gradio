@@ -479,9 +479,14 @@ export class DependencyManager {
 				// Anything deferred before this run is older than it, so drop it
 				// rather than replay it after this run finishes.
 				this.deferred_events.delete(dep.id);
-				// A chunk for a stream that is already open starts no new run
+				// A chunk for a stream that is already open starts no new run. A
+				// WebRTC stream sends no chunks: its component dispatches only to
+				// start one, e.g. Record right after the last stream ended while
+				// its submission is still being acknowledged.
 				const sends_chunk =
-					dep.connection_type === "stream" && this.submissions.has(dep.id);
+					dep.connection_type === "stream" &&
+					!dep.transport &&
+					this.submissions.has(dep.id);
 
 				// A WebRTC stream's camera or microphone hears about the run only
 				// through stream_state, so it waits from the start: a run that fails
@@ -1284,14 +1289,18 @@ export class DependencyManager {
 			if (submission) {
 				this.cancelled.add(submission);
 				await submission.cancel();
-				this.update_loading_status({
-					status: "complete",
-					fn_index: id,
-					eta: 0,
-					queue: false,
-					stream_state: null
-				});
-				this.update_loading_stati_state();
+				// Unless a new run of the event (e.g. a WebRTC stream started again)
+				// took its place meanwhile
+				if (this.submissions.get(id) === submission) {
+					this.update_loading_status({
+						status: "complete",
+						fn_index: id,
+						eta: 0,
+						queue: false,
+						stream_state: null
+					});
+					this.update_loading_stati_state();
+				}
 				const target_id = this.submission_trigger_ids.get(id) ?? undefined;
 				this.clear_submission(id, submission);
 				// Need to trigger any dependencies that are waiting for this one to complete

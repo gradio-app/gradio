@@ -1461,6 +1461,35 @@ describe("DependencyManager: WebRTC streams", () => {
 		}
 	);
 
+	test("a Record click while the last stream is still being acknowledged starts a new stream", async () => {
+		const stream = dependency(0, "stream", [10]);
+		stream.inputs = [5];
+		stream.connection = "stream";
+		stream.trigger_mode = "multiple";
+		stream.targets = [[5, "stream"]];
+		(stream as any).transport = { type: "webrtc", media_output: null };
+		const client = {
+			submit: vi.fn(() => submission((async function* () {})()))
+		} as unknown as Client;
+		const dependency_manager = manager([stream], client);
+		// The last stream has ended, and its acknowledgement is on its way
+		const finishing = { send_chunk: vi.fn() };
+		dependency_manager.submissions.set(
+			0,
+			finishing as unknown as ReturnType<Client["submit"]>
+		);
+
+		await dependency_manager.dispatch({
+			type: "event",
+			event_name: "stream",
+			target_id: 5,
+			event_data: { media: {} }
+		});
+
+		expect(finishing.send_chunk).not.toHaveBeenCalled();
+		expect(client.submit).toHaveBeenCalledTimes(1);
+	});
+
 	test("a stream that hands its slot over shows that it waits its turn again", async () => {
 		const stream = dependency(0, "stream", [10]);
 		stream.inputs = [5];
