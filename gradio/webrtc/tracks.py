@@ -550,8 +550,29 @@ class AudioCallback(AudioStreamTrack):
         self._resampler = None
 
     def clear_queue(self):
-        while not self.queue.empty():
-            self.queue.get_nowait()
+        """Drops the audio not yet sent. A handler can call it from its own
+        thread (e.g. ReplyOnPause when the user talks over the reply), while
+        the queue belongs to the event loop: the clearing runs there."""
+        loop = self.event_handler._loop
+        try:
+            on_loop = asyncio.get_running_loop() is loop
+        except RuntimeError:
+            on_loop = False
+        if loop is None or on_loop:
+            self._clear()
+        else:
+            loop.call_soon_threadsafe(self._clear)
+
+    def _clear(self):
+        # The end of the track stays: recv() stops on it
+        stopped = False
+        while True:
+            try:
+                stopped = self.queue.get_nowait() is _STOPPED or stopped
+            except asyncio.QueueEmpty:
+                break
+        if stopped:
+            self.queue.put_nowait(_STOPPED)
         self._clock_start = None
 
     def resample(self, frame: AudioFrame) -> Generator[AudioFrame, None, None]:

@@ -4354,6 +4354,33 @@ class TestAudioArrays:
         assert array.dtype == np.int16
 
     @pytest.mark.asyncio
+    async def test_a_handler_thread_clears_the_audio_on_the_loop_and_keeps_the_end(
+        self,
+    ):
+        from gradio.streaming.utils import Context
+        from gradio.webrtc.tracks import _STOPPED, AudioCallback
+
+        class Handler(AsyncStreamHandler):
+            async def receive(self, frame):
+                pass
+
+            async def emit(self):
+                return None
+
+        handler = Handler()
+        handler._loop = asyncio.get_running_loop()
+        track = AudioCallback(
+            AudioStreamTrack(), event_handler=handler, context=Context("id")
+        )
+        for item in ("frame", "frame", _STOPPED):
+            track.queue.put_nowait(item)
+        # e.g. ReplyOnPause when the user talks over the reply
+        await asyncio.to_thread(handler.clear_queue)
+        await asyncio.sleep(0)
+        assert track.queue.qsize() == 1
+        assert track.queue.get_nowait() is _STOPPED
+
+    @pytest.mark.asyncio
     async def test_an_async_audio_function_is_awaited_in_its_context(self):
         import contextvars
 
