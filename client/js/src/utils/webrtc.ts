@@ -313,12 +313,14 @@ export function submit_over_webrtc(
 	// Messages of the job, plus the ones the connection adds, of the types
 	// the caller subscribed to
 	const queue: GradioEvent[] = [];
-	let wake: (() => void) | null = null;
+	// The next() calls waiting for a message
+	const waiting: (() => void)[] = [];
+	const wake = (): void => waiting.splice(0).forEach((resolve) => resolve());
 	let finished = false;
 	const push = (msg: GradioEvent): void => {
 		if (!all_events && !subscribed.includes(msg.type)) return;
 		queue.push(msg);
-		wake?.();
+		wake();
 	};
 	let fn_index = 0;
 
@@ -589,7 +591,7 @@ export function submit_over_webrtc(
 			}
 			close_webrtc(pc, { stop_tracks: false });
 			finished = true;
-			(wake as (() => void) | null)?.();
+			wake();
 		}
 	})();
 
@@ -597,8 +599,7 @@ export function submit_over_webrtc(
 		[Symbol.asyncIterator]: () => iterator,
 		async next() {
 			while (!queue.length && !finished) {
-				await new Promise<void>((resolve) => (wake = resolve));
-				wake = null;
+				await new Promise<void>((resolve) => waiting.push(resolve));
 			}
 			if (queue.length) return { value: queue.shift()!, done: false };
 			return { value: undefined, done: true };

@@ -528,6 +528,18 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		expect(video.stop).not.toHaveBeenCalled();
 	});
 
+	it("answers next() calls that overlap", async () => {
+		const { job_iter } = start();
+		const first = job_iter.next();
+		const second = job_iter.next();
+		job.send({ type: "status", stage: "pending", position: 2 });
+		job.send({ type: "status", stage: "pending", position: 1 });
+		const positions = (await Promise.all([first, second])).map(
+			(result) => (result.value as any).position
+		);
+		expect(positions).toEqual([2, 1]);
+	});
+
 	it("joins the queue, and joins again, with the caller's headers", async () => {
 		const media = new FakeMediaStream([new FakeTrack("video")]);
 		submit_over_webrtc.call(
