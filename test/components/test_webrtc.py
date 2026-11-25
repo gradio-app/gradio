@@ -3208,6 +3208,39 @@ class TestGatewayPlacements:
         assert pool.could_start(new) is True
         assert not pool.reserved and "t" not in busy.sessions | idle.sessions
 
+    def test_a_stream_frees_its_slot_for_an_event_that_can_only_start_there(self):
+        from gradio.processing.gateway import Pool
+
+        busy, other = FakeLink(), FakeLink()
+        waiting: list = []
+        queue = SimpleNamespace(
+            event_ids_to_events={},
+            event_queue_per_concurrency_id={"talk": SimpleNamespace(queue=waiting)},
+        )
+        pool = Pool(cast(Any, SimpleNamespace(_queue=queue)), "fingerprint", 10)
+        pool.links = cast(Any, [busy, other])
+        pool.group_limits["talk"] = 1
+        fn = SimpleNamespace(concurrency_id="talk")
+        stream = SimpleNamespace(_id="stream", fn=fn, concurrency_id="talk")
+        pool.place("stream", cast(Any, busy), True, "a")
+        busy.slots["talk"] = asyncio.Semaphore(0)
+
+        def wait(session_hash, link=None):
+            if link is not None:
+                link.sessions[session_hash] = True
+            waiting[:] = [SimpleNamespace(session_hash=session_hash)]
+
+        # Held by the stream's process, though the other one has room
+        wait("b", busy)
+        assert pool.frees_slot_for(stream) is True
+        # Can start elsewhere: ending the stream helps nobody
+        wait("c", other)
+        assert pool.frees_slot_for(stream) is False
+        wait("new")
+        assert pool.frees_slot_for(stream) is False
+        other.slots["talk"] = asyncio.Semaphore(0)
+        assert pool.frees_slot_for(stream) is True
+
     def test_the_streams_of_an_exited_process_are_woken(self):
         webrtc_stream, plain_stream, elsewhere = (
             SimpleNamespace(_id=i, session_hash="s", signal=asyncio.Event())

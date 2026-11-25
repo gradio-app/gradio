@@ -281,6 +281,9 @@ class Queue:
         # `can_start` without its side effects, for checks of events that
         # are not starting
         self.could_start: Callable[[Event], bool] | None = None
+        # With processes: whether ending a stream lets an event waiting in its
+        # group start, as its group's count adds up the processes
+        self.frees_slot_for: Callable[[Event], bool | None] | None = None
         self.end_event: Callable[[Event], None] | None = None
         self.stopped = False
         self.max_thread_count = concurrency_count
@@ -1894,9 +1897,12 @@ class Queue:
             group is not None
             and bool(group.queue)
             and group.concurrency_limit is not None
-            and group.current_concurrency >= group.concurrency_limit
         ):
-            return True
+            frees = self.frees_slot_for(event) if self.frees_slot_for else None
+            if frees is None:
+                frees = group.current_concurrency >= group.concurrency_limit
+            if frees:
+                return True
         could_start = self.could_start
         return self.streams_waiting_for_worker > 0 and any(
             (

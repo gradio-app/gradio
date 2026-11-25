@@ -429,6 +429,33 @@ class Pool:
         worker slot."""
         return self._startable(event, start=False)
 
+    def frees_slot_for(self, event: Any) -> bool | None:
+        """Whether ending the stream of `event` lets an event waiting in its
+        concurrency group start: one whose session the stream's process holds
+        while that process is full, or a new session while no process has
+        room. The queue asks this instead of comparing the group's count with
+        its limit, which adds up the processes (see `scale_limits`). None
+        when the stream has no process yet."""
+        placement = self.placements.get(event._id)
+        limit = self.process_limit(event.fn)
+        group = self.blocks._queue.event_queue_per_concurrency_id.get(
+            event.concurrency_id
+        )
+        if placement is None or limit is None or group is None:
+            return None
+
+        def full(link: Link) -> bool:
+            return link.slot(event.concurrency_id, limit)._value <= 0
+
+        own = placement.link
+        with self.lock:
+            nowhere = all(full(link) for link in self.serving() or self.links)
+            for waiting in group.queue:
+                holder = self._holder(waiting.session_hash, touch=False)
+                if (holder is own and full(own)) or (holder is None and nowhere):
+                    return True
+        return False
+
     def _startable(self, event: Any, start: bool) -> bool:
         fn = event.fn
         limit = self.process_limit(fn) if fn.queue and not fn.batch else None
@@ -1368,6 +1395,7 @@ def main(path: str) -> None:
     blocks.queue(**bootstrap["queue_kwargs"])
     blocks._queue.can_start = blocks._process_pool.can_start  # type: ignore[attr-defined]
     blocks._queue.could_start = blocks._process_pool.could_start  # type: ignore[attr-defined]
+    blocks._queue.frees_slot_for = blocks._process_pool.frees_slot_for  # type: ignore[attr-defined]
     blocks._queue.end_event = blocks._process_pool.end_event  # type: ignore[attr-defined]
     pool: Pool = blocks._process_pool  # type: ignore[attr-defined]
     pool.add(
