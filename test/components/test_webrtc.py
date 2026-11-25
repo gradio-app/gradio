@@ -635,6 +635,7 @@ class TestWebRTC:
                 {"postprocess": False},
                 {"js": "(x) => x"},
                 {"validator": lambda x: None},
+                {"eta": 8},
                 {"inputs_kwargs": {"x": slider}},
             ):
                 with pytest.raises(ValueError, match=next(iter(kwargs))):

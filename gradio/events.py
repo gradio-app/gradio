@@ -828,6 +828,7 @@ class EventListener(str):
                         ("postprocess", not postprocess),
                         ("js", js is not None),
                         ("validator", validator is not None),
+                        ("eta", eta is not None),
                         ("inputs_kwargs", bool(inputs_kwargs)),
                     )
                     if given
