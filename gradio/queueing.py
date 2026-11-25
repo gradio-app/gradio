@@ -1488,6 +1488,7 @@ class Queue:
             )
             first_iteration = 0
             uncounted = 0.0
+            countdown: float | None = None
             started_at = history.now_utc_iso()
 
             if PROFILING_ENABLED:
@@ -1538,6 +1539,12 @@ class Queue:
                         )
                     elif fn.lease and event.closed:
                         response["is_generating"] = False
+                # What the page's countdown starts from: the time left in the
+                # stream's current period (one that went on past its limit is
+                # in a later period)
+                if fn.time_limit:
+                    elapsed = first_iteration - events[0].uncounted_time
+                    countdown = fn.time_limit - elapsed % fn.time_limit
 
             except Exception as e:
                 if not isinstance(e, Error) or e.print_exception:
@@ -1575,12 +1582,7 @@ class Queue:
                                 else ServerMessage.process_streaming,
                                 output=old_response,
                                 success=old_response is not None,
-                                time_limit=None
-                                if not fn.time_limit
-                                else cast(int, fn.time_limit)
-                                - (first_iteration - uncounted)
-                                if event.streaming
-                                else None,
+                                time_limit=countdown if event.streaming else None,
                             ),
                         )
                     awake_events = [event for event in awake_events if event.alive]
@@ -1599,13 +1601,9 @@ class Queue:
                                 # We need to wait for all of the events to have the latest input data
                                 # the max time is the time limit of the function or 30 seconds (arbitrary) but should
                                 # never really take that long to make a request from the client to the server unless
-                                # the client disconnected.
-                                [
-                                    None
-                                    if fn.lease
-                                    else cast(float, fn.time_limit or 30)
-                                    - (first_iteration - uncounted)
-                                ]
+                                # the client disconnected. Not shortened by a slow first call, which would
+                                # end a stream that nobody waits for.
+                                [None if fn.lease else fn.time_limit or 30]
                                 * len(awake_events),
                             )
                             # The last response already went out, so do not

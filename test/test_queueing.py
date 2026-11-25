@@ -1700,6 +1700,36 @@ def test_the_wait_behind_a_stream_that_went_on_lasts_to_the_end_of_its_period():
     assert sent[0].rank_eta == pytest.approx(5.0, abs=0.5)
 
 
+def test_a_stream_whose_first_call_outlasts_its_time_limit_goes_on_while_nobody_waits():
+    calls = []
+
+    def respond(chunk):
+        calls.append(chunk)
+        if len(calls) == 1:
+            time.sleep(1.85)  # e.g. loading a model
+        return f"got {chunk}"
+
+    demo, api = _launch_text_stream(respond, time_limit=1)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            event_id = http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            ).json()["event_id"]
+
+            def next_chunk(n):
+                if n < 8:
+                    time.sleep(0.3)
+                    _send_chunk(http, api, event_id, "s", f"c{n}")
+
+            outputs, completed = _stream_outputs(http, api, "s", next_chunk)
+            # It went on until its chunks stopped coming
+            assert len(outputs) == 8
+            assert completed is not None and completed["stream_ended"] is False
+    finally:
+        demo.close()
+
+
 def test_a_stream_that_gets_no_chunk_for_its_time_limit_rejoins_by_default():
     demo, api = _launch_text_stream(lambda chunk: f"got {chunk}", time_limit=1)
     try:
