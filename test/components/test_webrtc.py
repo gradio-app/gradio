@@ -273,6 +273,16 @@ def value_error_then_audio(*args):
     yield
 
 
+def info_when_closed(*args):
+    import numpy as np
+
+    try:
+        while True:
+            yield np.zeros((4, 6, 3), dtype=np.uint8)
+    finally:
+        gr.Info("Stopped")
+
+
 def info_then_audio(*args):
     import numpy as np
 
@@ -1448,6 +1458,29 @@ class TestStreams:
         pc = await make_offer(**offer)
         message = await self.stream_until_message(h, pc, "info")
         assert message["message"].startswith("From ")
+        await pc.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched",
+        [{"mode": "receive", "modality": "video", "handler": info_when_closed}],
+        indirect=True,
+    )
+    async def test_gr_info_when_a_stop_closes_a_receive_video_generator(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(receive="video")
+        await h.connect(pc, "one")
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        await h.push_inputs("one", 0.2)
+        await asyncio.sleep(0.3)
+        await h.http.post(f"{h.api}/stream/{event_id}/close")
+        messages = await h.messages(
+            "one", lambda ms: any(self.toast(m) for m in ms), timeout=5
+        )
+        assert [self.toast(m)["message"] for m in messages if self.toast(m)] == [
+            "Stopped"
+        ]
         await pc.close()
 
     @pytest.mark.asyncio

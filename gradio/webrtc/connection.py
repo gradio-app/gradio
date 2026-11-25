@@ -80,6 +80,7 @@ from gradio.webrtc.tracks import (
     run_in_thread,
 )
 from gradio.webrtc.utils import (
+    HandlerContext,
     HandlerFailedError,
     StreamErrors,
     current_errors,
@@ -429,6 +430,9 @@ class Stream:
         self._last_delivery = -math.inf
         self._delivery_timer: asyncio.TimerHandle | None = None
         self.errors: StreamErrors | None = None
+        # Where the handler runs, set when it connects (see `handle_offer`):
+        # its shutdown runs there too, whoever ends the stream
+        self.handler_context: HandlerContext | None = None
         # The launched app, set at admission (see `stream_run`)
         self.blocks: Any = None
         self.rtc_configuration: asyncio.Future | None = None
@@ -593,6 +597,19 @@ class Stream:
         if first:
             self.lease.wake()
 
+    def _in_handler_context(self, coroutine: Any) -> Any:
+        """`coroutine`, run where the handler runs: a close from the page's
+        request or from the watcher has no stream event in its context, and
+        a gr.Info in a generator's `finally` or in `shutdown()` needs it."""
+        context = self.handler_context
+
+        async def run() -> Any:
+            if context is not None:
+                context.apply()
+            return await coroutine
+
+        return run()
+
     def _release(self) -> None:
         manager = self.manager
         if self.pc is not None:
@@ -606,10 +623,10 @@ class Stream:
             # again, which then finds nothing left to release
             track.stop()
             if isinstance(track, ServerToClientAudio | ServerToClientVideo):
-                manager._add_shutdown(track.close_generator())
+                manager._add_shutdown(self._in_handler_context(track.close_generator()))
             elif isinstance(track, VideoCallback) and track.on_close is not None:
                 # A frame function's per-stream state, e.g. its generator
-                manager._add_shutdown(track.on_close())
+                manager._add_shutdown(self._in_handler_context(track.on_close()))
         # Handler classes, once each: both tracks of an audio-video connection
         # share one handler
         for track in tracks:
@@ -623,7 +640,7 @@ class Stream:
             self._shut_down_handlers.add(id(handler))
             # A handler blocked in wait_for_args() would wait forever
             handler.args_set.set()
-            manager._add_shutdown(manager._shut_down(handler))
+            manager._add_shutdown(self._in_handler_context(manager._shut_down(handler)))
 
     async def watch(self) -> None:
         """
@@ -949,6 +966,7 @@ class ConnectionManager:
         LocalContext.event_id.set(stream.event.id)
         current_errors.set(errors)
         stream.errors = errors
+        stream.handler_context = HandlerContext.capture()
         pc = RTCPeerConnection(configuration=self.server_rtc_configuration)
         stream.pc = pc
         stream.state = StreamState.CONNECTING
