@@ -554,6 +554,14 @@ class TestWebRTC:
             assert stream.transport["mode"] == "receive"
             assert stream.trigger_mode == "once"
             assert "stream_transport" not in trigger.get_config()
+            assert "stream_transport" not in output.get_config()
+        # A camera only among the outputs of its own .stream() starts the
+        # stream with its Record, as a WebRTC stream's component does
+        with gr.Blocks():
+            slider = gr.Slider()
+            camera = webcam()
+            camera.stream(show, [slider], [camera], transport="webrtc")
+        assert camera.get_config()["stream_transport"] == "webrtc"
 
     def test_stream_validation(self):
         with gr.Blocks() as demo:
