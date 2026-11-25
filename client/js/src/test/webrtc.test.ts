@@ -528,6 +528,41 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		expect(video.stop).not.toHaveBeenCalled();
 	});
 
+	it("uploads a file among the other inputs before sending them", async () => {
+		const uploaded = {
+			path: "/tmp/reference.png",
+			meta: { _type: "gradio.FileData" }
+		};
+		client.config = { root: "https://example.hf.space" };
+		client.handle_blob = vi.fn(async (_root: string, data: unknown[]) =>
+			data.map((value) => (value instanceof Blob ? uploaded : value))
+		);
+		const media = new FakeMediaStream([new FakeTrack("video")]);
+		submit_over_webrtc.call(
+			client,
+			"/flip",
+			[media, new Blob(["png"])],
+			send_receive,
+			{},
+			null,
+			true,
+			["frame", "reference"]
+		);
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		const pc = FakePeerConnection.instances[0];
+		pc.channel.open();
+		const input = (data: unknown[]) => JSON.stringify({ type: "input", data });
+		await vi.waitFor(() =>
+			expect(pc.channel.send).toHaveBeenCalledWith(input([uploaded]))
+		);
+		// Never the Blob itself, which JSON turns into {}
+		const inputs = pc.channel.send.mock.calls
+			.map(([sent]: [string]) => sent)
+			.filter((sent: string) => sent.includes('"input"'));
+		expect(inputs).toEqual([input([uploaded])]);
+	});
+
 	it("fails a stream whose media has no track of the kind it takes, without connecting", async () => {
 		const media = new FakeMediaStream([new FakeTrack("audio")]);
 		const job_iter = submit_over_webrtc.call(

@@ -29,6 +29,23 @@ export function new_webrtc_id(): string {
 	return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/** Whether a value holds a file to upload (what handle_blob() uploads). */
+function has_file(value: unknown): boolean {
+	if (
+		(typeof Blob !== "undefined" && value instanceof Blob) ||
+		(globalThis.Buffer && value instanceof globalThis.Buffer)
+	) {
+		return true;
+	}
+	if (Array.isArray(value)) return value.some(has_file);
+	return (
+		!!value &&
+		typeof value === "object" &&
+		Object.getPrototypeOf(value) === Object.prototype &&
+		Object.values(value).some(has_file)
+	);
+}
+
 // "disconnected" is often brief (a network switch) and recovers by itself
 export const WEBRTC_DISCONNECT_GRACE_MS = 5000;
 
@@ -325,10 +342,27 @@ export function submit_over_webrtc(
 	let fn_index = 0;
 
 	const send_inputs = (): void => {
-		if (channel?.readyState === "open") {
+		// Files are sent once uploaded (see set_inputs)
+		if (channel?.readyState === "open" && !has_file(inputs)) {
 			channel.send(JSON.stringify({ type: "input", data: inputs }));
 		}
 	};
+
+	// The data channel carries JSON, so a file among the other inputs (a Blob,
+	// e.g. from handle_file() in a gr.Server caller) is uploaded first, as
+	// submit() uploads the event's own data
+	const set_inputs = (values: unknown[]): void => {
+		inputs = values;
+		if (!has_file(values)) return;
+		this.handle_blob(this.config?.root ?? "", [...values], undefined as any)
+			.then((uploaded) => {
+				if (inputs !== values) return;
+				inputs = uploaded;
+				send_inputs();
+			})
+			.catch((error) => fail(`Could not upload an input: ${error}`));
+	};
+	set_inputs(inputs);
 
 	// Another camera or microphone for a running stream: its tracks take the
 	// place of the old ones in the connection, so the stream keeps its turn.
@@ -646,7 +680,7 @@ export function submit_over_webrtc(
 			if (!Array.isArray(values)) return;
 			const next = media_index >= 0 ? values[media_index] : undefined;
 			if (next instanceof MediaStream) replace_media(next);
-			inputs = others(values);
+			set_inputs(others(values));
 			current = values.map((value, i) => (i === media_index ? null : value));
 			send_inputs();
 		},
