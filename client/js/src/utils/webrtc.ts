@@ -265,7 +265,8 @@ export function submit_over_webrtc(
 	trigger_id?: number | null,
 	all_events?: boolean,
 	// The endpoint's parameter names, for named values in send_chunk()
-	param_names: string[] = []
+	param_names: string[] = [],
+	additional_headers?: Record<string, string>
 ): SubmitIterable<GradioEvent> {
 	// The media comes in its input slot (gr.Server callers) or in the event
 	// data (Blocks components, whose value stays theirs); -1 in receive mode
@@ -298,7 +299,14 @@ export function submit_over_webrtc(
 	// completion says whether it handed its slot over) whatever the caller
 	// subscribed to.
 	const join = (): ReturnType<Client["submit"]> =>
-		this.submit(endpoint, [...current], { webrtc_id }, trigger_id, true);
+		this.submit(
+			endpoint,
+			[...current],
+			{ webrtc_id },
+			trigger_id,
+			true,
+			additional_headers
+		);
 	let job = join();
 	const subscribed = (this.options?.events ?? ["data"]) as string[];
 

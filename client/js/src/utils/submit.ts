@@ -124,7 +124,8 @@ export function submit(
 				event_data,
 				trigger_id,
 				all_events,
-				endpoint_info?.parameters.map((param) => param.parameter_name) ?? []
+				endpoint_info?.parameters.map((param) => param.parameter_name) ?? [],
+				additional_headers
 			);
 		}
 

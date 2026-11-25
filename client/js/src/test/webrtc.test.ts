@@ -416,7 +416,8 @@ describe("submit() of a stream with transport='webrtc'", () => {
 			[null, 1],
 			{ webrtc_id: expect.any(String) },
 			null,
-			true
+			true,
+			undefined
 		);
 		const { webrtc_id } = client.submit.mock.calls[0][2];
 		job.send({ type: "status", stage: "pending", position: 0 });
@@ -525,6 +526,31 @@ describe("submit() of a stream with transport='webrtc'", () => {
 			timeout: 2000
 		});
 		expect(video.stop).not.toHaveBeenCalled();
+	});
+
+	it("joins the queue, and joins again, with the caller's headers", async () => {
+		const media = new FakeMediaStream([new FakeTrack("video")]);
+		submit_over_webrtc.call(
+			client,
+			"/flip",
+			[media, 1],
+			send_receive,
+			{},
+			null,
+			true,
+			["frame", "brightness"],
+			{ "x-gradio-user": "app" }
+		);
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		const next_job = fake_job();
+		client.submit.mockImplementation(() => next_job);
+		job.send({ type: "status", stage: "complete", stream_ended: false });
+		job.end();
+		await vi.waitFor(() => expect(client.submit).toHaveBeenCalledTimes(2));
+		for (const call of client.submit.mock.calls) {
+			expect(call[5]).toEqual({ "x-gradio-user": "app" });
+		}
 	});
 
 	it("a stream that cannot join the queue again ends with an error", async () => {
