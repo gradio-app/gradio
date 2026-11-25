@@ -1782,6 +1782,32 @@ def test_a_stream_that_runs_out_of_time_goes_on_while_nobody_waits(executor):
         demo.close()
 
 
+def test_a_generator_stream_gets_a_progress_of_its_own():
+    default = gr.Progress(track_tqdm=True)
+    seen = []
+
+    def respond(progress=default):
+        chunk = yield
+        while True:
+            seen.append(progress)
+            chunk = yield f"got {chunk}"
+
+    demo, api = _launch_text_stream(respond, time_limit=1)
+    try:
+        with httpx2.Client(timeout=10) as http:
+            http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            )
+            _stream_outputs(http, api, "s", lambda n: None)
+        # As an event's function gets: not the default shared by all streams,
+        # and one that tracks tqdm as asked
+        assert seen and seen[0] is not default
+        assert seen[0].track_tqdm
+    finally:
+        demo.close()
+
+
 def test_on_zero_gpu_a_stream_that_goes_on_says_so_once(monkeypatch):
     demo, api = _launch_text_stream(lambda chunk: f"got {chunk}", time_limit=0.5)
     # After the launch, which sets up ZeroGPU itself when it is on

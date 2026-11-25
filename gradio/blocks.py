@@ -2053,15 +2053,21 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         chunk and closes when the event ends.
         """
         if generator is None:
-            specials, *_ = special_args(
+            specials, progress_index, *_ = special_args(
                 cast(Callable, block_fn.fn),
                 [],
                 request,
                 event_data,
                 token=oauth_token,
             )
+            created = fn
+            if progress_index is not None:
+                # A gr.Progress of its own, as call_function gives an event
+                specials[progress_index], created = create_tracker(
+                    fn, specials[progress_index].track_tqdm
+                )
             generator = utils.StreamGenerator(
-                lambda: fn(*specials),
+                lambda: created(*specials),
                 is_async=inspect.isasyncgenfunction(fn),
                 run_in_thread=lambda f, *a: anyio.to_thread.run_sync(
                     f, *a, limiter=self.limiter
