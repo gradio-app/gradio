@@ -1065,6 +1065,8 @@ class ConnectionManager:
                 )
             elif self.modality == "audio-video" and track.kind == "video":
                 av_handler = cast(AudioVideoStreamHandlerImpl, handler)
+                # Set here too: the offer may carry no audio track
+                av_handler._loop = asyncio.get_running_loop()
                 cb = HandlerVideoTrack(
                     relay.subscribe(track),
                     event_handler=cast(Callable, av_handler),

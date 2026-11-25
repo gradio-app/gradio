@@ -2417,6 +2417,22 @@ class TestStreams:
         assert handler.events == ["shutdown"]
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "launched",
+        [{"modality": "audio-video", "handler": RecordingAudioVideo}],
+        indirect=True,
+    )
+    async def test_an_audio_video_handler_sent_only_video_gets_its_loop(self, launched):
+        # e.g. a gr.Video whose camera is opened without its microphone
+        h = launched
+        await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        assert h.handler("one").loop is not None
+        await pc.close()
+
+    @pytest.mark.asyncio
     async def test_candidates_are_kept_only_for_an_admitted_stream(
         self, launched, monkeypatch, caplog
     ):
