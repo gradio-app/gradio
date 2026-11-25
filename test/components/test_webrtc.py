@@ -3281,6 +3281,65 @@ class TestGatewayPlacements:
         assert finished == []
         assert not pool.placements and not link.serving_events
 
+    @pytest.mark.asyncio
+    async def test_a_generator_cancelled_while_its_first_result_comes_is_closed(
+        self, monkeypatch
+    ):
+        from gradio import route_utils
+        from gradio.processing.gateway import forward_event
+        from gradio.route_utils import RunStep
+
+        monkeypatch.setattr(route_utils, "record_run_history", lambda *a, **k: None)
+        pool = self.pool(self.event())
+        link = cast(Any, FakeLink())
+        link.started = {}
+
+        async def call(kind, payload):
+            # The call ran (and kept its generator) in the app's process, and
+            # the cancel lands before its result is read
+            raise asyncio.CancelledError
+
+        link.call = call
+        pool.for_session = lambda session_hash: link
+        pool.finished = lambda *args, **kwargs: None
+        app = SimpleNamespace(
+            state_holder={"s": SimpleNamespace(blocks_config=SimpleNamespace(fns={}))},
+            iterators={},
+            iterators_to_reset=set(),
+        )
+        body = SimpleNamespace(
+            event_id="e",
+            session_hash="s",
+            client_state=None,
+            batched=False,
+            data=[],
+            event_data={},
+            trigger_id=None,
+            batch_trigger_ids=None,
+            model_dump=lambda exclude: {},
+        )
+        fn = SimpleNamespace(
+            connection="stream",
+            called_once=lambda event_data: False,
+            close_stream=None,
+            queue=False,
+            is_validator_function=False,
+            concurrency_id="c",
+            fn=SimpleNamespace(_fn_id=0),
+        )
+        with pytest.raises(asyncio.CancelledError):
+            await forward_event(
+                pool,
+                cast(Any, app),
+                cast(Any, body),
+                None,
+                cast(Any, fn),
+                "",
+                queue_event_id="e",
+                run=RunStep.start(),
+            )
+        assert ("close_iterator", "e") in link.sent
+
     def test_asking_whether_an_event_could_start_reserves_nothing(self):
         from gradio.processing.gateway import Pool
 

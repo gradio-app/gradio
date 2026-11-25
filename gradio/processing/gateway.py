@@ -782,7 +782,7 @@ async def forward_event(
         else None
     )
     slot = None
-    returned = False
+    sent = False
     link.running += 1
     try:
         if (
@@ -811,6 +811,7 @@ async def forward_event(
         sent_body = body.model_dump(exclude={"request", "client_state"})
         if protocol.files_by_value():
             sent_body["data"] = link.files.pack(sent_body["data"])
+        sent = True
         output = await link.call(
             "event",
             {
@@ -830,7 +831,6 @@ async def forward_event(
                 "concurrency_limit": pool.process_limit(fn),
             },
         )
-        returned = True
         actions = output.pop("event_actions", None)
         stream_id = output.pop("admitted_stream", None)
         event_id = queue_event_id or body.event_id
@@ -853,7 +853,9 @@ async def forward_event(
             slot.release()
         elif iterator is not None:
             link.release(queue_event_id)
-        if returned and body.event_id is not None and run.keeps:
+        # Also when the call was cancelled: it may have finished, and kept
+        # its iterator, before the cancel reached the app's process
+        if sent and body.event_id is not None and run.keeps:
             link.send(("close_iterator", body.event_id))
         if counted_id is not None:
             pool.finished(link, counted_id, success=False)
