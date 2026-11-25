@@ -392,6 +392,22 @@ export function submit_over_webrtc(
 			);
 		}
 		if (stopped || id !== webrtc_id) return;
+		// Only the kinds the stream takes (a gr.Video camera may also record
+		// the microphone for a video-only stream)
+		const tracks =
+			media
+				?.getTracks()
+				.filter(
+					(t) =>
+						transport.modality === "audio-video" ||
+						t.kind === transport.modality
+				) ?? [];
+		if (media && !tracks.length) {
+			// It would connect with nothing to send, and hold its slot
+			throw new Error(
+				`The stream takes ${transport.modality}, but its MediaStream has no ${transport.modality} track.`
+			);
+		}
 		const connection = new RTCPeerConnection(rtc_configuration);
 		pc = connection;
 		if (transport.media_output !== null) {
@@ -437,19 +453,7 @@ export function submit_over_webrtc(
 			pc: connection,
 			offer: (body) => this.webrtc_offer(body),
 			webrtc_id: id,
-			// Only the kinds the stream takes (a gr.Video camera may also
-			// record the microphone for a video-only stream)
-			stream:
-				media &&
-				new MediaStream(
-					media
-						.getTracks()
-						.filter(
-							(t) =>
-								transport.modality === "audio-video" ||
-								t.kind === transport.modality
-						)
-				),
+			stream: media && new MediaStream(tracks),
 			modality: transport.modality as "video" | "audio",
 			rtp_params: transport.rtp_params,
 			// The frames reach the function as the mirrored preview showed them

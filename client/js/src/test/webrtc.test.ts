@@ -528,6 +528,28 @@ describe("submit() of a stream with transport='webrtc'", () => {
 		expect(video.stop).not.toHaveBeenCalled();
 	});
 
+	it("fails a stream whose media has no track of the kind it takes, without connecting", async () => {
+		const media = new FakeMediaStream([new FakeTrack("audio")]);
+		const job_iter = submit_over_webrtc.call(
+			client,
+			"/flip",
+			[media, 1],
+			send_receive,
+			{},
+			null,
+			true,
+			["frame", "brightness"]
+		);
+		job.send(turn);
+		const seen: any[] = [];
+		while (seen.at(-1)?.stage !== "error") {
+			seen.push((await job_iter.next()).value);
+		}
+		expect(seen.at(-1).message).toContain("no video track");
+		expect(client.webrtc_offer).not.toHaveBeenCalled();
+		expect(job.close_stream).toHaveBeenCalled();
+	});
+
 	it("answers next() calls that overlap", async () => {
 		const { job_iter } = start();
 		const first = job_iter.next();
