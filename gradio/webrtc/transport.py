@@ -1124,7 +1124,7 @@ def transport_event(
         rtc_configuration=options.rtc_configuration,
         output_every=output_every,
         adapt_handler=adapt if is_handler_class else None,
-        prepare_inputs=prepare_inputs if preprocessed_inputs else None,
+        prepare_inputs=prepare_inputs,
     )
 
     async def args_once(request: Any, values: list[Any], media: Any) -> list[Any]:
@@ -1341,11 +1341,18 @@ def transport_event(
     # The next stream of its concurrency group waits for these, whichever
     # listener of the group ran them
     manager.shutdowns = connection.group_shutdowns(root_block, stream_fn.concurrency_id)
-    if preprocessed_inputs:
-        inputs_fn["fn"] = copy.copy(stream_fn)
-        inputs_fn["fn"].inputs = list(preprocessed_inputs)
-        inputs_fn["fn"].component_prop_inputs = []
-        inputs_fn["fn"].preprocess = True
+    # What the page sends over the data channel goes through the same checks
+    # as an event's inputs (files must be uploads), for a gr.Server endpoint
+    # too, whose parameters are Api components; values beyond the inputs are
+    # dropped
+    inputs_fn["fn"] = copy.copy(stream_fn)
+    inputs_fn["fn"].inputs = (
+        list(preprocessed_inputs)
+        if preprocessed_inputs is not None
+        else [c for i, c in enumerate(inputs) if i != media_in]
+    )
+    inputs_fn["fn"].component_prop_inputs = []
+    inputs_fn["fn"].preprocess = True
     stream_fn.callable_once = callable_once
     stream_fn.transport = {
         "type": "webrtc",

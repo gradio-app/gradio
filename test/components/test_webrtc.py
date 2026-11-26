@@ -5570,6 +5570,105 @@ async def test_a_server_webrtc_endpoint_streams_like_the_component(executor, mod
         gr.close_all()
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("executor", ["thread", "process"])
+async def test_a_server_stream_checks_the_files_among_its_inputs(
+    executor, tmp_path_factory
+):
+    forget_earlier_streams()
+    # Outside the upload folder (GRADIO_TEMP_DIR is the test's tmp_path)
+    secret = tmp_path_factory.mktemp("elsewhere") / "secret.txt"
+    secret.write_text("secret")
+    server = gr.Server()
+
+    @server.api(name="echo", time_limit=30, transport="webrtc")
+    def echo(frame: gr.VideoFrame, ref: dict) -> str:
+        return json.dumps(ref)
+
+    session = "visitor"
+    _, local_url, _ = server.launch(prevent_thread_lock=True, executor=executor)
+    api = f"{local_url.rstrip('/')}{API_PREFIX}"
+    messages: list[dict] = []
+    pc = RTCPeerConnection()
+    try:
+        async with httpx2.AsyncClient(timeout=10) as http:
+            config = (await http.get(f"{local_url.rstrip('/')}/config")).json()
+            fn_index = next(
+                d["id"] for d in config["dependencies"] if d["api_name"] == "echo"
+            )
+
+            async def read():
+                async with http.stream(
+                    "GET", f"{api}/queue/data", params={"session_hash": session}
+                ) as response:
+                    async for line in response.aiter_lines():
+                        if line.startswith("data:"):
+                            messages.append(json.loads(line[5:]))
+
+            event_id = (
+                await http.post(
+                    f"{api}/queue/join",
+                    json={
+                        "data": [None, None],
+                        "event_data": {"webrtc_id": "one"},
+                        "fn_index": fn_index,
+                        "session_hash": session,
+                    },
+                )
+            ).json()["event_id"]
+            reader = asyncio.create_task(read())
+            await http.post(
+                f"{api}/webrtc/rtc_configuration",
+                json={"webrtc_id": "one", "session_hash": session},
+            )
+            channel = pc.createDataChannel("text")
+            # A file the client did not upload, sent as the other input
+            value = {"path": str(secret), "meta": {"_type": "gradio.FileData"}}
+            channel.on(
+                "open",
+                lambda *_: channel.send(json.dumps({"type": "input", "data": [value]})),
+            )
+            pc.addTrack(VideoStreamTrack())
+            await pc.setLocalDescription(await pc.createOffer())
+            answer = (
+                await http.post(
+                    f"{api}/webrtc/offer",
+                    json={
+                        "sdp": pc.localDescription.sdp,
+                        "type": pc.localDescription.type,
+                        "webrtc_id": "one",
+                        "session_hash": session,
+                    },
+                )
+            ).json()
+            await pc.setRemoteDescription(
+                RTCSessionDescription(answer["sdp"], answer["type"])
+            )
+
+            def completed():
+                return [
+                    m
+                    for m in messages
+                    if m.get("event_id") == event_id
+                    and m.get("msg") == "process_completed"
+                ]
+
+            deadline = time.monotonic() + 15
+            while not completed():
+                assert time.monotonic() < deadline, messages
+                await asyncio.sleep(0.05)
+            reader.cancel()
+            # Refused as the same value is in a plain call: the stream fails
+            # and the function never sees the path
+            assert completed()[0]["success"] is False
+            assert str(secret) not in json.dumps(
+                [m for m in messages if m.get("msg") == "process_streaming"]
+            )
+    finally:
+        await pc.close()
+        gr.close_all()
+
+
 def test_a_server_generator_s_inputs_come_from_what_it_is_sent():
     from gradio.webrtc.transport import _sent_inputs
 
