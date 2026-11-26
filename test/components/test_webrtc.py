@@ -3769,8 +3769,8 @@ async def test_time_limit_stops_media_while_workers_are_busy(monkeypatch):
             prevent_thread_lock=True, max_threads=1, executor="thread"
         )
         h = Harness(demo, local_url, camera)
-        # Made first: gathering its candidates can take longer than the time
-        # limit, which counts from the admission
+        # Made first, so that gathering its candidates is not in the time
+        # measured below
         pc = await make_offer(video=True)
         await h.start("one")
         started = time.monotonic()

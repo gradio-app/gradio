@@ -232,7 +232,9 @@ class StreamHandler(StreamHandlerBase, ABC):
         pass
 
     def start_up(self) -> None:
-        """Called once when the stream starts."""
+        """Called once when the stream starts. Return once the stream is ready,
+        rather than running for the whole stream: its time limit counts from
+        when this returns."""
         pass
 
 
@@ -251,7 +253,9 @@ class AsyncStreamHandler(StreamHandlerBase, ABC):
         pass
 
     async def start_up(self) -> None:
-        """Called once when the stream starts."""
+        """Called once when the stream starts. Return once the stream is ready,
+        rather than running for the whole stream: its time limit counts from
+        when this returns."""
         pass
 
 
@@ -313,7 +317,9 @@ class VideoStreamHandler(StreamHandlerBase, ABC):
         pass
 
     def start_up(self) -> None:
-        """Called once when the stream starts."""
+        """Called once when the stream starts. Return once the stream is ready,
+        rather than running for the whole stream: its time limit counts from
+        when this returns."""
         pass
 
 
@@ -335,7 +341,9 @@ class AsyncVideoStreamHandler(StreamHandlerBase, ABC):
         pass
 
     async def start_up(self) -> None:
-        """Called once when the stream starts."""
+        """Called once when the stream starts. Return once the stream is ready,
+        rather than running for the whole stream: its time limit counts from
+        when this returns."""
         pass
 
 
