@@ -711,6 +711,54 @@ describe("Webcam recording", () => {
 		}
 	});
 
+	test("a recording goes on when a stream it is an input of ends", async () => {
+		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
+			navigator,
+			"mediaDevices"
+		);
+		const canvas = document.createElement("canvas");
+		canvas.getContext("2d")!.fillRect(0, 0, 10, 10);
+		try {
+			Object.defineProperty(navigator, "mediaDevices", {
+				configurable: true,
+				value: {
+					getUserMedia: async () => canvas.captureStream(30),
+					enumerateDevices: async () => []
+				}
+			});
+			const { getByRole, set_data } = await render(Video, {
+				...default_props,
+				sources: ["webcam"],
+				client: mock_client()
+			} as any);
+
+			await fireEvent.click(
+				getByRole("button", { name: "Click to Access Webcam" })
+			);
+			const capture = await waitFor(() =>
+				getByRole("button", { name: "start recording" })
+			);
+			await fireEvent.click(capture);
+			await waitFor(() => expect(capture).toHaveTextContent("audio.stop"));
+			// An HTTP stream that lists this gr.Video among its inputs ended
+			await set_data({
+				loading_status: { ...loading_status, stream_state: "ended" }
+			});
+
+			expect(capture).toHaveTextContent("audio.stop");
+		} finally {
+			if (media_devices_descriptor) {
+				Object.defineProperty(
+					navigator,
+					"mediaDevices",
+					media_devices_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(navigator, "mediaDevices");
+			}
+		}
+	});
+
 	test("unmounting during a transport stream ends the stream", async () => {
 		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
 			navigator,

@@ -210,9 +210,13 @@
 	let recording = $state(false);
 
 	// A stream without transport= that its function ended stops sending
-	// frames, instead of joining the queue again with the next one
+	// frames, instead of joining the queue again with the next one. Only a
+	// streaming camera: a gr.Video recording that is an input of another
+	// stream goes on (its MediaRecorder would keep running unseen).
 	$effect(() => {
-		if (!stream_transport && stream_state === "ended") recording = false;
+		if (streaming && !stream_transport && stream_state === "ended") {
+			recording = false;
+		}
 	});
 
 	// A WebRTC stream that ended on the server (error, time limit)
