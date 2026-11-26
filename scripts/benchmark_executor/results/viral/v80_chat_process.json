@@ -1,0 +1,66 @@
+{
+ "app": "chat.py",
+ "executor": "process",
+ "rate": 80.0,
+ "seconds": 45.0,
+ "visitors": 3600,
+ "pages_loaded": 3599,
+ "errors": 1544,
+ "error_samples": [
+  "RemoteProtocolError('peer closed connection without sending complete message body (incomplete chunked read)')",
+  "RemoteProtocolError('peer closed connection without sending complete message body (incomplete chunked read)')",
+  "HTTPStatusError(\"Server error '503 Service Unavailable' for url 'http://127.0.0.1:7990/gradio_api/queue/join'\\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503\"",
+  "HTTPStatusError(\"Server error '503 Service Unavailable' for url 'http://127.0.0.1:7990/gradio_api/queue/join'\\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503\"",
+  "RemoteProtocolError('peer closed connection without sending complete message body (incomplete chunked read)')"
+ ],
+ "idle_page_ms_p50": 6.78929197601974,
+ "solo_fn_s_p50": 0.4713,
+ "page_ms": {
+  "n": 3599,
+  "p50": 13.132874999428168,
+  "p95": 523.8791670126375,
+  "p99": 875.9087499929592,
+  "max": 1011.9459159905091
+ },
+ "page_over_1s": 2,
+ "page_ms_p50_by_10s": {
+  "0": 8,
+  "10": 26,
+  "20": 215,
+  "30": 12,
+  "40": 12
+ },
+ "join_ms": {
+  "n": 2069,
+  "p50": 3.626541991252452,
+  "p95": 98.94479200011119,
+  "p99": 240.83754199091345,
+  "max": 361.86495900619775
+ },
+ "first_update_ms": {
+  "n": 2069,
+  "p50": 3.390458005014807,
+  "p95": 110.00483299721964,
+  "p99": 197.0566670061089,
+  "max": 330.28516700142063
+ },
+ "completed": 54,
+ "throughput_per_min": 72.0,
+ "fn_s": {
+  "n": 54,
+  "p50": 0.4801,
+  "p95": 0.5495,
+  "p99": 0.587,
+  "max": 0.6173
+ },
+ "cpu_percent": [
+  64,
+  0,
+  54
+ ],
+ "rss_mb": [
+  846,
+  19,
+  292
+ ]
+}

@@ -1,0 +1,120 @@
+<!doctype html>
+<!-- The frame for make_video.py. {{...}} placeholders are filled in there.
+     body.top keeps only the window outlines, which are laid over the recordings
+     to round their corners; body[data-show] shows one status pill at a time. -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --bg: #0b1020; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1920px; height: 1080px; }
+  body {
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+    color: #f8fafc;
+    background:
+      radial-gradient(900px 380px at 12% -8%, rgba(249, 115, 22, 0.20), transparent 70%),
+      radial-gradient(900px 380px at 90% -10%, rgba(56, 189, 248, 0.14), transparent 70%),
+      var(--bg);
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+  }
+  header { position: absolute; left: 70px; top: 54px; right: 70px; }
+  .eyebrow {
+    font-size: 17px; font-weight: 650; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #fb923c;
+  }
+  h1 { font-size: 46px; font-weight: 700; letter-spacing: -0.015em; margin: 12px 0 10px; white-space: nowrap; }
+  .sub { font-size: 22px; color: #94a3b8; margin: 0; }
+  .col { position: absolute; top: 228px; width: 860px; }
+  .col.l { left: 70px; } .col.r { left: 990px; }
+  .label { display: flex; align-items: center; gap: 14px; height: 40px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .l .dot { background: #38bdf8; box-shadow: 0 0 14px rgba(56, 189, 248, 0.7); }
+  .r .dot { background: #f97316; box-shadow: 0 0 14px rgba(249, 115, 22, 0.7); }
+  .name { font-size: 31px; font-weight: 650; letter-spacing: -0.01em; }
+  .chip {
+    font-size: 15px; color: #cbd5e1; padding: 5px 12px; border-radius: 999px;
+    background: rgba(148, 163, 184, 0.12); border: 1px solid rgba(148, 163, 184, 0.25);
+  }
+  .window { margin-top: 16px; border-radius: 14px; overflow: hidden; background: #fff; }
+  .bar {
+    height: 44px; background: #1e293b; display: flex; align-items: center; padding: 0 16px; gap: 8px;
+  }
+  .bar i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .bar i:nth-child(1) { background: #f87171; }
+  .bar i:nth-child(2) { background: #fbbf24; }
+  .bar i:nth-child(3) { background: #34d399; }
+  .url {
+    margin-left: 18px; flex: 1; height: 28px; border-radius: 8px; background: #0f172a;
+    color: #94a3b8; font: 15px/28px ui-monospace, "SF Mono", Menlo, monospace; padding: 0 12px;
+  }
+  .slot { width: 860px; height: 538px; background: {{wait_color}}; }
+  .status { margin-top: 22px; height: 56px; position: relative; }
+  .pill {
+    position: absolute; left: 0; top: 4px; font-size: 21px; padding: 11px 20px; border-radius: 999px;
+    opacity: 0; white-space: nowrap;
+  }
+  .loading { color: #cbd5e1; background: rgba(148, 163, 184, 0.14); border: 1px solid rgba(148, 163, 184, 0.3); }
+  .ready {
+    color: #86efac; font-weight: 600; background: rgba(74, 222, 128, 0.14);
+    border: 1px solid rgba(74, 222, 128, 0.45);
+  }
+  .clock { position: absolute; right: 0; top: 4px; width: 220px; height: 46px; }
+  footer { position: absolute; left: 70px; right: 70px; bottom: 34px; font-size: 16px; color: #64748b; }
+  body[data-show="loading-l"] [data-pill="loading-l"],
+  body[data-show="loading-r"] [data-pill="loading-r"],
+  body[data-show="ready-l"] [data-pill="ready-l"],
+  body[data-show="ready-r"] [data-pill="ready-r"] { opacity: 1; }
+  .mask { display: none; }
+  body.top { background: transparent; }
+  body.top > :not(.mask) { visibility: hidden; }
+  body.top .mask {
+    display: block; position: absolute; width: 860px; height: 582px; top: 284px; border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.28); box-shadow: 0 0 0 14px var(--bg);
+  }
+  .mask.l { left: 70px; } .mask.r { left: 990px; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">Gradio 7.0 benchmark &middot; server under load</div>
+    <h1>{{title}}</h1>
+    <p class="sub">{{subtitle}}</p>
+  </header>
+
+  <div class="col l">
+    <div class="label"><span class="dot"></span><span class="name">{{left_name}}</span><span class="chip">{{left_desc}}</span></div>
+    <div class="window">
+      <div class="bar"><i></i><i></i><i></i><div class="url">localhost:7860</div></div>
+      <div class="slot" data-box="slot-l"></div>
+    </div>
+    <div class="status">
+      <div class="pill loading" data-pill="loading-l">Loading&hellip;</div>
+      <div class="pill ready" data-pill="ready-l">&#10003;&nbsp; Interactive in {{left_ready}}&nbsp;s</div>
+      <div class="clock" data-box="clock-l"></div>
+    </div>
+  </div>
+
+  <div class="col r">
+    <div class="label"><span class="dot"></span><span class="name">{{right_name}}</span><span class="chip">{{right_desc}}</span></div>
+    <div class="window">
+      <div class="bar"><i></i><i></i><i></i><div class="url">localhost:7860</div></div>
+      <div class="slot" data-box="slot-r"></div>
+    </div>
+    <div class="status">
+      <div class="pill loading" data-pill="loading-r">Loading&hellip;</div>
+      <div class="pill ready" data-pill="ready-r">&#10003;&nbsp; Interactive in {{right_ready}}&nbsp;s</div>
+      <div class="clock" data-box="clock-r"></div>
+    </div>
+  </div>
+
+  <footer>
+    Local run, 10-core M1 Pro. Each clip starts when the visitor navigates, and is the median of {{takes}} recorded loads.
+    Median of {{reps}} timed loads: {{left_name}} {{left_median}}&nbsp;s, {{right_name}} {{right_median}}&nbsp;s.
+  </footer>
+
+  <div class="mask l"></div>
+  <div class="mask r"></div>
+</body>
+</html>
