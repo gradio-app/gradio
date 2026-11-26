@@ -1431,6 +1431,11 @@ class Queue:
             body = events[0].data
             if body is None:
                 raise ValueError("No event data")
+            if events[0].streaming and not fn.lease:
+                # The first call reads the newest chunk, including one sent
+                # while the event waited in line, which must not wake it again
+                for event in events:
+                    event.signal.clear()
             username = events[0].username
             queue_event_id = events[0]._id if not batch else None
             body.event_id = queue_event_id

@@ -1539,6 +1539,49 @@ def test_a_generator_stream_function_that_returns_ends_the_stream():
         demo.close()
 
 
+def test_a_chunk_sent_while_in_line_reaches_a_generator_once():
+    def counts():
+        seen = []
+        chunk = yield
+        while True:
+            seen.append(chunk)
+            chunk = yield " ".join(seen)
+
+    demo, api = _launch_text_stream(counts, concurrency_limit=1)
+
+    def group():
+        groups = demo._queue.event_queue_per_concurrency_id
+        return groups.get(demo.fns[0].concurrency_id)
+
+    try:
+        with httpx2.Client(timeout=10) as http:
+            first = http.post(
+                f"{api}/queue/join",
+                json={"data": ["x"], "fn_index": 0, "session_hash": "a"},
+            ).json()["event_id"]
+            _wait_for(lambda: group() is not None and group().current_concurrency == 1)
+            second = http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "b"},
+            ).json()["event_id"]
+            _wait_for(lambda: len(group().queue) == 1)
+            # Sent while it waits in line: its first call gets it
+            _send_chunk(http, api, second, "b", "b")
+            http.post(f"{api}/stream/{first}/close")
+
+            def after(n):
+                if n == 1:
+                    _send_chunk(http, api, second, "b", "c")
+                else:
+                    http.post(f"{api}/stream/{second}/close")
+
+            outputs, _ = _stream_outputs(http, api, "b", after)
+            # Not sent "b" a second time by the wake-up it left behind
+            assert outputs[:2] == [["b"], ["b c"]]
+    finally:
+        demo.close()
+
+
 def test_a_generator_stream_function_that_fails_ends_the_stream():
     def respond():
         chunk = yield
