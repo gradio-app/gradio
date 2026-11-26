@@ -607,6 +607,8 @@ class Stream:
         first = not self.ended
         if first:
             self.state = StreamState.ENDING
+            if self.errors is not None:
+                self.errors.stream_ended()
             # The last values go out with the event's end, without waiting
             self._deliver_pending()
         self._release()

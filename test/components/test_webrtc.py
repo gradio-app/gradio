@@ -5727,6 +5727,46 @@ async def test_a_server_stream_checks_the_files_among_its_inputs(
         gr.close_all()
 
 
+@pytest.mark.asyncio
+async def test_a_stop_before_the_inputs_arrive_is_not_a_failure(monkeypatch):
+    monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
+    forget_earlier_streams()
+
+    class Critic(AsyncVideoStreamHandler):
+        # As the immersive demo guide's handler starts up
+        async def start_up(self):
+            await self.wait_for_args()
+            _, self.key = self.latest_args
+
+        async def video_receive(self, frame):
+            pass
+
+        async def video_emit(self):
+            return None
+
+    with gr.Blocks() as demo:
+        camera = webcam()
+        key = gr.Textbox()
+        camera.stream(Critic, [camera, key], [camera], transport="webrtc")
+    with closing(demo):
+        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+        h = Harness(demo, local_url, camera)
+        pc = await make_offer(video=True)
+        try:
+            event_id = await h.start("one")
+            await h.connect(pc, "one")
+            await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+            # Stopped while start_up waits for the inputs, which then returns
+            # with none, and the unpacking raises
+            await h.http.post(f"{h.api}/stream/{event_id}/close")
+            messages = await h.messages("one", completed)
+            (done,) = [m for m in messages if m.get("msg") == "process_completed"]
+            assert done["success"] is True
+        finally:
+            await pc.close()
+            await h.http.aclose()
+
+
 def test_a_server_generator_s_inputs_come_from_what_it_is_sent():
     from gradio.webrtc.transport import _sent_inputs
 

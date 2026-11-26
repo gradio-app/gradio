@@ -86,8 +86,20 @@ class StreamErrors:
         # not have the app in their context
         self.show_error = show_error
         self.failure: dict[str, Any] | None = None
+        # Set once the stream has ended for another reason (see `stream_ended`)
+        self.ended = False
         # fail() can be called from several handler threads at once
         self._lock = threading.Lock()
+
+    def stream_ended(self) -> None:
+        """
+        The stream ended without an error (the page stopped it, its time ran
+        out): an error its handler raises from now on, typically because the
+        end cut it short (an empty `latest_args` after `wait_for_args()`),
+        is logged but does not turn the stop into a failure.
+        """
+        with self._lock:
+            self.ended = True
 
     def fail(self, error: BaseException) -> None:
         """
@@ -99,7 +111,7 @@ class StreamErrors:
 
         payload = error_payload(error, self.show_error)
         with self._lock:
-            if self.failure is not None:
+            if self.failure is not None or self.ended:
                 return
             self.failure = payload
         self.loop.call_soon_threadsafe(self.end_stream)

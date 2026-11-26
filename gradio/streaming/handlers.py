@@ -125,7 +125,10 @@ class StreamHandlerBase:
         Waits until the values of the extra input components have arrived in
         `latest_args`, asking the page for them the first time. Once they
         have, it returns at once: each change of an input updates
-        `latest_args`, so it can be called with every frame.
+        `latest_args`, so it can be called with every frame. It also returns
+        when the stream ends before they arrive, with `latest_args` still
+        empty; an error the handler then raises is logged, but the stream
+        ends as stopped, not failed.
         """
         if self.args_set.is_set():
             return
