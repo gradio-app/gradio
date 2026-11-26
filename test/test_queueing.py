@@ -1582,6 +1582,38 @@ def test_a_chunk_sent_while_in_line_reaches_a_generator_once():
         demo.close()
 
 
+def test_a_close_just_after_a_stream_left_the_line_ends_it():
+    def respond(chunk):
+        return f"got {chunk}"
+
+    demo, api = _launch_text_stream(respond)
+    queue = demo._queue
+    process_events = queue.process_events
+
+    async def closed_on_the_way(events, *args, **kwargs):
+        # /stream/{id}/close after the event left the line, before its first
+        # call: the route sets closed and wakes it
+        for event in events:
+            event.closed = True
+            event.signal.set()
+        return await process_events(events, *args, **kwargs)
+
+    queue.process_events = closed_on_the_way  # type: ignore[method-assign]
+    try:
+        with httpx2.Client(timeout=10) as http:
+            http.post(
+                f"{api}/queue/join",
+                json={"data": ["a"], "fn_index": 0, "session_hash": "s"},
+            )
+            started = time.monotonic()
+            _, completed = _stream_outputs(http, api, "s", lambda n: None)
+            # Not after the 30 s wait for a next chunk
+            assert completed is not None
+            assert time.monotonic() - started < 5
+    finally:
+        demo.close()
+
+
 def test_a_generator_stream_function_that_fails_ends_the_stream():
     def respond():
         chunk = yield
