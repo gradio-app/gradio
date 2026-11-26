@@ -11,6 +11,9 @@
  * reading each other's history.
  */
 
+import { spaces_storage_headers } from "../helpers/spaces_storage";
+import { SPACES_STORAGE_BUCKET } from "./run_history";
+
 const BUCKET_ID_RE = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-][a-zA-Z0-9_./-]*$/;
 
 export function is_valid_bucket_id(id: string): boolean {
@@ -152,13 +155,56 @@ export async function list_user_buckets(
 	);
 }
 
+/** Run a storage request, with the viewer's token on Spaces storage. A 401
+ * there means the token expired, so ask the Space page again and retry once. */
+async function with_storage_headers<T>(
+	bucket: string,
+	target: string,
+	send: (headers: Record<string, string>) => Promise<HistoryResult<T>>
+): Promise<HistoryResult<T>> {
+	if (bucket !== SPACES_STORAGE_BUCKET) return send({});
+	const result = await send(await spaces_storage_headers(target));
+	return result.status === 401
+		? send(await spaces_storage_headers(target, true))
+		: result;
+}
+
 export async function list_bucket_records(
 	root: string,
 	bucket: string
 ): Promise<HistoryResult<HistoryRecord[]>> {
-	return request(url(root, "records", { bucket }), {}, [], (b) =>
-		Array.isArray(b?.records) ? b.records : []
+	const target = url(root, "records", { bucket });
+	return with_storage_headers(bucket, target, (headers) =>
+		request(target, { headers }, [], (b) =>
+			Array.isArray(b?.records) ? b.records : []
+		)
 	);
+}
+
+/** An asset as an object URL, for Spaces storage, whose requests need a
+ * header an `<img src>` cannot send. Other buckets use `asset_url` directly. */
+export async function fetch_asset_url(
+	root: string,
+	bucket: string,
+	endpoint: string,
+	record_id: string,
+	filename: string
+): Promise<string> {
+	const src = asset_url(root, bucket, endpoint, record_id, filename);
+	if (bucket !== SPACES_STORAGE_BUCKET) return src;
+	const result = await with_storage_headers(bucket, src, async (headers) => {
+		try {
+			const res = await fetch(src, { credentials: "include", headers });
+			return {
+				ok: res.ok,
+				status: res.status,
+				data: res.ok ? URL.createObjectURL(await res.blob()) : src
+			};
+		} catch {
+			return { ok: false, status: 0, data: src };
+		}
+	});
+	return result.data;
 }
 
 export function asset_url(

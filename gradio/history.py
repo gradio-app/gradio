@@ -13,6 +13,7 @@ import tempfile
 import threading
 import time
 from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Annotated, Any, NamedTuple
@@ -22,6 +23,7 @@ import anyio
 import anyio.to_thread
 import fastapi
 import gradio_client.utils as client_utils
+import httpx2
 from fastapi import Depends, Path, Query, Request
 from huggingface_hub import HfApi
 from pydantic import BaseModel
@@ -184,6 +186,7 @@ class HistoryTarget(NamedTuple):
     bucket: str
     token: str
     app_id: str
+    endpoint: str | None = None
 
     @classmethod
     def build(cls, bucket: str, token: str, app_id: str) -> HistoryTarget:
@@ -194,6 +197,50 @@ class HistoryTarget(NamedTuple):
 
 def _api(target: HistoryTarget) -> HfApi:
     return HfApi(token=target.token)
+
+
+def _storage(target: HistoryTarget) -> httpx2.Client:
+    """A client for the viewer's Spaces storage, whose paths are relative to
+    this Space's folder in it."""
+    return httpx2.Client(
+        base_url=target.endpoint or "",
+        headers={"Authorization": f"Bearer {target.token}"},
+        timeout=60,
+    )
+
+
+def _storage_error(res: httpx2.Response, what: str) -> HistoryError:
+    try:
+        detail = res.json().get("error") or res.text
+    except Exception:
+        detail = res.text
+    status = res.status_code if res.status_code in (401, 403, 404, 413) else 502
+    return HistoryError(f"{what}: {detail}", status)
+
+
+def _storage_put(client: httpx2.Client, path: str, data: bytes | str) -> None:
+    """Write one file, from bytes or a local path, retrying once when busy."""
+    content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+    for attempt in range(2):
+        if isinstance(data, bytes):
+            res = client.put(
+                f"/files/{path}", content=data, headers={"Content-Type": content_type}
+            )
+        else:
+            with open(data, "rb") as fh:
+                res = client.put(
+                    f"/files/{path}", content=fh, headers={"Content-Type": content_type}
+                )
+        if res.status_code == 503 and attempt == 0:
+            try:
+                delay = float(res.headers.get("Retry-After", 1))
+            except ValueError:
+                delay = 1.0
+            time.sleep(min(delay, 30))
+            continue
+        break
+    if res.status_code not in (200, 201):
+        raise _storage_error(res, f"could not save {path}")
 
 
 RUNS_PREFIX = "runs"
@@ -279,8 +326,6 @@ def save_record(
     """Write *record*, uploading its assets first. The JSON is the commit marker."""
     validate_segment(record.record_id)
     validate_segment(record.endpoint)
-    ensure_bucket(target)
-    api = _api(target)
 
     adds: list[tuple[Any, str]] = []
     if assets:
@@ -300,18 +345,33 @@ def save_record(
                 )
                 continue
 
+    record_file = (
+        record.to_json_bytes(),
+        record_path(target.app_id, record.endpoint, record.record_id),
+    )
+    if target.endpoint:
+        with _storage(target) as client:
+            try:
+                for data, path in [*adds, record_file]:
+                    _storage_put(client, path, data)
+            except Exception as e:
+                for _, path in adds:
+                    try:
+                        client.delete(f"/files/{path}")
+                    except Exception:
+                        logger.debug("history: cleanup delete failed", exc_info=True)
+                if isinstance(e, HistoryError):
+                    raise
+                raise HistoryError(f"save_record failed: {e}", 502) from e
+        _invalidate_list_cache(target.bucket, target.app_id)
+        return
+
+    ensure_bucket(target)
+    api = _api(target)
     try:
         if adds:
             api.batch_bucket_files(bucket_id=target.bucket, add=adds)
-        api.batch_bucket_files(
-            bucket_id=target.bucket,
-            add=[
-                (
-                    record.to_json_bytes(),
-                    record_path(target.app_id, record.endpoint, record.record_id),
-                )
-            ],
-        )
+        api.batch_bucket_files(bucket_id=target.bucket, add=[record_file])
     except Exception as e:
         if adds:
             try:
@@ -372,6 +432,8 @@ def get_asset_bytes(
 
 def _list_paths(target: HistoryTarget, prefix: str) -> list[str]:
     """File paths under *prefix*, capped. Nothing there yet is not an error."""
+    if target.endpoint:
+        return _list_storage_paths(target, prefix)
     paths: list[str] = []
     try:
         for item in _api(target).list_bucket_tree(
@@ -395,7 +457,41 @@ def _list_paths(target: HistoryTarget, prefix: str) -> list[str]:
     return paths
 
 
+def _list_storage_paths(target: HistoryTarget, prefix: str) -> list[str]:
+    paths: list[str] = []
+    cursor = None
+    with _storage(target) as client:
+        while True:
+            params = {"prefix": prefix, "limit": 1000}
+            if cursor:
+                params["cursor"] = cursor
+            res = client.get("/files", params=params)
+            if res.status_code == 404:
+                return []
+            if res.status_code != 200:
+                raise _storage_error(res, f"could not list {prefix}")
+            body = res.json()
+            paths.extend(f["path"] for f in body.get("files", []))
+            cursor = body.get("cursor")
+            if len(paths) >= _MAX_LIST_PATHS:
+                logger.warning("history: listing for %s hit the path cap", prefix)
+                return paths[:_MAX_LIST_PATHS]
+            if not cursor:
+                return paths
+
+
 def _download_many(target: HistoryTarget, paths: list[str]) -> list[tuple[str, bytes]]:
+    if target.endpoint:
+        with (
+            _storage(target) as client,
+            ThreadPoolExecutor(MAX_CONCURRENT_WRITES) as pool,
+        ):
+            responses = pool.map(lambda p: client.get(f"/files/{p}"), paths)
+            return [
+                (path, res.content)
+                for path, res in zip(paths, responses, strict=True)
+                if res.status_code == 200
+            ]
     out: list[tuple[str, bytes]] = []
     with tempfile.TemporaryDirectory() as tmp:
         pairs = [(p, os.path.join(tmp, f"{i}.json")) for i, p in enumerate(paths)]
@@ -416,6 +512,14 @@ def _download_many(target: HistoryTarget, paths: list[str]) -> list[tuple[str, b
 
 
 def _download_bytes(target: HistoryTarget, path_in_repo: str) -> bytes:
+    if target.endpoint:
+        with _storage(target) as client:
+            res = client.get(f"/files/{path_in_repo}")
+        if res.status_code == 404:
+            raise HistoryError(path_in_repo, 404)
+        if res.status_code != 200:
+            raise _storage_error(res, f"could not download {path_in_repo}")
+        return res.content
     with tempfile.TemporaryDirectory() as tmp:
         local = os.path.join(tmp, os.path.basename(path_in_repo))
         try:
@@ -500,6 +604,15 @@ def _content_type_of(node, path_or_url: str) -> str:
 
 
 BUCKET_HEADER = "x-gradio-history-bucket"
+
+# Spaces storage: the Space page hands the frontend a short-lived token for the
+# viewer's own storage, which it sends on each request. HF_STORAGE_ENDPOINT
+# takes it as a bearer token and keeps this Space's files in their own folder.
+# The Space never learns who the viewer is.
+SPACES_STORAGE_TOKEN_HEADER = "x-hf-viewer-token"
+# Not a bucket: a label that keeps the list cache apart from real buckets.
+SPACES_STORAGE_LABEL = "spaces-storage"
+SPACES_STORAGE_APP_ID = "gradio"
 MAX_CONCURRENT_WRITES = 8
 
 
@@ -640,6 +753,26 @@ def require_token(request: Request) -> str:
     return token
 
 
+def spaces_storage_available() -> bool:
+    return bool(os.getenv("HF_STORAGE_ENDPOINT"))
+
+
+def spaces_storage_target(request) -> HistoryTarget | None:
+    """The viewer's Spaces storage, when this request carries their token."""
+    endpoint = os.getenv("HF_STORAGE_ENDPOINT")
+    raw = _fastapi_request(request)
+    if not endpoint or raw is None:
+        return None
+    try:
+        token = raw.headers.get(SPACES_STORAGE_TOKEN_HEADER)
+    except Exception:
+        return None
+    if not token:
+        return None
+    # A fixed app id, unlike the per-restart one, so history survives restarts.
+    return HistoryTarget(SPACES_STORAGE_LABEL, token, SPACES_STORAGE_APP_ID, endpoint)
+
+
 def resolve_bucket_id(blocks, request, explicit: str | None = None) -> str | None:
     """Which bucket this run belongs in, resolved per request."""
     if explicit:
@@ -667,6 +800,9 @@ def resolve_target(
     blocks = app.get_blocks()
     if not getattr(blocks, "run_history", True):
         return None
+    spaces = spaces_storage_target(request)
+    if spaces is not None:
+        return spaces
     bucket = resolve_bucket_id(blocks, request, bucket_id)
     if not bucket:
         return None
@@ -765,10 +901,14 @@ async def offload(fn, *args):
 
 def get_target(
     request: Request,
-    token: Annotated[str, Depends(require_token)],
     bucket: Annotated[str, Query(min_length=3, max_length=200)],
 ) -> HistoryTarget:
-    """The bucket named on this request, addressed with the caller's token."""
+    """The viewer's Spaces storage, else the bucket named on this request,
+    addressed with the caller's token."""
+    spaces = spaces_storage_target(request)
+    if spaces is not None:
+        return spaces
+    token = require_token(request)
     blocks = request.app.get_blocks()
     try:
         return HistoryTarget.build(bucket, token, app_id_of(blocks))

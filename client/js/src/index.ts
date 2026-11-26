@@ -27,6 +27,7 @@ export {
 	read_run_history_storage,
 	run_history_url,
 	set_run_history_storage,
+	SPACES_STORAGE_BUCKET,
 	stage_run_history_replay,
 	type ReplayTarget,
 	type RunHistoryStorage,
@@ -38,12 +39,14 @@ export {
 	asset_url,
 	connect_bucket,
 	disconnect_bucket,
+	fetch_asset_url,
 	is_valid_bucket_id,
 	list_bucket_records,
 	list_user_buckets,
 	type HistoryRecord,
 	type HistoryResult
 } from "./utils/bucket_sync";
+export { spaces_storage_headers } from "./helpers/spaces_storage";
 
 export type {
 	SpaceStatus,

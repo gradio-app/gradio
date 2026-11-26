@@ -46,6 +46,7 @@ import {
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
 import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
 import { initialize_console_forwarding_for_app } from "./helpers/console_forward";
+import { initialize_spaces_storage_handshake } from "./helpers/spaces_storage";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { clear_run_history, load_run_history } from "./utils/run_history";
 import { SessionStore } from "./utils/session_store";
@@ -282,6 +283,7 @@ export class Client {
 	private async init(): Promise<void> {
 		initialize_zerogpu_handshake();
 		initialize_console_forwarding_for_app(this.app_reference);
+		initialize_spaces_storage_handshake();
 
 		if (this.options.auth) {
 			await this.resolve_cookies();

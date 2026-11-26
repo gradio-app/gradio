@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import {
-		asset_url,
 		clear_run_history,
 		delete_run_history,
+		fetch_asset_url,
 		list_bucket_records,
 		on_run_history_change,
 		read_run_history,
 		read_run_history_storage,
+		spaces_storage_headers,
+		SPACES_STORAGE_BUCKET,
 		stage_run_history_replay,
 		type HistoryRecord,
 		type RunHistoryScope,
@@ -55,6 +57,9 @@
 
 	const bucket_id = $derived(storage.bucket_id ?? "");
 	const using_bucket = $derived(storage.type === "bucket");
+	const on_spaces_storage = $derived(
+		using_bucket && bucket_id === SPACES_STORAGE_BUCKET
+	);
 	const oauth_available = $derived(scope.oauth_available ?? false);
 
 	let groups = $derived.by(() => {
@@ -99,14 +104,17 @@
 			: null;
 	}
 
-	function restore_assets(value: unknown, record: HistoryRecord): unknown {
+	async function restore_assets(
+		value: unknown,
+		record: HistoryRecord
+	): Promise<unknown> {
 		if (Array.isArray(value)) {
-			return value.map((item) => restore_assets(item, record));
+			return Promise.all(value.map((item) => restore_assets(item, record)));
 		}
 		if (!value || typeof value !== "object") return value;
 		const marker = (value as { __asset__?: unknown }).__asset__;
 		if (typeof marker === "string") {
-			const url = asset_url(
+			const url = await fetch_asset_url(
 				root,
 				bucket_id,
 				record.endpoint,
@@ -121,14 +129,16 @@
 			};
 		}
 		return Object.fromEntries(
-			Object.entries(value).map(([key, item]) => [
-				key,
-				restore_assets(item, record)
-			])
+			await Promise.all(
+				Object.entries(value).map(async ([key, item]) => [
+					key,
+					await restore_assets(item, record)
+				])
+			)
 		);
 	}
 
-	function bucket_run(record: HistoryRecord): StoredRun {
+	async function bucket_run(record: HistoryRecord): Promise<StoredRun> {
 		const dependency = dependency_for(record.endpoint);
 		return {
 			id: record.record_id,
@@ -138,8 +148,8 @@
 				: `/${record.endpoint}`,
 			fn_index: dependency?.id ?? -1,
 			page: new URL(root, window.location.href).pathname,
-			inputs: restore_assets(record.inputs, record),
-			outputs: restore_assets(record.outputs, record),
+			inputs: await restore_assets(record.inputs, record),
+			outputs: await restore_assets(record.outputs, record),
 			input_components: dependency?.inputs.map(component_metadata),
 			output_components: dependency?.outputs.map(component_metadata),
 			status: "completed",
@@ -173,10 +183,23 @@
 					: (result.detail ?? "Could not load bucket history.");
 			return;
 		}
-		runs = result.data.map(bucket_run);
+		const restored = await Promise.all(result.data.map(bucket_run));
+		if (version !== refresh_version) return;
+		runs = restored;
 	}
 
 	onMount(() => {
+		void start();
+		return on_run_history_change(() => {
+			storage = read_run_history_storage(scope);
+			void refresh();
+		});
+	});
+
+	async function start(): Promise<void> {
+		// The Space page may not have answered the client's probe yet, so ask it
+		// directly whether the viewer's storage is usable before reading runs.
+		if (scope.history_storage === "spaces") await spaces_storage_headers(root);
 		storage = read_run_history_storage(scope);
 		// Embedded on Spaces this page loads inside an iframe the parent has
 		// already scrolled past, so it opens mid-list unless we ask for the top.
@@ -184,11 +207,7 @@
 			window.parentIFrame?.scrollTo(0, 0);
 		}
 		void refresh();
-		return on_run_history_change(() => {
-			storage = read_run_history_storage(scope);
-			void refresh();
-		});
-	});
+	}
 
 	function values(value: unknown): unknown[] {
 		if (Array.isArray(value)) return value;
@@ -306,15 +325,21 @@
 	<header class="page-header">
 		<div class="title-block">
 			<h1>Run history ({runs.length})</h1>
-			<HistoryStorageControl {root} {scope} bind:storage />
+			{#if on_spaces_storage}
+				<p>Saved privately to your Hugging Face storage.</p>
+			{:else}
+				<HistoryStorageControl {root} {scope} bind:storage />
+			{/if}
 		</div>
 		{#if using_bucket}
-			<a
-				class="view-bucket"
-				href="https://huggingface.co/buckets/{bucket_id}"
-				target="_blank"
-				rel="noopener noreferrer">View bucket ↗</a
-			>
+			{#if !on_spaces_storage}
+				<a
+					class="view-bucket"
+					href="https://huggingface.co/buckets/{bucket_id}"
+					target="_blank"
+					rel="noopener noreferrer">View bucket ↗</a
+				>
+			{/if}
 		{:else if runs.length}
 			<button class="clear" onclick={clear_all}>Clear history</button>
 		{/if}

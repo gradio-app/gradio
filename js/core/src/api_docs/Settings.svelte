@@ -12,6 +12,7 @@
 		on_run_history_change,
 		read_run_history,
 		read_run_history_storage,
+		SPACES_STORAGE_BUCKET,
 		run_history_url,
 		type RunHistoryStorage
 	} from "@gradio/client";
@@ -243,11 +244,13 @@
 				View run history <span aria-hidden="true">→</span>
 			</a>
 		</div>
-		<HistoryStorageControl
-			{root}
-			scope={run_history_scope}
-			bind:storage={history_storage}
-		/>
+		{#if history_storage.bucket_id !== SPACES_STORAGE_BUCKET}
+			<HistoryStorageControl
+				{root}
+				scope={run_history_scope}
+				bind:storage={history_storage}
+			/>
+		{/if}
 	</div>
 {/if}
 
