@@ -1,5 +1,16 @@
 # @gradio/upload
 
+## 0.20.0-dev.1
+
+### Features
+
+- [#14079](https://github.com/gradio-app/gradio/pull/14079) [`d5d75b1`](https://github.com/gradio-app/gradio/commit/d5d75b13c8264fffeb25edc1b2f5932aeb1aa20d) - Add a fullscreen button to ImageEditor, Sketchpad and Paint.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.27.0-dev.0
+- @gradio/client@2.8.0-dev.1
+
 ## 0.19.2-dev.0
 
 ### Dependency updates

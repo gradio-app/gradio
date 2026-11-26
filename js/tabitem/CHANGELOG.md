@@ -6,6 +6,12 @@
 
 - @gradio/column@0.5.0-dev.0
 
+## 0.10.2-dev.0
+
+### Dependency updates
+
+- @gradio/column@0.5.0-dev.0
+
 ## 0.10.1
 
 ### Dependency updates

@@ -1,0 +1,38 @@
+import type { ILoadingStatus as LoadingStatus } from "./types";
+import type { I18nFormatter } from "@gradio/utils";
+import type { Snippet } from "svelte";
+interface Props {
+    i18n: I18nFormatter;
+    eta?: number | null;
+    queue_position: number | null;
+    queue_size: number | null;
+    component_id?: number | null;
+    fn_index?: number | null;
+    status: "complete" | "pending" | "error" | "generating" | "streaming" | null;
+    scroll_to_output?: boolean;
+    timer?: boolean;
+    show_progress?: "full" | "minimal" | "hidden";
+    message?: string | null;
+    progress?: LoadingStatus["progress"] | null | undefined;
+    time_start?: number | null;
+    eta_total?: number | null;
+    variant?: "default" | "center";
+    loading_text?: string;
+    absolute?: boolean;
+    translucent?: boolean;
+    border?: boolean;
+    autoscroll: boolean;
+    validation_error?: string | null;
+    show_validation_error?: boolean;
+    type?: "input" | "output" | "skip" | null;
+    on_clear_status?: () => void;
+    used_cache?: "full" | "partial" | null;
+    cache_duration?: number | null;
+    avg_time?: number | null;
+    cache_event_id?: number | null;
+    additional_loading_text?: Snippet;
+    error_details?: Snippet;
+}
+declare const Index: import("svelte").Component<Props, {}, "">;
+type Index = ReturnType<typeof Index>;
+export default Index;

@@ -1,5 +1,15 @@
 # website
 
+## 0.82.0-dev.1
+
+### Dependency updates
+
+- @gradio/statustracker@0.16.1-dev.0
+- @gradio/code@0.20.2-dev.1
+- @gradio/html@0.14.2-dev.1
+- @gradio/paramviewer@0.12.2-dev.0
+- @gradio/button@0.8.5-dev.1
+
 ## 0.82.0-dev.0
 
 ### Features
