@@ -293,7 +293,7 @@ class AsyncAudioVideoStreamHandler(AsyncStreamHandler):
 
 class VideoStreamHandler(StreamHandlerBase, ABC):
     """
-    Base class for synchronous handlers of video-only streams that need state or resources for the whole stream, for example one GPU allocation per stream on ZeroGPU. `video_receive()` is called with every incoming frame (or, when it is slower than the camera, with the newest one that arrived while it ran) and `video_emit()` is polled for the next outgoing frame; `start_up()` is called once when the stream starts (frames may already arrive while it runs) and `shutdown()` when it ends. Works when the video component is among both the inputs and the outputs, and when it is only among the inputs, where `video_emit()` is still called and returns only the other outputs. For a function called once per frame, pass the function itself.
+    Base class for synchronous handlers of video-only streams that need state or resources for the whole stream, for example a model session that keeps state between frames. `video_receive()` is called with every incoming frame (or, when it is slower than the camera, with the newest one that arrived while it ran) and `video_emit()` is polled for the next outgoing frame; `start_up()` is called once when the stream starts (frames may already arrive while it runs) and `shutdown()` when it ends. Works when the video component is among both the inputs and the outputs, and when it is only among the inputs, where `video_emit()` is still called and returns only the other outputs. For a function called once per frame, pass the function itself.
 
     Parameters:
         fps: the frame rate at which frames are sent to the page; when the video component is only among the inputs, how often `video_emit()` is called.
