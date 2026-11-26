@@ -2189,6 +2189,21 @@ class TestStreams:
         await pc.close()
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize("launched", [{"allow_extra_tracks": True}], indirect=True)
+    async def test_an_extra_track_offered_sendonly_is_allowed(self, launched):
+        h = launched
+        await h.start("one")
+        # Only the stream's own video must come back; the extra audio is read
+        # and dropped whichever way it is offered
+        pc = RTCPeerConnection()
+        pc.createDataChannel("text")
+        pc.addTransceiver(AudioStreamTrack(), direction="sendonly")
+        pc.addTransceiver(VideoStreamTrack(), direction="sendrecv")
+        await pc.setLocalDescription(await pc.createOffer())
+        assert (await h.offer(pc, "one"))["type"] == "answer"
+        await pc.close()
+
+    @pytest.mark.asyncio
     async def test_duplicate_id_and_invalid_offers(self, launched):
         h = launched
         await h.start("one")

@@ -1226,13 +1226,18 @@ class ConnectionManager:
         if self.mode == "send-receive":
             from aiortc.sdp import SessionDescription
 
-            # Only sending the media back reads a track in this mode, so a
-            # track offered as sendonly would never be read, while aiortc
-            # queues its frames without a bound
-            if any(
-                m.kind in ("audio", "video") and m.direction == "sendonly"
-                for m in SessionDescription.parse(offer.sdp).media
-            ):
+            # Only sending the media back reads the stream's own track (the
+            # first of each kind it takes) in this mode, so offered as
+            # sendonly it would never be read, while aiortc queues its frames
+            # without a bound. Extra tracks are dealt with by extra_track.
+            kinds = (
+                {"audio", "video"}
+                if self.modality == "audio-video"
+                else {self.modality}
+            )
+            media = SessionDescription.parse(offer.sdp).media
+            own = [next((m for m in media if m.kind == k), None) for k in kinds]
+            if any(m is not None and m.direction == "sendonly" for m in own):
                 rejected.append(
                     "This stream sends its media back: offer the track as "
                     "sendrecv, not sendonly."
