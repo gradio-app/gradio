@@ -1568,7 +1568,7 @@ def test_a_generator_stream_function_that_fails_ends_the_stream():
 
 def test_a_stream_s_time_limit_counts_from_the_end_of_its_first_call():
     def respond():
-        time.sleep(1.5)  # getting ready, e.g. waiting for a GPU
+        time.sleep(2.5)  # getting ready, e.g. waiting for a GPU
         chunk = yield
         while True:
             chunk = yield f"got {chunk}"
@@ -1594,8 +1594,9 @@ def test_a_stream_s_time_limit_counts_from_the_end_of_its_first_call():
                 _send_chunk(http, api, event_id, "s", f"c{n}")
 
             outputs, _ = _stream_outputs(http, api, "s", next_chunk)
-            # Its 1.5 s first call is not counted, so it keeps answering chunks
-            # for its 1 s after that, instead of ending with the first output
+            # Its 2.5 s first call is not counted, even past the 1 s limit, so it
+            # keeps answering chunks for 1 s after that, instead of ending with
+            # the first output
             assert len(outputs) >= 4
     finally:
         demo.close()

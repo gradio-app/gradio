@@ -90,8 +90,7 @@ class Event:
         self.n_calls = 0
         self.run_time: float = 0
         # A stream's first call, which its time limit does not count: it may
-        # include getting ready (a generator waiting for its GPU), up to the
-        # limit itself
+        # include getting ready (a generator waiting for its GPU)
         self.uncounted_time: float = 0
         self.enqueue_time: float = time.monotonic()
         self.signal = asyncio.Event()
@@ -1524,9 +1523,7 @@ class Queue:
                 # (A lease keeps its own clock; this only sets the countdown
                 # that the page shows)
                 uncounted = (
-                    min(first_iteration, fn.time_limit)
-                    if events[0].streaming and fn.time_limit
-                    else 0.0
+                    first_iteration if events[0].streaming and fn.time_limit else 0.0
                 )
                 err = None
                 for event in awake_events:
@@ -1539,12 +1536,9 @@ class Queue:
                         )
                     elif fn.lease and event.closed:
                         response["is_generating"] = False
-                # What the page's countdown starts from: the time left in the
-                # stream's current period (one that went on past its limit is
-                # in a later period)
+                # The page's countdown starts now, with the whole time limit
                 if fn.time_limit:
-                    elapsed = first_iteration - events[0].uncounted_time
-                    countdown = fn.time_limit - elapsed % fn.time_limit
+                    countdown = fn.time_limit
 
             except Exception as e:
                 if not isinstance(e, Error) or e.print_exception:

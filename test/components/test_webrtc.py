@@ -1721,12 +1721,14 @@ class TestStreams:
     )
     async def test_time_limit_ends_the_event_and_the_connection(self, launched):
         h = launched
-        # Made before the admission, from which the time limit counts
         pc = await make_offer(video=True)
         event_id = await h.start("one")
         answer = await h.connect(pc, "one")
-        assert 0 < answer["time_limit"] <= 1
+        assert answer["time_limit"] == 1
         started = time.monotonic()
+        # As the page does once connected; the time limit counts from the
+        # first frame that the function gets after that
+        await h.push_inputs("one", 0)
         errors = stream_of(h.manager, "one").errors
         assert errors is not None
         errors.failure = {"error": "Bad frame", "visible": False}
@@ -1754,6 +1756,7 @@ class TestStreams:
         event_id = await h.start("one")
         await h.connect(pc, "one")
         await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        await h.push_inputs("one", 0)
         # Read for the whole test, as the page does: a page that stops
         # reading has left
         reader = asyncio.ensure_future(h.messages("one", completed, timeout=30))
@@ -1796,6 +1799,7 @@ class TestStreams:
         started = time.monotonic()
         await h.connect(pc, "one")
         await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        await h.push_inputs("one", 0)
         reader = asyncio.ensure_future(h.messages("one", completed, timeout=10))
         # Waits: the stream holds the only slot
         await h.join("two")
@@ -1822,6 +1826,25 @@ class TestStreams:
         completion = next(m for m in messages if m["msg"] == "process_completed")
         assert completion["success"] is False
         assert completion["output"]["error"] == webrtc_connection.CONNECT_FAILED
+
+    @pytest.mark.asyncio
+    async def test_a_stream_whose_inputs_never_come_gives_up(
+        self, launched, monkeypatch
+    ):
+        # Its time limit has not started: without this, a client that never
+        # sends the inputs would keep the turn for good
+        h = launched
+        monkeypatch.setattr(webrtc_connection, "CONNECT_TIMEOUT", 1)
+        pc = await make_offer(video=True)
+        event_id = await h.start("one")
+        await h.connect(pc, "one")
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        await h.wait_until(lambda: not h.event_running(event_id))
+        messages = await h.messages("one", completed)
+        completion = next(m for m in messages if m["msg"] == "process_completed")
+        assert completion["success"] is False
+        assert completion["output"]["error"] == webrtc_connection.CONNECT_FAILED
+        await pc.close()
 
     @pytest.mark.asyncio
     async def test_a_quiet_stream_keeps_its_turn(self, launched):
@@ -6142,10 +6165,14 @@ def test_a_stream_s_time_limit_counts_from_its_first_step(monkeypatch):
     assert lease.remaining_time() == 7
     lease.start_clock()  # only the first one counts
     assert lease.remaining_time() == 7
-    # A stream that never gets ready starts counting after the limit itself
+    # However long getting ready takes, the whole limit is left after it
     late = webrtc_connection.QueueLease(cast(Any, None), time_limit=10)
-    now[0] += 12
-    assert late.remaining_time() == 8
+    now[0] += 25
+    assert late.remaining_time() == 10
+    late.next_period()  # nothing ran out
+    late.start_clock()
+    now[0] += 3
+    assert late.remaining_time() == 7
 
 
 def test_a_stream_puts_its_component_in_streaming_mode():

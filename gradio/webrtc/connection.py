@@ -99,7 +99,8 @@ logger = logging.getLogger(__name__)
 Mode = Literal["send-receive", "receive", "send"]
 Modality = Literal["video", "audio", "audio-video"]
 
-# Seconds an admitted stream has to connect before its turn is given up
+# Seconds an admitted stream has to connect and get its inputs from the page
+# before its turn is given up
 CONNECT_TIMEOUT = 30
 CONNECT_FAILED = (
     "The stream could not connect. A VPN or firewall may be blocking it, or the "
@@ -327,29 +328,25 @@ class QueueLease:
 
     def remaining_time(self) -> float | None:
         """The time limit counts from the stream's first step, so that getting
-        ready (connecting, a generator waiting for its GPU) is not counted;
-        getting ready may take up to the limit itself before it starts anyway."""
+        ready (connecting, a generator waiting for its GPU) is not counted."""
         if self.time_limit is None:
             return None
-        start = self.started_at
-        if start is None:
-            start = min(time.monotonic(), self.admitted_at + self.time_limit)
-        return max(0.0, self.time_limit - (time.monotonic() - start))
+        if self.started_at is None:
+            return self.time_limit
+        return max(0.0, self.time_limit - (time.monotonic() - self.started_at))
 
     def next_period(self) -> None:
         """Starts the time limit again where it ran out, as the page's
         countdown bar does (see `keep`)."""
-        if self.time_limit is None:
+        if self.time_limit is None or self.started_at is None:
             return
-        if self.started_at is None:
-            self.started_at = self.admitted_at + self.time_limit
         while self.remaining_time() == 0:
             self.started_at += self.time_limit
 
     async def keep(self, stream: Stream) -> None:
         """
         Runs until the queue event is over, however it ended: ends the stream
-        when it does not connect in time, and at its time limit with
+        when it does not connect or get its inputs in time, and at its time limit with
         on_time_limit="stop". With "rejoin", the stream goes on into its next
         period of time_limit, and the queue ends it if an event waits for its
         slot (see `EventHandle.time_up`).
@@ -389,13 +386,15 @@ class QueueLease:
                             continue
                 now = time.monotonic()
                 timed_out = self.remaining_time() == 0
-                never_connected = (
-                    not stream.connected and now - self.admitted_at > CONNECT_TIMEOUT
-                )
-                if timed_out and not never_connected and self.on_time_limit == "rejoin":
+                # The time limit starts only at the first step, which needs
+                # the connection and the inputs from the page
+                never_ready = (
+                    not stream.connected or not stream.inputs.arrived.is_set()
+                ) and now - self.admitted_at > CONNECT_TIMEOUT
+                if timed_out and not never_ready and self.on_time_limit == "rejoin":
                     self.next_period()
                     self.event.time_up()
-                elif never_connected:
+                elif never_ready:
                     if stream.errors is None:
                         # The offer never came
                         stream.errors = StreamErrors(
@@ -1246,8 +1245,8 @@ class ConnectionManager:
         return {
             "sdp": sdp,
             "type": pc.localDescription.type,
-            # Counted from the stream's admission, so the browser can show
-            # what is left of it
+            # What is left of the time limit (all of it before the first
+            # step), so the browser can show it
             "time_limit": stream.lease.remaining_time(),
         }
 

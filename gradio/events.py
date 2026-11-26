@@ -1450,7 +1450,7 @@ class Events:
             {
                 "name": "time_limit",
                 "type": "float | None = None",
-                "doc": "How long a stream keeps its turn while others wait (see `on_time_limit`). It counts from the end of the stream's first call (or a handler class's start_up()), so getting ready, such as a generator waiting for its GPU, is not counted, up to the limit itself. Parameter only used for the `.stream()` event.",
+                "doc": "How long a stream keeps its turn while others wait (see `on_time_limit`). It counts from the end of the stream's first call (or a handler class's start_up()), so getting ready, such as a generator waiting for its GPU, is not counted. Parameter only used for the `.stream()` event.",
                 "component_prop": "false",
             },
             {
