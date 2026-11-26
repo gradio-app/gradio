@@ -1086,8 +1086,9 @@ class TestWebRTC:
         assert not streams_of(manager)
 
 
-async def make_offer(audio=False, video=False, receive=None):
-    """`audio` and `video` are a flag or a number of tracks."""
+async def make_offer(audio=False, video=False, receive=None, direction="sendrecv"):
+    """`audio` and `video` are a flag or a number of tracks, offered in
+    `direction`."""
     pc = RTCPeerConnection()
     channel = pc.createDataChannel("text")
     pc.channel = channel  # type: ignore[attr-defined]
@@ -1095,9 +1096,9 @@ async def make_offer(audio=False, video=False, receive=None):
     pc.messages = []  # type: ignore[attr-defined]
     channel.on("message", lambda m: pc.messages.append(json.loads(m)))  # type: ignore[attr-defined]
     for _ in range(int(audio)):
-        pc.addTrack(AudioStreamTrack())
+        pc.addTransceiver(AudioStreamTrack(), direction=direction)
     for _ in range(int(video)):
-        pc.addTrack(VideoStreamTrack())
+        pc.addTransceiver(VideoStreamTrack(), direction=direction)
     if receive:
         pc.addTransceiver(receive, direction="recvonly")
     await pc.setLocalDescription(await pc.createOffer())
@@ -2076,6 +2077,9 @@ class TestStreams:
             ({}, {"video": 2}),
             # E.g. a client given media for a receive-only endpoint
             ({"mode": "receive", "handler": three_frames}, {"video": True}),
+            # A track that cannot take the stream's media back: playing it
+            # back is what reads it, so it would only queue up
+            ({}, {"video": True, "direction": "sendonly"}),
         ],
         indirect=["launched"],
     )

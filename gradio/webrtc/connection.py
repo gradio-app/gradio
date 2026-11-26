@@ -1223,6 +1223,20 @@ class ConnectionManager:
 
             self._spawn(set_channel())
 
+        if self.mode == "send-receive":
+            from aiortc.sdp import SessionDescription
+
+            # Only sending the media back reads a track in this mode, so a
+            # track offered as sendonly would never be read, while aiortc
+            # queues its frames without a bound
+            if any(
+                m.kind in ("audio", "video") and m.direction == "sendonly"
+                for m in SessionDescription.parse(offer.sdp).media
+            ):
+                rejected.append(
+                    "This stream sends its media back: offer the track as "
+                    "sendrecv, not sendonly."
+                )
         await pc.setRemoteDescription(offer)
         if rejected:
             await pc.close()
