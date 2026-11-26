@@ -2019,6 +2019,9 @@ def test_a_stream_generator_takes_no_parameter_for_the_inputs():
     def has_a_default(chunk=None):
         yield chunk
 
+    def takes_any(*chunks):
+        yield chunks
+
     @gr.cache
     def cached():
         chunk = yield
@@ -2032,6 +2035,9 @@ def test_a_stream_generator_takes_no_parameter_for_the_inputs():
             audio.stream(takes_chunk, audio, heard)
         with pytest.raises(ValueError, match="takes chunk"):
             audio.stream(has_a_default, audio, heard)
+        # It would fail on the first chunk instead
+        with pytest.raises(ValueError, match=r"takes \*chunks"):
+            audio.stream(takes_any, audio, heard)
         with pytest.raises(ValueError, match="gr.cache"):
             audio.stream(cached, audio, heard)
         # Each chunk would get a new generator
@@ -2218,6 +2224,8 @@ def test_a_lease_runs_past_its_time_limit_until_it_ends_itself():
     with gr.Blocks() as demo:
         audio = gr.Audio(sources=["microphone"], streaming=True)
         heard = gr.Textbox()
+        # As add_stream_event registers a WebRTC stream's runner
+        lease.runs_a_stream = True  # type: ignore[attr-defined]
         audio.stream(lease, audio, heard, time_limit=0.5)
     # As add_stream_event makes a WebRTC stream's event
     demo.fns[0].lease = True
@@ -2270,6 +2278,7 @@ def test_a_lease_completes_with_the_outputs_of_its_last_step():
     with gr.Blocks() as demo:
         audio = gr.Audio(sources=["microphone"], streaming=True)
         heard = gr.Textbox()
+        lease.runs_a_stream = True  # type: ignore[attr-defined]
         audio.stream(lease, audio, heard)
     # As add_stream_event makes a WebRTC stream's event
     demo.fns[0].lease = True

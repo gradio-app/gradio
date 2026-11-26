@@ -1008,8 +1008,13 @@ class BlocksConfig:
         if show_progress_on and not isinstance(show_progress_on, Sequence):
             show_progress_on = [show_progress_on]
 
-        # A stream's generator is sent the inputs' values instead
-        sends_to_generator = connection == "stream" and utils.is_generator_function(fn)
+        # A stream's generator is sent the inputs' values instead (not the
+        # generator that runs a WebRTC stream)
+        sends_to_generator = (
+            connection == "stream"
+            and utils.is_generator_function(fn)
+            and not getattr(fn, "runs_a_stream", False)
+        )
         if sends_to_generator:
             utils.check_stream_generator(cast(Callable, fn))
             if not queue:

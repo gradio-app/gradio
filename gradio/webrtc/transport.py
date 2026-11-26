@@ -1337,6 +1337,9 @@ def transport_event(
     # gr.Request); the function is named after the app's own (API names, logs)
     run_stream.__annotations__["evt"] = EventData
     run_stream.__annotations__["request"] = routes.Request
+    # A generator that runs the stream, not one the stream sends chunks to
+    # (see Blocks.set_event_trigger): its *_inputs is not the user's
+    cast(Any, run_stream).runs_a_stream = True
     run_stream.__name__ = run_stream.__qualname__ = getattr(
         fn, "__name__", type(fn).__name__
     )

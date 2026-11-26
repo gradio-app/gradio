@@ -966,6 +966,12 @@ def check_stream_generator(fn: Callable) -> None:
             "cache them."
         )
     takes = [p.name for p in get_positional_input_parameters(fn)]
+    # *args would take them as well, and fail on the first value
+    takes += [
+        f"*{p.name}"
+        for p in inspect.signature(fn).parameters.values()
+        if p.kind is p.VAR_POSITIONAL
+    ]
     if takes:
         raise ValueError(
             f"{name}() is a generator, so the stream sends it the inputs' values "
