@@ -390,12 +390,24 @@ export function submit_over_webrtc(
 		}
 	};
 
+	// Once per queue event: a Stop and the end of the caller's loop (return())
+	// both close, and an event that has ended has nothing left to close
+	let close_posted = false;
+	const post_close = (options: {
+		read_to_end?: boolean;
+		keepalive?: boolean;
+	}): void => {
+		if (close_posted || finished) return;
+		close_posted = true;
+		job.close_stream(options);
+	};
+
 	const close = (options?: { read_to_end?: boolean }): void => {
 		stopped = true;
 		// The component opened `media` and decides when to stop it
 		close_webrtc(pc, { stop_tracks: false });
 		pc = null;
-		job.close_stream(options ?? { read_to_end: true });
+		post_close(options ?? { read_to_end: true });
 	};
 
 	// Nothing deferred outlives the page: no timer, and only a keepalive request
@@ -403,7 +415,7 @@ export function submit_over_webrtc(
 		stopped = true;
 		close_webrtc(pc, { stop_tracks: false, at_once: true });
 		pc = null;
-		job.close_stream({ read_to_end: true, keepalive: true });
+		post_close({ read_to_end: true, keepalive: true });
 	};
 
 	// The connection ended without the page closing the stream: the server
@@ -412,7 +424,7 @@ export function submit_over_webrtc(
 	const lose = (): void => {
 		close_webrtc(pc, { stop_tracks: false });
 		pc = null;
-		job.close_stream({ read_to_end: true });
+		post_close({ read_to_end: true });
 	};
 
 	const connect = async (): Promise<void> => {
@@ -617,6 +629,7 @@ export function submit_over_webrtc(
 				// before join(): a Stop in between would leave a job unclosed.
 				const handed_over = job;
 				job = join();
+				close_posted = false;
 				void handed_over.acknowledge();
 			}
 		} catch (error) {

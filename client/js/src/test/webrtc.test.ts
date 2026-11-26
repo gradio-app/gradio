@@ -298,6 +298,7 @@ function fake_job() {
 	let ended = false;
 	const job = {
 		close_stream: vi.fn(),
+		return: vi.fn(async () => ({ value: undefined, done: true })),
 		acknowledge: vi.fn(async () => {}),
 		cancel: vi.fn(async () => {}),
 		event_id: () => "event",
@@ -526,6 +527,28 @@ describe("submit() of a stream with transport='webrtc'", () => {
 			timeout: 2000
 		});
 		expect(video.stop).not.toHaveBeenCalled();
+	});
+
+	it("closes the queue event once, and not once it has ended", async () => {
+		const { job_iter } = start();
+		job.send(turn);
+		await vi.waitFor(() => expect(client.webrtc_offer).toHaveBeenCalled());
+		// A Stop, then the caller's loop ends: the second close would get a 404
+		job_iter.close_stream();
+		await job_iter.return!();
+		expect(job.close_stream).toHaveBeenCalledTimes(1);
+
+		job = fake_job();
+		client.submit = vi.fn(() => job);
+		const ended = start();
+		job.send(turn);
+		// The server ended the stream
+		job.send({ type: "status", stage: "complete", stream_ended: true });
+		job.end();
+		await read(ended.job_iter, 2);
+		expect((await ended.job_iter.next()).done).toBe(true);
+		await ended.job_iter.return!();
+		expect(job.close_stream).not.toHaveBeenCalled();
 	});
 
 	it("uploads a file among the other inputs before sending them", async () => {
