@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import warnings
 from collections.abc import Sequence
@@ -33,6 +34,8 @@ from gradio.utils import (
     diff,
     download_if_url,
     error_payload,
+    error_summary,
+    get_error_id,
     get_extension_from_file_path_or_url,
     get_function_description,
     get_function_params,
@@ -804,6 +807,16 @@ def test_error_payload():
     result = error_payload(Exception("test error"), True)
     assert result == {"error": "test error", "visible": True}
 
+    result = error_payload(ValueError(), True)
+    assert result == {"error": "ValueError", "visible": True}
+
+    error = RuntimeError("could not reach http://10.0.0.5:8000/?key=secret")
+    result = error_payload(error, False)
+    assert result["visible"] is True
+    assert "10.0.0.5" not in result["error"]
+    assert "secret" not in result["error"]
+    assert result["error"].startswith("An unexpected error occurred (RuntimeError).")
+
     gr_error = Error("custom error", duration=1.5, visible=True, title="Error Title")
     result = error_payload(gr_error, False)
     assert result == {
@@ -821,6 +834,45 @@ def test_error_payload():
         "visible": True,
         "title": "Error",
     }
+
+
+class TestErrorSummary:
+    def test_never_includes_the_message(self):
+        summary = error_summary(KeyError("hf_" + "a1B2" * 9))
+        assert "hf_" not in summary
+        assert re.fullmatch(
+            r"An unexpected error occurred \(KeyError\)\. Error ID: [0-9a-f]{8}",
+            summary,
+        )
+
+    def test_hint_for_known_types(self):
+        class ConnectionError(OSError):  # e.g. requests.exceptions.ConnectionError
+            pass
+
+        class ConnectTimeout(ConnectionError):  # noqa: N818
+            pass
+
+        summary = error_summary(ConnectTimeout("HTTPConnectionPool(host='10.0.0.5')"))
+        assert summary.startswith(
+            "An unexpected error occurred (ConnectTimeout). The app could not "
+            "connect to a service it depends on. Error ID: "
+        )
+        assert "10.0.0.5" not in summary
+
+        assert "ran out of memory" in error_summary(MemoryError())
+        assert "timed out" in error_summary(TimeoutError("read timed out"))
+
+    def test_same_error_keeps_its_id(self, capsys):
+        error = ValueError("secret")
+        assert get_error_id(error) == get_error_id(error)
+        out = capsys.readouterr().out
+        assert out.count(f"Error ID {get_error_id(error)}") == 1
+        assert "secret" not in out
+        assert get_error_id(ValueError()) != get_error_id(error)
+
+    def test_unusual_type_name_is_not_shown(self):
+        weird = type("<script>", (Exception,), {})
+        assert "<script>" not in error_summary(weird())
 
 
 class TestGetFunctionDescription:

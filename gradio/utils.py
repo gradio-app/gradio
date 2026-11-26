@@ -1909,17 +1909,94 @@ def error_payload(
     error: BaseException | None, show_error: bool
 ) -> dict[str, bool | str | float | None]:
     content: dict[str, bool | str | float | None] = {"error": None}
-    show_error = show_error or isinstance(error, AppError)
-    if show_error:
-        if isinstance(error, AppError):
-            content["error"] = error.message
-            content["duration"] = error.duration
-            content["visible"] = error.visible
-            content["title"] = error.title
-        else:
-            content["error"] = str(error)
-            content["visible"] = show_error
+    if error is None:
+        return content
+    if isinstance(error, AppError):
+        content["error"] = error.message
+        content["duration"] = error.duration
+        content["visible"] = error.visible
+        content["title"] = error.title
+    elif show_error:
+        content["error"] = str(error) or _error_type_name(error)
+        content["visible"] = True
+    else:
+        content["error"] = error_summary(error)
+        content["visible"] = True
     return content
+
+
+# Plain-language hints for well-known exceptions, matched by class name anywhere
+# in the exception's MRO so that third-party libraries (requests, httpx, torch)
+# don't have to be imported. They are written by Gradio and never include any
+# part of the exception's message, which may contain secrets.
+_ERROR_HINTS: dict[str, str] = {
+    "OutOfMemoryError": "The server ran out of memory.",
+    "MemoryError": "The server ran out of memory.",
+    "TimeoutError": "An operation timed out.",
+    "TimeoutException": "An operation timed out.",
+    "Timeout": "An operation timed out.",
+    "ConnectionError": "The app could not connect to a service it depends on.",
+    "ConnectError": "The app could not connect to a service it depends on.",
+    "HTTPStatusError": "A request to a service the app depends on failed.",
+    "HTTPError": "A request to a service the app depends on failed.",
+    "FileNotFoundError": "A file the app needed could not be found.",
+    "PermissionError": "The app was not permitted to perform an operation.",
+    "NotImplementedError": "This feature is not implemented.",
+}
+
+_SAFE_TYPE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]{0,63}")
+
+
+def _error_type_name(error: BaseException) -> str:
+    name = type(error).__name__
+    return name if _SAFE_TYPE_NAME.fullmatch(name) else "Exception"
+
+
+def get_error_id(error: BaseException) -> str:
+    """
+    Returns a short random ID for an exception, creating it (and printing it to the
+    terminal, so that the developer can find the full traceback) the first time.
+    The same exception gets the same ID, e.g. when it is reported to every event
+    in a batch.
+    """
+    error_id = getattr(error, "_gradio_error_id", None)
+    if error_id is None:
+        error_id = uuid.uuid4().hex[:8]
+        try:
+            error._gradio_error_id = error_id  # type: ignore[attr-defined]
+        except AttributeError:
+            pass
+        print(
+            f"Error ID {error_id}: users were shown this ID instead of the "
+            f"{_error_type_name(error)} message. Set show_error=True in launch() "
+            "to show exception messages to users."
+        )
+    return error_id
+
+
+def error_summary(error: BaseException) -> str:
+    """
+    Returns a message for an exception that was not raised as a gr.Error, for use
+    when show_error is False. Exception messages can contain secrets (e.g. a private
+    URL or a token), and no pattern matching can reliably remove them, so this is
+    built only from things the app's code (not its data) determines: the exception's
+    type name, a fixed hint for well-known exception types, and an error ID that is
+    also printed in the terminal next to the full traceback.
+    """
+    type_name = _error_type_name(error)
+    hint = next(
+        (
+            _ERROR_HINTS[cls.__name__]
+            for cls in type(error).__mro__
+            if cls.__name__ in _ERROR_HINTS
+        ),
+        None,
+    )
+    parts = [f"An unexpected error occurred ({type_name})."]
+    if hint:
+        parts.append(hint)
+    parts.append(f"Error ID: {get_error_id(error)}")
+    return " ".join(parts)
 
 
 class UnhashableKeyDict(MutableMapping):
