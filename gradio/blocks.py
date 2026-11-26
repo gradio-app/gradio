@@ -2089,10 +2089,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         prediction = await generator.step(value)
         ended = prediction is utils.StreamGenerator.ENDED
         if ended:
-            # Its outputs stay as the last chunk left them (each chunk's
-            # outputs are whole values, so there is nothing to restore)
+            # The completion carries what the last chunk showed, as a plain
+            # function's stream and a generator event do (for the page, API
+            # clients and run history); before any, the outputs stay as they are
             n_outputs = len(block_fn.outputs)
-            prediction = skip() if n_outputs == 1 else (skip(),) * n_outputs
+            if generator.last is not None:
+                prediction = generator.last
+            else:
+                prediction = skip() if n_outputs == 1 else (skip(),) * n_outputs
+        else:
+            generator.last = prediction
         return {
             "prediction": prediction,
             "duration": time.time() - start,

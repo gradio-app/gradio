@@ -1008,6 +1008,9 @@ class StreamGenerator:
         self.run_in_thread = run_in_thread or anyio.to_thread.run_sync
         self.generator: Any = None
         self.done = False
+        # What it yielded for the last value sent, which its stream's
+        # completion shows again once it returns (see Blocks)
+        self.last: Any = None
         # A sync generator's steps run in threads, an async one's on the loop
         self.thread_lock = threading.Lock()
         self.loop_lock: asyncio.Lock | None = None

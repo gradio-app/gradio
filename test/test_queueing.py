@@ -1531,9 +1531,9 @@ def test_a_generator_stream_function_that_returns_ends_the_stream():
             )
             assert outputs == [["only a"]]
             assert completed is not None and completed["stream_ended"] is True
-            # The output keeps what the last chunk showed: the completion
-            # leaves it as it is instead of clearing it
-            assert completed["output"]["data"] == [{"__type__": "update"}]
+            # The completion carries what the last chunk showed instead of
+            # clearing the output (run history records it too)
+            assert completed["output"]["data"] == ["only a"]
             _wait_for(lambda: event_id not in demo._queue.event_ids_to_events)
     finally:
         demo.close()
