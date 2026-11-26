@@ -70,9 +70,9 @@ from gradio import (
     _components_package,
     caching,
     history,
+    launcher,
     page_template,
     route_utils,
-    server_footer,
     themes,
     utils,
 )
@@ -959,16 +959,20 @@ class App(FastAPI):
                     page=page,
                     route_path=(f"{API_PREFIX}/runs" if is_run_history else f"/{page}"),
                 )
-                return HTMLResponse(
-                    render_page(
-                        template,
-                        config,
-                        gradio_api_info,
-                        base_url=("../../" if request.url.path.endswith("/") else "../")
-                        if is_run_history
-                        else "./",
-                    )
+                page_html = render_page(
+                    template,
+                    config,
+                    gradio_api_info,
+                    base_url=("../../" if request.url.path.endswith("/") else "../")
+                    if is_run_history
+                    else "./",
                 )
+                if not is_run_history and getattr(blocks, "footer_links", None):
+                    page_html = launcher.inject_launcher(
+                        page_html.encode(),
+                        f"{root.rstrip('/')}{API_PREFIX}{launcher.SCRIPT_PATH}?mode=blocks",
+                    ).decode()
+                return HTMLResponse(page_html)
             except FileNotFoundError as err:
                 if not _components_package.is_installed():
                     # The Gradio UI is shipped by `gradio_components`. A `gr.Server`
@@ -1112,24 +1116,27 @@ class App(FastAPI):
             else:
                 return ""
 
-        @router.get(server_footer.FOOTER_SCRIPT_PATH)
-        def footer_script(request: fastapi.Request):
-            """The `<gradio-footer>` web component for `gr.Server` apps, which
-            serve their own frontend. Their pages load it to show a minimal
-            version of the footer of Gradio's own UI."""
+        @router.get(launcher.SCRIPT_PATH)
+        def launcher_script(
+            request: fastapi.Request, mode: Literal["blocks", "server"] = "server"
+        ):
+            """The Gradio launcher, which takes the place of the footer: on the
+            Blocks page (mode="blocks") and on the pages a `gr.Server` serves
+            itself (mode="server")."""
             blocks = app.get_blocks()
-            links = server_footer.footer_links_for_server(
+            links = launcher.launcher_links(
                 getattr(blocks, "footer_links", []),
+                mode=mode,
                 run_history=getattr(blocks, "run_history", True)
-                and _components_package.is_installed(),
+                and (mode == "blocks" or _components_package.is_installed()),
             )
             root = route_utils.get_root_url(
                 request=request,
-                route_path=f"{API_PREFIX}{server_footer.FOOTER_SCRIPT_PATH}",
+                route_path=f"{API_PREFIX}{launcher.SCRIPT_PATH}",
                 root_path=app.root_path,
             )
             return Response(
-                server_footer.footer_script(links, root, API_PREFIX),
+                launcher.launcher_script(links, root, mode),
                 media_type="text/javascript",
                 headers={"Cache-Control": "no-cache"},
             )
@@ -2908,7 +2915,7 @@ def mount_gradio_app(
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
         max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
-        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The "runs" link only appears if `run_history` is True and the browser has at least one saved run for this app. If None, all four links will be shown in the footer. An empty list means that no footer is shown.
+        footer_links: The links to display in the footer of the app. Accepts a list, where each element of the list must be one of "api", "gradio", "settings", or "runs" corresponding to the API docs, "built with Gradio", the settings page, and the run history page respectively. The footer is a launcher docked in the bottom-right corner of the page, which also shows the session's running events and the code for the last run. If None, all four links will be shown. An empty list means that no footer or launcher is shown.
         run_history: If True, users can review and reload calls from the run history page at /gradio_api/runs. Runs are saved privately in the browser by default; from that page, a user can instead connect a Hugging Face bucket and save future runs there. Browser history is scoped to the logged-in user if the app uses `auth`. If False, nothing is recorded, the run history page is disabled, and any runs previously saved by this app are deleted from the browser. If None, will use the GRADIO_RUN_HISTORY environment variable or default to True.
         ssr_mode: If True, the Gradio app will be rendered using server-side rendering mode, which is typically more performant and provides better SEO, but this requires Node 24+ to be installed on the system. If False, the app will be rendered using client-side rendering mode. If None, will use GRADIO_SSR_MODE environment variable or default to False.
         node_server_name: The name of the Node server to use for SSR. If None, will use GRADIO_NODE_SERVER_NAME environment variable or search for a node binary in the system.

@@ -183,7 +183,7 @@ def test_static_files_mounted_at_root_leave_gradio_routes(tmp_path, executor):
     _, url, _ = app.launch(executor=executor, prevent_thread_lock=True)
     try:
         assert httpx2.get(url).text == (
-            '<h1>home</h1><script type="module" src="/gradio_api/footer.js"></script>'
+            '<script src="/gradio_api/launcher.js"></script><h1>home</h1>'
         )
         assert httpx2.get(url + "assets/app.js").text == "// app"
         assert httpx2.get(url + "missing").status_code == 404
@@ -212,33 +212,38 @@ def test_mounts_that_hide_gradio_routes_raise(tmp_path):
 
 
 @pytest.mark.parametrize("executor", ["thread", "process"])
-def test_server_injects_footer_into_html_pages(tmp_path, executor):
-    (tmp_path / "index.html").write_text("<html><body><h1>home</h1></body></html>")
-    (tmp_path / "app.js").write_text("// </body>")
+def test_server_injects_launcher_into_html_pages(tmp_path, executor):
+    (tmp_path / "index.html").write_text(
+        "<html><head><title>home</title></head><body><h1>home</h1></body></html>"
+    )
+    (tmp_path / "app.js").write_text("// </head>")
     app = gr.Server()
     app.mount("/", StaticFiles(directory=tmp_path, html=True))
     _, url, _ = app.launch(executor=executor, prevent_thread_lock=True)
     try:
         page = httpx2.get(url)
-        tag = '<script type="module" src="/gradio_api/footer.js"></script>'
-        assert page.text == f"<html><body><h1>home</h1>{tag}</body></html>"
+        tag = '<script src="/gradio_api/launcher.js"></script>'
+        assert page.text == (
+            f"<html><head><title>home</title>{tag}</head><body><h1>home</h1></body></html>"
+        )
         assert int(page.headers["content-length"]) == len(page.content)
-        assert httpx2.get(url + "app.js").text == "// </body>"
-        script = httpx2.get(url + "gradio_api/footer.js")
+        assert httpx2.get(url + "app.js").text == "// </head>"
+        script = httpx2.get(url + "gradio_api/launcher.js")
         assert script.headers["content-type"].startswith("text/javascript")
-        assert "gradio-footer" in script.text
-        assert "Built with Gradio" in script.text
+        assert '"mode": "server"' in script.text
+        assert '"settings"' not in script.text.split("\n", 1)[0]
+        assert "gradio-launcher" in script.text
     finally:
         app.get_blocks().close()
 
 
-def test_server_footer_can_be_turned_off(tmp_path):
+def test_server_launcher_can_be_turned_off(tmp_path):
     (tmp_path / "index.html").write_text("<body>home</body>")
     app = gr.Server()
     app.mount("/", StaticFiles(directory=tmp_path, html=True))
     _, url, _ = app.launch(footer_links=[], prevent_thread_lock=True)
     try:
         assert httpx2.get(url).text == "<body>home</body>"
-        assert '"links": []' in httpx2.get(url + "gradio_api/footer.js").text
+        assert '"links": []' in httpx2.get(url + "gradio_api/launcher.js").text
     finally:
         app.get_blocks().close()
