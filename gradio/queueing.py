@@ -1871,15 +1871,18 @@ class Queue:
     def _went_on(self, event: Event) -> None:
         """A stream went on past its time limit, as no event waits for it to end.
         On ZeroGPU, where a large concurrency limit means that nobody ever
-        waits, it keeps using the visitor's GPU quota until they stop it: say
-        so once per stream."""
+        waits, a stream that uses the GPU keeps using the visitor's GPU quota
+        until they stop it: say so once per stream. Whether it uses the GPU
+        is not known here (its function may call a @spaces.GPU one), so the
+        message says "if"."""
         if event.told_it_goes_on or not utils.is_zero_gpu_space():
             return
         event.told_it_goes_on = True
         self.log_message(
             event._id,
             log="No one is waiting, so this stream keeps going past its time "
-            "limit, and keeps using your GPU quota. Stop it when you are done.",
+            "limit. If it uses the GPU, it keeps using your GPU quota: stop it "
+            "when you are done.",
             title="Info",
             level="info",
         )

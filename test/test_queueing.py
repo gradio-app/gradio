@@ -1889,7 +1889,10 @@ def test_on_zero_gpu_a_stream_that_goes_on_says_so_once(monkeypatch):
                         break
             # Past three periods of its time limit, one notice
             assert len(logs) == 1
-            assert "GPU quota" in logs[0]["log"]
+            # Not every stream on a ZeroGPU Space uses the GPU
+            assert (
+                "If it uses the GPU, it keeps using your GPU quota" in (logs[0]["log"])
+            )
     finally:
         demo.close()
 
