@@ -117,6 +117,13 @@
 			webcam_constraints,
 			device_id
 		).then(async (local_stream) => {
+			if (recording) {
+				// Recording started while this camera opened, with the camera
+				// the list hides while recording: keep that one
+				local_stream.getTracks().forEach((track) => track.stop());
+				options_open = false;
+				return;
+			}
 			// The previous camera would otherwise stay on
 			stream?.getTracks().forEach((track) => track.stop());
 			set_stream(local_stream);

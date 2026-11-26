@@ -508,6 +508,114 @@ describe("Props: sources", () => {
 		}
 	});
 
+	test("Record while the camera switches keeps the stream's camera on", async () => {
+		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
+			navigator,
+			"mediaDevices"
+		);
+		const play_descriptor = Object.getOwnPropertyDescriptor(
+			HTMLMediaElement.prototype,
+			"play"
+		);
+		const streams: MediaStream[] = [];
+		const camera = (): MediaStream => {
+			const canvas = document.createElement("canvas");
+			canvas.getContext("2d")!.fillRect(0, 0, 10, 10);
+			const stream = canvas.captureStream(30);
+			streams.push(stream);
+			return stream;
+		};
+		// The rear camera opens only when the test says so
+		let open_rear: () => void = () => {};
+		try {
+			Object.defineProperty(navigator, "mediaDevices", {
+				configurable: true,
+				value: {
+					getUserMedia: (constraints: MediaStreamConstraints) => {
+						const video = constraints.video as {
+							deviceId?: { exact: string };
+						};
+						if (video?.deviceId?.exact !== "rear-camera") {
+							return Promise.resolve(camera());
+						}
+						return new Promise<MediaStream>((resolve) => {
+							open_rear = () => resolve(camera());
+						});
+					},
+					enumerateDevices: async () => [
+						{
+							deviceId: "front-camera",
+							groupId: "cameras",
+							kind: "videoinput",
+							label: "Front camera"
+						},
+						{
+							deviceId: "rear-camera",
+							groupId: "cameras",
+							kind: "videoinput",
+							label: "Rear camera"
+						}
+					]
+				}
+			});
+			Object.defineProperty(HTMLMediaElement.prototype, "play", {
+				configurable: true,
+				value: async () => {}
+			});
+
+			const { getByRole, listen } = await render(Image, {
+				...default_props,
+				sources: ["webcam"],
+				streaming: true,
+				stream_transport: "webrtc"
+			} as any);
+			const stream = listen("stream");
+
+			await fireEvent.click(
+				getByRole("button", { name: "Click to Access Webcam" })
+			);
+			await fireEvent.click(
+				await waitFor(() =>
+					getByRole("button", { name: "select input source" })
+				)
+			);
+			await fireEvent.change(getByRole("combobox", { name: "select source" }), {
+				target: { value: "rear-camera" }
+			});
+			// The first click closes the camera list, the second records
+			await fireEvent.click(getByRole("button", { name: "capture photo" }));
+			await fireEvent.click(getByRole("button", { name: "capture photo" }));
+			await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
+			open_rear();
+
+			await waitFor(() => expect(streams).toHaveLength(2));
+			await new Promise((resolve) => setTimeout(resolve, 50));
+			// The stream got the front camera, which stays on; the late rear one
+			// is not used
+			expect(streams[0].getVideoTracks()[0].readyState).toBe("live");
+			expect(streams[1].getVideoTracks()[0].readyState).toBe("ended");
+		} finally {
+			if (media_devices_descriptor) {
+				Object.defineProperty(
+					navigator,
+					"mediaDevices",
+					media_devices_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(navigator, "mediaDevices");
+			}
+			if (play_descriptor) {
+				Object.defineProperty(
+					HTMLMediaElement.prototype,
+					"play",
+					play_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(HTMLMediaElement.prototype, "play");
+			}
+		}
+	});
+
 	test("mirror: auto mirrors front cameras but not rear cameras", async () => {
 		const media_devices_descriptor = Object.getOwnPropertyDescriptor(
 			navigator,
