@@ -6,14 +6,14 @@
 		Client,
 		on_run_history_change,
 		read_run_history,
-		run_history_url,
+		run_history_url
 	} from "@gradio/client";
 	import { writable } from "svelte/store";
 
 	import type {
 		ComponentMeta,
 		Dependency as IDependency,
-		LayoutNode,
+		LayoutNode
 	} from "./types";
 	import type { ThemeMode, Payload } from "./types";
 	import { LiveStatus, Toast } from "@gradio/statustracker";
@@ -39,7 +39,7 @@
 		create_resize_state,
 		next_frame_height,
 		reset_resize_growth,
-		setup_iframe_resizer,
+		setup_iframe_resizer
 	} from "./resize";
 	type AddNewMessage = (
 		title: string,
@@ -47,7 +47,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration?: number | null,
-		visible?: boolean,
+		visible?: boolean
 	) => void;
 
 	let {
@@ -77,7 +77,7 @@
 		render_complete = $bindable(false),
 		ready = $bindable(false),
 		reload_count = $bindable(0),
-		add_new_message = $bindable(),
+		add_new_message = $bindable()
 	}: {
 		root: string;
 		components: ComponentMeta[];
@@ -125,7 +125,7 @@
 	function gradio_event_dispatcher(
 		id: number,
 		event: string,
-		data: unknown,
+		data: unknown
 	): void {
 		if (event === "share") {
 			const { title, description } = data as ShareData;
@@ -148,9 +148,9 @@
 			app_tree.update_state(
 				id,
 				{
-					loading_status: {},
+					loading_status: {}
 				},
-				false,
+				false
 			);
 			dep_manager.clear_loading_status(id);
 			// TODO: the loading_status store should handle this via a method
@@ -165,7 +165,7 @@
 				type: "event",
 				event_name: event,
 				target_id: id,
-				event_data: data,
+				event_data: data
 			});
 		}
 	}
@@ -182,23 +182,23 @@
 			api_prefix,
 			max_file_size,
 			autoscroll,
-			fill_height,
+			fill_height
 		},
 		app,
 		$reactive_formatter,
-		gradio_event_dispatcher,
+		gradio_event_dispatcher
 	);
 
 	function dispatch_to_target(
 		target_id: number,
 		event: string,
-		data: unknown,
+		data: unknown
 	): void {
 		dep_manager.dispatch({
 			type: "event",
 			event_name: event,
 			target_id: target_id,
-			event_data: data,
+			event_data: data
 		});
 	}
 
@@ -231,7 +231,7 @@
 			type: "error",
 			id: _error_id,
 			duration: null,
-			visible: true,
+			visible: true
 		});
 
 		reconnect_interval = setInterval(async () => {
@@ -260,7 +260,7 @@
 		handle_connection_lost,
 		(status) => {
 			live_loading_status = status;
-		},
+		}
 	);
 
 	$effect(() => {
@@ -274,21 +274,21 @@
 				api_prefix,
 				max_file_size,
 				autoscroll,
-				fill_height,
+				fill_height
 			});
 			dep_manager.reload(
 				dependencies,
 				app_tree.update_state.bind(app_tree),
 				app_tree.get_state.bind(app_tree),
 				app_tree.rerender.bind(app_tree),
-				app,
+				app
 			);
 		});
 	});
 
 	// export let
 	let api_docs_visible = $derived(
-		search_params.get("view") === "api" && footer_links.includes("api"),
+		search_params.get("view") === "api" && footer_links.includes("api")
 	);
 	let settings_visible = $derived(search_params.get("view") === "settings");
 
@@ -300,8 +300,7 @@
 		typeof window !== "undefined" && "__GRADIO_LAUNCHER__" in window;
 	let footer_items = $derived(launcher ? [] : footer_links);
 	let api_recorder_visible = $derived(
-		search_params.get("view") === "api-recorder" &&
-			footer_links.includes("api"),
+		search_params.get("view") === "api-recorder" && footer_links.includes("api")
 	);
 	let allow_zoom = true;
 	let allow_video_trim = true;
@@ -372,7 +371,7 @@
 		fn_index: number,
 		type: ToastMessage["type"],
 		duration: number | null = 10,
-		visible = false,
+		visible = false
 	): void {
 		if (!visible) return;
 		messages.push({
@@ -382,7 +381,7 @@
 			type,
 			id: ++_error_id,
 			duration,
-			visible,
+			visible
 		});
 	}
 
@@ -401,7 +400,7 @@
 	const SESSION_NOT_FOUND_MESSAGE =
 		"Session not found - this is likely because the machine you were connected to has changed. <a href=''>Refresh the page</a> to continue.";
 	const WAITING_FOR_INPUTS_MESSAGE = $reactive_formatter(
-		"blocks.waiting_for_inputs",
+		"blocks.waiting_for_inputs"
 	);
 	const SHOW_DUPLICATE_MESSAGE_ON_ETA = 15;
 	let showed_duplicate_message = false;
@@ -450,11 +449,11 @@
 					Math.max(
 						Math.min(
 							page.scrollTop + page.clientHeight - page.offsetTop,
-							page.clientHeight,
+							page.clientHeight
 						),
-						320,
-					),
-				),
+						320
+					)
+				)
 			);
 		} else if (!covered && stop_viewport_sizing) {
 			stop_viewport_sizing();
@@ -470,7 +469,7 @@
 			measure_unstretched_bottom: () => measure_unstretched_bottom(el),
 			footer_height,
 			document_height: document.documentElement.scrollHeight,
-			viewport: window.innerHeight,
+			viewport: window.innerHeight
 		});
 
 		if (next !== null) window.parentIFrame?.size(next);
@@ -509,16 +508,16 @@
 		mutation_observer.observe(root_container, {
 			childList: true,
 			subtree: true,
-			attributes: true,
+			attributes: true
 		});
 		mutation_observer.observe(document.documentElement, {
-			attributeFilter: ["data-gradio-cover"],
+			attributeFilter: ["data-gradio-cover"]
 		});
 		res.observe(root_container.parentElement ?? root_container);
 		const disconnect_iframe_resizer = setup_iframe_resizer(
 			window,
 			() => window.parentIFrame,
-			handle_resize,
+			handle_resize
 		);
 
 		app_tree.ready.then(() => {
@@ -533,7 +532,7 @@
 			void settled().then(handle_resize);
 			const resumable_events = dep_manager.get_resumable_events();
 			const skipped_loads = new Set(
-				resumable_events.map(({ fn_index }) => fn_index),
+				resumable_events.map(({ fn_index }) => fn_index)
 			);
 			if (app.session_restored) {
 				// These already ran for this session, whose outputs and state have
