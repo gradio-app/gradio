@@ -46,6 +46,23 @@
 	}
 
 	let is_dragging = $state(false);
+	// Both the interactive and read-only views use the Block's in-page
+	// fullscreen, like gr.Image. It fills the window, not the whole screen, so the
+	// canvas and its buttons stay within reach on large displays.
+	let fullscreen = $state(false);
+
+	// When the app is embedded in an iframe (e.g. on Hugging Face Spaces), this
+	// asks the parent page to fit the frame to its viewport, so the fullscreen
+	// canvas doesn't run off the bottom of the window.
+	$effect(() => {
+		if (!fullscreen) return;
+		const root = document.documentElement;
+		const already_covered = root.hasAttribute("data-gradio-cover");
+		root.setAttribute("data-gradio-cover", "");
+		return () => {
+			if (!already_covered) root.removeAttribute("data-gradio-cover");
+		};
+	});
 
 	const is_browser = typeof window !== "undefined";
 
@@ -107,6 +124,7 @@
 		container={gradio.shared.container}
 		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
+		bind:fullscreen
 	>
 		<StatusTracker
 			autoscroll={gradio.shared.autoscroll}
@@ -119,6 +137,10 @@
 			onselect={(detail) => gradio.dispatch("select", detail)}
 			onshare={(detail) => gradio.dispatch("share", detail as ShareData)}
 			onerror={(detail) => gradio.dispatch("error", detail)}
+			onfullscreen={(detail) => {
+				fullscreen = detail;
+			}}
+			{fullscreen}
 			value={gradio.props.value?.composite || null}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
@@ -142,6 +164,7 @@
 		container={gradio.shared.container}
 		scale={gradio.shared.scale}
 		min_width={gradio.shared.min_width}
+		bind:fullscreen
 	>
 		<StatusTracker
 			autoscroll={gradio.shared.autoscroll}
@@ -151,61 +174,82 @@
 				gradio.dispatch("clear_status", gradio.shared.loading_status)}
 		/>
 
-		<InteractiveImageEditor
-			border_region={gradio.props.border_region ?? 0}
-			bind:is_dragging
-			canvas_size={gradio.props.canvas_size ?? [800, 800]}
-			bind:image_id
-			layers={normalised_layers}
-			composite={normalised_composite}
-			background={normalised_background}
-			bind:this={editor_instance}
-			root={gradio.shared.root}
-			sources={gradio.props.sources ?? ["upload", "webcam", "clipboard"]}
-			label={gradio.shared.label}
-			show_label={gradio.shared.show_label}
-			fixed_canvas={gradio.props.fixed_canvas}
-			oninput={() => {
-				if (!has_run_input) {
-					has_run_input = true;
-				} else {
-					gradio.dispatch("input");
-				}
-			}}
-			onsave={() => handle_save()}
-			onclear={() => gradio.dispatch("clear")}
-			onupload={() => gradio.dispatch("upload")}
-			onreceive_null={() =>
-				(gradio.props.value = {
-					background: null,
-					layers: [],
-					composite: null
-				})}
-			onchange={() => {
-				if (!has_run_change) {
-					has_run_change = true;
-				} else {
-					gradio.dispatch("change");
-				}
-			}}
-			brush={gradio.props.brush ?? false}
-			eraser={gradio.props.eraser ?? false}
-			changeable={gradio.shared.attached_events?.includes("apply") ?? false}
-			realtime={gradio.shared.attached_events?.includes("change") ||
-				gradio.shared.attached_events?.includes("input")}
-			i18n={gradio.i18n}
-			transforms={gradio.props.transforms ?? []}
-			accept_blobs={gradio.shared.server.accept_blobs}
-			layer_options={gradio.props.layers!}
-			upload={(...args) => gradio.shared.client.upload(...args)}
-			placeholder={gradio.props.placeholder}
-			webcam_options={gradio.props.webcam_options!}
-			show_download_button={gradio.props.buttons === null
-				? true
-				: (gradio.props.buttons ?? []).includes("download")}
-			theme_mode={resolved_theme_mode}
-			ondownload_error={(detail) => gradio.dispatch("error", detail)}
-			onerror={(detail) => gradio.dispatch("error", detail)}
-		></InteractiveImageEditor>
+		<div class="editor-root">
+			<InteractiveImageEditor
+				border_region={gradio.props.border_region ?? 0}
+				bind:is_dragging
+				canvas_size={gradio.props.canvas_size ?? [800, 800]}
+				bind:image_id
+				layers={normalised_layers}
+				composite={normalised_composite}
+				background={normalised_background}
+				bind:this={editor_instance}
+				root={gradio.shared.root}
+				sources={gradio.props.sources ?? ["upload", "webcam", "clipboard"]}
+				label={gradio.shared.label}
+				show_label={gradio.shared.show_label}
+				fixed_canvas={gradio.props.fixed_canvas}
+				oninput={() => {
+					if (!has_run_input) {
+						has_run_input = true;
+					} else {
+						gradio.dispatch("input");
+					}
+				}}
+				onsave={() => handle_save()}
+				onclear={() => gradio.dispatch("clear")}
+				onupload={() => gradio.dispatch("upload")}
+				onreceive_null={() =>
+					(gradio.props.value = {
+						background: null,
+						layers: [],
+						composite: null
+					})}
+				onchange={() => {
+					if (!has_run_change) {
+						has_run_change = true;
+					} else {
+						gradio.dispatch("change");
+					}
+				}}
+				brush={gradio.props.brush ?? false}
+				eraser={gradio.props.eraser ?? false}
+				changeable={gradio.shared.attached_events?.includes("apply") ?? false}
+				realtime={gradio.shared.attached_events?.includes("change") ||
+					gradio.shared.attached_events?.includes("input")}
+				i18n={gradio.i18n}
+				transforms={gradio.props.transforms ?? []}
+				accept_blobs={gradio.shared.server.accept_blobs}
+				layer_options={gradio.props.layers!}
+				upload={(...args) => gradio.shared.client.upload(...args)}
+				placeholder={gradio.props.placeholder}
+				webcam_options={gradio.props.webcam_options!}
+				show_download_button={gradio.props.buttons === null
+					? true
+					: (gradio.props.buttons ?? []).includes("download")}
+				show_fullscreen_button={gradio.props.buttons === null
+					? true
+					: (gradio.props.buttons ?? []).includes("fullscreen")}
+				{fullscreen}
+				onfullscreen={(detail) => {
+					fullscreen = detail;
+				}}
+				theme_mode={resolved_theme_mode}
+				ondownload_error={(detail) => gradio.dispatch("error", detail)}
+				onerror={(detail) => gradio.dispatch("error", detail)}
+			></InteractiveImageEditor>
+		</div>
 	</Block>
 {/if}
+
+<style>
+	/* The editor's toolbars and layer chips use high z-indexes. Keep them in
+	this editor's own stacking context so they can't draw over another editor
+	that is fullscreen. */
+	.editor-root {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		isolation: isolate;
+	}
+</style>

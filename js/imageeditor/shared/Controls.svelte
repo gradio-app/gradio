@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { IconButton, IconButtonWrapper } from "@gradio/atoms";
+	import {
+		IconButton,
+		IconButtonWrapper,
+		FullscreenButton
+	} from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
 	import {
 		Check,
@@ -19,6 +23,9 @@
 		tool,
 		min_zoom = true,
 		enable_download = false,
+		show_fullscreen_button = false,
+		fullscreen = false,
+		onfullscreen,
 		can_undo,
 		can_redo,
 		onremove_image,
@@ -38,6 +45,9 @@
 		tool: string;
 		min_zoom?: boolean;
 		enable_download?: boolean;
+		show_fullscreen_button?: boolean;
+		fullscreen?: boolean;
+		onfullscreen?: (fullscreen: boolean) => void;
 		can_undo: boolean;
 		can_redo: boolean;
 		onremove_image?: () => void;
@@ -73,6 +83,12 @@
 </script>
 
 <IconButtonWrapper>
+	{#if show_fullscreen_button}
+		<FullscreenButton
+			{fullscreen}
+			onclick={(is_fullscreen) => onfullscreen?.(is_fullscreen)}
+		/>
+	{/if}
 	{#if enable_download}
 		<IconButton
 			Icon={Download}
