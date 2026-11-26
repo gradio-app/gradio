@@ -1,5 +1,6 @@
 ---
+"@gradio/core": minor
 "gradio": minor
 ---
 
-feat:Show a minimal Gradio footer on gr.Server apps
+feat:Replace the footer with a corner launcher on Blocks and gr.Server apps
