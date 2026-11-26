@@ -3538,6 +3538,12 @@ class TestGatewayPlacements:
         assert pool.frees_slot_for(stream) is False
         other.slots["talk"] = asyncio.Semaphore(0)
         assert pool.frees_slot_for(stream) is True
+        # Its process is being retired (replicas="auto"), which lowered the
+        # group's limit to the other process's while the stream still counts:
+        # the new visitor starts there only once the stream ends
+        other.slots["talk"] = asyncio.Semaphore(1)
+        busy.draining = True
+        assert pool.frees_slot_for(stream) is True
 
     def test_the_streams_of_an_exited_process_are_woken(self):
         webrtc_stream, plain_stream, elsewhere = (

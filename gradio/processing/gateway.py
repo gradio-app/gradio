@@ -450,6 +450,12 @@ class Pool:
         own = placement.link
         with self.lock:
             nowhere = all(full(link) for link in self.serving() or self.links)
+            if own.draining and group.queue and not nowhere:
+                # Its process is being retired, which lowered the group's
+                # limit to what the other processes run while the stream
+                # still counts: an event waiting in the group can start once
+                # it ends (and the process can then retire)
+                return True
             for waiting in group.queue:
                 holder = self._holder(waiting.session_hash, touch=False)
                 if (holder is own and full(own)) or (holder is None and nowhere):
