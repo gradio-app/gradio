@@ -142,7 +142,7 @@ def blocks_stream(
     outputs: list,
     *,
     transport: Any,
-    trigger: Any,
+    triggers: list,
     time_limit: float | None,
     stream_every: float | None,
     on_time_limit: Literal["rejoin", "stop"] = "rejoin",
@@ -158,10 +158,11 @@ def blocks_stream(
     api_visibility: Literal["public", "private", "undocumented"] = "public",
 ) -> tuple[BlockFunction, int]:
     """
-    The event of an event listener called with `transport=`. The media
-    component is the listener's own component (`.stream()` of a gr.Image,
-    gr.Audio or gr.Video), or else the media output (e.g. a button's click that
-    starts a stream the page only receives). Its type gives the kind of media;
+    The event of an event listener (or gr.on) called with `transport=`. The
+    media component is the listener's own component (`.stream()` of a
+    gr.Image, gr.Audio or gr.Video, the only trigger then), or else the media
+    output (e.g. a button's click that starts a stream the page only
+    receives). Its type gives the kind of media;
     where it appears among the inputs and outputs gives the direction. The API
     settings apply when clients can also call it once (see `_callable_once`);
     otherwise only the page can call it.
@@ -182,7 +183,7 @@ def blocks_stream(
     options = to_options(transport)
     # Only .stream() sends the listener's own component; another event (a
     # change, an upload) streams to the media among its outputs
-    sends_block = trigger is None or trigger.event_name == "stream"
+    sends_block = any(t.event_name == "stream" for t in triggers)
     media = block if sends_block and kind(block) is not None else None
     if media is None:
         media = next((c for c in outputs if kind(c) is not None), None)
@@ -243,7 +244,7 @@ def blocks_stream(
             )
         media_out = candidates[0] if candidates else None
     stream_fn, index = transport_event(
-        [trigger or EventListenerMethod(block, "stream")],
+        triggers or [EventListenerMethod(block, "stream")],
         fn,
         inputs,
         outputs,

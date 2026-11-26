@@ -821,41 +821,21 @@ class EventListener(str):
                 _check_video_stream(block, _event_name)
             check_transport(fn, transport)
             if transport is not None:
-                unsupported = [
-                    name
-                    for name, given in (
-                        ("queue", not queue),
-                        ("batch", batch),
-                        ("preprocess", not preprocess),
-                        ("postprocess", not postprocess),
-                        ("js", js is not None),
-                        ("validator", validator is not None),
-                        ("eta", eta is not None),
-                        ("inputs_kwargs", bool(inputs_kwargs)),
-                    )
-                    if given
-                ]
-                if unsupported:
-                    raise ValueError(
-                        "A stream with transport= does not support "
-                        f"{', '.join(unsupported)}."
-                    )
                 if _trigger_after is not None:
                     raise ValueError(
                         "A stream with transport= cannot be chained with "
                         f".{_event_name}(): start it from a component's event."
                     )
-                if LocalContext.renderable.get(None) is not None:
-                    # A re-render replaces its events, including a running stream
-                    raise ValueError(
-                        "A stream with transport= cannot be set up inside a "
-                        "@gr.render function. Set it up outside the render "
-                        "function; to switch between streams, use several "
-                        "components and change their visibility."
-                    )
-                from gradio.webrtc import require_webrtc
-
-                require_webrtc()
+                _check_transport_settings(
+                    queue=queue,
+                    batch=batch,
+                    preprocess=preprocess,
+                    postprocess=postprocess,
+                    js=js,
+                    validator=validator,
+                    eta=eta,
+                    inputs_kwargs=inputs_kwargs,
+                )
                 from gradio.webrtc.transport import blocks_stream
 
                 dep, dep_index = blocks_stream(
@@ -864,7 +844,7 @@ class EventListener(str):
                     _ordered_blocks(inputs),
                     _ordered_blocks(outputs),
                     transport=transport,
-                    trigger=event_target,
+                    triggers=[event_target],
                     time_limit=time_limit,
                     on_time_limit=on_time_limit,
                     stream_every=stream_every,
@@ -952,6 +932,50 @@ class EventListener(str):
         return event_trigger
 
 
+def _check_transport_settings(
+    *,
+    queue: bool,
+    batch: bool,
+    preprocess: bool,
+    postprocess: bool,
+    js: Any,
+    validator: Any,
+    eta: Any,
+    inputs_kwargs: Any,
+) -> None:
+    """Raises for the settings of an event listener (or gr.on) that a stream
+    with transport= does not take, and when the webrtc extra is missing."""
+    unsupported = [
+        name
+        for name, given in (
+            ("queue", not queue),
+            ("batch", batch),
+            ("preprocess", not preprocess),
+            ("postprocess", not postprocess),
+            ("js", js is not None),
+            ("validator", validator is not None),
+            ("eta", eta is not None),
+            ("inputs_kwargs", bool(inputs_kwargs)),
+        )
+        if given
+    ]
+    if unsupported:
+        raise ValueError(
+            f"A stream with transport= does not support {', '.join(unsupported)}."
+        )
+    if LocalContext.renderable.get(None) is not None:
+        # A re-render replaces its events, including a running stream
+        raise ValueError(
+            "A stream with transport= cannot be set up inside a @gr.render "
+            "function. Set it up outside the render function; to switch "
+            "between streams, use several components and change their "
+            "visibility."
+        )
+    from gradio.webrtc import require_webrtc
+
+    require_webrtc()
+
+
 def _ordered_blocks(blocks: Any) -> list:
     """The inputs or outputs of a WebRTC stream as a list: their order matches
     the function's parameters and return values."""
@@ -1000,10 +1024,11 @@ def on(
     concurrency_id: str | None = None,
     time_limit: int | None = None,
     on_time_limit: Literal["rejoin", "stop"] = "rejoin",
-    stream_every: float = 0.5,
+    stream_every: float | None = None,
     key: int | str | tuple[int | str, ...] | None = None,
     validator: Callable | None = None,
     eta: float | Callable[..., float | None] | None = None,
+    transport: Literal["webrtc"] | WebRTCOptions | None = None,
 ) -> Dependency:
     """
     Sets up an event listener that triggers a function when the specified event(s) occur. This is especially
@@ -1033,9 +1058,10 @@ def on(
         api_visibility: controls the visibility and accessibility of this endpoint. Can be "public" (shown in API docs and callable by clients), "private" (hidden from API docs and not callable by the Gradio client libraries), or "undocumented" (hidden from API docs but callable by clients and via gr.load). If fn is None, api_visibility will automatically be set to "private".
         time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
         on_time_limit: What happens when a stream reaches its `time_limit`. "rejoin" (default): if others are waiting, for its slot (`concurrency_limit`) or for a worker (`max_threads`) that streams keep busy, the page joins the queue again, keeping the microphone or camera on, so that they get their turn; if nobody waits, the stream goes on and its time limit counts again. "stop": the stream ends and the microphone or camera turns off, which keeps every stream within the limit (e.g. when streams cost money or GPU quota). Parameter only used for the `.stream()` event.
-        stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
+        stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. With `transport=`, the shortest interval between calls of a video function (unset: every frame), or how many seconds of audio an audio function gets per call (0.5 if unset). Parameter only used for the `.stream()` event, and for a stream with `transport=`.
         validator: Optional validation function to run before the main function. If provided, this function will be executed first with queue=False, and only if it completes successfully will the main function be called. The validator receives the same inputs as the main function, including the same keyword arguments when `inputs_kwargs` is used, so its signature must accept those keyword names. It should return a `gr.validate()` for each input value.
         eta: An estimate of how long, in seconds, the function takes to run, used for the ETA shown while the event waits in the queue instead of the average of past runs. Can be a number, or a regular (non-async) function that receives the raw input values sent by the client (before preprocessing) and returns a number, e.g. `lambda prompt, steps: steps * 0.2`. Unlike `validator`, it always gets one positional argument per input in order (even when `inputs` is a set or `inputs_kwargs` is used), and `gr.State` inputs arrive as None. File inputs arrive as dicts whose `path` has been checked to be a user upload; if one is not, the function is not called. If it returns None, raises, or takes longer than 1 second, the average of past runs is used.
+        transport: streams media over WebRTC, as `transport=` of an event listener does: "webrtc", or a `gr.WebRTCOptions` with its settings. Typically with triggers such as `[button.click, textbox.submit]` that start a stream whose generator `fn` yields media to a gr.Image, gr.Audio or gr.Video among the outputs. A `.stream()` trigger is taken only on its own, as that component's Record button starts and stops the stream. Requires the `webrtc` extra: `pip install "gradio[webrtc]"`.
     Example:
         import gradio as gr
         with gr.Blocks() as demo:
@@ -1101,6 +1127,8 @@ def on(
                 key=key,
                 validator=validator,
                 eta=eta,
+                # Refused with js, rather than a plain event
+                transport=transport,
             )
             created_fn_ids = set(root_block.fns) - prior_fn_ids
             post_fn_id = root_block.fn_id
@@ -1139,6 +1167,7 @@ def on(
                 key=key,
                 validator=validator,
                 eta=eta,
+                transport=transport,
             )
 
             @wraps(func)
@@ -1155,7 +1184,7 @@ def on(
     root_block = get_blocks_context()
     if root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
-    check_transport(fn, None)
+    check_transport(fn, transport)
     # Checked here as well as in set_event_trigger, because trigger inference below
     # would otherwise iterate a dict's keys first.
     from gradio.blocks import reject_dict_inputs
@@ -1174,8 +1203,40 @@ def on(
             EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore
             for t in triggers_typed
         ]
-        for method in methods:
-            _check_video_stream(method.block, method.event_name)
+        if transport is None:
+            for method in methods:
+                _check_video_stream(method.block, method.event_name)
+    if transport is not None:
+        return _on_with_transport(
+            triggers_typed,
+            methods,
+            fn,
+            inputs,
+            outputs,
+            transport=transport,
+            queue=queue,
+            batch=batch,
+            preprocess=preprocess,
+            postprocess=postprocess,
+            js=js,
+            validator=validator,
+            eta=eta,
+            inputs_kwargs=inputs_kwargs,
+            cancels=cancels,
+            time_limit=time_limit,
+            on_time_limit=on_time_limit,
+            stream_every=stream_every,
+            concurrency_limit=concurrency_limit,
+            concurrency_id=concurrency_id,
+            show_progress=show_progress,
+            show_progress_on=show_progress_on,
+            trigger_mode=trigger_mode,
+            scroll_to_output=scroll_to_output,
+            key=key,
+            api_name=api_name,
+            api_description=api_description,
+            api_visibility=api_visibility,
+        )
     if triggers:
         for trigger in triggers:
             if trigger.callback:  # type: ignore
@@ -1211,12 +1272,76 @@ def on(
         ],
         time_limit=time_limit,
         on_time_limit=on_time_limit,
-        stream_every=stream_every,
+        stream_every=0.5 if stream_every is None else stream_every,
         key=key,
         validator=validator,
         eta=eta,
     )
     set_cancel_events(methods, cancels)
+    return Dependency(None, dep.get_config(), dep_index, fn)
+
+
+def _on_with_transport(
+    triggers: Sequence[EventListener] | None,
+    methods: list[EventListenerMethod],
+    fn: Any,
+    inputs: Any,
+    outputs: Any,
+    *,
+    transport: Any,
+    queue: bool,
+    batch: bool,
+    preprocess: bool,
+    postprocess: bool,
+    js: Any,
+    validator: Any,
+    eta: Any,
+    inputs_kwargs: Any,
+    cancels: Any,
+    **stream_settings: Any,
+) -> Dependency:
+    """`gr.on(..., transport=...)`: a stream over WebRTC that any of the
+    triggers starts. Its media component is the one whose `.stream()` is the
+    trigger (on its own), or else the media among the outputs."""
+    if not triggers:
+        raise ValueError(
+            "gr.on() with transport= needs its triggers, e.g. "
+            "[button.click, textbox.submit]: a stream does not start on load."
+        )
+    streams = [m for m in methods if m.event_name == "stream"]
+    if streams and len(methods) > 1:
+        raise ValueError(
+            "gr.on() with transport= takes a .stream() trigger only on its own: "
+            "that component's Record button starts and stops the stream."
+        )
+    _check_transport_settings(
+        queue=queue,
+        batch=batch,
+        preprocess=preprocess,
+        postprocess=postprocess,
+        js=js,
+        validator=validator,
+        eta=eta,
+        inputs_kwargs=inputs_kwargs,
+    )
+    from gradio.webrtc.transport import blocks_stream
+
+    dep, dep_index = blocks_stream(
+        streams[0].block if streams else None,
+        cast(Callable, fn),
+        _ordered_blocks(inputs),
+        _ordered_blocks(outputs),
+        transport=transport,
+        triggers=methods,
+        **stream_settings,
+    )
+    set_cancel_events(methods, cancels)
+    # e.g. .stream() puts its component in streaming mode, except gr.Video
+    # (as with an event listener's transport=)
+    for trigger in triggers:
+        block = trigger.__self__ if trigger.has_trigger else None  # type: ignore[attr-defined]
+        if trigger.callback and not _is_video_stream(block, trigger.event_name):  # type: ignore[attr-defined]
+            trigger.callback(block)  # type: ignore[attr-defined]
     return Dependency(None, dep.get_config(), dep_index, fn)
 
 

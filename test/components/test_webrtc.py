@@ -878,6 +878,65 @@ class TestWebRTC:
         # The browser applies them to the tracks it sends
         assert config["transport"]["rtp_params"] == rtp_params
 
+    def test_gr_on_starts_a_stream_from_any_of_its_triggers(self):
+        with gr.Blocks() as demo:
+            prompt = gr.Textbox()
+            button = gr.Button()
+            screen = gr.Image()
+            gr.on(
+                [button.click, prompt.submit],
+                three_frames,
+                inputs=[prompt],
+                outputs=[screen],
+                transport="webrtc",
+            )
+
+            @gr.on(
+                [button.click], inputs=[prompt], outputs=[screen], transport="webrtc"
+            )
+            def frames(text):
+                yield from three_frames(text)
+
+            camera = webcam()
+            # As camera.stream(...): its Record button starts and stops it
+            gr.on([camera.stream], flip, [camera], [camera], transport="webrtc")
+
+            # A stream does not start on load, and only its component's
+            # Record starts a .stream() one
+            with pytest.raises(ValueError, match="needs its triggers"):
+                gr.on(None, three_frames, [prompt], [screen], transport="webrtc")
+            with pytest.raises(ValueError, match="only on its own"):
+                gr.on(
+                    [camera.stream, button.click],
+                    flip,
+                    [camera],
+                    [camera],
+                    transport="webrtc",
+                )
+            with pytest.raises(ValueError, match="does not support js"):
+                gr.on(
+                    [button.click],
+                    three_frames,
+                    [prompt],
+                    [screen],
+                    js="() => []",
+                    transport="webrtc",
+                )
+
+        start, decorated = [fn for fn in demo.fns.values() if fn.transport][:2]
+        assert [tuple(t) for t in start.targets] == [
+            (button._id, "click"),
+            (prompt._id, "submit"),
+        ]
+        assert start.transport["mode"] == "receive"
+        assert start.trigger_mode == "once"
+        assert decorated.transport["mode"] == "receive"
+        stream = stream_fn_of(demo, camera)
+        assert [tuple(t) for t in stream.targets] == [(camera._id, "stream")]
+        assert stream.transport["mode"] == "send-receive"
+        assert stream.trigger_mode == "multiple"
+        assert camera.get_config()["streaming"] is True
+
     def test_stream_registers_one_event(self):
         with gr.Blocks() as demo:
             camera = webcam()
