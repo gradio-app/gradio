@@ -152,6 +152,9 @@
 	let recorder: IMediaRecorder;
 	let media_stream: MediaStream | null = null;
 	let preparing: Promise<void> | null = null;
+	// Counts record() calls, so that only the latest one goes on once the
+	// microphone is ready
+	let record_calls = 0;
 	let take_announced = false;
 	let destroyed = false;
 	let mode = $state("");
@@ -294,6 +297,7 @@
 
 	async function record(): Promise<void> {
 		recording = true;
+		const call = ++record_calls;
 		// The click and the recording effect both call record() for one take.
 		if (!take_announced) {
 			take_announced = true;
@@ -304,6 +308,9 @@
 				preparing = null;
 			});
 			await preparing;
+			// A later call carries on: Stop and Record again while the
+			// microphone opened would otherwise start the stream twice
+			if (call !== record_calls) return;
 		}
 		if (destroyed || !recording) {
 			release_media_stream();

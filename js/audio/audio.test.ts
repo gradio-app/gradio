@@ -873,6 +873,33 @@ describe("Events: streaming microphone recording", () => {
 		expect(stop_mic).toHaveBeenCalledTimes(1);
 	});
 
+	test("Record, Stop, Record while the microphone opens starts one transport stream", async () => {
+		// The permission prompt is still open
+		let grant: (stream: MediaStream) => void = () => {};
+		get_user_media.mockImplementation(
+			() =>
+				new Promise<MediaStream>((resolve) => {
+					grant = resolve;
+				})
+		);
+		const { getByRole, listen } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true,
+			stream_transport: "webrtc"
+		} as any);
+		const stream = listen("stream");
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		grant(audio_context.createMediaStreamDestination().stream);
+
+		await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		expect(stream).toHaveBeenCalledTimes(1);
+	});
+
 	test("a chunk still uploading when recording stops is not streamed", async () => {
 		let finish_upload: () => void = () => {};
 		const upload = vi
