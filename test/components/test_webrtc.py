@@ -2316,6 +2316,31 @@ class TestStreams:
         await h.wait_until(lambda: SlowShutdown.log.count("shutdown ends") == 2)
 
     @pytest.mark.asyncio
+    async def test_a_cancelled_stream_says_that_it_ended(self, launched):
+        h = launched
+        event_id = await h.start("one")
+        pc = await make_offer(video=True)
+        await h.connect(pc, "one")
+        await h.wait_until(lambda: stream_of(h.manager, "one").connected)
+        reader = asyncio.create_task(h.messages("one", completed))
+        await asyncio.sleep(0.3)
+        # As for `stop.click(None, cancels=[stream])`
+        await h.http.post(
+            f"{h.api}/cancel",
+            json={
+                "event_id": event_id,
+                "session_hash": "one",
+                "fn_index": h.stream_fn._id,
+            },
+        )
+        messages = await reader
+        # Not "handed over": a client that follows the protocol would join
+        # the queue again
+        ends = [m for m in messages if m.get("msg") == "process_completed"]
+        assert ends and all(m["stream_ended"] is True for m in ends)
+        await pc.close()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("launched", [{"handler": slow_frame}], indirect=True)
     async def test_one_at_a_time_the_next_stream_waits_for_a_running_call(
         self, launched

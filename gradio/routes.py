@@ -1623,7 +1623,10 @@ class App(FastAPI):
             # A stream still in line leaves it; a started one ends via `closed`
             if await queue.remove_from_queue(event_id):
                 queue.send_message(
-                    event, ProcessCompletedMessage(output={}, success=True)
+                    event,
+                    ProcessCompletedMessage(
+                        output={}, success=True, stream_ended=bool(event.fn.lease)
+                    ),
                 )
             return {"msg": "success"}
 
@@ -2111,7 +2114,8 @@ class App(FastAPI):
         @router.post("/cancel")
         async def cancel_event(body: CancelBody):
             blocks = app.get_blocks()
-            found = body.event_id in blocks._queue.event_ids_to_events
+            event = blocks._queue.event_ids_to_events.get(body.event_id)
+            found = event is not None
             cancelled = await utils.cancel_event_tasks({body.event_id})
             found = found or body.event_id in cancelled
             # Need to complete the job so that the client disconnects
@@ -2124,7 +2128,12 @@ class App(FastAPI):
             )
             await blocks._queue.remove_from_queue(body.event_id)
             message = ProcessCompletedMessage(
-                output={}, success=True, event_id=body.event_id
+                output={},
+                success=True,
+                event_id=body.event_id,
+                # A cancelled WebRTC stream ended for good: false would tell
+                # its client that it handed its turn over (and to join again)
+                stream_ended=bool(event is not None and event.fn.lease),
             )
             own_messages = blocks._queue.pending_messages_per_event.get(body.event_id)
             if own_messages is not None:
