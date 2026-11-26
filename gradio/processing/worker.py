@@ -234,12 +234,13 @@ class Worker:
             while True:
                 message = await protocol.read(reader)
                 kind = message[0]
-                if kind in ("event", "auth", "auth_dependency"):
+                if kind in ("event", "auth", "auth_dependency", "eta"):
                     _, rid, payload = message
                     run = {
                         "event": self.run_event,
                         "auth": self.run_auth,
                         "auth_dependency": self.run_auth_dependency,
+                        "eta": self.run_eta,
                     }[kind]
                     self.tasks[rid] = asyncio.create_task(
                         self.respond(rid, run, payload)
@@ -380,6 +381,21 @@ class Worker:
             output = await asyncio.to_thread(self.files.pack, output)
         return output
 
+    async def run_eta(self, p: dict) -> float | None:
+        """An event listener's `eta=` callable, for an event the gateway's queue
+        is enqueuing."""
+        from gradio.queueing import ETA_TIMEOUT, run_eta_hint
+
+        session_hash = p["session_hash"]
+        fns = (
+            self.app.state_holder[session_hash].blocks_config.fns
+            if session_hash is not None
+            else self.blocks.fns
+        )
+        return await run_eta_hint(
+            fns[p["fn_index"]], p["data"], self.blocks.blocked_paths, ETA_TIMEOUT
+        )
+
     async def run_auth(self, p: dict) -> bool:
         """`launch(auth=fn)`: the gateway's login route asks here."""
         import anyio
@@ -465,6 +481,9 @@ class Worker:
             "has_validator": fn.validator is not None,
             "cached": hasattr(fn.fn, "cache"),
             "parameter_names": list(fn.input_parameter_names) or parameter_names(fn.fn),
+            "eta": protocol.FORWARDED
+            if callable(fn.eta)
+            else (None if fn.eta is None else float(cast(float, fn.eta))),
         }
 
     def reloaded(self, demo: Blocks) -> None:

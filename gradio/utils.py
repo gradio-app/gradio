@@ -10,6 +10,8 @@ import importlib.metadata
 import importlib.resources
 import inspect
 import json
+import math
+import numbers
 import os
 import pickle as pkl
 import pkgutil
@@ -2260,3 +2262,29 @@ class ShmFdQueue(Generic[T]):
             pkl.dump(obj, f)
             f.flush()
             socket.send_fds(self._tx, [b"\0"], [f.fileno()])
+
+
+def is_eta_number(eta: Any) -> bool:
+    return isinstance(eta, numbers.Real) and not isinstance(eta, bool)
+
+
+def validate_eta(eta: Any) -> None:
+    """Raises if an event listener's `eta=` is not None, a regular (non-async)
+    function, or a non-negative finite number of seconds."""
+    if eta is None:
+        return
+    if callable(eta):
+        if inspect.iscoroutinefunction(eta) or inspect.isasyncgenfunction(eta):
+            raise TypeError(
+                "`eta` must be a regular function returning a number of seconds, "
+                f"not an async function: {eta!r}"
+            )
+        return
+    if not is_eta_number(eta):
+        raise TypeError(
+            f"`eta` must be a number of seconds or a function, got {type(eta).__name__}: {eta!r}"
+        )
+    if not math.isfinite(eta) or eta < 0:
+        raise ValueError(
+            f"`eta` must be a non-negative, finite number of seconds, got {eta!r}"
+        )

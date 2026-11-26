@@ -21,6 +21,7 @@ from gradio.components.base import Component, server
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 from gradio.i18n import I18nData
+from gradio.utils import set_default_buttons
 from gradio_client import handle_file
 from gradio_client.documentation import document
 from typing_extensions import TypedDict
@@ -318,7 +319,7 @@ class ImageEditor(Component):
         else:
             self.sources = []
 
-        self.buttons = buttons
+        self.buttons = set_default_buttons(buttons, ["download", "share", "fullscreen"])
 
         self.transforms = transforms
         self.eraser = Eraser() if eraser is None else eraser
