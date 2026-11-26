@@ -1,6 +1,6 @@
 {
 	"name": "gradio",
-	"version": "7.0.0-dev.0",
+	"version": "7.0.0-dev.1",
 	"description": "This is the package.json",
 	"python": "true"
 }
