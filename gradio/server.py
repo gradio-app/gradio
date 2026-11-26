@@ -61,6 +61,14 @@ class Server(App):
     while your functions run. Gradio keeps the paths of its API (/gradio_api,
     /config, /login, /logout and /monitoring).
 
+    HTML pages served from a StaticFiles mount at "/" get the Gradio launcher
+    (/gradio_api/launcher.js): a tab docked in the bottom-right corner that
+    shows the session's running events, the code for the last run, and the
+    "api", "gradio" and "runs" items of `footer_links`. Pass `footer_links=[]`
+    to launch() to leave the pages unchanged, or add
+    `<script src="/gradio_api/launcher.js"></script>` to the `<head>` of pages
+    served some other way.
+
     Example:
         import gradio as gr
         from fastapi.staticfiles import StaticFiles

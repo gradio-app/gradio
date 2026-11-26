@@ -291,6 +291,14 @@
 		search_params.get("view") === "api" && footer_links.includes("api")
 	);
 	let settings_visible = $derived(search_params.get("view") === "settings");
+
+	// The Gradio launcher (gradio/launcher.js), loaded by the page, takes the
+	// place of the footer: the footer then only appears to stop a screen
+	// recording. The launcher opens the API docs and settings with a
+	// "gradio:launcher" event.
+	const launcher =
+		typeof window !== "undefined" && "__GRADIO_LAUNCHER__" in window;
+	let footer_items = $derived(launcher ? [] : footer_links);
 	let api_recorder_visible = $derived(
 		search_params.get("view") === "api-recorder" && footer_links.includes("api")
 	);
@@ -483,6 +491,17 @@
 		refresh_run_count();
 		const unsubscribe_run_history = on_run_history_change(refresh_run_count);
 
+		function on_launcher(event: Event): void {
+			const panel = (event as CustomEvent<string>).detail;
+			if (panel === "api" && footer_links.includes("api")) {
+				loadApiRecorder();
+				set_api_docs_visible(true);
+			} else if (panel === "settings" && footer_links.includes("settings")) {
+				if (!settings_visible) set_settings_visible(true);
+			}
+		}
+		window.addEventListener("gradio:launcher", on_launcher);
+
 		mutation_observer = new MutationObserver(handle_resize);
 		const res = new ResizeObserver(handle_resize);
 
@@ -538,6 +557,7 @@
 			mutation_observer = null;
 			res.disconnect();
 			unsubscribe_run_history();
+			window.removeEventListener("gradio:launcher", on_launcher);
 			if (reconnect_interval) clearInterval(reconnect_interval);
 		};
 	});
@@ -566,12 +586,12 @@
 	</main>
 	<LiveStatus status={live_loading_status} i18n={$reactive_formatter} />
 
-	{#if footer_links.length > 0}
+	{#if footer_items.length > 0 || (launcher && $is_screen_recording)}
 		<footer
 			bind:clientHeight={footer_height}
 			aria-label="Gradio footer navigation"
 		>
-			{#if run_history && footer_links.includes("runs") && run_count > 0}
+			{#if run_history && footer_items.includes("runs") && run_count > 0}
 				<a
 					href={run_history_url(root, api_prefix)}
 					class="run-history"
@@ -582,7 +602,7 @@
 				</a>
 				<div class="divider">·</div>
 			{/if}
-			{#if footer_links.includes("api")}
+			{#if footer_items.includes("api")}
 				<button
 					onclick={() => {
 						set_api_docs_visible(!api_docs_visible);
@@ -601,7 +621,7 @@
 					<img src={api_logo} alt={$reactive_formatter("common.logo")} />
 				</button>
 			{/if}
-			{#if footer_links.includes("gradio")}
+			{#if footer_items.includes("gradio")}
 				<div class="divider show-api-divider">·</div>
 				<a
 					href="https://gradio.app"
@@ -627,7 +647,7 @@
 				/>
 			</button>
 			<div class="divider">·</div>
-			{#if footer_links.includes("settings")}
+			{#if footer_items.includes("settings")}
 				<div class="divider" class:hidden={!$is_screen_recording}>·</div>
 				<button
 					onclick={() => {
