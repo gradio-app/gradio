@@ -1490,6 +1490,53 @@ describe("DependencyManager: WebRTC streams", () => {
 		expect(client.submit).toHaveBeenCalledTimes(1);
 	});
 
+	test.each([
+		["it gathers its inputs", "gathering"],
+		["it joins the queue", "joining"]
+	])("a Stop while the stream starts ends it (while %s)", async (_, when) => {
+		const stream = dependency(0, "stream", [10]);
+		stream.inputs = [5];
+		stream.connection = "stream";
+		stream.trigger_mode = "multiple";
+		stream.targets = [[5, "stream"]];
+		(stream as any).transport = { type: "webrtc", media_output: null };
+		const close_stream = vi.fn();
+		let dependency_manager: DependencyManager;
+		const client = {
+			submit: vi.fn(() => {
+				if (when === "joining") dependency_manager.close_stream(5);
+				return Object.assign(
+					submission(
+						(async function* () {
+							yield { type: "status", stage: "pending", queue: true };
+						})()
+					),
+					{ close_stream }
+				);
+			})
+		} as unknown as Client;
+		dependency_manager = manager([stream], client);
+
+		const started = dependency_manager.dispatch({
+			type: "event",
+			event_name: "stream",
+			target_id: 5,
+			event_data: { media: {} }
+		});
+		// Record and Stop in the same task: the start still gathers the inputs
+		if (when === "gathering") dependency_manager.close_stream(5);
+		await started;
+
+		if (when === "gathering") {
+			// Never joined the queue
+			expect(client.submit).not.toHaveBeenCalled();
+		} else {
+			// Left the queue as soon as it had a run to end
+			expect(close_stream).toHaveBeenCalledTimes(1);
+		}
+		expect(dependency_manager.submissions.has(0)).toBe(false);
+	});
+
 	test("a stream that hands its slot over shows that it waits its turn again", async () => {
 		const stream = dependency(0, "stream", [10]);
 		stream.inputs = [5];

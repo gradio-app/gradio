@@ -200,6 +200,12 @@ export class DependencyManager {
 	/** The latest push of each WebRTC stream's other inputs (see push_stream_inputs) */
 	stream_input_seq: Map<number, number> = new Map();
 	page_ended: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
+	/**
+	 * WebRTC streams whose start is still on its way (gathering the inputs,
+	 * joining the queue), keyed by event: a Stop meanwhile finds no run in
+	 * `submissions` yet, so it marks the start as stopped instead
+	 */
+	starting: Map<number, { stopped: boolean }> = new Map();
 	cancelled: WeakSet<ReturnType<Client["submit"]>> = new WeakSet();
 	submission_trigger_ids: Map<number, number | null> = new Map();
 	active_dependencies: Map<ReturnType<Client["submit"]>, Dependency> =
@@ -540,6 +546,8 @@ export class DependencyManager {
 				};
 				const target_id = event_meta.target_id ?? null;
 				const unset_args: (() => void)[] = [];
+				const start = live_stream ? { stopped: false } : null;
+				if (start) this.starting.set(dep.id, start);
 
 				try {
 					const data_payload = await this.gather_state(
@@ -556,6 +564,8 @@ export class DependencyManager {
 					}
 					const failed_hold = holds.find((hold) => hold.status === "rejected");
 					if (failed_hold) throw failed_hold.reason;
+					// Stopped before it joined the queue: nothing to run
+					if (start?.stopped) return;
 
 					if (sends_chunk) {
 						// Dropped if its stream ended meanwhile; the next chunk starts a
@@ -611,6 +621,14 @@ export class DependencyManager {
 						this.submission_trigger_ids.set(dep.id, target_id);
 						this.active_dependencies.set(dep_submission.data, dep);
 						active_submission = dep_submission.data;
+						if (start?.stopped) {
+							// Stopped while it was joining: ended as a Stop in line ends
+							// it (its status was settled then)
+							this.end_stream_run(dep.id, dep_submission.data);
+						}
+						if (this.starting.get(dep.id) === start) {
+							this.starting.delete(dep.id);
+						}
 						// fn for this?
 						submit_loop: for await (const result of dep_submission.data) {
 							if (result === null) continue;
@@ -859,6 +877,9 @@ export class DependencyManager {
 					this.dispatch_deferred(dep.id);
 				} finally {
 					unset_args.forEach((fn) => fn());
+					if (start && this.starting.get(dep.id) === start) {
+						this.starting.delete(dep.id);
+					}
 				}
 			})
 		);
@@ -1374,6 +1395,9 @@ export class DependencyManager {
 			if (submission) {
 				this.end_stream_run(fn_id, submission);
 			}
+			// A start still on its way ends as soon as it has a run
+			const start = this.starting.get(fn_id);
+			if (start) start.stopped = true;
 
 			this.update_loading_status({
 				status: "complete",
