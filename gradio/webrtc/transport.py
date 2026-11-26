@@ -748,7 +748,9 @@ def _chunked_audio_handler(
                 ).result()
             else:
                 result = generator.step_sync(value)
-            return CloseStream() if result is utils.StreamGenerator.ENDED else result
+            # A generator that returns ends the stream without a message, as
+            # it ends an HTTP stream
+            return CloseStream("") if result is utils.StreamGenerator.ENDED else result
 
         def emit(self) -> Any:
             try:
@@ -1019,7 +1021,8 @@ def transport_event(
 
         def output(result: Any, args: tuple) -> Any:
             if result is utils.StreamGenerator.ENDED:
-                return CloseStream()
+                # Without a message, which the page would show as a warning
+                return CloseStream("")
             write_back(args, result)
             return to_stream_output(result)
 

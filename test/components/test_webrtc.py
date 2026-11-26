@@ -6222,7 +6222,8 @@ class TestGeneratorStreams:
                 await h.http.aclose()
 
     @pytest.mark.asyncio
-    async def test_a_generator_that_returns_ends_its_stream(self, monkeypatch):
+    @pytest.mark.parametrize("kind", ["video", "audio"])
+    async def test_a_generator_that_returns_ends_its_stream(self, kind, monkeypatch):
         monkeypatch.setattr(webrtc_connection, "ADMISSION_WAIT", 0.5)
         forget_earlier_streams()
         log = []
@@ -6235,11 +6236,11 @@ class TestGeneratorStreams:
             finally:
                 log.append("closed")
 
-        demo, media = self.demo("video", two_frames)
+        demo, media = self.demo(kind, two_frames)
         with closing(demo):
             _, local_url, _ = demo.launch(prevent_thread_lock=True)
             h = Harness(demo, local_url, media)
-            pc = await make_offer(video=True)
+            pc = await make_offer(**{kind: True})
             try:
                 await h.start("one")
                 await h.connect(pc, "one")
@@ -6247,6 +6248,10 @@ class TestGeneratorStreams:
                 # Ends without the page closing it
                 await h.messages("one", completed)
                 assert log == ["closed"]
+                # And quietly, as an HTTP stream: a message would show as a
+                # warning on the page
+                ends = [m for m in pc.messages if m["type"] == "end_stream"]
+                assert all(not m["data"] for m in ends)
             finally:
                 await pc.close()
                 await h.http.aclose()
