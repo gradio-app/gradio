@@ -41,6 +41,9 @@ VideoEmitType = (
     VideoNDArray
     | tuple[Any, ...]
     | tuple[VideoNDArray, AdditionalOutputs]
+    # Ends the stream after this frame, with one output only (with several,
+    # return a bare CloseStream)
+    | tuple[VideoNDArray, CloseStream]
     | AdditionalOutputs
     | CloseStream
     | None
