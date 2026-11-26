@@ -848,6 +848,20 @@ class TestWebRTC:
                 transport=gr.WebRTCOptions(rtc_configuration={"iceServers": []}),
             )
 
+    def test_every_frame_and_an_interval_between_calls_are_refused_together(self):
+        every_frame = gr.WebRTCOptions(skip_frames=False)
+        with gr.Blocks():
+            camera = webcam()
+            # The frames between calls would pile up for as long as it runs
+            with pytest.raises(ValueError, match="Pass one or the other"):
+                camera.stream(
+                    flip, [camera], [camera], stream_every=0.5, transport=every_frame
+                )
+            camera.stream(flip, [camera], [camera], transport=every_frame)
+            camera.stream(
+                flip, [camera], [camera], stream_every=0.5, transport="webrtc"
+            )
+
     def test_rtp_params_go_to_the_page(self):
         rtp_params = {"degradationPreference": "maintain-framerate"}
         with gr.Blocks() as demo:

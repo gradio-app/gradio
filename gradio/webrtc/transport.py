@@ -834,6 +834,20 @@ def transport_event(
     sends_to_generator = (
         not is_handler_class and mode != "receive" and utils.is_generator_function(fn)
     )
+    if (
+        not options.skip_frames
+        and stream_every
+        and modality == "video"
+        and mode != "receive"
+        and not is_handler_class
+    ):
+        # Every frame would wait its turn behind the interval, so the queue
+        # of frames would grow for as long as the stream runs
+        raise ValueError(
+            "gr.WebRTCOptions(skip_frames=False) processes every frame of the "
+            "camera, while stream_every leaves out the frames between calls. "
+            "Pass one or the other."
+        )
     other_out = [i for i in range(len(outputs)) if i != media_out]
     callable_once = once and _callable_once(fn, modality)
     from gradio.oauth import OAuthToken
