@@ -17,6 +17,7 @@ import copy
 import inspect
 import queue
 import threading
+import warnings
 from collections.abc import AsyncGenerator, AsyncIterator, Callable
 from contextlib import aclosing
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -870,16 +871,40 @@ def transport_event(
         modality == "video" and mode == "send-receive" and not is_handler_class
     )
 
+    def values_of(result: Any) -> list[Any]:
+        """One value per output, read from what the function returned as an
+        event's return value is: a tuple or list for several outputs, a
+        `{component: value}` dict (the outputs it leaves out stay as they
+        are), or one gr.skip() for all of them. Values beyond the outputs are
+        ignored with a warning, as an event ignores them."""
+        from gradio.blocks import Block, convert_component_dict_to_list
+
+        if (
+            isinstance(result, dict)
+            and result
+            and any(isinstance(key, Block) for key in result)
+        ):
+            converted = convert_component_dict_to_list(outputs, result)
+            return list(converted) if len(outputs) > 1 else [converted]
+        if len(outputs) > 1 and is_skip(result):
+            return [skip()] * len(outputs)
+        if len(outputs) > 1 and isinstance(result, tuple | list):
+            values = list(result)
+            if len(values) > len(outputs):
+                warnings.warn(
+                    f"The stream function returned {len(values)} values for "
+                    f"{len(outputs)} outputs. Ignoring the extra values."
+                )
+                values = values[: len(outputs)]
+            return values
+        return [result]
+
     def to_stream_output(result: Any) -> Any:
         """One value per output, into what the stream's tracks take: the media,
         and the other outputs as AdditionalOutputs."""
         if result is None or isinstance(result, CloseStream | AdditionalOutputs):
             return result
-        values = (
-            list(result)
-            if len(outputs) > 1 and isinstance(result, tuple | list)
-            else [result]
-        )
+        values = values_of(result)
         if len(values) != len(outputs):
             hint = (
                 " A gr.Server endpoint gets its outputs from its return type "
@@ -912,11 +937,7 @@ def transport_event(
             or isinstance(result, CloseStream | AdditionalOutputs)
         ):
             return
-        values = (
-            list(result)
-            if len(outputs) > 1 and isinstance(result, tuple | list)
-            else [result]
-        )
+        values = values_of(result)
         if len(values) != len(outputs):
             return  # to_stream_output reports it
         for box in boxes:
@@ -1156,11 +1177,7 @@ def transport_event(
         if result is None or isinstance(result, CloseStream):
             # Nothing to show: the outputs stay as they are
             return [skip()] * len(outputs)
-        out = (
-            list(result)
-            if len(outputs) > 1 and isinstance(result, tuple | list)
-            else [result]
-        )
+        out = values_of(result)
         if len(out) != len(outputs):
             raise ValueError(
                 f"The stream function returned {len(out)} values for "

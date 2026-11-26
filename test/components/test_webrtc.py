@@ -932,6 +932,60 @@ class TestWebRTC:
         assert start.trigger_mode == "once"
         assert start.concurrency_limit == "default"
 
+    def test_a_stream_function_returns_its_outputs_as_an_event_does(self):
+        import numpy as np
+
+        from gradio.webrtc.utils import SKIPPED_FRAME
+
+        returned: list[Any] = [None]
+        with gr.Blocks() as demo:
+            camera = webcam()
+            number = gr.Number()
+            text = gr.Textbox()
+            camera.stream(
+                lambda frame: returned[0],
+                inputs=[camera],
+                outputs=[camera, number, text],
+                transport="webrtc",
+            )
+            caption = gr.Textbox()
+            sent = webcam()
+            sent.stream(
+                lambda frame: returned[0], [sent], [caption], transport="webrtc"
+            )
+            stranger = gr.Textbox()
+        call = manager_of(demo, camera).handler.callable
+        frame = np.zeros((16, 16, 3), dtype=np.uint8)
+        skip = gr.skip()
+
+        def result():
+            out = call(frame)
+            if isinstance(out, AdditionalOutputs):
+                return out.args
+            if isinstance(out, tuple):
+                return out[0], out[1].args
+            return out
+
+        # A {component: value} dict: the outputs it leaves out stay as they are
+        returned[0] = {number: 1, camera: frame}
+        assert result() == (frame, (1, skip))
+        returned[0] = {text: "hi"}
+        assert result() == (SKIPPED_FRAME, (skip, "hi"))
+        returned[0] = {stranger: "x"}
+        with pytest.raises(ValueError, match="not specified as output"):
+            result()
+        # One gr.skip() for all the outputs
+        returned[0] = skip
+        assert result() is SKIPPED_FRAME
+        # Extra values are ignored with a warning
+        returned[0] = (frame, 2, "a", "extra")
+        with pytest.warns(UserWarning, match="Ignoring the extra values"):
+            assert result() == (frame, (2, "a"))
+        # With one output too
+        returned[0] = {caption: "a cat"}
+        out = manager_of(demo, sent).handler.callable(frame)
+        assert isinstance(out, AdditionalOutputs) and out.args == ("a cat",)
+
     @pytest.mark.asyncio
     async def test_run_stream_refuses_a_taken_id_and_mismatched_outputs(self):
         import numpy as np
