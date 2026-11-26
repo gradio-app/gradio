@@ -60,6 +60,9 @@
 		full_history = $bindable(null),
 		webcam_options = { mirror: "auto", constraints: {} },
 		show_download_button = false,
+		show_fullscreen_button = false,
+		fullscreen = false,
+		onfullscreen,
 		image_id = $bindable(null),
 		onclear,
 		onupload,
@@ -95,6 +98,9 @@
 		full_history?: CommandNode | null;
 		webcam_options?: WebcamOptions;
 		show_download_button?: boolean;
+		show_fullscreen_button?: boolean;
+		fullscreen?: boolean;
+		onfullscreen?: (fullscreen: boolean) => void;
 		image_id?: null | string;
 		onclear?: () => void;
 		onupload?: () => void;
@@ -331,6 +337,9 @@
 	bind:has_drawn
 	{webcam_options}
 	{show_download_button}
+	{show_fullscreen_button}
+	{fullscreen}
+	{onfullscreen}
 	{theme_mode}
 	bind:can_undo
 	bind:has_user_edits
