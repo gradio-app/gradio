@@ -139,7 +139,7 @@ class ReplyOnPause(StreamHandler):
 
     Parameters:
         fn: the generator function that replies to one utterance.
-        can_interrupt: whether the user can talk over a reply to stop it. If False, what they say during a reply is ignored.
+        can_interrupt: whether the user can talk over a reply to stop it. If False, what they say while `fn` runs is ignored; once it has returned, speech starts a new utterance even while its reply still plays.
         pause_seconds: how long the user must be silent for the utterance to end.
         min_speech_seconds: how much speech it takes to start an utterance, so that short noises do not.
         max_speech_seconds: if set, an utterance that goes on this long gets a reply without waiting for a pause.

@@ -89,6 +89,12 @@ def _check_fn(fn: Any, mode: str, modality: Modality) -> None:
                 "A stream that only sends media to the page takes a generator "
                 "function that yields it; handler classes take media from the page."
             )
+        if inspect.isasyncgenfunction(fn):
+            raise ValueError(
+                "A stream that only sends media to the page takes a sync "
+                "generator function (def ... yield), not an async one "
+                "(async def ... yield)."
+            )
         if not inspect.isgeneratorfunction(fn):
             raise ValueError(
                 "A stream that only sends media to the page takes a generator "
@@ -189,8 +195,9 @@ def blocks_stream(
         media = next((c for c in outputs if kind(c) is not None), None)
     if media is None:
         raise ValueError(
-            "A stream with transport= needs a gr.Image, gr.Audio or gr.Video "
-            "as the component it listens to, or among its outputs."
+            "A stream with transport= needs a gr.Image, gr.Audio or gr.Video: "
+            "the component whose .stream() it listens to (another event of it, "
+            "such as .change(), does not stream it), or one among its outputs."
         )
     modality = cast(Modality, kind(media))
     # gr.Video carries audio and video together when the function takes both;

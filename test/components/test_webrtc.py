@@ -646,10 +646,21 @@ class TestWebRTC:
                 button.click(
                     flip, inputs=[slider], outputs=[camera], transport="webrtc"
                 )
+
+            async def async_frames():
+                yield None
+
+            with pytest.raises(ValueError, match="not an async one"):
+                button.click(
+                    async_frames, inputs=None, outputs=[camera], transport="webrtc"
+                )
             with pytest.raises(ValueError, match="gr.Image, gr.Audio or gr.Video"):
                 button.click(
                     three_frames, inputs=[slider], outputs=[slider], transport="webrtc"
                 )
+            # Only .stream() streams the component it listens to
+            with pytest.raises(ValueError, match=r"such as \.change\(\)"):
+                camera.change(flip, [camera], [slider], transport="webrtc")
             with pytest.raises(ValueError, match="media_output"):
                 camera.stream(
                     flip,

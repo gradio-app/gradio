@@ -41,7 +41,6 @@ VideoEmitType = (
     VideoNDArray
     | tuple[Any, ...]
     | tuple[VideoNDArray, AdditionalOutputs]
-    | tuple[VideoNDArray, CloseStream]
     | AdditionalOutputs
     | CloseStream
     | None
@@ -230,7 +229,8 @@ class StreamHandler(StreamHandlerBase, ABC):
         to end the stream. Integer arrays are scaled as in `gr.Audio`;
         float arrays are played as values in [-1, 1], without `gr.Audio`'s
         scaling of each array to its own peak, so that chunks keep their
-        loudness. Must not block; use `wait_for_item()` on a queue instead.
+        loudness. Must not block: return None when nothing is ready (the
+        async `emit()` of `AsyncStreamHandler` can await `wait_for_item()`).
         """
         pass
 
