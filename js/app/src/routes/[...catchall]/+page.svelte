@@ -422,6 +422,12 @@
 		{/each}
 	{/if}
 	<link rel="manifest" href="/manifest.json" />
+	{#if !browser && !is_embed && config?.footer_links?.length}
+		<!-- The Gradio launcher takes the place of the footer (gradio/launcher.js).
+		It has to run before the app's client starts, so it is a classic script
+		in the server-rendered <head>. -->
+		{@html `<script src="${root}/gradio_api/launcher.js?mode=blocks"></script>`}
+	{/if}
 </svelte:head>
 
 <Embed
