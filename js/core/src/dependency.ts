@@ -632,6 +632,9 @@ export class DependencyManager {
 								// any "pending" status: progress of a running stream is one.
 								if (result.rejoining && dep.transport) {
 									stream_state = "waiting";
+									// Its connection ended: the remote media would hide the
+									// camera's own preview while it waits
+									this.end_live_stream(dep, dep_submission.data);
 								}
 								const { fn_index, ...status } = result;
 

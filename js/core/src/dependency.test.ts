@@ -1495,7 +1495,7 @@ describe("DependencyManager: WebRTC streams", () => {
 		stream.inputs = [5];
 		stream.connection = "stream";
 		stream.targets = [[5, "stream"]];
-		(stream as any).transport = { type: "webrtc", media_output: null };
+		(stream as any).transport = { type: "webrtc", media_output: 0 };
 		const starts = {
 			type: "status",
 			stage: "streaming",
@@ -1549,6 +1549,18 @@ describe("DependencyManager: WebRTC streams", () => {
 		const again = states.indexOf("waiting", first_open);
 		expect(again).toBe(first_open + 2);
 		expect(states.indexOf("open", again)).toBeGreaterThan(again);
+		// The ended remote media leaves the output while it waits, so the
+		// camera's own preview shows (not only when the run completes)
+		const calls = update_state.mock.calls;
+		const cleared = calls.findIndex(
+			([id, state]) => id === 10 && state.live_stream === null
+		);
+		const opened = calls.map(
+			([id, state]) => id === 5 && state.loading_status?.stream_state === "open"
+		);
+		const reopened = opened.lastIndexOf(true);
+		expect(cleared).toBeGreaterThan(-1);
+		expect(cleared).toBeLessThan(reopened);
 	});
 
 	test("the end of an older run leaves a newer run's live media", () => {
