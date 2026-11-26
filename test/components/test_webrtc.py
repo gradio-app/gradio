@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import threading
 import time
 from collections.abc import Callable, Generator, Iterator
@@ -833,7 +834,10 @@ class TestWebRTC:
         monkeypatch.setenv("SPACE_ID", "user/space")
         with gr.Blocks():
             camera = webcam()
-            with pytest.raises(ValueError, match="rtc_configuration"):
+            # It says where the setting goes: stream() has no rtc_configuration=
+            with pytest.raises(
+                ValueError, match=re.escape("transport=gr.WebRTCOptions(rtc_conf")
+            ):
                 camera.stream(
                     flip, inputs=[camera], outputs=[camera], transport="webrtc"
                 )

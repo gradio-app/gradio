@@ -45,9 +45,10 @@ def check_turn(rtc_configuration: Any, what: str) -> None:
         )
     if (utils.get_space() or utils.colab_check()) and rtc_configuration is None:
         raise ValueError(
-            f"{what} needs a TURN server on Hugging Face Spaces or Google "
-            "Colab: the browser often cannot reach the app directly, and then "
-            "the media has to be relayed. Pass `rtc_configuration=` with your "
+            "A WebRTC stream needs a TURN server on Hugging Face Spaces or "
+            "Google Colab: the browser often cannot reach the app directly, and "
+            "then the media has to be relayed. Pass "
+            "`transport=gr.WebRTCOptions(rtc_configuration=...)` with your "
             "ICE servers, or a function that returns them. Hugging Face "
             "accounts get a free monthly "
             "TURN quota through Cloudflare; on a public Space, issue the "

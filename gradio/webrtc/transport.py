@@ -817,7 +817,7 @@ def transport_event(
         raise AttributeError("Cannot add a WebRTC stream outside of a Blocks.")
     mode = _mode(media_in, media_out)
     _check_fn(fn, mode, modality)
-    check_turn(options.rtc_configuration, "transport=")
+    check_turn(options.rtc_configuration, "gr.WebRTCOptions")
     check_video_bitrate(options.video_bitrate)
     output_every = options.output_every
     if output_every is not None and (
