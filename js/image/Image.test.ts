@@ -417,6 +417,10 @@ describe("Props: sources", () => {
 			navigator,
 			"mediaDevices"
 		);
+		const play_descriptor = Object.getOwnPropertyDescriptor(
+			HTMLMediaElement.prototype,
+			"play"
+		);
 		const streams: MediaStream[] = [];
 		try {
 			Object.defineProperty(navigator, "mediaDevices", {
@@ -453,6 +457,11 @@ describe("Props: sources", () => {
 					]
 				}
 			});
+			// The camera switch would abort a play() still waiting for a frame
+			Object.defineProperty(HTMLMediaElement.prototype, "play", {
+				configurable: true,
+				value: async () => {}
+			});
 
 			const { getByRole } = await render(Image, {
 				...default_props,
@@ -485,6 +494,16 @@ describe("Props: sources", () => {
 				);
 			} else {
 				Reflect.deleteProperty(navigator, "mediaDevices");
+			}
+
+			if (play_descriptor) {
+				Object.defineProperty(
+					HTMLMediaElement.prototype,
+					"play",
+					play_descriptor
+				);
+			} else {
+				Reflect.deleteProperty(HTMLMediaElement.prototype, "play");
 			}
 		}
 	});
