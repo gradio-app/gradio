@@ -20,7 +20,7 @@ Gradio can stream the webcam and microphone to your Python code over WebRTC and 
 Install the dependencies:
 
 ```bash
-pip install "gradio[webrtc]" google-genai pillow
+pip install "gradio[components,webrtc]" google-genai pillow
 ```
 
 ## 1) Encoders for audio and images
