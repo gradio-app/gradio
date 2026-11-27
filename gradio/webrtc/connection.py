@@ -1110,8 +1110,6 @@ class ConnectionManager:
                 )
             elif self.modality == "audio-video" and track.kind == "video":
                 av_handler = cast(AudioVideoStreamHandlerImpl, handler)
-                # Set here too: the offer may carry no audio track
-                av_handler._loop = asyncio.get_running_loop()
                 cb = HandlerVideoTrack(
                     relay.subscribe(track),
                     event_handler=cast(Callable, av_handler),
@@ -1228,9 +1226,16 @@ class ConnectionManager:
 
             self._spawn(set_channel())
 
-        if self.mode == "send-receive":
-            from aiortc.sdp import SessionDescription
+        from aiortc.sdp import SessionDescription
 
+        media = SessionDescription.parse(offer.sdp).media
+        if self.modality == "audio-video" and not {"audio", "video"} <= {
+            m.kind for m in media
+        }:
+            # Its handler starts with the audio track; a camera alone streams
+            # from a gr.Image or a plain function
+            rejected.append("This stream takes audio and video: offer both tracks.")
+        if self.mode == "send-receive":
             # Only sending the media back reads the stream's own track (the
             # first of each kind it takes) in this mode, so offered as
             # sendonly it would never be read, while aiortc queues its frames
@@ -1240,7 +1245,6 @@ class ConnectionManager:
                 if self.modality == "audio-video"
                 else {self.modality}
             )
-            media = SessionDescription.parse(offer.sdp).media
             own = [next((m for m in media if m.kind == k), None) for k in kinds]
             if any(m is not None and m.direction == "sendonly" for m in own):
                 rejected.append(
