@@ -901,6 +901,14 @@ def transport_event(
         ignored with a warning, as an event ignores them."""
         from gradio.blocks import Block, convert_component_dict_to_list
 
+        if not outputs and preprocessed_inputs is not None:
+            # A gr.Server endpoint without a return hint fails below instead,
+            # where the error says how to give it outputs
+            warnings.warn(
+                "The stream function returned a value, but the stream has no "
+                "outputs. Ignoring it."
+            )
+            return []
         if (
             isinstance(result, dict)
             and result

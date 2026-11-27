@@ -1037,6 +1037,8 @@ class TestWebRTC:
             sent.stream(
                 lambda frame: returned[0], [sent], [caption], transport="webrtc"
             )
+            unseen = webcam()
+            unseen.stream(lambda frame: returned[0], [unseen], [], transport="webrtc")
             stranger = gr.Textbox()
         call = manager_of(demo, camera).handler.callable
         frame = np.zeros((16, 16, 3), dtype=np.uint8)
@@ -1069,6 +1071,10 @@ class TestWebRTC:
         returned[0] = {caption: "a cat"}
         out = manager_of(demo, sent).handler.callable(frame)
         assert isinstance(out, AdditionalOutputs) and out.args == ("a cat",)
+        # And with none, as an event without outputs
+        returned[0] = "ignored"
+        with pytest.warns(UserWarning, match="has no outputs"):
+            manager_of(demo, unseen).handler.callable(frame)
 
     @pytest.mark.asyncio
     async def test_run_stream_refuses_a_taken_id_and_mismatched_outputs(self):
