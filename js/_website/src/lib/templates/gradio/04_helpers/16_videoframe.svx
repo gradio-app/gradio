@@ -1,0 +1,54 @@
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    // Code blocks render with a copy button
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("videoframe");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.VideoFrame
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+### Example Usage
+```python
+import gradio as gr
+
+app = gr.Server()
+
+@app.api(name="flip", transport="webrtc")
+def flip(frame: gr.VideoFrame) -> gr.VideoFrame:
+    return frame[::-1]
+
+app.launch()
+```
+
+{#if obj.parameters && obj.parameters.length > 0}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
+<GuidesSection guides={obj.guides}/>
+{/if}

@@ -1,0 +1,118 @@
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    // Code blocks render with a copy button
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("wait_for_item");
+    let obj1 = get_object("get_current_context");
+    let obj2 = get_object("audio_to_float32");
+    let obj3 = get_object("audio_to_int16");
+</script>
+
+# Streaming Helpers
+
+<!--- Title -->
+## {obj.name}
+
+<!--- Usage -->
+```python
+gradio.streaming.wait_for_item(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+{#if obj.parameters && obj.parameters.length > 0}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+<!--- Title -->
+## {obj1.name}
+
+<!--- Usage -->
+```python
+gradio.streaming.get_current_context()
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj1.description)}
+
+{#if obj1.parameters && obj1.parameters.length > 0}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj1.parameters} anchor_links={obj1.name}/>
+{/if}
+
+{#if obj1.fns && obj1.fns.length > 0}
+<!--- Methods -->
+### Methods
+<FunctionsSection fns={obj1.fns} event_listeners={false} />
+{/if}
+
+<!--- Title -->
+## {obj2.name}
+
+<!--- Usage -->
+```python
+gradio.streaming.audio_to_float32(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj2.description)}
+
+{#if obj2.parameters && obj2.parameters.length > 0}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj2.parameters} anchor_links={obj2.name}/>
+{/if}
+
+{#if obj2.fns && obj2.fns.length > 0}
+<!--- Methods -->
+### Methods
+<FunctionsSection fns={obj2.fns} event_listeners={false} />
+{/if}
+
+<!--- Title -->
+## {obj3.name}
+
+<!--- Usage -->
+```python
+gradio.streaming.audio_to_int16(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj3.description)}
+
+{#if obj3.parameters && obj3.parameters.length > 0}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj3.parameters} anchor_links={obj3.name}/>
+{/if}
+
+{#if obj3.fns && obj3.fns.length > 0}
+<!--- Methods -->
+### Methods
+<FunctionsSection fns={obj3.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
+<GuidesSection guides={obj.guides}/>
+{/if}

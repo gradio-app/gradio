@@ -1,0 +1,91 @@
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    // Code blocks render with a copy button
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("streamhandler");
+    let obj1 = get_object("asyncstreamhandler");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.streaming.StreamHandler
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+### Example Usage
+```python
+import gradio as gr
+from gradio.streaming import StreamHandler
+
+class Echo(StreamHandler):
+    def __init__(self):
+        super().__init__()
+        self.frames = []
+
+    def receive(self, frame):
+        # (sample_rate, int16 array) from the microphone
+        self.frames.append(frame)
+
+    def emit(self):
+        # Polled for the next audio to play back; None when nothing is ready
+        return self.frames.pop(0) if self.frames else None
+
+with gr.Blocks() as demo:
+    mic = gr.Audio(sources=["microphone"], streaming=True)
+    mic.stream(Echo, inputs=[mic], outputs=[mic], transport="webrtc")
+
+demo.launch()
+```
+
+{#if obj.parameters && obj.parameters.length > 0}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+<!--- Title -->
+## {obj1.name}
+
+<!--- Usage -->
+```python
+gradio.streaming.AsyncStreamHandler
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj1.description)}
+
+{#if obj1.parameters && obj1.parameters.length > 0}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj1.parameters} anchor_links={obj1.name}/>
+{/if}
+
+{#if obj1.fns && obj1.fns.length > 0}
+<!--- Methods -->
+### Methods
+<FunctionsSection fns={obj1.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
+<GuidesSection guides={obj.guides}/>
+{/if}

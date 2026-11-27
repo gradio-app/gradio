@@ -71,6 +71,7 @@ _module_prefixes = [
     ("gradio.validators", "validators"),
     ("gradio.caching", "helpers"),
     ("gradio.webrtc", "helpers"),
+    ("gradio.streaming", "helpers"),
 ]
 
 

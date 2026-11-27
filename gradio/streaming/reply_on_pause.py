@@ -14,6 +14,7 @@ from functools import lru_cache
 from typing import Any, Protocol
 
 import numpy as np
+from gradio_client.documentation import document
 
 from gradio.streaming.handlers import StreamHandler
 from gradio.streaming.utils import audio_to_float32, bind_special_args, counted
@@ -67,14 +68,12 @@ def _silero_session() -> Any:
     )
 
 
+@document()
 class SileroVAD:
     """
     The default voice activity detector of `ReplyOnPause`: Silero VAD v5
     (MIT license), downloaded from the Hugging Face Hub (onnx-community/silero-vad)
     the first time a stream starts. Needs the `vad` extra: `pip install "gradio[vad]"`.
-
-    Parameters:
-        threshold: the speech probability (0 to 1) above which a 32 ms window counts as speech. Raise it in a noisy room, lower it for quiet speakers.
     """
 
     sample_rate = 16000
@@ -83,6 +82,10 @@ class SileroVAD:
     _context_size = 64
 
     def __init__(self, threshold: float = 0.5) -> None:
+        """
+        Parameters:
+            threshold: the speech probability (0 to 1) above which a 32 ms window counts as speech. Raise it in a noisy room, lower it for quiet speakers.
+        """
         if importlib.util.find_spec("onnxruntime") is None:
             raise ImportError(VAD_EXTRA_HINT)
         self.threshold = threshold
@@ -122,6 +125,7 @@ def _resampled(audio: np.ndarray, rate: int, target: int) -> np.ndarray:
     return np.interp(positions, np.arange(len(audio)), audio).astype(np.float32)
 
 
+@document()
 class ReplyOnPause(StreamHandler):
     """
     A handler for voice agents that only needs a generator function: it listens
@@ -136,15 +140,9 @@ class ReplyOnPause(StreamHandler):
     special parameters of event listeners such as `gr.Request`. It yields one
     value per output, like the function of any stream: audio as a
     `(sample_rate, array)` tuple, `gr.skip()` to leave an output unchanged.
-
-    Parameters:
-        fn: the generator function that replies to one utterance.
-        can_interrupt: whether the user can talk over a reply to stop it. If False, what they say while `fn` runs is ignored; once it has returned, speech starts a new utterance even while its reply still plays.
-        pause_seconds: how long the user must be silent for the utterance to end.
-        min_speech_seconds: how much speech it takes to start an utterance, so that short noises do not.
-        max_speech_seconds: if set, an utterance that goes on this long gets a reply without waiting for a pause.
-        vad: the voice activity detector; a `SileroVAD` by default. Any object with the methods of `SileroVAD` (`is_speech`, `reset`, `copy`) and its `sample_rate` and `window_size` attributes works.
-        input_sample_rate: the sample rate of the audio `fn` gets.
+    Pass it as the function of a microphone stream with `transport="webrtc"`,
+    e.g. `mic.stream(ReplyOnPause(respond), [mic], [mic], transport="webrtc")`.
+    Needs the `vad` extra for the default detector.
     """
 
     def __init__(
@@ -158,6 +156,16 @@ class ReplyOnPause(StreamHandler):
         vad: VoiceActivityDetector | None = None,
         input_sample_rate: int = 16000,
     ) -> None:
+        """
+        Parameters:
+            fn: the generator function that replies to one utterance.
+            can_interrupt: whether the user can talk over a reply to stop it. If False, what they say while `fn` runs is ignored; once it has returned, speech starts a new utterance even while its reply still plays.
+            pause_seconds: how long the user must be silent for the utterance to end.
+            min_speech_seconds: how much speech it takes to start an utterance, so that short noises do not.
+            max_speech_seconds: if set, an utterance that goes on this long gets a reply without waiting for a pause.
+            vad: the voice activity detector; a `SileroVAD` by default. Any object with the methods of `SileroVAD` (`is_speech`, `reset`, `copy`) and its `sample_rate` and `window_size` attributes works.
+            input_sample_rate: the sample rate of the audio `fn` gets.
+        """
         if not (inspect.isgeneratorfunction(fn) or inspect.isasyncgenfunction(fn)):
             raise TypeError(
                 "ReplyOnPause takes a generator function (def ... yield), "

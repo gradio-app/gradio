@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, Protocol, cast
 
 import numpy as np
+from gradio_client.documentation import document
 from numpy.typing import NDArray
 
 logger = logging.getLogger(__name__)
@@ -34,13 +35,17 @@ class AdditionalOutputs:
         self.args = args
 
 
+@document()
 class CloseStream:
     """
-    Return or yield from a stream handler to end the stream. The message is
-    shown to the user as a warning.
+    Return or yield it from a stream's function, or from a handler's `emit()` or `video_emit()`, in place of the outputs to end a stream with `transport="webrtc"`. The message is shown to the user as a warning.
     """
 
     def __init__(self, msg: str = "Stream closed") -> None:
+        """
+        Parameters:
+            msg: the message shown to the user; an empty string ends the stream without one.
+        """
         self.msg = msg
 
 
@@ -154,10 +159,10 @@ def counted(fn: Callable) -> Callable:
     return fn if calls is None else calls.track(fn)
 
 
+@document()
 def get_current_context() -> Context:
     """
-    Returns the context of the stream whose handler is currently running,
-    which holds the stream's id (`stream_id`).
+    Returns the context of the stream whose function or handler is currently running, which holds the stream's id (`stream_id`), e.g. to keep per-stream state in a dict. Raises a RuntimeError outside a stream.
     """
     if not (ctx := current_context.get()):
         raise RuntimeError("No stream is active in this context.")
@@ -176,6 +181,7 @@ def _scaled_integer_to_int16(audio: np.ndarray) -> NDArray[np.int16]:
         return convert_to_16_bit_audio(audio)
 
 
+@document()
 def audio_to_float32(
     audio: NDArray[np.integer | np.floating],
 ) -> NDArray[np.float32]:
@@ -183,6 +189,8 @@ def audio_to_float32(
     Converts an int16 audio array to float32 in the range [-1.0, 1.0). A float
     array (in [-1.0, 1.0]) is returned as float32. int32, uint16, uint8 and
     int8 arrays are first scaled to int16 as `gr.Audio` does.
+    Parameters:
+        audio: the audio array, e.g. the array of a `(sample_rate, array)` frame that a handler's `receive()` gets.
     """
     if audio.dtype == np.int16:
         return audio.astype(np.float32) / 32768.0
@@ -193,6 +201,7 @@ def audio_to_float32(
     raise TypeError(f"Unsupported audio data type: {audio.dtype}")
 
 
+@document()
 def audio_to_int16(
     audio: NDArray[np.integer | np.floating],
 ) -> NDArray[np.int16]:
@@ -202,6 +211,8 @@ def audio_to_int16(
     every chunk of a stream the same loudness. An int16 array is returned
     unchanged, and int32, uint16, uint8 and int8 arrays are scaled as
     `gr.Audio` does.
+    Parameters:
+        audio: the audio array to convert.
     """
     if audio.dtype == np.int16:
         return cast(NDArray[np.int16], audio)
@@ -215,10 +226,15 @@ def audio_to_int16(
     raise TypeError(f"Unsupported audio data type: {audio.dtype}")
 
 
+@document()
 async def wait_for_item(queue: asyncio.Queue, timeout: float = 0.1) -> Any:
     """
     Waits for an item from an asyncio.Queue and returns None when the timeout
-    is reached, so that `emit()` does not block when nothing is ready.
+    is reached, so that an async handler's `emit()` does not wait for long
+    when nothing is ready: `return await wait_for_item(self.queue)`.
+    Parameters:
+        queue: the queue the handler puts its outgoing values in.
+        timeout: how many seconds to wait before returning None.
     """
     try:
         return await asyncio.wait_for(queue.get(), timeout=timeout)

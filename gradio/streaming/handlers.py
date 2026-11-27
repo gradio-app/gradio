@@ -15,6 +15,7 @@ from collections.abc import Callable
 from typing import Any, Literal, Self, TypeAlias, cast
 
 import numpy as np
+from gradio_client.documentation import document
 from numpy import typing as npt
 
 from gradio.streaming.utils import (
@@ -67,12 +68,6 @@ class StreamHandlerBase:
     `copy()` on the server's event loop, so keep that cheap and do slow setup,
     such as loading a model, in `start_up()` (which sync handlers run in a
     worker thread).
-
-    Parameters:
-        expected_layout: channel layout the handler wants incoming audio in, "mono" or "stereo".
-        output_sample_rate: sample rate of the audio the handler emits.
-        input_sample_rate: sample rate the handler wants incoming audio resampled to.
-        fps: frame rate of the video that audio-video handlers send.
     """
 
     def __init__(
@@ -82,6 +77,13 @@ class StreamHandlerBase:
         input_sample_rate: int = 48000,
         fps: int = 30,
     ) -> None:
+        """
+        Parameters:
+            expected_layout: the channel layout the handler gets incoming audio in, "mono" or "stereo".
+            output_sample_rate: the sample rate of the audio the handler emits; a multiple of 50, as audio is sent in 20 ms frames.
+            input_sample_rate: the sample rate incoming audio is resampled to before `receive()` gets it.
+            fps: the frame rate of the video that an audio-video handler sends.
+        """
         self.expected_layout = expected_layout
         self.output_sample_rate = output_sample_rate
         self.input_sample_rate = input_sample_rate
@@ -138,7 +140,9 @@ class StreamHandlerBase:
         await self.args_set.wait()
 
     def wait_for_args_sync(self) -> None:
-        """Synchronous version of `wait_for_args()` for use in `StreamHandler`."""
+        """
+        Waits until the values of the extra input components have arrived in `latest_args`, as `wait_for_args()` of the async handlers does, for the methods of a synchronous handler, which run in worker threads.
+        """
         try:
             asyncio.run_coroutine_threadsafe(self.wait_for_args(), self.loop).result()
         except Exception:
@@ -199,13 +203,17 @@ class StreamHandlerBase:
         pass
 
 
+@document(
+    "receive",
+    "emit",
+    "start_up",
+    "shutdown",
+    "copy",
+    "wait_for_args_sync",
+)
 class StreamHandler(StreamHandlerBase, ABC):
     """
-    Base class for synchronous audio stream handlers. Subclasses implement
-    `receive()`, which is called with every incoming audio frame, and `emit()`,
-    which is polled for the next outgoing frame. One handler instance serves
-    one stream; pass the class as the stream's function to get a fresh instance
-    per stream, or pass an instance and implement `copy()`.
+    Base class for synchronous audio stream handlers, for streams that need state for their whole life or that send and receive independently, such as a voice agent that talks while it listens. Pass a subclass as the function of a stream with `transport="webrtc"`. Subclasses implement `receive()`, which is called with every incoming audio frame, and `emit()`, which is polled for the next outgoing frame. One handler instance serves one stream; pass the class as the stream's function to get a fresh instance per stream, or pass an instance and implement `copy()`. The values of the stream's other inputs are in `latest_args` once the page has sent them, and `clear_queue()` drops the audio emitted but not played yet, for example when the user interrupts.
     """
 
     @abstractmethod
@@ -244,18 +252,31 @@ class StreamHandler(StreamHandlerBase, ABC):
         pass
 
 
+@document(
+    "receive",
+    "emit",
+    "start_up",
+    "shutdown",
+    "copy",
+    "wait_for_args",
+)
 class AsyncStreamHandler(StreamHandlerBase, ABC):
     """
-    Base class for asynchronous audio stream handlers. Same contract as
-    `StreamHandler`, with `receive()`, `emit()` and `start_up()` as coroutines.
+    Base class for asynchronous audio stream handlers. Same contract as `StreamHandler`, with `receive()`, `emit()` and `start_up()` as coroutines that run on the server's event loop, so they must not block it.
     """
 
     @abstractmethod
     async def receive(self, frame: tuple[int, npt.NDArray[np.int16]]) -> None:
+        """
+        Called with each incoming audio frame, as `StreamHandler.receive()` is.
+        """
         pass
 
     @abstractmethod
     async def emit(self) -> AudioEmitType:
+        """
+        Returns the next value of the stream's outputs, as `StreamHandler.emit()` does. It may wait for one, for example with `await wait_for_item(queue)`, but should return None after a short while when nothing is ready.
+        """
         pass
 
     async def start_up(self) -> None:
@@ -268,10 +289,20 @@ class AsyncStreamHandler(StreamHandlerBase, ABC):
 StreamHandlerImpl = StreamHandler | AsyncStreamHandler
 
 
+@document(
+    "receive",
+    "emit",
+    "video_receive",
+    "video_emit",
+    "start_up",
+    "shutdown",
+    "copy",
+    "wait_for_args_sync",
+)
 class AudioVideoStreamHandler(StreamHandler):
     """
-    Synchronous handler for streams that carry audio and video. Adds
-    `video_receive()` and `video_emit()` to the audio methods of `StreamHandler`.
+    Synchronous handler for streams that carry the camera and the microphone together, on a `gr.Video(sources=["webcam"])` among both the inputs and the outputs. Adds `video_receive()` and `video_emit()` to the audio methods of `StreamHandler`. The page must send both audio and video.
+    Guides: create-immersive-demo
     """
 
     @abstractmethod
@@ -285,31 +316,51 @@ class AudioVideoStreamHandler(StreamHandler):
         pass
 
 
+@document(
+    "receive",
+    "emit",
+    "video_receive",
+    "video_emit",
+    "start_up",
+    "shutdown",
+    "copy",
+    "wait_for_args",
+)
 class AsyncAudioVideoStreamHandler(AsyncStreamHandler):
     """
-    Asynchronous handler for streams that carry audio and video. Adds
-    `video_receive()` and `video_emit()` coroutines to the audio methods of
-    `AsyncStreamHandler`.
+    Asynchronous version of `AudioVideoStreamHandler`, with its methods as coroutines.
+    Guides: create-immersive-demo
     """
 
     @abstractmethod
     async def video_receive(self, frame: npt.NDArray[np.uint8]) -> None:
+        """Called with each incoming video frame, as `AudioVideoStreamHandler.video_receive()` is."""
         pass
 
     @abstractmethod
     async def video_emit(self) -> VideoEmitType:
+        """Returns the next value of the stream's outputs, as `AudioVideoStreamHandler.video_emit()` does."""
         pass
 
 
+@document(
+    "video_receive",
+    "video_emit",
+    "start_up",
+    "shutdown",
+    "copy",
+    "wait_for_args_sync",
+)
 class VideoStreamHandler(StreamHandlerBase, ABC):
     """
-    Base class for synchronous handlers of video-only streams that need state or resources for the whole stream, for example a model session that keeps state between frames. `video_receive()` is called with every incoming frame (or, when it is slower than the camera, with the newest one that arrived while it ran) and `video_emit()` is polled for the next outgoing frame; `start_up()` is called once when the stream starts (frames may already arrive while it runs) and `shutdown()` when it ends. Works when the video component is among both the inputs and the outputs, and when it is only among the inputs, where `video_emit()` is still called and returns only the other outputs. For a function called once per frame, pass the function itself.
-
-    Parameters:
-        fps: the frame rate at which frames are sent to the page; when the video component is only among the inputs, how often `video_emit()` is called.
+    Base class for synchronous handlers of video-only streams that need state or resources for the whole stream, for example a model session that keeps state between frames. Pass a subclass as the function of a stream with `transport="webrtc"`. `video_receive()` is called with every incoming frame (or, when it is slower than the camera, with the newest one that arrived while it ran) and `video_emit()` is polled for the next outgoing frame; `start_up()` is called once when the stream starts (frames may already arrive while it runs) and `shutdown()` when it ends. Works when the video component is among both the inputs and the outputs, and when it is only among the inputs, where `video_emit()` is still called and returns only the other outputs. The values of the stream's other inputs are in `latest_args` once the page has sent them. For a function called once per frame, pass the function itself.
     """
 
     def __init__(self, fps: int = 30) -> None:
+        """
+        Parameters:
+            fps: the frame rate at which frames are sent to the page; when the video component is only among the inputs, how often `video_emit()` is called.
+        """
         super().__init__(fps=fps)
 
     @abstractmethod
@@ -329,21 +380,34 @@ class VideoStreamHandler(StreamHandlerBase, ABC):
         pass
 
 
+@document(
+    "video_receive",
+    "video_emit",
+    "start_up",
+    "shutdown",
+    "copy",
+    "wait_for_args",
+)
 class AsyncVideoStreamHandler(StreamHandlerBase, ABC):
     """
-    Asynchronous version of `VideoStreamHandler`, with `video_receive()`,
-    `video_emit()` and `start_up()` as coroutines.
+    Asynchronous version of `VideoStreamHandler`, with `video_receive()`, `video_emit()` and `start_up()` as coroutines that run on the server's event loop, so they must not block it.
     """
 
     def __init__(self, fps: int = 30) -> None:
+        """
+        Parameters:
+            fps: the frame rate at which frames are sent to the page; when the video component is only among the inputs, how often `video_emit()` is called.
+        """
         super().__init__(fps=fps)
 
     @abstractmethod
     async def video_receive(self, frame: npt.NDArray[np.uint8]) -> None:
+        """Called with each incoming video frame, as `VideoStreamHandler.video_receive()` is."""
         pass
 
     @abstractmethod
     async def video_emit(self) -> VideoEmitType:
+        """Returns the next value of the stream's outputs, as `VideoStreamHandler.video_emit()` does."""
         pass
 
     async def start_up(self) -> None:
