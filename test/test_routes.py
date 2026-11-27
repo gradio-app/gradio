@@ -13,7 +13,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from contextlib import asynccontextmanager, closing, contextmanager
+from contextlib import ExitStack, asynccontextmanager, closing, contextmanager
 from pathlib import Path, PurePosixPath
 from threading import Event, Thread
 from types import SimpleNamespace
@@ -2211,13 +2211,16 @@ def test_a_page_whose_heartbeat_drops_twice_keeps_its_session(monkeypatch):
 
     try:
         demo.server_app.state_holder["flaky"]
-        with heartbeat():
-            pass
-        # Back at once, then gone again from 2 s to 5 s: the first drop's
-        # grace period ends (4 s) inside the second gap, the second drop's
-        # (6 s) after the page came back.
-        with heartbeat():
-            time.sleep(2)
+        # The server may see the old connection go only after the page has
+        # reconnected (e.g. after a network switch).
+        old, new = ExitStack(), ExitStack()
+        old.enter_context(heartbeat())
+        new.enter_context(heartbeat())
+        old.close()
+        # Gone again from 2 s to 5 s: the first drop's grace period ends (4 s)
+        # inside this gap, the second drop's (6 s) after the page came back.
+        time.sleep(2)
+        new.close()
         time.sleep(3)
         with heartbeat():
             time.sleep(2.5)

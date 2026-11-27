@@ -316,30 +316,31 @@ export function readable_stream(
 		}
 	};
 
+	let error: unknown;
 	stream(input, init)
 		.then(async (res) => {
 			instance.readyState = instance.OPEN;
-			let error: unknown;
 			try {
 				for await (const chunk of res) {
 					//@ts-ignore
 					instance.onmessage && instance.onmessage(chunk);
 				}
+				instance.readyState = instance.CLOSED;
 			} catch (e) {
 				error = e;
 				instance.onerror && instance.onerror(e as Event);
+				instance.readyState = instance.CLOSED;
 			}
-			instance.readyState = instance.CLOSED;
-			on_close?.(error);
 		})
 		.catch((e) => {
 			if ((e as Error)?.name !== "AbortError") {
 				console.error(e);
 			}
+			error = e;
 			instance.onerror && instance.onerror(e as Event);
 			instance.readyState = instance.CLOSED;
-			on_close?.(e);
-		});
+		})
+		.finally(() => on_close?.(error));
 
 	return instance as EventSource;
 }
