@@ -213,5 +213,6 @@ Run the script, open the app, paste your API key, click the webcam, and start re
 On your own machine, the browser connects to the server directly. On Hugging Face Spaces, the connection often needs a TURN server to relay the media. See [Deploying to Hugging Face Spaces](/guides/object-detection-from-webcam-with-webrtc#deploying-to-hugging-face-spaces) in the WebRTC streaming guide for how to set one up, for example with each visitor's own Hugging Face account: you pass `transport=gr.WebRTCOptions(rtc_configuration=...)` instead of `transport="webrtc"` and add a `gr.LoginButton`.
 
 ### References
-- [Real-time object detection from a webcam with WebRTC](/guides/object-detection-from-webcam-with-webrtc): more on streams with `transport=`, including plain functions, other outputs and handler classes
+- [Real-time object detection from a webcam with WebRTC](/guides/object-detection-from-webcam-with-webrtc): a webcam stream with `transport="webrtc"` and a plain function
+- [`AsyncAudioVideoStreamHandler`](/docs/gradio/audiovideostreamhandler): the methods and settings of the handler classes
 - [Gemini Live API](https://ai.google.dev/gemini-api/docs/live)
