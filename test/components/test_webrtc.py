@@ -6709,6 +6709,33 @@ def test_a_client_calls_a_stream_once_with_a_file(executor, tmp_path):
         demo.close()
 
 
+def test_a_stream_called_once_ends_where_its_generator_closes_it():
+    import numpy as np
+    from gradio_client import Client
+
+    def frames():
+        i = 0
+        while True:
+            yield np.zeros((4, 6, 3), dtype=np.uint8), f"frame {i}"
+            if i == 1:
+                # On a page this ends the stream; the generator never returns
+                yield CloseStream()
+            i += 1
+
+    with gr.Blocks() as demo:
+        screen = gr.Image()
+        note = gr.Textbox()
+        gr.Button().click(frames, None, [screen, note], transport="webrtc")
+
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    try:
+        client = Client(local_url, verbose=False)
+        _, last_note = client.submit(api_name="/frames").result(timeout=10)
+        assert last_note == "frame 1"
+    finally:
+        demo.close()
+
+
 def test_a_server_stream_called_once_with_a_file(tmp_path):
     from pathlib import Path
 

@@ -1241,6 +1241,9 @@ def transport_event(
             last: list[Any] = [skip()] * len(outputs)
             try:
                 async for item in items:
+                    if isinstance(item, CloseStream):
+                        # It ends the stream, as on a page
+                        break
                     out = values_once(item)
                     last = [
                         prev if is_skip(v) else v
