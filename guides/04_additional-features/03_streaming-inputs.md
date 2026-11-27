@@ -4,7 +4,7 @@ Tip: For the lowest latency, pass `transport="webrtc"` to the same `stream` even
 
 In the previous guide, we covered how to stream a sequence of outputs from an event handler. Gradio also allows you to stream images from a user's camera or audio chunks from their microphone **into** your event handler. This can be used to create real-time object detection apps or conversational chat applications with Gradio.
 
-Currently, the `gr.Image` and the `gr.Audio` components support input streaming via the `stream` event.
+Currently, the `gr.Image` and the `gr.Audio` components support input streaming via the `stream` event (and `gr.Video`, with `transport="webrtc"` only).
 Let's create the simplest streaming app possible, which simply returns the webcam stream unmodified.
 
 $code_streaming_simple
