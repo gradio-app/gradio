@@ -106,6 +106,10 @@ CONNECT_FAILED = (
     "The stream could not connect. A VPN or firewall may be blocking it, or the "
     "app may need a TURN server."
 )
+INPUTS_LATE = (
+    "The stream connected, but the values of its other inputs did not arrive "
+    "in time (e.g. a file still uploading)."
+)
 # Seconds an offer waits for its stream to be admitted. The browser learns that
 # its turn has come just before the event's first call admits the stream.
 ADMISSION_WAIT = 5
@@ -402,7 +406,8 @@ class QueueLease:
                         )
                     if stream.errors.failure is None:
                         stream.errors.failure = error_payload(
-                            Error(CONNECT_FAILED), False
+                            Error(INPUTS_LATE if stream.connected else CONNECT_FAILED),
+                            False,
                         )
                     stream.close()
                 elif timed_out:

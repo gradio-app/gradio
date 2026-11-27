@@ -1986,7 +1986,8 @@ class TestStreams:
         messages = await h.messages("one", completed)
         completion = next(m for m in messages if m["msg"] == "process_completed")
         assert completion["success"] is False
-        assert completion["output"]["error"] == webrtc_connection.CONNECT_FAILED
+        # Not blamed on the network: it did connect
+        assert completion["output"]["error"] == webrtc_connection.INPUTS_LATE
         await pc.close()
 
     @pytest.mark.asyncio
