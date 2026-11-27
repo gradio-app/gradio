@@ -416,6 +416,9 @@ class App(FastAPI):
         # Open heartbeat connections per session, so that a page that
         # reconnects (e.g. after a refresh) keeps its session.
         self.heartbeat_sessions: Counter[str] = Counter()
+        # Heartbeat disconnects per session so far, so that only the latest
+        # one decides whether the session closes.
+        self.heartbeat_disconnects: Counter[str] = Counter()
         # Sessions whose `unload` events have run, so that the heartbeat and the
         # queue, which can both end a session, run them only once
         self.unloaded_sessions: utils.LRUCache[str, bool] = utils.LRUCache(10000)
@@ -1734,7 +1737,7 @@ class App(FastAPI):
             """
             heartbeat_rate = utils.get_heartbeat_rate()
 
-            async def close_session():
+            async def close_session(disconnects: int):
                 queue = app.get_blocks()._queue
                 # Give the page time to reconnect, unless the server is stopping.
                 with contextlib.suppress(asyncio.TimeoutError):
@@ -1742,10 +1745,16 @@ class App(FastAPI):
                         app.stop_event.wait(), queue.close_grace_period
                     )
                 # Keep the session if its page reconnected (e.g. after a
-                # refresh), or if an earlier disconnect already closed it.
-                if app.heartbeat_sessions.get(session_hash) != 0:
+                # refresh), or if an earlier disconnect already closed it. A
+                # page that came back and dropped again is left to the check of
+                # its later disconnect.
+                if (
+                    app.heartbeat_sessions.get(session_hash) != 0
+                    or app.heartbeat_disconnects.get(session_hash) != disconnects
+                ):
                     return
                 del app.heartbeat_sessions[session_hash]
+                del app.heartbeat_disconnects[session_hash]
                 # The queue closes sessions that still have jobs running, and
                 # runs their `unload` events then.
                 if queue.pending_event_ids_session.get(session_hash):
@@ -1811,11 +1820,14 @@ class App(FastAPI):
                             raise asyncio.CancelledError()
                     except asyncio.CancelledError:
                         app.heartbeat_sessions[session_hash] -= 1
+                        app.heartbeat_disconnects[session_hash] += 1
                         if not stop_stream_task.done():
                             stop_stream_task.cancel()
                         # The task running this loop has been cancelled
                         # so we close the session in the background
-                        background_tasks.add_task(close_session)
+                        background_tasks.add_task(
+                            close_session, app.heartbeat_disconnects[session_hash]
+                        )
                         return
 
             return StreamingResponse(iterator(), media_type="text/event-stream")

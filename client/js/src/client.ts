@@ -95,6 +95,8 @@ export class Client {
 	stream_reconnect_timer: ReturnType<typeof setTimeout> | null = null;
 	heartbeat_event: EventSource | null = null;
 	heartbeat_controller: AbortController | null = null;
+	heartbeat_attempts = 0;
+	heartbeat_retry_timer: ReturnType<typeof setTimeout> | null = null;
 	// Outside a browser (e.g. Node, or SSR) a client is often connected only to
 	// read its config, so the heartbeat waits for the first submit.
 	heartbeat_wanted =
@@ -159,7 +161,11 @@ export class Client {
 		return fetch(input, { ...init, headers });
 	}
 
-	stream(url: URL, abort_controller?: AbortController): EventSource {
+	stream(
+		url: URL,
+		abort_controller?: AbortController,
+		on_close?: (error?: unknown) => void
+	): EventSource {
 		const headers = new Headers();
 		if (this && this.cookies) {
 			headers.append("Cookie", this.cookies);
@@ -175,18 +181,28 @@ export class Client {
 			headers.append("Authorization", `Bearer ${this.options.token}`);
 		}
 
+		// A stream with its own controller (the heartbeat) is not the client's
+		// main stream, so it leaves abort_controller and stream_instance alone.
+		const own_controller = !!abort_controller;
 		if (!abort_controller) {
 			abort_controller = new AbortController();
 			this.abort_controller = abort_controller;
 		}
 
-		this.stream_instance = readable_stream(url.toString(), {
-			credentials: this.options.credentials ?? "same-origin",
-			headers: headers,
-			signal: abort_controller.signal
-		});
+		const instance = readable_stream(
+			url.toString(),
+			{
+				credentials: this.options.credentials ?? "same-origin",
+				headers: headers,
+				signal: abort_controller.signal
+			},
+			on_close
+		);
+		if (!own_controller) {
+			this.stream_instance = instance;
+		}
 
-		return this.stream_instance;
+		return instance;
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;
@@ -437,7 +453,12 @@ export class Client {
 
 	open_heartbeat(): void {
 		this.heartbeat_wanted = true;
-		if (!this.config?.connect_heartbeat || this.heartbeat_event) {
+		if (
+			!this.config?.connect_heartbeat ||
+			this.heartbeat_event ||
+			this.heartbeat_retry_timer ||
+			this.closed
+		) {
 			return;
 		}
 		const heartbeat_url = new URL(
@@ -450,11 +471,50 @@ export class Client {
 
 		// Its own controller, so that close() still reaches it after other
 		// streams have been opened. The response is not parsed. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
-		this.heartbeat_controller = new AbortController();
-		this.heartbeat_event = this.stream(
-			heartbeat_url,
-			this.heartbeat_controller
+		const controller = new AbortController();
+		const opened_at = Date.now();
+		this.heartbeat_controller = controller;
+		this.heartbeat_event = this.stream(heartbeat_url, controller, (error) =>
+			this.heartbeat_closed(controller, opened_at, error)
 		);
+	}
+
+	// Same backoff as the Python client's heartbeat (#13928).
+	heartbeat_closed(
+		controller: AbortController,
+		opened_at: number,
+		error: unknown
+	): void {
+		if (
+			this.closed ||
+			controller.signal.aborted ||
+			controller !== this.heartbeat_controller
+		) {
+			return;
+		}
+		// A 4xx (e.g. an app without the heartbeat route) won't change on retry.
+		if (
+			error instanceof Response &&
+			error.status >= 400 &&
+			error.status < 500 &&
+			error.status !== 429
+		) {
+			return;
+		}
+		this.heartbeat_event = null;
+		this.heartbeat_controller = null;
+		// Back off on streams that end right away (e.g. cut by a proxy).
+		if (Date.now() - opened_at >= 30_000) {
+			this.heartbeat_attempts = 0;
+		}
+		const delay = Math.min(1000 * 2 ** this.heartbeat_attempts, 60_000);
+		this.heartbeat_attempts += 1;
+		this.heartbeat_retry_timer = setTimeout(() => {
+			this.heartbeat_retry_timer = null;
+			this.open_heartbeat();
+		}, delay);
+		// In Node, let a script that never calls close() exit while it waits.
+		(this.heartbeat_retry_timer as { unref?: () => void }).unref?.();
 	}
 
 	static async connect(
@@ -539,6 +599,10 @@ export class Client {
 		close_stream(this.stream_status, this.abort_controller);
 		this.own_stream_controllers.forEach((controller) => controller.abort());
 		this.own_stream_controllers.clear();
+		if (this.heartbeat_retry_timer) {
+			clearTimeout(this.heartbeat_retry_timer);
+			this.heartbeat_retry_timer = null;
+		}
 		this.heartbeat_controller?.abort();
 		this.heartbeat_controller = null;
 		this.heartbeat_event = null;
