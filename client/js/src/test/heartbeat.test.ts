@@ -5,7 +5,8 @@ import {
 	afterEach,
 	afterAll,
 	test,
-	expect
+	expect,
+	vi
 } from "vitest";
 import { HttpResponse, http } from "msw";
 
@@ -92,5 +93,52 @@ describe("heartbeat", () => {
 		app.close();
 		expect(heartbeat_signal.aborted).toBe(true);
 		expect(app.heartbeat_event).toBeNull();
+	});
+
+	test("reconnects when the server ends the heartbeat", async () => {
+		serve_config(true);
+		const ended = new Set<string>();
+		server.use(
+			http.get(`*/heartbeat/*`, ({ request }) => {
+				heartbeats.push(request.url);
+				const first = !ended.has(request.url);
+				ended.add(request.url);
+				return new HttpResponse(
+					first ? "data: ALIVE\n\n" : new ReadableStream({ start() {} }),
+					{ headers: { "Content-Type": "text/event-stream" } }
+				);
+			})
+		);
+		const app = await Client.connect("hmb/hello_world");
+		app.open_heartbeat();
+		app.stream_status.open = false;
+		await app.open_stream();
+		const queue_stream = app.stream_instance;
+		const own = (): string[] =>
+			heartbeats.filter((url) => url.includes(app.session_hash));
+
+		await vi.waitFor(() => expect(own()).toHaveLength(2), { timeout: 3000 });
+		// The queue stream ignores its messages once it is no longer the
+		// client's stream_instance.
+		expect(app.stream_instance).toBe(queue_stream);
+		app.close();
+	});
+
+	test("does not retry a heartbeat the server rejects", async () => {
+		serve_config(true);
+		server.use(
+			http.get(`*/heartbeat/*`, ({ request }) => {
+				heartbeats.push(request.url);
+				return new HttpResponse(null, { status: 404 });
+			})
+		);
+		const app = await Client.connect("hmb/hello_world");
+		app.open_heartbeat();
+
+		await new Promise((resolve) => setTimeout(resolve, 1500));
+		expect(
+			heartbeats.filter((url) => url.includes(app.session_hash))
+		).toHaveLength(1);
+		app.close();
 	});
 });

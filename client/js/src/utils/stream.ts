@@ -289,7 +289,8 @@ function apply_edit(
 
 export function readable_stream(
 	input: RequestInfo | URL,
-	init: RequestInit = {}
+	init: RequestInit = {},
+	on_close?: (error?: unknown) => void
 ): EventSource {
 	const instance: EventSource & { readyState: number } = {
 		close: () => {
@@ -318,16 +319,18 @@ export function readable_stream(
 	stream(input, init)
 		.then(async (res) => {
 			instance.readyState = instance.OPEN;
+			let error: unknown;
 			try {
 				for await (const chunk of res) {
 					//@ts-ignore
 					instance.onmessage && instance.onmessage(chunk);
 				}
-				instance.readyState = instance.CLOSED;
 			} catch (e) {
+				error = e;
 				instance.onerror && instance.onerror(e as Event);
-				instance.readyState = instance.CLOSED;
 			}
+			instance.readyState = instance.CLOSED;
+			on_close?.(error);
 		})
 		.catch((e) => {
 			if ((e as Error)?.name !== "AbortError") {
@@ -335,6 +338,7 @@ export function readable_stream(
 			}
 			instance.onerror && instance.onerror(e as Event);
 			instance.readyState = instance.CLOSED;
+			on_close?.(e);
 		});
 
 	return instance as EventSource;

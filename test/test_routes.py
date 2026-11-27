@@ -2191,6 +2191,42 @@ def test_a_reloaded_page_keeps_its_session_but_a_closed_one_does_not():
         demo.close()
 
 
+def test_a_page_whose_heartbeat_drops_twice_keeps_its_session(monkeypatch):
+    # The grace period is min(5 s, resume TTL), read when the server starts.
+    monkeypatch.setenv("GRADIO_QUEUE_SESSION_RESUME_TTL", "4")
+    unloads = []
+
+    with gr.Blocks() as demo:
+        demo.unload(lambda: unloads.append(True))
+
+    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    url = f"{local_url.rstrip('/')}{API_PREFIX}/heartbeat/flaky"
+
+    @contextmanager
+    def heartbeat():
+        with httpx2.stream("GET", url, timeout=10) as response:
+            lines = response.iter_lines()
+            next(lines)
+            yield
+
+    try:
+        demo.server_app.state_holder["flaky"]
+        with heartbeat():
+            pass
+        # Back at once, then gone again from 2 s to 5 s: the first drop's
+        # grace period ends (4 s) inside the second gap, the second drop's
+        # (6 s) after the page came back.
+        with heartbeat():
+            time.sleep(2)
+        time.sleep(3)
+        with heartbeat():
+            time.sleep(2.5)
+            assert unloads == []
+            assert not demo.server_app.state_holder.session_data["flaky"].is_closed
+    finally:
+        demo.close()
+
+
 class TestDevMode:
     def test_mount_gradio_app_set_dev_mode_false(self):
         app = FastAPI()
