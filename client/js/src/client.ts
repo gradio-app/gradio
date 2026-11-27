@@ -456,13 +456,10 @@ export class Client {
 		if (
 			!this.config?.connect_heartbeat ||
 			this.heartbeat_event ||
+			this.heartbeat_retry_timer ||
 			this.closed
 		) {
 			return;
-		}
-		if (this.heartbeat_retry_timer) {
-			clearTimeout(this.heartbeat_retry_timer);
-			this.heartbeat_retry_timer = null;
 		}
 		const heartbeat_url = new URL(
 			`${this.config.root}${this.api_prefix}/${HEARTBEAT_URL}/${this.session_hash}`
