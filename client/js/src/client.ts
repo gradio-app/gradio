@@ -513,6 +513,8 @@ export class Client {
 			this.heartbeat_retry_timer = null;
 			this.open_heartbeat();
 		}, delay);
+		// In Node, let a script that never calls close() exit while it waits.
+		(this.heartbeat_retry_timer as { unref?: () => void }).unref?.();
 	}
 
 	static async connect(

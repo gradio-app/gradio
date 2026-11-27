@@ -117,6 +117,11 @@ describe("heartbeat", () => {
 		const own = (): string[] =>
 			heartbeats.filter((url) => url.includes(app.session_hash));
 
+		await vi.waitFor(() => expect(app.heartbeat_retry_timer).not.toBeNull());
+		if (!IN_BROWSER) {
+			// A pending retry alone does not keep a Node process alive.
+			expect((app.heartbeat_retry_timer as any).hasRef()).toBe(false);
+		}
 		await vi.waitFor(() => expect(own()).toHaveLength(2), { timeout: 3000 });
 		// The queue stream ignores its messages once it is no longer the
 		// client's stream_instance.
