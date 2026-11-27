@@ -2932,9 +2932,27 @@ def mount_gradio_app(
         blocks.auth = auth
     blocks.auth_message = auth_message
     blocks.favicon_path = favicon_path
-    blocks.allowed_paths = allowed_paths or []
-    blocks.blocked_paths = blocked_paths or []
+    # Match launch(): fall back to the GRADIO_ALLOWED_PATHS / GRADIO_BLOCKED_PATHS
+    # env vars so a blocklist set in the environment is not silently dropped.
+    if allowed_paths:
+        blocks.allowed_paths = allowed_paths
+    else:
+        allowed_paths_env = os.environ.get("GRADIO_ALLOWED_PATHS", "")
+        blocks.allowed_paths = [
+            item.strip() for item in allowed_paths_env.split(",") if item.strip()
+        ]
+    if blocked_paths:
+        blocks.blocked_paths = blocked_paths
+    else:
+        blocked_paths_env = os.environ.get("GRADIO_BLOCKED_PATHS", "")
+        blocks.blocked_paths = [
+            item.strip() for item in blocked_paths_env.split(",") if item.strip()
+        ]
     blocks.show_error = show_error
+    # processing_utils._check_allowed() skips every file-path check until
+    # has_launched is True. launch() sets it, so a mounted app must too, or
+    # any local file can be passed as a file input and read back.
+    blocks.has_launched = True
 
     if not isinstance(blocks.allowed_paths, list):
         raise ValueError("`allowed_paths` must be a list of directories.")
