@@ -309,9 +309,10 @@ class VideoCallback(VideoStreamTrack):
         self.accept_input_in_background()
         try:
             frame = self._newest(await self.frame_queue.get())
-            # The handler runs on at most `fps` frames a second
+            # The handler runs on at most `fps` frames a second, unless it
+            # takes every frame: the ones held back would only pile up
             wait = self._next_slot - time.monotonic()
-            if frame is not _STOPPED and wait > 0:
+            if frame is not _STOPPED and wait > 0 and self.skip_frames:
                 await asyncio.sleep(wait)
                 frame = self._newest(frame)
             if frame is _STOPPED:

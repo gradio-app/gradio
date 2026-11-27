@@ -4125,6 +4125,18 @@ class TestVideoTracks:
         assert [pts for _, pts in returned] == sorted(pts for _, pts in returned)
 
     @pytest.mark.asyncio
+    async def test_a_function_that_takes_every_frame_is_not_held_to_fps(self):
+        # A camera faster than fps would otherwise fill the queue for good
+        cb = self.callback(flip, fps=5, skip_frames=False)
+        for pts in range(5):
+            cb.frame_queue.put_nowait(video_frame(pts))
+        start = time.monotonic()
+        for _ in range(5):
+            await cb.recv()
+        assert time.monotonic() - start < 0.5
+        assert cb.frame_queue.empty()
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("mirror", [True, False])
     async def test_mirrored_webcam_gives_the_handler_mirrored_frames(self, mirror):
         received = []
