@@ -7,8 +7,8 @@
 </script>
 
 <script lang="ts">
-	import { tick } from "svelte";
-	import { Gradio } from "@gradio/utils";
+	import { onDestroy, tick } from "svelte";
+	import { Gradio, QueueDetail } from "@gradio/utils";
 	import StaticImage from "./shared/ImagePreview.svelte";
 	import ImageUploader from "./shared/ImageUploader.svelte";
 	import { Block, Empty, UploadText } from "@gradio/atoms";
@@ -68,9 +68,20 @@
 	});
 
 	let status = $derived(gradio?.shared?.loading_status.stream_state);
+
+	// The place in line of a WebRTC stream that waits for its turn
+	const queue = new QueueDetail();
+	$effect(() => queue.update(gradio?.shared?.loading_status));
+	onDestroy(() => queue.destroy());
+
+	// An output shows the media a WebRTC stream sends it in the preview, even
+	// when it is interactive (e.g. also the input of another event)
+	const shows_live = $derived(
+		!!(gradio.props as any).live_stream && !gradio.props.stream_transport
+	);
 </script>
 
-{#if !gradio.shared.interactive}
+{#if !gradio.shared.interactive || shows_live}
 	<Block
 		visible={gradio.shared.visible}
 		variant={"solid"}
@@ -102,6 +113,7 @@
 			}}
 			{fullscreen}
 			{value}
+			live_stream={(gradio.props as any).live_stream ?? null}
 			alt_text={gradio.props.alt_text}
 			label={gradio.shared.label}
 			show_label={gradio.shared.show_label}
@@ -162,6 +174,7 @@
 				stream_data = detail;
 				gradio.dispatch("stream", detail);
 			}}
+			onlivestream={(detail) => gradio.dispatch("stream", detail)}
 			ondrag={(detail) => (dragging = detail)}
 			onupload={() => {
 				gradio.dispatch("upload");
@@ -183,6 +196,8 @@
 			pending={gradio.shared.loading_status?.status === "pending" ||
 				gradio.shared.loading_status?.status === "streaming"}
 			streaming={gradio.props.streaming}
+			stream_transport={gradio.props.stream_transport ?? null}
+			live_stream={(gradio.props as any).live_stream ?? null}
 			webcam_options={gradio.props.webcam_options}
 			stream_every={gradio.props.stream_every}
 			time_limit={gradio.shared.loading_status?.time_limit}
@@ -191,6 +206,7 @@
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			stream_handler={gradio.shared.client?.stream}
 			stream_state={status}
+			queue_detail={queue.text}
 		>
 			{#if active_source === "upload" || !active_source}
 				<UploadText

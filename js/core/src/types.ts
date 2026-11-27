@@ -1,5 +1,6 @@
 import type { Component } from "svelte";
 import type { SharedProps } from "@gradio/utils";
+import type { StreamTransport } from "@gradio/client";
 
 export type ServerFunctions = Record<string, (...args: any[]) => Promise<any>>;
 
@@ -95,6 +96,7 @@ export interface Dependency {
 	like_user_message: boolean; // dno, this shouldnt be here surely
 	event_specific_args: ("time_limit" | "stream_every" | "like_user_message")[]; // `click(fn, some_arg=val)`
 	component_prop_inputs: number[]; // inputs that request all component props
+	transport?: StreamTransport | null; // set by an event with transport=
 }
 
 interface TypeDescription {

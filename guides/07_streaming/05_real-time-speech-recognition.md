@@ -57,7 +57,7 @@ To make this a *streaming* demo, we need to make these changes:
 2. Set `live=True` in the `Interface`
 3. Add a `state` to the interface to store the recorded audio of a user
 
-Tip: You can also set `time_limit` and `stream_every` parameters in the interface. The `time_limit` caps the amount of time each user's stream can take. The default is 30 seconds so users won't be able to stream audio for more than 30 seconds. The `stream_every` parameter controls how frequently data is sent to your function. By default it is 0.5 seconds.
+Tip: You can also set `time_limit` and `stream_every` parameters in the interface. The `time_limit` is how long each user's stream keeps its turn while others are waiting. The default is 30 seconds, so a user's stream gives way to the next user in line after 30 seconds. The `stream_every` parameter controls how frequently data is sent to your function. By default it is 0.5 seconds.
 
 Take a look below.
 

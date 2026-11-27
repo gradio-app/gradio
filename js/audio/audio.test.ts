@@ -809,6 +809,55 @@ describe("Events: streaming microphone recording", () => {
 		expect(start_recording).toHaveBeenCalledTimes(2);
 	});
 
+	test("unmounting during a transport stream ends the stream", async () => {
+		const { getByRole, listen, unmount } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true,
+			stream_transport: "webrtc"
+		} as any);
+		const stream = listen("stream");
+		const close_stream = listen("close_stream");
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
+		unmount();
+
+		expect(close_stream).toHaveBeenCalledTimes(1);
+	});
+
+	test("another event's status on the component does not end a transport stream", async () => {
+		const { getByRole, set_data } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true,
+			stream_transport: "webrtc"
+		} as any);
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await waitFor(() => expect(streams).toHaveLength(1));
+		await set_data({
+			loading_status: { ...loading_status, stream_state: "open" }
+		});
+		// e.g. a button whose outputs include this component
+		await set_data({
+			loading_status: {
+				...loading_status,
+				status: "pending",
+				stream_state: null
+			}
+		});
+
+		expect(getByRole("button", { name: "audio.stop" })).toBeVisible();
+		expect(is_live(streams[0])).toBe(true);
+
+		await set_data({
+			loading_status: { ...loading_status, stream_state: "closed" }
+		});
+		expect(getByRole("button", { name: "audio.record" })).toBeVisible();
+		expect(is_live(streams[0])).toBe(false);
+	});
+
 	test("stopping while waiting for the stream also releases the microphone", async () => {
 		const { getByRole } = await render(Audio, {
 			...default_props,
@@ -820,8 +869,35 @@ describe("Events: streaming microphone recording", () => {
 		await fireEvent.click(getByRole("button", { name: "audio.record" }));
 		await waitFor(() => expect(streams).toHaveLength(1));
 
-		await fireEvent.click(getByRole("button", { name: "audio.waiting" }));
+		await fireEvent.click(getByRole("button", { name: "cancel waiting" }));
 		expect(stop_mic).toHaveBeenCalledTimes(1);
+	});
+
+	test("Record, Stop, Record while the microphone opens starts one transport stream", async () => {
+		// The permission prompt is still open
+		let grant: (stream: MediaStream) => void = () => {};
+		get_user_media.mockImplementation(
+			() =>
+				new Promise<MediaStream>((resolve) => {
+					grant = resolve;
+				})
+		);
+		const { getByRole, listen } = await render(Audio, {
+			...default_props,
+			sources: ["microphone"],
+			streaming: true,
+			stream_transport: "webrtc"
+		} as any);
+		const stream = listen("stream");
+
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		await fireEvent.click(getByRole("button", { name: "audio.stop" }));
+		await fireEvent.click(getByRole("button", { name: "audio.record" }));
+		grant(audio_context.createMediaStreamDestination().stream);
+
+		await waitFor(() => expect(stream).toHaveBeenCalledTimes(1));
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		expect(stream).toHaveBeenCalledTimes(1);
 	});
 
 	test("a chunk still uploading when recording stops is not streamed", async () => {

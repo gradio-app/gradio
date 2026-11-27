@@ -55,6 +55,7 @@ export type {
 	LogMessage,
 	Payload,
 	Config,
+	StreamTransport,
 	ValidationError
 } from "./types";
 

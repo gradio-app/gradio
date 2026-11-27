@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Awaitable, Callable, Sequence
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import fastapi
 from gradio_client.documentation import document
@@ -15,6 +15,10 @@ from gradio.i18n import I18n
 from gradio.routes import App
 from gradio.themes import ThemeClass as Theme
 
+if TYPE_CHECKING:
+    from gradio.streaming.handlers import StreamHandlerBase
+    from gradio.webrtc.options import WebRTCOptions
+
 
 class _MCPNamespace:
     """Namespace for MCP decorators: server.mcp.tool(), server.mcp.resource(), server.mcp.prompt()."""
@@ -22,6 +26,22 @@ class _MCPNamespace:
     tool = staticmethod(mcp.tool)
     resource = staticmethod(mcp.resource)
     prompt = staticmethod(mcp.prompt)
+
+
+def _takes_oauth(fn: Any) -> bool:
+    """Whether `fn` (a function, a WebRTC handler class or instance, or a
+    VideoOptions) takes a gr.OAuthProfile or gr.OAuthToken, as `special_args`
+    fills them in."""
+    from gradio.helpers import takes_oauth
+    from gradio.streaming import ReplyOnPause
+
+    if isinstance(fn, ReplyOnPause):
+        # Its start_up fills them in for the function it wraps
+        fn = fn.fn
+    fn = getattr(fn, "callable", fn)
+    # A handler class gets them in its start_up method
+    fn = getattr(fn, "start_up", fn)
+    return callable(fn) and takes_oauth(fn)
 
 
 def import_gateway(path: str) -> tuple[fastapi.APIRouter, list]:
@@ -208,7 +228,7 @@ class Server(App):
 
     def queue(
         self,
-        fn: Callable | None = None,
+        fn: Callable | StreamHandlerBase | None = None,
         *,
         name: str | None = None,
         description: str | None = None,
@@ -219,13 +239,43 @@ class Server(App):
         max_batch_size: int = 4,
         api_visibility: Literal["public", "private", "undocumented"] = "public",
         time_limit: int | None = None,
-        stream_every: float = 0.5,
+        stream_every: float | None = None,
+        transport: Literal["webrtc"] | WebRTCOptions | None = None,
+        on_time_limit: Literal["rejoin", "stop"] = "rejoin",
     ):
         """Decorator to register a function as a Gradio API endpoint.
 
         Goes through Gradio's queue with concurrency control and SSE streaming.
         `api()` is the same decorator.
+
+        With `transport="webrtc"` (or a `gr.WebRTCOptions`), the endpoint streams
+        media over WebRTC: the `gr.VideoFrame` or `gr.AudioChunk` type hint marks
+        the media among the function's parameters (sent by the client) and its
+        return values (sent back), and the function is called with each frame
+        (or chunk of audio). In the browser, call it with `client.submit()` of
+        `@gradio/client`, passing a MediaStream for the media parameter. Each
+        stream waits its turn in the queue like any call. `on_time_limit` is
+        what happens when it reaches `time_limit`: with "rejoin" (default), it
+        waits its turn again if others wait, or goes on if nobody does; with
+        "stop", it ends. `stream_every` is the shortest interval between calls
+        (unset: every frame, up to 30 a second, for a `gr.VideoFrame` function;
+        0.5 s of audio per call for a `gr.AudioChunk` one).
+        Instead of a function, such an endpoint can take a handler class from
+        `gradio.streaming` or an instance of one, such as `ReplyOnPause(fn)`.
         """
+        if transport is not None and (batch or not queue):
+            raise ValueError(
+                "An endpoint with transport= runs in the queue and does not batch."
+            )
+        if transport is None and on_time_limit != "rejoin":
+            raise ValueError(
+                "on_time_limit= only applies to an endpoint with transport=."
+            )
+        if transport is not None and api_visibility != "public":
+            raise ValueError(
+                "An endpoint with transport= is called by name from the browser, "
+                "so it does not support api_visibility."
+            )
         kwargs = {
             "api_name": name,
             "api_description": description,
@@ -237,15 +287,19 @@ class Server(App):
             "api_visibility": api_visibility,
             "time_limit": time_limit,
             "stream_every": stream_every,
+            "transport": transport,
+            "on_time_limit": on_time_limit,
         }
-        if fn is not None:
-            self._deferred_apis.append((fn, kwargs))
-            return fn
 
         def wrapper(func):
+            from gradio.utils import check_transport
+
+            check_transport(func, transport)
             self._deferred_apis.append((func, kwargs))
             return func
 
+        if fn is not None:
+            return wrapper(fn)
         return wrapper
 
     api = queue
@@ -331,7 +385,32 @@ class Server(App):
 
         with Blocks(mode="server") as blocks:
             for fn, api_kwargs in self._deferred_apis:
-                gr_api(fn=fn, **api_kwargs)
+                kwargs = dict(api_kwargs)
+                transport = kwargs.pop("transport", None)
+                on_time_limit = kwargs.pop("on_time_limit", "rejoin")
+                if transport is None:
+                    if kwargs["stream_every"] is None:
+                        kwargs["stream_every"] = 0.5
+                    gr_api(fn=fn, **kwargs)
+                    continue
+                from gradio.webrtc import require_webrtc
+
+                require_webrtc()
+                from gradio.webrtc.transport import api_stream
+
+                api_stream(
+                    fn,
+                    transport=transport,
+                    api_name=kwargs["api_name"],
+                    api_description=kwargs["api_description"],
+                    time_limit=kwargs["time_limit"],
+                    on_time_limit=on_time_limit,
+                    stream_every=kwargs["stream_every"],
+                    concurrency_limit=kwargs["concurrency_limit"],
+                    concurrency_id=kwargs["concurrency_id"],
+                )
+        if any(map(_takes_oauth, self._oauth_candidates())):
+            blocks._expects_oauth = True  # type: ignore[attr-defined]
 
         os.environ["GRADIO_SERVER_MODE_ENABLED"] = "1"
 
@@ -388,6 +467,24 @@ class Server(App):
             executor=executor,
             replicas=replicas,
         )
+
+    def _oauth_candidates(self) -> list[Any]:
+        """The functions of `api(transport=...)` endpoints (and their TURN
+        configuration functions), whose OAuth hints add the login routes: a page
+        streams to them with the visitor's session. A plain `api()` hint does
+        not: its callers pass their own token, so such an app must be able to
+        start without `gradio[oauth]`, `hf_oauth`, or an HF login."""
+        candidates: list[Any] = []
+        for fn, api_kwargs in self._deferred_apis:
+            transport = api_kwargs.get("transport")
+            if transport is None:
+                continue
+            from gradio.webrtc.options import WebRTCOptions
+
+            candidates.append(fn)
+            if isinstance(transport, WebRTCOptions):
+                candidates.append(transport.rtc_configuration)
+        return candidates
 
     def _check_static_mounts(self) -> None:
         """Lets `app.mount("/", StaticFiles(...))` serve the app's frontend

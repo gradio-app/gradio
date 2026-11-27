@@ -6,7 +6,8 @@ export async function post_data(
 	this: Client,
 	url: string,
 	body: unknown,
-	additional_headers?: any
+	additional_headers?: any,
+	keepalive = false
 ): Promise<[PostResponse, number]> {
 	const headers: {
 		Authorization?: string;
@@ -20,7 +21,8 @@ export async function post_data(
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: { ...headers, ...additional_headers },
-			credentials: this.options.credentials ?? "same-origin"
+			credentials: this.options.credentials ?? "same-origin",
+			keepalive
 		});
 	} catch (e) {
 		return [{ error: BROKEN_CONNECTION_MSG }, 500];

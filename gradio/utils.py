@@ -33,6 +33,7 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import (
+    Awaitable,
     Callable,
     Hashable,
     Iterator,
@@ -949,6 +950,127 @@ async def async_iteration(iterator):
     return await anext(iterator)
 
 
+def is_generator_function(fn: Any) -> bool:
+    return inspect.isgeneratorfunction(fn) or inspect.isasyncgenfunction(fn)
+
+
+def check_stream_generator(fn: Callable) -> None:
+    """A generator function given to `.stream()` gets the inputs' values with
+    `send()`, so it is called with the special parameters only (gr.Request and
+    the like)."""
+    name = getattr(fn, "__name__", "The function")
+    if hasattr(fn, "cache"):
+        raise ValueError(
+            f"{name}() is a generator that the stream sends values to, so its "
+            "outputs depend on what it was sent before and gr.cache cannot "
+            "cache them."
+        )
+    takes = [p.name for p in get_positional_input_parameters(fn)]
+    # *args would take them as well, and fail on the first value
+    takes += [
+        f"*{p.name}"
+        for p in inspect.signature(fn).parameters.values()
+        if p.kind is p.VAR_POSITIONAL
+    ]
+    if takes:
+        raise ValueError(
+            f"{name}() is a generator, so the stream sends it the inputs' values "
+            "with send() (`value = yield output`) instead of passing them as "
+            f"arguments, but it takes {', '.join(takes)}. Remove those "
+            "parameters, or make it a plain function that returns its outputs."
+        )
+
+
+class StreamGenerator:
+    """
+    The generator of one stream whose function is a generator: each value the
+    stream sends goes in with `send()`, and what the generator yields next is
+    the output for it. The generator is created and started on the first value,
+    so that a `@spaces.GPU` one gets its GPU when the stream starts, and what
+    it yields first is dropped: nothing has been sent yet that it answers.
+
+    Steps never overlap, and closing waits for a running step, since a
+    generator cannot be closed while it runs. A sync generator runs in a worker
+    thread (`run_in_thread`), an async one on the loop. `step()` returns
+    `ENDED` once the generator has returned or the stream has closed it.
+    """
+
+    ENDED: Any = object()
+
+    def __init__(
+        self,
+        create: Callable[[], Any],
+        is_async: bool,
+        run_in_thread: Callable[..., Awaitable[Any]] | None = None,
+    ) -> None:
+        self.create = create
+        self.is_async = is_async
+        self.run_in_thread = run_in_thread or anyio.to_thread.run_sync
+        self.generator: Any = None
+        self.done = False
+        # What it yielded for the last value sent, which its stream's
+        # completion shows again once it returns (see Blocks)
+        self.last: Any = None
+        # A sync generator's steps run in threads, an async one's on the loop
+        self.thread_lock = threading.Lock()
+        self.loop_lock: asyncio.Lock | None = None
+
+    def step_sync(self, value: Any) -> Any:
+        """One step of a sync generator, in the calling thread."""
+        with self.thread_lock:
+            if self.done:
+                return self.ENDED
+            try:
+                if self.generator is None:
+                    self.generator = self.create()
+                    next(self.generator)
+                return self.generator.send(value)
+            except StopIteration:
+                self.done = True
+                return self.ENDED
+            except BaseException:
+                self.done = True
+                raise
+
+    async def step(self, value: Any) -> Any:
+        if not self.is_async:
+            return await self.run_in_thread(self.step_sync, value)
+        if self.loop_lock is None:
+            self.loop_lock = asyncio.Lock()
+        async with self.loop_lock:
+            if self.done:
+                return self.ENDED
+            try:
+                if self.generator is None:
+                    self.generator = self.create()
+                    await anext(self.generator)
+                return await self.generator.asend(value)
+            except StopAsyncIteration:
+                self.done = True
+                return self.ENDED
+            except BaseException:
+                self.done = True
+                raise
+
+    def close_sync(self) -> None:
+        """Closes a sync generator, after the step that is running, if any."""
+        with self.thread_lock:
+            self.done = True
+            if self.generator is not None:
+                self.generator.close()
+
+    async def aclose(self) -> None:
+        if not self.is_async:
+            await self.run_in_thread(self.close_sync)
+            return
+        if self.loop_lock is None:
+            self.loop_lock = asyncio.Lock()
+        async with self.loop_lock:
+            self.done = True
+            if self.generator is not None:
+                await self.generator.aclose()
+
+
 @contextmanager
 def set_directory(path: Path | str):
     """Context manager that sets the working directory to the given path."""
@@ -1079,13 +1201,20 @@ def function_wrapper(
         async def asyncgen_wrapper(*args, **kwargs):
             with context_factory():
                 iterator = f(*args, **kwargs)
-            while True:
-                try:
-                    with context_factory():
-                        response = await iterator.__anext__()
-                except StopAsyncIteration:
-                    break
-                yield response
+            # What the caller sends goes on to `f`'s generator (a .stream()
+            # generator gets its values this way); next() sends None
+            sent = None
+            try:
+                while True:
+                    try:
+                        with context_factory():
+                            response = await iterator.asend(sent)
+                    except StopAsyncIteration:
+                        break
+                    sent = yield response
+            finally:
+                with context_factory():
+                    await iterator.aclose()
 
         return asyncgen_wrapper
 
@@ -1104,13 +1233,20 @@ def function_wrapper(
         def gen_wrapper(*args, **kwargs):
             with context_factory():
                 iterator = f(*args, **kwargs)
-            while True:
-                try:
-                    with context_factory():
-                        response = next(iterator)
-                except StopIteration:
-                    break
-                yield response
+            # What the caller sends goes on to `f`'s generator (a .stream()
+            # generator gets its values this way); next() sends None
+            sent = None
+            try:
+                while True:
+                    try:
+                        with context_factory():
+                            response = iterator.send(sent)
+                    except StopIteration:
+                        break
+                    sent = yield response
+            finally:
+                with context_factory():
+                    iterator.close()
 
         return gen_wrapper
 
@@ -1715,6 +1851,21 @@ def get_function_params(func: Callable) -> list[tuple[str, bool, Any, Any]]:
                 (name, True, parameter.default, type_hints.get(name, None))
             )
     return params_info
+
+
+def check_transport(fn: Any, transport: Any) -> None:
+    """Raises for a handler class from `gradio.streaming` without `transport=`:
+    it needs a transport that runs it for the whole stream. A handler exists
+    only once its module is imported, so this never imports it (nor numpy)."""
+    handlers = sys.modules.get("gradio.streaming.handlers")
+    if transport is None and handlers is not None and handlers.is_handler(fn):
+        name = getattr(fn, "__name__", type(fn).__name__)
+        raise ValueError(
+            f"{name} is a stream handler class, which runs only on a stream "
+            'with transport="webrtc": pass it to an event listener such as '
+            '.stream(), or to gr.Server.api(), with transport="webrtc", or '
+            "pass a function instead."
+        )
 
 
 def get_return_types(func: Callable) -> list:

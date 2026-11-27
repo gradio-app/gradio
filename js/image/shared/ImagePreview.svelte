@@ -20,6 +20,7 @@
 
 	let {
 		value,
+		live_stream = null,
 		alt_text = null,
 		label = undefined,
 		show_label,
@@ -37,6 +38,7 @@
 		onload
 	}: {
 		value: null | FileData;
+		live_stream?: MediaStream | null;
 		alt_text?: string | null;
 		label?: string;
 		show_label: boolean;
@@ -62,6 +64,21 @@
 	};
 
 	let image_container: HTMLElement;
+
+	// The live media of a WebRTC stream
+	const live = $derived(live_stream);
+	function play_live(node: HTMLVideoElement, stream: MediaStream) {
+		node.srcObject = stream;
+		node.play().catch(() => {});
+		return {
+			update(next: MediaStream) {
+				if (node.srcObject !== next) {
+					node.srcObject = next;
+					node.play().catch(() => {});
+				}
+			}
+		};
+	}
 </script>
 
 <BlockLabel
@@ -69,7 +86,17 @@
 	Icon={ImageIcon}
 	label={!show_label ? "" : label || i18n("image.image")}
 />
-{#if value == null || !value?.url}
+{#if live}
+	<!-- svelte-ignore a11y-media-has-caption -->
+	<video
+		class="live"
+		data-testid="live-video"
+		autoplay
+		muted
+		playsinline
+		use:play_live={live}
+	/>
+{:else if value == null || !value?.url}
 	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="image-container" bind:this={image_container}>
@@ -120,6 +147,12 @@
 {/if}
 
 <style>
+	.live {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+	}
+
 	.image-container {
 		height: 100%;
 		position: relative;

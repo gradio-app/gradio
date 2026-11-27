@@ -10,6 +10,7 @@ import urllib.parse
 
 from gradio_client.documentation import document_cls, generate_documentation
 import gradio
+import gradio.streaming  # not loaded by `import gradio`; registers its documented names
 from ..guides import guides, guide_names
 
 DIR = os.path.dirname(__file__)
@@ -155,7 +156,10 @@ def organize_docs(d):
     }
     for mode in d:
         for c in d[mode]:
-            c["parent"] = "gradio"
+            # The names of gradio.streaming are not on the gradio namespace
+            module = getattr(c["class"], "__module__", "") or ""
+            prefix = "gradio.streaming" if module.startswith("gradio.streaming") else "gradio"
+            c["parent"] = prefix
             c["class"] = None
             if "returns" in c:
                 c["returns"]["annotation"] = None
@@ -165,7 +169,7 @@ def organize_docs(d):
                     p["default"] = str(p["default"])
             for f in c["fns"]:
                 f["fn"] = None
-                f["parent"] = "gradio." + c["name"]
+                f["parent"] = prefix + "." + c["name"]
                 for p in f.get("parameters", []):
                     p["annotation"] = str(p["annotation"])
                     if "default" in p:
@@ -241,12 +245,13 @@ def organize_docs(d):
                     readme_content = f.read()
 
                 try:
-                    latest_npm = requests.get(f"https://registry.npmjs.org/@gradio/{js_component}/latest").json()["version"]
+                    latest_npm = requests.get(f"https://registry.npmjs.org/@gradio/{js_component}/latest", timeout=30).json()["version"]
                     latest_npm = f" [v{latest_npm}](https://www.npmjs.com/package/@gradio/{js_component})"
                     readme_content = readme_content.split("\n")
                     readme_content = "\n".join([readme_content[0], latest_npm, *readme_content[1:]])
-                except TypeError or KeyError: 
-                    # KeyError because gradio 5 docs still looking for deprecated components
+                except (requests.RequestException, ValueError, TypeError, KeyError):
+                    # KeyError because gradio 5 docs still looking for deprecated components;
+                    # RequestException/ValueError so an npm outage or non-JSON reply doesn't fail the build
                     pass
 
                 js[js_component] = readme_content

@@ -1,0 +1,62 @@
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    // Code blocks render with a copy button
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("closestream");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+gradio.streaming.CloseStream(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+### Example Usage
+```python
+import gradio as gr
+from gradio.streaming import CloseStream
+
+def flip(frame):
+    brightness = float(frame.mean())
+    if brightness < 10:
+        return CloseStream("It is too dark, stopping the stream.")
+    return frame[::-1], brightness
+
+with gr.Blocks() as demo:
+    webcam = gr.Image(sources=["webcam"], streaming=True)
+    brightness = gr.Number(label="Brightness")
+    webcam.stream(
+        flip, inputs=[webcam], outputs=[webcam, brightness], transport="webrtc"
+    )
+
+demo.launch()
+```
+
+{#if obj.parameters && obj.parameters.length > 0}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} anchor_links={obj.name}/>
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+{#if obj.guides && obj.guides.length > 0}
+<!--- Guides -->
+<!--- the guide section below is still necessary to scrape the guides on the side navigation -->
+<GuidesSection guides={obj.guides}/>
+{/if}

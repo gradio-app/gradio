@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import type { I18nFormatter } from "@gradio/utils";
-	import { Spinner } from "@gradio/icons";
+	import { Clear, Spinner } from "@gradio/icons";
 	import WaveSurfer from "wavesurfer.js";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import type { WaveformOptions, MicrophoneOptions } from "../shared/types";
@@ -16,7 +16,8 @@
 		waveform_settings,
 		waveform_options = { show_recording_waveform: true },
 		microphone_options = {},
-		waiting = false
+		waiting = false,
+		queue_detail = null
 	}: {
 		recording?: boolean;
 		paused_recording?: boolean;
@@ -27,6 +28,7 @@
 		waveform_options?: WaveformOptions;
 		microphone_options?: MicrophoneOptions;
 		waiting?: boolean;
+		queue_detail?: string | null;
 	} = $props();
 
 	let micWaveform: WaveSurfer;
@@ -45,9 +47,13 @@
 		};
 	});
 
+	// Whether the waveform's microphone is on (started, not stopped)
+	let mic_on = false;
+
 	const start_mic = (): void => {
 		const plugin = waveformRecord;
 		if (!plugin) return;
+		mic_on = true;
 		const request = ++mic_request;
 		plugin.startMic(microphone_options.constraints ?? undefined).then(
 			(stream) => {
@@ -63,9 +69,16 @@
 	};
 
 	const stop_mic = (): void => {
+		mic_on = false;
 		mic_request++;
 		waveformRecord?.stopMic();
 	};
+
+	// Recording can also end from outside (a stream that ended on the
+	// server); the waveform's own microphone then closes too
+	$effect(() => {
+		if (!recording && mic_on) stop_mic();
+	});
 
 	const create_mic_waveform = (): void => {
 		if (micWaveform !== undefined) micWaveform.destroy();
@@ -103,18 +116,31 @@
 				{paused_recording ? i18n("audio.pause") : i18n("audio.stop")}
 			</button>
 		{:else if recording && waiting}
-			<button
-				class="spinner-button"
-				onclick={() => {
-					stop_mic();
-					stop();
-				}}
-			>
-				<div class="icon">
-					<Spinner />
+			<div class="waiting">
+				<div class="queue-status" role="status">
+					<div class="icon">
+						<Spinner />
+					</div>
+					<span data-testid="waiting-label"
+						>{i18n("audio.waiting")}{queue_detail
+							? ` · ${queue_detail}`
+							: ""}</span
+					>
 				</div>
-				{i18n("audio.waiting")}
-			</button>
+				<button
+					class="cancel-button"
+					aria-label="cancel waiting"
+					onclick={() => {
+						stop_mic();
+						stop();
+					}}
+				>
+					<div class="icon">
+						<Clear />
+					</div>
+					{i18n("chatbot.cancel")}
+				</button>
+			</div>
 		{:else}
 			<button
 				class="record-button"
@@ -196,16 +222,31 @@
 		display: flex;
 	}
 
-	.spinner-button {
+	.waiting {
 		height: var(--size-8);
-		width: var(--size-24);
+		display: flex;
+		align-items: center;
+		gap: var(--size-3);
+		padding: 0 var(--size-3);
+		margin: 0 var(--spacing-xl);
+		white-space: nowrap;
 		background-color: var(--block-background-fill);
 		border-radius: var(--radius-3xl);
-		align-items: center;
 		border: 1px solid var(--primary-600);
-		margin: 0 var(--spacing-xl);
+	}
+
+	.queue-status,
+	.cancel-button {
 		display: flex;
-		justify-content: space-evenly;
+		align-items: center;
+		gap: var(--size-2);
+	}
+
+	.cancel-button {
+		height: 100%;
+		background: none;
+		border: none;
+		padding: 0;
 	}
 
 	.record-button::before {

@@ -215,9 +215,11 @@ def generate_event_listeners(organized):
     concurrency_id: str | None = None,
     api_visibility: Literal["public", "private", "undocumented"] = "public",
     time_limit: int | None = None,
-    stream_every: float = 0.5,
+    on_time_limit: Literal["rejoin", "stop"] = "rejoin",
+    stream_every: float | None = None,
     key: int | str | tuple[int | str, ...] | None = None,
     validator: Callable | None = None,
+    transport: Literal["webrtc"] | WebRTCOptions | None = None,
 ) -> Dependency""")
     lines.append("```\n")
 

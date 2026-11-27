@@ -23,7 +23,7 @@ export interface ILoadingStatus {
 	}[];
 	validation_error?: string | null;
 	type: "input" | "output" | "skip";
-	stream_state: "open" | "closed" | "waiting" | null;
+	stream_state: "open" | "closed" | "waiting" | "ended" | null;
 	used_cache?: "full" | "partial" | null;
 	cache_duration?: number | null;
 	avg_time?: number | null;
@@ -44,7 +44,7 @@ export interface LoadingStatusArgs {
 	show_progress?: ILoadingStatus["show_progress"];
 	time_limit?: ILoadingStatus["time_limit"];
 	type?: "input" | "output" | "skip";
-	stream_state: "open" | "closed" | "waiting" | null;
+	stream_state: "open" | "closed" | "waiting" | "ended" | null;
 	validation_error?: string;
 	show_validation_error?: boolean;
 	used_cache?: "full" | "partial" | null;

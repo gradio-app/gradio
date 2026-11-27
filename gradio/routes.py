@@ -1588,28 +1588,46 @@ class App(FastAPI):
         @router.post("/stream/{event_id}")
         async def _(event_id: str, body: PredictBody, request: fastapi.Request):
             event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
-            if event is None or not event.streaming:
+            # A lease (a WebRTC stream) gets its media over its peer connection
+            if event is None or not event.streaming or event.fn.lease:
                 return Response(status_code=404)
             new_body = PredictBodyInternal(**body.model_dump(), request=request)  # type: ignore
             new_body.session_hash = event.session_hash
-            new_body.event_id = None
             # A streaming event's later chunks carry only their data: the
             # browser-held gr.State values verified when the event joined (and
             # updated by each chunk since) carry on from one chunk to the next.
             if event.data is not None:
                 new_body.client_state = event.data.client_state
+            # gr.Info and progress from a chunk belong to this event, unless batched
+            new_body.event_id = None if event.fn.batch else event_id
             event.data = new_body
             event.signal.set()
             return {"msg": "success"}
 
         @router.post("/stream/{event_id}/close")
         async def _(event_id: str):
-            event = app.get_blocks()._queue.event_ids_to_events.get(event_id)
+            queue = app.get_blocks()._queue
+            event = queue.event_ids_to_events.get(event_id)
             if event is None or not event.streaming:
                 return Response(status_code=404)
+            close_stream = event.fn.close_stream
+            if close_stream is not None:
+                closed = close_stream(event_id)
+                if inspect.isawaitable(closed):
+                    closed = await closed
+                if closed:
+                    return {"msg": "success"}
             event.run_time = math.inf
             event.closed = True
             event.signal.set()
+            # A stream still in line leaves it; a started one ends via `closed`
+            if await queue.remove_from_queue(event_id):
+                queue.send_message(
+                    event,
+                    ProcessCompletedMessage(
+                        output={}, success=True, stream_ended=bool(event.fn.lease)
+                    ),
+                )
             return {"msg": "success"}
 
         @router.get("/stream/{session_hash}/{run}/{component_id}/playlist.m3u8")
@@ -1791,6 +1809,7 @@ class App(FastAPI):
                         gr_request=req,
                         fn=app.get_blocks().fns[fn_index],
                         root_path=root_path,
+                        run=route_utils.RunStep.alone(),
                     )
 
             async def iterator():
@@ -1864,6 +1883,7 @@ class App(FastAPI):
                     gr_request=gr_request,
                     fn=fn,
                     root_path=root_path,
+                    run=route_utils.RunStep.alone(),
                 )
             except BaseException as error:
                 content = utils.error_payload(error, app.get_blocks().show_error)
@@ -2094,7 +2114,8 @@ class App(FastAPI):
         @router.post("/cancel")
         async def cancel_event(body: CancelBody):
             blocks = app.get_blocks()
-            found = body.event_id in blocks._queue.event_ids_to_events
+            event = blocks._queue.event_ids_to_events.get(body.event_id)
+            found = event is not None
             cancelled = await utils.cancel_event_tasks({body.event_id})
             found = found or body.event_id in cancelled
             # Need to complete the job so that the client disconnects
@@ -2107,7 +2128,12 @@ class App(FastAPI):
             )
             await blocks._queue.remove_from_queue(body.event_id)
             message = ProcessCompletedMessage(
-                output={}, success=True, event_id=body.event_id
+                output={},
+                success=True,
+                event_id=body.event_id,
+                # A cancelled WebRTC stream ended for good: false would tell
+                # its client that it handed its turn over (and to join again)
+                stream_ended=bool(event is not None and event.fn.lease),
             )
             own_messages = blocks._queue.pending_messages_per_event.get(body.event_id)
             if own_messages is not None:
@@ -2422,6 +2448,71 @@ class App(FastAPI):
             return await anyio.to_thread.run_sync(
                 fn, *processed_input, limiter=app.get_blocks().limiter
             )
+
+        async def webrtc_signal(
+            request: fastapi.Request, username: str | None, name: str
+        ) -> Any:
+            # Runs like a server function, so tasks started from the offer
+            # inherit the visitor's request (gr.Request, ZeroGPU headers)
+            try:
+                body = await request.json()
+            except ValueError:
+                body = None
+            if not isinstance(body, dict):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid JSON body.",
+                )
+            if not isinstance(body.get("webrtc_id", ""), str | None):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="webrtc_id must be a string.",
+                )
+            # Without a stream handler, answer at once and do not import aiortc
+            # (nor numpy, which gradio.webrtc.utils needs)
+            connection = sys.modules.get("gradio.webrtc.connection")
+            if connection is not None:
+                from gradio.webrtc.utils import has_streams
+
+                if not has_streams(app.get_blocks()):
+                    connection = None
+            if connection is None:
+                if name == "offer":
+                    return {"status": "failed", "meta": {"error": "no_stream_handler"}}
+                return {"error": "No stream handler is attached to this app."}
+            session_hash = body.get("session_hash")
+            gr_request = Request(request, username, session_hash=session_hash)
+            fn = (
+                connection.handle_signal
+                if name == "offer"
+                else connection.get_rtc_configuration
+            )
+            fn = utils.get_function_with_locals(
+                fn,
+                app.get_blocks(),
+                event_id=None,
+                in_event_listener=False,
+                request=gr_request,
+                # Never creates a session's state: an admitted one has it
+                state=app.state_holder[session_hash]
+                if isinstance(session_hash, str) and session_hash in app.state_holder
+                else None,
+            )
+            return await fn(body, gr_request)
+
+        @router.post("/webrtc/offer", dependencies=[Depends(login_check)])
+        async def webrtc_offer(
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            return await webrtc_signal(request, username, "offer")
+
+        @router.post("/webrtc/rtc_configuration", dependencies=[Depends(login_check)])
+        async def webrtc_rtc_configuration(
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            return await webrtc_signal(request, username, "rtc_configuration")
 
         @router.get(
             "/queue/status",

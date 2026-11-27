@@ -18,6 +18,7 @@
 
 	interface Props {
 		value?: FileData | null;
+		live_stream?: MediaStream | null;
 		subtitle?: FileData | null;
 		label?: string;
 		show_label?: boolean;
@@ -41,6 +42,7 @@
 
 	let {
 		value = $bindable(null),
+		live_stream = null,
 		subtitle = null,
 		label = undefined,
 		show_label = true,
@@ -89,10 +91,30 @@
 		}
 		updateValue();
 	});
+
+	// The live media of a WebRTC stream
+	function play_live(node: HTMLVideoElement, stream: MediaStream) {
+		const set = (s: MediaStream): void => {
+			if (node.srcObject !== s) node.srcObject = s;
+			node.muted = !s.getAudioTracks().length;
+			node.play().catch(() => {});
+		};
+		set(stream);
+		return { update: set };
+	}
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if !value || value.url === undefined}
+{#if live_stream}
+	<!-- svelte-ignore a11y-media-has-caption -->
+	<video
+		class="live"
+		data-testid="live-video"
+		autoplay
+		playsinline
+		use:play_live={live_stream}
+	></video>
+{:else if !value || value.url === undefined}
 	<Empty unpadded_box={true} size="large"><Video /></Empty>
 {:else}
 	{#key value.url}
@@ -152,3 +174,11 @@
 		</IconButtonWrapper>
 	</div>
 {/if}
+
+<style>
+	.live {
+		width: var(--size-full);
+		max-height: 60vh;
+		object-fit: contain;
+	}
+</style>

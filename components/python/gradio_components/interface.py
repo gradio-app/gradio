@@ -696,10 +696,17 @@ class Interface(Blocks):
                     validator=self.validator,
                 )
             else:
+                from gradio_components.video import Video
+
                 events: list[Callable] = []
                 streaming_event = False
                 for component in self.input_components:  # type: ignore
-                    if component.has_event("stream") and component.streaming:  # type: ignore
+                    # gr.Video streams only over WebRTC, which Interface does not set up
+                    if (
+                        component.has_event("stream")
+                        and component.streaming  # type: ignore
+                        and not isinstance(component, Video)
+                    ):
                         events.append(component.stream)  # type: ignore
                         streaming_event = True
                     elif component.has_event("change"):

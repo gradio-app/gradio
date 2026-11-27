@@ -939,6 +939,7 @@ class BlocksConfig:
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
+        on_time_limit: Literal["rejoin", "stop"] = "rejoin",
         stream_every: float = 0.5,
         event_specific_args: list[str] | None = None,
         key: str | int | tuple[int | str, ...] | None = None,
@@ -979,6 +980,7 @@ class BlocksConfig:
             is_cancel_function: whether this event cancels another running event.
             connection: The connection format, either "sse" or "stream".
             time_limit: The time limit for the function to run. Parameter only used for the `.stream()` event.
+            on_time_limit: What happens when a stream reaches its `time_limit`. "rejoin" (default): if others are waiting, for its slot (`concurrency_limit`) or for a worker (`max_threads`) that streams keep busy, the page joins the queue again, keeping the microphone or camera on, so that they get their turn; if nobody waits, the stream goes on and its time limit counts again. "stop": the stream ends and the microphone or camera turns off, which keeps every stream within the limit (e.g. when streams cost money or GPU quota). Parameter only used for the `.stream()` event.
             stream_every: The latency (in seconds) at which stream chunks are sent to the backend. Defaults to 0.5 seconds. Parameter only used for the `.stream()` event.
             validator: a function that takes in the inputs and can optionally return a gr.validate() object for each input. The validator receives the same keyword arguments as the main function when `inputs_kwargs` is used, so its signature must accept those keyword names.
             eta: a number of seconds, or a regular (non-async) function of the raw input values returning one, used to estimate the function's run time for queue ETAs instead of the average of past runs. The function gets one positional argument per input (gr.State inputs as None), and is not called if a file input was not uploaded by a user.
@@ -1006,7 +1008,22 @@ class BlocksConfig:
         if show_progress_on and not isinstance(show_progress_on, Sequence):
             show_progress_on = [show_progress_on]
 
-        if fn is not None and not cancels:
+        # A stream's generator is sent the inputs' values instead (not the
+        # generator that runs a WebRTC stream)
+        sends_to_generator = (
+            connection == "stream"
+            and utils.is_generator_function(fn)
+            and not getattr(fn, "runs_a_stream", False)
+        )
+        if sends_to_generator:
+            utils.check_stream_generator(cast(Callable, fn))
+            if not queue:
+                # Each chunk would be a call of its own, with a new generator
+                raise ValueError(
+                    "A generator function given to .stream() keeps its state "
+                    "between chunks in the queue, so it cannot have queue=False."
+                )
+        elif fn is not None and not cancels:
             check_function_inputs_match(
                 fn, positional_inputs, inputs_as_dict, inputs_kwargs
             )
@@ -1147,6 +1164,7 @@ class BlocksConfig:
             is_cancel_function=is_cancel_function,
             connection=connection,
             time_limit=time_limit,
+            on_time_limit=on_time_limit,
             stream_every=stream_every,
             event_specific_args=event_specific_args,
             component_prop_inputs=component_prop_inputs,
@@ -1156,6 +1174,7 @@ class BlocksConfig:
             eta=eta,
         )
 
+        block_fn.sends_to_generator = sends_to_generator
         self.fns[fn_id] = block_fn
         if not reuse_id:
             self.fn_id += 1
@@ -1640,6 +1659,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 ]
                 dependency.pop("status_tracker", None)
                 dependency.pop("zerogpu", None)
+                # A stream with transport= needs its handler, which a loaded
+                # config does not have
+                dependency.pop("transport", None)
                 dependency.pop("id", None)
                 dependency.pop("rendered_in", None)
                 dependency.pop("render_id", None)
@@ -1929,6 +1951,18 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             state=state,
         )
 
+        if block_fn.sends_to_generator:
+            return await self._send_to_stream_generator(
+                block_fn,
+                fn,
+                processed_input,
+                cast(utils.StreamGenerator | None, iterator),
+                request,
+                event_data,
+                oauth_token,
+                start,
+            )
+
         if iterator is None:  # If not a generator function that has already run
             if block_fn.inputs_as_dict:
                 processed_input = [
@@ -2002,6 +2036,75 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "duration": duration,
             "is_generating": is_generating,
             "iterator": iterator,
+        }
+
+    async def _send_to_stream_generator(
+        self,
+        block_fn: BlockFunction,
+        fn: Callable,
+        processed_input: list[Any],
+        generator: utils.StreamGenerator | None,
+        request: Request | None,
+        event_data: EventData | None,
+        oauth_token: oauth.OAuthToken | None,
+        start: float,
+    ) -> dict[str, Any]:
+        """
+        `call_function` for a .stream() generator: the event's first chunk
+        creates its generator, called with the special parameters only, and
+        each chunk sends it the inputs' values (the value itself for one
+        input, a tuple for several), getting its outputs back. The generator
+        goes back as the call's iterator, which the queue keeps for the next
+        chunk and closes when the event ends.
+        """
+        if generator is None:
+            specials, progress_index, *_ = special_args(
+                cast(Callable, block_fn.fn),
+                [],
+                request,
+                event_data,
+                token=oauth_token,
+            )
+            created = fn
+            if progress_index is not None:
+                # A gr.Progress of its own, as call_function gives an event
+                specials[progress_index], created = create_tracker(
+                    fn, specials[progress_index].track_tqdm
+                )
+            generator = utils.StreamGenerator(
+                lambda: created(*specials),
+                is_async=inspect.isasyncgenfunction(fn),
+                run_in_thread=lambda f, *a: anyio.to_thread.run_sync(
+                    f, *a, limiter=self.limiter
+                ),
+            )
+        if block_fn.inputs_as_dict:
+            value: Any = dict(zip(block_fn.inputs, processed_input, strict=False))
+        else:
+            value = (
+                processed_input[0]
+                if len(processed_input) == 1
+                else tuple(processed_input)
+            )
+        prediction = await generator.step(value)
+        ended = prediction is utils.StreamGenerator.ENDED
+        if ended:
+            # The completion carries what the last chunk showed, as a plain
+            # function's stream and a generator event do (for the page, API
+            # clients and run history); before any, the outputs stay as they are
+            n_outputs = len(block_fn.outputs)
+            if generator.last is not None:
+                prediction = generator.last
+            else:
+                prediction = skip() if n_outputs == 1 else (skip(),) * n_outputs
+        else:
+            generator.last = prediction
+        return {
+            "prediction": prediction,
+            "duration": time.time() - start,
+            # The outputs are whole values each chunk, as a function's are
+            "is_generating": False,
+            "iterator": None if ended else generator,
         }
 
     def serialize_data(self, fn_index: int, inputs: list[Any]) -> list[Any]:
@@ -2270,6 +2373,7 @@ Received inputs:
         predictions: list | dict,
         state: SessionState | None,
     ) -> list[Any]:
+        from gradio.components.api_component import Api
         from gradio.profiling import trace_phase
 
         state = state or SessionState(self)
@@ -2338,7 +2442,14 @@ Received inputs:
                         k: v for k, v in prediction_value.items() if k in keys
                     }
                     prediction_value["__type__"] = "update"
-                if utils.is_prop_update(prediction_value):
+                if (
+                    isinstance(block, Api)
+                    and isinstance(prediction_value, dict)
+                    and prediction_value == skip()
+                ):
+                    # gr.api() output has no props, so gr.skip() leaves it as is
+                    pass
+                elif utils.is_prop_update(prediction_value):
                     # The output block may be absent from the session config if
                     # the app was hot-reloaded mid-run and this component was
                     # added by the reload; fall back to the block's own args.
@@ -2518,12 +2629,16 @@ Received inputs:
             session_hash, {}
         ).get(run, {})
 
+        # A WebRTC stream's media goes over its peer connection; a value here
+        # comes from a client's call with a file, which gets a file back
+        media_output = (block_fn.transport or {}).get("media_output")
         for i, block in enumerate(block_fn.outputs):
             output_id = block._id
             if (
                 isinstance(block, components.StreamingOutput)
                 and block.streaming
                 and not utils.is_prop_update(data[i])
+                and i != media_output
             ):
                 # Nothing to finalize if this output never opened a stream:
                 # the session may have been dropped on disconnect, or every
@@ -2623,6 +2738,7 @@ Received inputs:
         explicit_call: bool = False,
         root_path: str | None = None,
         oauth_token: oauth.OAuthToken | None = None,
+        keeps_run: bool | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -2639,6 +2755,7 @@ Received inputs:
             in_event_listener: whether this API call is being made in response to an event listener
             explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
             root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
+            keeps_run: whether a later call continues this run (see `route_utils.RunStep`), so that the diffs of its streamed outputs are kept for it. If None, a call with an `event_id` keeps its run.
 
         Returns a dictionary with the following keys:
             - "data": the output data from the function
@@ -2704,14 +2821,16 @@ Received inputs:
 
             old_iterator = iterator
             manual_cache_used = False
-            if old_iterator:
+            if old_iterator and not block_fn.sends_to_generator:
                 inputs = []
             else:
                 async with trace_phase("preprocess"):
                     inputs = await self.preprocess_data(
                         block_fn, inputs, state, explicit_call
                     )
-            was_generating = old_iterator is not None
+            was_generating = (
+                old_iterator is not None and not block_fn.sends_to_generator
+            )
             with TrackManualCacheUsage():
                 async with (
                     trace_phase("fn_call"),
@@ -2762,15 +2881,18 @@ Received inputs:
                             root_path=root_path,
                             final=not is_generating,
                         )
-                        # Diff state serves the later chunks of a run, which
-                        # can only be fetched under an event id. A call without
-                        # one gets full values, which is what its clients
-                        # expect.
+                        # Diff state serves the later calls of a run, which can
+                        # only be fetched under an event id. A call without one,
+                        # or one that is a run of its own (a stream's chunk),
+                        # gets full values, which is what its clients expect.
+                        keeps = event_id is not None and (
+                            keeps_run if keeps_run is not None else True
+                        )
                         data = self.handle_streaming_diffs(
                             block_fn,
                             data,
                             session_hash=session_hash,
-                            run=run if event_id is not None else None,
+                            run=run if keeps else None,
                             final=not is_generating,
                             simple_format=simple_format,
                         )

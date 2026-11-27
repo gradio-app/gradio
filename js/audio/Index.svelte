@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
-	import { Gradio } from "@gradio/utils";
+	import { onDestroy, onMount, tick } from "svelte";
+	import { Gradio, QueueDetail } from "@gradio/utils";
 	import { StatusTracker } from "@gradio/statustracker";
 
 	import StaticAudio from "./static/StaticAudio.svelte";
@@ -96,12 +96,24 @@
 
 	gradio.watch_for_change();
 
+	// The place in line of a WebRTC stream that waits for its turn
+	const queue = new QueueDetail();
+	$effect(() => queue.update(gradio.shared.loading_status));
+	onDestroy(() => queue.destroy());
+
 	onMount(() => {
 		set_trim_region_colour();
 	});
+
+	// An output plays the audio a WebRTC stream sends it in the player, even
+	// when it is interactive (e.g. also the input of another event)
+	const shows_live = $derived(
+		!!(gradio.props as any).live_stream &&
+			!(gradio.props as any).stream_transport
+	);
 </script>
 
-{#if !gradio.shared.interactive}
+{#if !gradio.shared.interactive || shows_live}
 	<Block
 		variant={"solid"}
 		border_mode={dragging ? "focus" : "base"}
@@ -127,6 +139,7 @@
 			show_label={gradio.shared.show_label}
 			buttons={gradio.props.buttons ?? ["download", "share"]}
 			value={gradio.props.value}
+			live_stream={(gradio.props as any).live_stream ?? null}
 			subtitles={gradio.props.subtitles}
 			{label}
 			loop={gradio.props.loop}
@@ -183,12 +196,15 @@
 				gradio.props.value = detail;
 				gradio.dispatch("stream", gradio.props.value);
 			}}
+			onlivestream={(detail) => gradio.dispatch("stream", detail)}
 			ondrag={(detail) => (dragging = detail)}
 			root={gradio.shared.root}
 			sources={gradio.props.sources}
 			active_source={active_source || undefined}
 			pending={gradio.shared.loading_status.pending}
 			streaming={gradio.props.streaming}
+			stream_transport={(gradio.props as any).stream_transport ?? null}
+			live_stream={(gradio.props as any).live_stream ?? null}
 			bind:recording
 			loop={gradio.props.loop}
 			max_file_size={gradio.shared.max_file_size}
@@ -223,6 +239,7 @@
 			{trim_region_settings}
 			stream_every={gradio.props.stream_every}
 			stream_state={gradio.shared.loading_status.stream_state}
+			queue_detail={queue.text}
 			upload={(...args) => gradio.shared.client.upload(...args)}
 			stream_handler={(...args) => gradio.shared.client.stream(...args)}
 			time_limit={gradio.shared.loading_status.time_limit}

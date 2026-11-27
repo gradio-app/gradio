@@ -235,6 +235,32 @@ const submission = app
 submission.cancel();
 ```
 
+##### Streaming media over WebRTC
+
+In the browser, `submit` also streams media to an endpoint of a `gradio.Server` app registered with `transport="webrtc"` (for example `@app.api(name="flip", transport="webrtc")`). Pass a `MediaStream` for the media parameter. The stream waits for its turn in the endpoint's queue like any submission, then connects:
+
+```ts
+import { Client } from "@gradio/client";
+
+const app = await Client.connect("user/space-name", {
+	events: ["data", "status", "log"]
+});
+const media = await navigator.mediaDevices.getUserMedia({ video: true });
+const job = app.submit("/flip", { frame: media, brightness: 1.0 });
+
+for await (const msg of job) {
+	if (msg.type === "data") {
+		const [video, mean] = msg.data;
+		if (video instanceof MediaStream) videoElement.srcObject = video;
+		if (mean !== undefined) console.log(mean);
+	}
+}
+```
+
+The media the server sends back arrives as a data message with a `MediaStream` in the media output's slot. Outputs that a data message does not update are `undefined`. Errors, including a connection that fails, arrive as `"status"` messages with `stage: "error"`, and the function's `gr.Info` and `gr.Warning` as `"log"` messages, for a client that subscribes to those `events` (with the default `["data"]`, only data messages arrive; the stream still waits its turn again when it hands its slot over at its time limit). A file among the other inputs (a `Blob`, or `handle_file()`) is uploaded before it is sent.
+
+While the stream runs, `job.send_chunk({ data: [null, 1.5] })` changes the other inputs (one value per parameter; `null` in the media slot keeps the media, and another `MediaStream` there, say from the other camera, replaces its tracks without leaving the stream; named values such as `{ data: { brightness: 1.5 } }` change only those inputs), `job.close_stream()` stops it once the outputs emitted until then have arrived, and `job.cancel()` stops it at once. The `MediaStream` stays yours: the stream does not stop its tracks. The connection closes when the page goes away.
+
 #### `view_api`
 
 The `view_api` method provides details about the API you are connected to. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.

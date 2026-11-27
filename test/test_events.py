@@ -265,7 +265,13 @@ def test_event_pyi_file_matches_source_code():
     assert segment
     sig = inspect.signature(gr.Button.click)
     for param in sig.parameters.values():
-        if param.name in ["block", "time_limit", "stream_every", "like_user_message"]:
+        if param.name in [
+            "block",
+            "time_limit",
+            "on_time_limit",
+            "stream_every",
+            "like_user_message",
+        ]:
             continue
         assert param.name in segment
 
@@ -283,5 +289,5 @@ def test_event_pyi_file_matches_source_code():
     # This would fail if Image no longer has a stream method
     assert segment
     sig = inspect.signature(gr.Image.stream)
-    for param in ["time_limit", "stream_every"]:
+    for param in ["time_limit", "on_time_limit", "stream_every"]:
         assert param in segment

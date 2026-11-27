@@ -44,7 +44,12 @@ import {
 	parse_and_set_cookies
 } from "./helpers/init_helpers";
 import { check_and_wake_space, check_space_status } from "./helpers/spaces";
-import { initialize_zerogpu_handshake } from "./helpers/zerogpu";
+import {
+	get_zerogpu_headers,
+	initialize_zerogpu_handshake,
+	with_timeout,
+	ZEROGPU_HEADERS_TIMEOUT_MS
+} from "./helpers/zerogpu";
 import { initialize_console_forwarding_for_app } from "./helpers/console_forward";
 import { open_stream, readable_stream, close_stream } from "./utils/stream";
 import { clear_run_history, load_run_history } from "./utils/run_history";
@@ -90,6 +95,8 @@ export class Client {
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
+	// Acknowledged events, whose late messages (e.g. a stopped stream's completion) are dropped
+	acknowledged_events: Set<string> = new Set();
 	events_to_resume: Set<string> = new Set();
 	stream_reconnect_attempts = 0;
 	stream_reconnect_timer: ReturnType<typeof setTimeout> | null = null;
@@ -209,14 +216,16 @@ export class Client {
 	post_data: (
 		url: string,
 		body: unknown,
-		additional_headers?: any
+		additional_headers?: any,
+		keepalive?: boolean
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown> | undefined,
 		event_data?: unknown,
 		trigger_id?: number | null,
-		all_events?: boolean
+		all_events?: boolean,
+		additional_headers?: Record<string, string>
 	) => SubmitIterable<GradioEvent>;
 	resume_jobs: (jobs?: ResumableJob[]) => SubmitIterable<GradioEvent>[];
 	predict: <T = unknown>(
@@ -771,6 +780,58 @@ export class Client {
 		} catch (e) {
 			console.warn(e);
 		}
+	}
+
+	/**
+	 * Sends a WebRTC stream's SDP offer or a trickled ICE candidate (`type: "ice-candidate"`).
+	 * Resolves with the server's answer, or undefined if the request failed.
+	 * @internal Used by `submit()` for endpoints with `transport="webrtc"`.
+	 */
+	public async webrtc_offer(
+		body: Record<string, unknown>
+	): Promise<Record<string, any> | undefined> {
+		// The offer starts the handler, so it carries the visitor's ZeroGPU
+		// headers, but goes out without them if the embedding page is slow.
+		const headers =
+			body.type === "offer"
+				? ((await with_timeout(
+						get_zerogpu_headers(),
+						ZEROGPU_HEADERS_TIMEOUT_MS,
+						null
+					)) ?? {})
+				: {};
+		return this.post_webrtc("offer", body, headers);
+	}
+
+	/**
+	 * ICE server configuration for a WebRTC stream whose queue turn has come;
+	 * `{ error }` if it was not admitted, undefined if the request failed.
+	 * @internal Used by `submit()` for endpoints with `transport="webrtc"`.
+	 */
+	public async webrtc_rtc_configuration(
+		webrtc_id: string
+	): Promise<Record<string, any> | undefined> {
+		return this.post_webrtc("rtc_configuration", { webrtc_id }, {});
+	}
+
+	private async post_webrtc(
+		route: "offer" | "rtc_configuration",
+		body: Record<string, unknown>,
+		extra_headers: Record<string, string>
+	): Promise<Record<string, any> | undefined> {
+		if (!this.config) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
+		const [output, status] = await this.post_data(
+			`${this.config.root}${this.api_prefix}/webrtc/${route}`,
+			{ ...body, session_hash: this.session_hash },
+			extra_headers
+		);
+		if (status !== 200) {
+			console.warn(`Could not reach the WebRTC ${route} route`, output);
+			return undefined;
+		}
+		return output as Record<string, any>;
 	}
 
 	public set_cookies(raw_cookies: string): void {

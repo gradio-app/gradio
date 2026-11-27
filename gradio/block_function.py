@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Literal
+from collections.abc import Awaitable, Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal
 
 from . import utils
 
@@ -49,6 +49,7 @@ class BlockFunction:
         is_cancel_function: bool = False,
         connection: Literal["stream", "sse"] = "sse",
         time_limit: float | None = None,
+        on_time_limit: Literal["rejoin", "stop"] = "rejoin",
         stream_every: float = 0.5,
         event_specific_args: list[str] | None = None,
         component_prop_inputs: list[int] | None = None,
@@ -104,9 +105,38 @@ class BlockFunction:
         # We need to keep track of which events are cancel events
         # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
+        # Only a stream uses it; other events have always ignored it
+        if (
+            connection == "stream"
+            and time_limit is not None
+            and (isinstance(time_limit, bool) or not time_limit > 0)
+        ):
+            raise ValueError(
+                f"time_limit must be a number of seconds above 0, or None, not {time_limit!r}."
+            )
         self.time_limit = time_limit
+        if on_time_limit not in ("rejoin", "stop"):
+            raise ValueError(
+                f'on_time_limit must be "rejoin" or "stop", not {on_time_limit!r}.'
+            )
+        self.on_time_limit: Literal["rejoin", "stop"] = on_time_limit
         self.stream_every = stream_every
         self.connection = connection
+        # Ends a running stream when the page closes it, given the queue event's
+        # id; returns False to leave that to the queue
+        self.close_stream: Callable[[str], bool | Awaitable[bool]] | None = None
+        # A WebRTC stream that keeps its place in the queue while it runs:
+        # its wake wait has no timeout, and the function enforces its own time
+        # limit and ends the run itself.
+        self.lease = False
+        # A .stream() whose function is a generator: each of its events runs
+        # one generator, which each chunk is sent to (see `StreamGenerator`)
+        self.sends_to_generator = False
+        # A stream with transport=: how the page connects (see webrtc.transport)
+        self.transport: dict[str, Any] | None = None
+        # Whether a client without the page's media can also call it once with
+        # a file (see webrtc.transport)
+        self.callable_once = False
         self.event_specific_args = event_specific_args
         self.component_prop_inputs = component_prop_inputs or []
         self.input_keyword_names = input_keyword_names or []
@@ -124,6 +154,21 @@ class BlockFunction:
 
     def __repr__(self):
         return str(self)
+
+    def called_once(self, event_data: Any) -> bool:
+        """Whether a call of this stream comes from a client without the page's
+        media, which runs it once as an ordinary event (see webrtc.transport):
+        it joined without a WebRTC stream id."""
+        webrtc_id = (
+            event_data.get("webrtc_id") if isinstance(event_data, dict) else None
+        )
+        # A stream id is a non-empty string, as the stream's function checks
+        # (webrtc.transport): anything else runs the function once there
+        return (
+            self.lease
+            and self.callable_once
+            and not (isinstance(webrtc_id, str) and webrtc_id)
+        )
 
     def get_config(self):
         return {
@@ -158,7 +203,9 @@ class BlockFunction:
             "render_id": self.renderable._id if self.renderable else None,
             "connection": self.connection,
             "time_limit": self.time_limit,
+            "on_time_limit": self.on_time_limit,
             "stream_every": self.stream_every,
+            "transport": self.transport,
             "event_specific_args": self.event_specific_args,
             "component_prop_inputs": self.component_prop_inputs,
         }
